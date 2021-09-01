@@ -12,7 +12,7 @@ macro_rules! mdo {
 }
 
 #[allow(dead_code)]
-fn sandbox() {
+fn sandbox1() {
     let a_opt = Some(3);
     let b_opt = Some(2);
 
@@ -29,6 +29,12 @@ fn sandbox() {
     println!("{:?}, {:?}", &x, &y);
 }
 
+fn sandbox2() {
+    let x = vec![Some(1), Some(3), None];
+    let y = x.into_iter().flatten().collect::<Vec<i32>>();
+    let z = y;
+}
+
 fn main() {
-    sandbox();
+    sandbox2();
 }
