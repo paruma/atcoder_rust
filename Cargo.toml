@@ -14,6 +14,18 @@ path = "src/maina.rs"
 name = "mainb"
 path = "src/mainb.rs"
 
+[[bin]]
+name = "mainb2"
+path = "src/mainb2.rs"
+
+[[bin]]
+name = "mainc"
+path = "src/mainc.rs"
+
+[[bin]]
+name = "sandbox"
+path = "src/sandbox.rs"
+
 [dependencies]
 #atcoder-rust-base/Cargo.toml at ja · rust-lang-ja/atcoder-rust-base · GitHub https://github.com/rust-lang-ja/atcoder-rust-base/blob/ja/Cargo.toml からコピー
 
@@ -35,7 +47,7 @@ path = "src/mainb.rs"
 #num-derive = "=0.3.0"
 
 # NumPyの`ndarray`のような多次元配列
-#ndarray = "=0.13.0"
+ndarray = "=0.13.0"
 
 # 線形代数
 #nalgebra = "=0.20.0"
