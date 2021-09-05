@@ -2,6 +2,7 @@
 // トレースバックしないのはそれはそれで面倒。
 // ただ意味としてはわかりやすい。
 
+use itertools::iproduct;
 use ndarray::{Array, Array2};
 use proconio::input;
 use proconio::marker::Bytes;
@@ -76,29 +77,30 @@ fn solve(seq1: &[u8], seq2: &[u8]) -> (Vec<u8>, Vec<u8>) {
     };
 
     // ここ、itertoolsのiproduct!を使う方法もある。
-    for y in 0..dp_height {
-        for x in 0..dp_width {
-            if x == 0 && y == 0 {
-                continue;
-            }
-            let score1 = (!(x == 0 || y == 0)).then(|| DPElem {
-                score: dp[[y - 1, x - 1]].score + sim(seq1[x - 1], seq2[y - 1]),
-                op: Op::Change,
-            });
-            let score2 = (y != 0).then(|| DPElem {
-                score: dp[[y - 1, x]].score + sim(b'-', seq2[y - 1]),
-                op: Op::Insert,
-            });
-            let score3 = (x != 0).then(|| DPElem {
-                score: dp[[y, x - 1]].score + sim(seq1[x - 1], b'-'),
-                op: Op::Delete,
-            });
-            dp[[y, x]] = *[score1, score2, score3]
-                .iter()
-                .flatten()
-                .max_by_key(|&x| x.score)
-                .unwrap();
+
+    // マクロでmfor!(y in 0..dp_height, x in dp_width)とかかけたらいいんだけどなぁ。
+    // 2重forより可読性上がってるのかよくわからないなぁ。
+    for (y, x) in iproduct!(0..dp_height, 0..dp_width) {
+        if x == 0 && y == 0 {
+            continue;
         }
+        let score1 = (!(x == 0 || y == 0)).then(|| DPElem {
+            score: dp[[y - 1, x - 1]].score + sim(seq1[x - 1], seq2[y - 1]),
+            op: Op::Change,
+        });
+        let score2 = (y != 0).then(|| DPElem {
+            score: dp[[y - 1, x]].score + sim(b'-', seq2[y - 1]),
+            op: Op::Insert,
+        });
+        let score3 = (x != 0).then(|| DPElem {
+            score: dp[[y, x - 1]].score + sim(seq1[x - 1], b'-'),
+            op: Op::Delete,
+        });
+        dp[[y, x]] = *[score1, score2, score3]
+            .iter()
+            .flatten()
+            .max_by_key(|&x| x.score)
+            .unwrap();
     }
 
     // 逆走
