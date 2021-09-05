@@ -2,6 +2,7 @@ use proconio::input;
 use proconio::marker::Bytes;
 use std::cmp;
 
+
 fn read() -> (Vec<u8>, Vec<u8>) {
     input! {
         seq1: Bytes,

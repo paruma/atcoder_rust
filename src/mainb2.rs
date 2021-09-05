@@ -2,6 +2,8 @@ use ndarray::{Array, Array2};
 use proconio::input;
 use proconio::marker::Bytes;
 
+mod test;
+
 fn read() -> (Vec<u8>, Vec<u8>) {
     input! {
         seq1: Bytes,
@@ -101,4 +103,6 @@ fn main() {
     let (seq1, seq2) = read();
     let (seq1_aligned, seq2_aligned) = solve(&seq1, &seq2);
     output(&seq1_aligned, &seq2_aligned);
+
+    test::test();
 }
