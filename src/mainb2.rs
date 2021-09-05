@@ -1,8 +1,8 @@
+// mainbのリファクタリング
+
 use ndarray::{Array, Array2};
 use proconio::input;
 use proconio::marker::Bytes;
-
-mod test;
 
 fn read() -> (Vec<u8>, Vec<u8>) {
     input! {
@@ -44,7 +44,6 @@ fn solve(seq1: &[u8], seq2: &[u8]) -> (Vec<u8>, Vec<u8>) {
 
     // x=0の列とy=0の行を計算
     dp[[0, 0]] = 0;
-
 
     // ここ、itertoolsのiproduct!を使う方法もある。
     for y in 0..dp_height {
@@ -103,6 +102,4 @@ fn main() {
     let (seq1, seq2) = read();
     let (seq1_aligned, seq2_aligned) = solve(&seq1, &seq2);
     output(&seq1_aligned, &seq2_aligned);
-
-    test::test();
 }

@@ -35,6 +35,12 @@ fn sandbox2() {
     let z = y;
 }
 
+
+mod test;
+fn sandbox3(){
+    test::test();
+}
+
 fn main() {
     sandbox2();
 }

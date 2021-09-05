@@ -3,7 +3,7 @@
     // 既存の属性の説明をホバーして表示します。
     // 詳細情報は次を確認してください: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
-    "configurations": [
+    "configurations":[
         {
             "type": "lldb",
             "request": "launch",
@@ -118,6 +118,43 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Debug executable 'mainb3'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=mainb3",
+                    "--package=genocon2021"
+                ],
+                "filter": {
+                    "name": "mainb3",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'mainb3'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=mainb3",
+                    "--package=genocon2021"
+                ],
+                "filter": {
+                    "name": "mainb3",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Debug executable 'mainc'",
             "cargo": {
                 "args": [
@@ -146,6 +183,43 @@
                 ],
                 "filter": {
                     "name": "mainc",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'sandbox'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=sandbox",
+                    "--package=genocon2021"
+                ],
+                "filter": {
+                    "name": "sandbox",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'sandbox'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=sandbox",
+                    "--package=genocon2021"
+                ],
+                "filter": {
+                    "name": "sandbox",
                     "kind": "bin"
                 }
             },
