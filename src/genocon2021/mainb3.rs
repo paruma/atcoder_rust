@@ -7,8 +7,6 @@ use ndarray::{Array, Array2};
 use proconio::input;
 use proconio::marker::Bytes;
 
-mod test;
-
 fn read() -> (Vec<u8>, Vec<u8>) {
     input! {
         seq1: Bytes,
