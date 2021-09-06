@@ -11,13 +11,12 @@ macro_rules! mdo {
     };
 }
 
-#[allow(dead_code)]
-fn sandbox1() {
+fn _sandbox1() {
     let a_opt = Some(3);
     let b_opt = Some(2);
 
-    let a_vec = vec![1, 2, 3];
-    let b_vec = vec![4, 5, 6];
+    let _a_vec = vec![1, 2, 3];
+    let _b_vec = vec![4, 5, 6];
 
     let x = a_opt.and_then(|a| b_opt.map(|b| a + b));
 
@@ -29,18 +28,17 @@ fn sandbox1() {
     println!("{:?}, {:?}", &x, &y);
 }
 
-fn sandbox2() {
+fn _sandbox2() {
     let x = vec![Some(1), Some(3), None];
     let y = x.into_iter().flatten().collect::<Vec<i32>>();
-    let z = y;
+    let _z = y;
 }
 
-
 mod test;
-fn sandbox3(){
+fn _sandbox3() {
     test::test();
 }
 
 fn main() {
-    sandbox2();
+    _sandbox3();
 }

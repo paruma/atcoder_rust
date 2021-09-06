@@ -2,7 +2,6 @@ use proconio::input;
 use proconio::marker::Bytes;
 use std::cmp;
 
-
 fn read() -> (Vec<u8>, Vec<u8>) {
     input! {
         seq1: Bytes,
@@ -21,6 +20,8 @@ fn sim(ch1: u8, ch2: u8) -> i32 {
     }
 }
 
+#[allow(clippy::ptr_arg)]
+#[allow(dead_code)]
 fn score(seq1_aligned: &Vec<u8>, seq2_aligned: &Vec<u8>) -> i32 {
     assert!(seq1_aligned.len() == seq2_aligned.len());
     (0..seq1_aligned.len())
@@ -28,12 +29,14 @@ fn score(seq1_aligned: &Vec<u8>, seq2_aligned: &Vec<u8>) -> i32 {
         .sum::<i32>()
 }
 
+#[allow(clippy::ptr_arg)]
 fn solve(seq1: &Vec<u8>, seq2: &Vec<u8>) -> (Vec<u8>, Vec<u8>) {
     let dp_width = seq1.len() + 1;
     let dp_height = seq2.len() + 1;
     let mut dp: Vec<Vec<i32>> = vec![vec![0; dp_width]; dp_height];
 
     // x=0の列とy=0の行を計算
+    #[allow(clippy::needless_range_loop)]
     for y in 0..dp_height {
         dp[y][0] = y as i32 * (-5);
     }
@@ -86,6 +89,7 @@ fn solve(seq1: &Vec<u8>, seq2: &Vec<u8>) -> (Vec<u8>, Vec<u8>) {
     (seq1_aligned, seq2_aligned)
 }
 
+#[allow(clippy::ptr_arg)]
 fn output(seq1: &Vec<u8>, seq2: &Vec<u8>) {
     println!("{}", String::from_utf8(seq1.clone()).unwrap());
     println!("{}", String::from_utf8(seq2.clone()).unwrap());

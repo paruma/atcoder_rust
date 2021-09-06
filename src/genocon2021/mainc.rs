@@ -9,11 +9,12 @@ fn read() -> (usize, Vec<Vec<u8>>) {
     (m, seq_vec)
 }
 
-
-fn solve(m: usize, seq_vec: &Vec<Vec<u8>>) -> Vec<Vec<u8>> {
+#[allow(clippy::ptr_arg)]
+fn solve(_m: usize, seq_vec: &Vec<Vec<u8>>) -> Vec<Vec<u8>> {
     seq_vec.clone()
 }
 
+#[allow(clippy::ptr_arg)]
 fn output(seq_vec: &Vec<Vec<u8>>) {
     // ここらへんのiter, into_iterの話がぜんぜんわからないなぁ。
     seq_vec
