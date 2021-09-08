@@ -34,11 +34,6 @@ fn _sandbox2() {
     let _z = y;
 }
 
-mod test;
-fn _sandbox3() {
-    test::test();
-}
-
 #[allow(clippy::ptr_arg)]
 fn _test(v: &Vec<i32>) {
     println!("{}", v.len());
@@ -76,5 +71,5 @@ fn _sandbox5() {
 }
 
 fn main() {
-    _sandbox3();
+    _sandbox5();
 }
