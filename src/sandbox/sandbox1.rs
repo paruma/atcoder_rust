@@ -72,6 +72,19 @@ fn _sandbox5() {
     Hoge::hoge(&&x);
 }
 
+fn _sandbox6() {
+    let a = [1, 2, 3];
+    let _sum: i32 = a.iter().sum();
+}
+
+// numトレイトのテスト
+#[test]
+fn _sandbox7() {
+    use num;
+    assert_eq!(num::pow::<i32>(3, 5), 243);
+}
+
+#[allow(dead_code)] //なぜかdead_codeになっている
 fn main() {
     _sandbox5();
 }

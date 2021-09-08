@@ -144,10 +144,10 @@ mod rf {
 #[cfg(test)]
 mod tests {
     //use super::*;
+    use super::rf::*;
 
     #[test]
     fn test_rf() {
-        use super::rf::*;
         let x = RF::new(3);
         let y = RF::new(7);
 
@@ -162,5 +162,16 @@ mod tests {
         assert_eq!(x * y, RF::new(21));
         assert_eq!((x / y) * y, x);
         assert_eq!((y.inv()) * y, RF::one());
+    }
+
+    #[test]
+    fn test_rf_vec() {
+        let xs = vec![RF::new(3), RF::new(4)];
+
+        //let y: RF = vec.iter().sum::<RF>();
+
+        //let xs = vec![1, 2, 3];
+
+        let _z = xs.iter().fold(RF::zero(), |sum, x| sum + *x);
     }
 }
