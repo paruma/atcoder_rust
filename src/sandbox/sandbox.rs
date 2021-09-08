@@ -39,6 +39,42 @@ fn _sandbox3() {
     test::test();
 }
 
+#[allow(clippy::ptr_arg)]
+fn _test(v: &Vec<i32>) {
+    println!("{}", v.len());
+}
+fn _sandbox4() {
+    let v = vec![1, 2];
+    v.len(); //これは(&v).len()と書いても同じ？
+    (&v).len();
+
+    _test(&v);
+
+    // 借用しているだけで普通に使える。
+    let x = &v;
+    // let y: Vec<i32> = *x;// これはエラーか。Copyできないからエラーみたい。（所有者が2人になってしまう）
+    println!("{}", x.len());
+
+    let x = 10;
+    let y = &x;
+    let _z = *y; // i32はCopy可能
+}
+
+struct Hoge {}
+impl Hoge {
+    fn hoge(&self) {}
+}
+
+fn _sandbox5() {
+    let x: Hoge = Hoge {};
+    x.hoge();
+    (&x).hoge();
+    (&&x).hoge();
+    // Hoge::hoge(x); //エラー: add reference here
+    Hoge::hoge(&x);
+    Hoge::hoge(&&x);
+}
+
 fn main() {
     _sandbox3();
 }

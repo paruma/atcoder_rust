@@ -26,8 +26,7 @@ fn reverse_complement_sequence(seq: Vec<u8>) -> Vec<u8> {
 fn main() {
     let (_, seq_vec) = read();
 
-    
-
+    // この場合はiter()のほうが良さげ(reverse_completement_sequenceの引数が参照じゃないから無理だけど)
     let ans = seq_vec.into_iter().map(reverse_complement_sequence);
 
     ans.for_each(|x| println!("{}", String::from_utf8(x).unwrap()));
