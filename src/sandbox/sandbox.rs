@@ -54,9 +54,11 @@ fn _sandbox4() {
     let y = &x;
     let _z = *y; // i32はCopy可能
 }
-
+#[allow(dead_code)]
 struct Hoge {}
+
 impl Hoge {
+    #[allow(dead_code)]
     fn hoge(&self) {}
 }
 

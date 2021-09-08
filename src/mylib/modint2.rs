@@ -1,18 +1,18 @@
 // https://github.com/rust-lang-ja/ac-library-rs/blob/72fe2a19cf6efcb225327912d4da332425d1a37d/src/modint.rs#L513
 // From<i32>とかあるのか。なるほどなぁ。
 
-mod rr {
+mod rf {
     pub const MOD: i64 = 1_000_000_007;
 
     #[allow(clippy::upper_case_acronyms)]
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-    pub struct RR {
+    pub struct RF {
         rep: i64,
     }
 
-    impl RR {
-        pub fn new(rep: i64) -> RR {
-            RR {
+    impl RF {
+        pub fn new(rep: i64) -> RF {
+            RF {
                 rep: rep.rem_euclid(MOD),
             }
         }
@@ -23,43 +23,69 @@ mod rr {
         }
     }
 
-    trait Ring {
+    trait Ring: std::marker::Sized + Copy {
         fn zero() -> Self;
         fn one() -> Self;
         fn mul(self, rhs: Self) -> Self;
         fn add(self, rhs: Self) -> Self;
         fn neg(self) -> Self;
-        fn sub(self, rhs: Self) -> Self
+        fn sub(self, rhs: Self) -> Self {
+            self.add(rhs.neg())
+        }
+
+        fn pow(self, n: i64) -> Self {
+            if n == 0 {
+                return Self::one();
+            }
+            let y = self.pow(n / 2);
+
+            if n % 2 == 0 {
+                y.mul(y)
+            } else {
+                self.mul(y.mul(y))
+            }
+        }
+    }
+
+    trait Field: Ring {
+        fn inv(self) -> Self;
+        fn div(self, rhs: Self) -> Self
         where
             Self: std::marker::Sized,
         {
-            self.add(rhs.neg())
+            self.mul(rhs.inv())
         }
     }
 
-    impl Ring for RR {
+    impl Ring for RF {
         fn zero() -> Self {
-            RR::new(0)
+            RF::new(0)
         }
 
         fn one() -> Self {
-            RR::new(1)
+            RF::new(1)
         }
 
         fn mul(self, rhs: Self) -> Self {
-            RR::new(self.rep * rhs.rep)
+            RF::new(self.rep * rhs.rep)
         }
 
         fn add(self, rhs: Self) -> Self {
-            RR::new(self.rep + rhs.rep)
+            RF::new(self.rep + rhs.rep)
         }
 
         fn neg(self) -> Self {
-            RR::new(-self.rep)
+            RF::new(-self.rep)
         }
     }
 
-    impl RR {
+    impl Field for RF {
+        fn inv(self) -> Self {
+            self.pow(MOD - 2)
+        }
+    }
+
+    impl RF {
         #[allow(dead_code)]
         pub fn zero() -> Self {
             Ring::zero()
@@ -69,23 +95,28 @@ mod rr {
         pub fn one() -> Self {
             Ring::one()
         }
+
+        #[allow(dead_code)]
+        pub fn inv(self) -> Self {
+            Field::inv(self)
+        }
     }
 
-    impl std::ops::Add for RR {
+    impl std::ops::Add for RF {
         type Output = Self;
 
         fn add(self, rhs: Self) -> Self::Output {
             Ring::add(self, rhs)
         }
     }
-    impl std::ops::Neg for RR {
+    impl std::ops::Neg for RF {
         type Output = Self;
 
         fn neg(self) -> Self::Output {
             Ring::neg(self)
         }
     }
-    impl std::ops::Sub for RR {
+    impl std::ops::Sub for RF {
         type Output = Self;
 
         fn sub(self, rhs: Self) -> Self::Output {
@@ -93,11 +124,19 @@ mod rr {
         }
     }
 
-    impl std::ops::Mul for RR {
+    impl std::ops::Mul for RF {
         type Output = Self;
 
         fn mul(self, rhs: Self) -> Self::Output {
             Ring::mul(self, rhs)
+        }
+    }
+
+    impl std::ops::Div for RF {
+        type Output = Self;
+
+        fn div(self, rhs: Self) -> Self::Output {
+            Field::div(self, rhs)
         }
     }
 }
@@ -107,19 +146,21 @@ mod tests {
     //use super::*;
 
     #[test]
-    fn test_rr() {
-        use super::rr::*;
-        let x = RR::new(3);
-        let y = RR::new(7);
+    fn test_rf() {
+        use super::rf::*;
+        let x = RF::new(3);
+        let y = RF::new(7);
 
         assert_eq!(x.rep(), 3);
-        assert_eq!(RR::one(), RR::new(1));
-        assert_eq!(RR::zero(), RR::new(0));
-        assert_eq!(x + y, RR::new(10));
-        assert_eq!(x - y, RR::new(MOD - 4));
-        assert_eq!(y - x, RR::new(4));
-        assert_eq!(-x, RR::new(MOD - 3));
+        assert_eq!(RF::one(), RF::new(1));
+        assert_eq!(RF::zero(), RF::new(0));
+        assert_eq!(x + y, RF::new(10));
+        assert_eq!(x - y, RF::new(MOD - 4));
+        assert_eq!(y - x, RF::new(4));
+        assert_eq!(-x, RF::new(MOD - 3));
         assert_eq!((-x).rep(), MOD - 3);
-        assert_eq!(x * y, RR::new(21));
+        assert_eq!(x * y, RF::new(21));
+        assert_eq!((x / y) * y, x);
+        assert_eq!((y.inv()) * y, RF::one());
     }
 }
