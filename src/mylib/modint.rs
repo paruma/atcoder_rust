@@ -17,43 +17,46 @@ trait Ring {
     }
 }
 
+const MOD: i64 = 1_000_000_007;
+
 // Super Redidue Ring
 #[allow(clippy::upper_case_acronyms)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-struct SRR<const MOD: i64> {
+struct RR {
     rep: i64,
 }
-impl<const MOD: i64> SRR<MOD> {
-    fn new(rep: i64) -> SRR<MOD> {
-        SRR {
+
+impl RR {
+    fn new(rep: i64) -> RR {
+        RR {
             rep: rep.rem_euclid(MOD),
         }
     }
 }
 
-impl<const MOD: i64> Ring for SRR<MOD> {
+impl Ring for RR {
     fn zero() -> Self {
-        SRR { rep: 0 }
+        RR { rep: 0 }
     }
 
     fn one() -> Self {
-        SRR { rep: 1 }
+        RR { rep: 1 }
     }
 
     fn mul(&self, other: &Self) -> Self {
-        SRR::new(self.rep * other.rep)
+        RR::new(self.rep * other.rep)
     }
 
     fn add(&self, other: &Self) -> Self {
-        SRR::new(self.rep + other.rep)
+        RR::new(self.rep + other.rep)
     }
 
     fn neg(&self) -> Self {
-        SRR::new(-self.rep)
+        RR::new(-self.rep)
     }
 }
 
-impl<const MOD: i64> std::ops::Add for SRR<MOD> {
+impl std::ops::Add for RR {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
@@ -61,7 +64,7 @@ impl<const MOD: i64> std::ops::Add for SRR<MOD> {
     }
 }
 
-impl<const MOD: i64> std::ops::Sub for SRR<MOD> {
+impl std::ops::Sub for RR {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self::Output {
@@ -69,7 +72,7 @@ impl<const MOD: i64> std::ops::Sub for SRR<MOD> {
     }
 }
 
-impl<const MOD: i64> std::ops::Mul for SRR<MOD> {
+impl std::ops::Mul for RR {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self::Output {
@@ -77,7 +80,7 @@ impl<const MOD: i64> std::ops::Mul for SRR<MOD> {
     }
 }
 
-impl<const MOD: i64> std::ops::Neg for SRR<MOD> {
+impl std::ops::Neg for RR {
     type Output = Self;
 
     fn neg(self) -> Self::Output {
@@ -128,12 +131,11 @@ mod tests {
 
     #[test]
     fn test_rr() {
-        const MOD: i64 = 1_000_000_007;
-        type RR = SRR<MOD>;
         let x = RR::new(3);
         let y = RR::new(7);
         assert_eq!(x + y, RR::new(10));
         assert_eq!(x - y, RR::new(MOD - 4));
+        assert_eq!(y - x, RR::new(4));
         assert_eq!(x * y, RR::new(21));
     }
 }
