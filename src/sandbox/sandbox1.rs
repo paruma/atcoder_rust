@@ -1,4 +1,6 @@
 // Rustでもモナドは実装できるのか？（再） - Don't Repeat Yourself https://blog-dry.com/entry/2020/12/25/130250
+
+#[allow(unused_macros)]
 macro_rules! mdo {
     ($i:ident <- $e:expr; $($t:tt)*) => {
         $e.and_then(move |$i| mdo!($($t)*))
@@ -11,6 +13,7 @@ macro_rules! mdo {
     };
 }
 
+#[test]
 fn _sandbox1() {
     let a_opt = Some(3);
     let b_opt = Some(2);
@@ -28,6 +31,7 @@ fn _sandbox1() {
     println!("{:?}, {:?}", &x, &y);
 }
 
+#[test]
 fn _sandbox2() {
     let x = vec![Some(1), Some(3), None];
     let y = x.into_iter().flatten().collect::<Vec<i32>>();
@@ -38,6 +42,7 @@ fn _sandbox2() {
 fn _test(v: &Vec<i32>) {
     println!("{}", v.len());
 }
+#[test]
 fn _sandbox4() {
     let v = vec![1, 2];
     v.len(); //これは(&v).len()と書いても同じ？
@@ -62,6 +67,7 @@ impl Hoge {
     fn hoge(&self) {}
 }
 
+#[test]
 fn _sandbox5() {
     let x: Hoge = Hoge {};
     x.hoge();
@@ -71,7 +77,7 @@ fn _sandbox5() {
     Hoge::hoge(&x);
     Hoge::hoge(&&x);
 }
-
+#[test]
 fn _sandbox6() {
     let a = [1, 2, 3];
     let _sum: i32 = a.iter().sum();
@@ -82,9 +88,4 @@ fn _sandbox6() {
 fn _sandbox7() {
     use num;
     assert_eq!(num::pow::<i32>(3, 5), 243);
-}
-
-#[allow(dead_code)] //なぜかdead_codeになっている
-fn main() {
-    _sandbox5();
 }

@@ -1,5 +1,6 @@
 // https://gist.github.com/jimmychu0807/9a89355e642afad0d2aeda52e6ad2424
 
+#[test]
 fn main() {
     // -- FROM: vec of chars --
     let src1: Vec<char> = vec!['j', '{', '"', 'i', 'm', 'm', 'y', '"', '}'];
@@ -92,9 +93,8 @@ fn _sub() {
 
     println!("{:?}{:?}{:?}{:?}", &s1, s2, &chars, &bytes);
 
-
-    let hoge = vec![1,2,3];
-    let hoge:&[i32] = &hoge;
+    let hoge = vec![1, 2, 3];
+    let hoge: &[i32] = &hoge;
     let _hoge = hoge.to_vec();
 }
 

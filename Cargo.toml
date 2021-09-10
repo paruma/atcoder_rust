@@ -8,32 +8,24 @@ edition = "2018"
 
 [[bin]]
 name = "genocon2021_maina"
-path = "src/genocon2021/maina.rs"
+path = "src/contest/genocon2021/maina.rs"
 
 [[bin]]
 name = "genocon2021_mainb"
-path = "src/genocon2021/mainb.rs"
+path = "src/contest/genocon2021/mainb.rs"
 
 [[bin]]
 name = "genocon2021_mainb2"
-path = "src/genocon2021/mainb2.rs"
+path = "src/contest/genocon2021/mainb2.rs"
 
 [[bin]]
 name = "genocon2021_mainb3"
-path = "src/genocon2021/mainb3.rs"
-
+path = "src/contest/genocon2021/mainb3.rs"
 
 [[bin]]
 name = "genocon2021_mainc"
-path = "src/genocon2021/mainc.rs"
+path = "src/contest/genocon2021/mainc.rs"
 
-[[bin]]
-name = "sandbox_sandbox1"
-path = "src/sandbox/sandbox1.rs"
-
-[[bin]]
-name = "sandbox_string_test"
-path = "src/sandbox/string_test.rs"
 
 [dependencies]
 #atcoder-rust-base/Cargo.toml at ja · rust-lang-ja/atcoder-rust-base · GitHub https://github.com/rust-lang-ja/atcoder-rust-base/blob/ja/Cargo.toml からコピー
