@@ -32,19 +32,6 @@ mod rf {
         fn sub(self, rhs: Self) -> Self {
             self.add(rhs.neg())
         }
-
-        fn pow(self, n: i64) -> Self {
-            if n == 0 {
-                return Self::one();
-            }
-            let y = self.pow(n / 2);
-
-            if n % 2 == 0 {
-                y.mul(y)
-            } else {
-                self.mul(y.mul(y))
-            }
-        }
     }
 
     trait Field: Ring {
@@ -81,24 +68,30 @@ mod rf {
 
     impl Field for RF {
         fn inv(self) -> Self {
-            self.pow(MOD - 2)
+            num::pow(self, (MOD - 2) as usize)
         }
     }
 
     impl RF {
         #[allow(dead_code)]
-        pub fn zero() -> Self {
+        pub fn inv(self) -> Self {
+            Field::inv(self)
+        }
+    }
+
+    impl num_traits::Zero for RF {
+        fn zero() -> Self {
             Ring::zero()
         }
 
-        #[allow(dead_code)]
-        pub fn one() -> Self {
-            Ring::one()
+        fn is_zero(&self) -> bool {
+            self.rep == 0
         }
+    }
 
-        #[allow(dead_code)]
-        pub fn inv(self) -> Self {
-            Field::inv(self)
+    impl num_traits::One for RF {
+        fn one() -> Self {
+            Ring::one()
         }
     }
 
@@ -143,11 +136,15 @@ mod rf {
 
 #[cfg(test)]
 mod tests {
+    use num::{One, Zero};
+
     //use super::*;
     use super::rf::*;
 
     #[test]
     fn test_rf() {
+        use super::rf::*;
+
         let x = RF::new(3);
         let y = RF::new(7);
 
@@ -167,11 +164,7 @@ mod tests {
     #[test]
     fn test_rf_vec() {
         let xs = vec![RF::new(3), RF::new(4)];
-
-        //let y: RF = vec.iter().sum::<RF>();
-
-        //let xs = vec![1, 2, 3];
-
-        let _z = xs.iter().fold(RF::zero(), |sum, x| sum + *x);
+        let z = xs.iter().fold(RF::zero(), |sum, x| sum + *x);
+        assert_eq!(z, RF::new(7));
     }
 }

@@ -81,16 +81,16 @@ mod tests {
     #[allow(clippy::redundant_clone)]
     #[test]
     fn test_prod() {
-        let xs = vec![1, 2, 3];
+        let xs = vec![1, 2, 3, 4];
 
         let s1: i32 = xs.iter().product();
         let s2: i32 = xs.clone().into_iter().product();
         let s3: i32 = xs.iter().product2();
         let s4: i32 = xs.clone().into_iter().product2();
 
-        assert_eq!(s1, 6);
-        assert_eq!(s2, 6);
-        assert_eq!(s3, 6);
-        assert_eq!(s4, 6);
+        assert_eq!(s1, 24);
+        assert_eq!(s2, 24);
+        assert_eq!(s3, 24);
+        assert_eq!(s4, 24);
     }
 }

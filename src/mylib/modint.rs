@@ -132,11 +132,6 @@ mod tests {
     #[test]
     fn test_rr_pow() {
         use super::rr::*;
-        use num;
-        let x = vec![RR::new(3), RR::new(4)];
-        let y = x.iter();
-        y.fold(RR::zero(), |acc, x| acc + *x);
-
         assert_eq!(num::pow(RR::new(2), 10), RR::new(1024));
     }
 }
