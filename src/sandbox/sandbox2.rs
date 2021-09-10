@@ -125,6 +125,8 @@ mod rr {
         }
     }
 
+    
+
     impl std::ops::Mul for RR {
         type Output = Self;
 
