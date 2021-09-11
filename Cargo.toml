@@ -5,7 +5,6 @@ edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-
 [[bin]]
 name = "genocon2021_maina"
 path = "src/contest/genocon2021/maina.rs"
@@ -39,7 +38,7 @@ path = "src/contest/genocon2021/mainc.rs"
 num = "=0.2.1"
 #num-bigint = "=0.2.6"
 #num-complex = "=0.2.4"
-#num-integer = "=0.1.42"
+num-integer = "=0.1.42"
 #num-iter = "=0.1.40"
 #num-rational = "=0.2.4"
 num-traits = "=0.2.11"
