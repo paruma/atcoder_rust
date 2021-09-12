@@ -1,3 +1,5 @@
+#[allow(dead_code)]
+
 // https://github.com/rust-lang-ja/ac-library-rs/blob/72fe2a19cf6efcb225327912d4da332425d1a37d/src/modint.rs#L513
 // From<i32>とかあるのか。なるほどなぁ。
 
@@ -17,7 +19,6 @@ mod rf {
             }
         }
 
-        #[allow(dead_code)]
         pub fn rep(self) -> i64 {
             self.rep
         }
@@ -73,7 +74,6 @@ mod rf {
     }
 
     impl RF {
-        #[allow(dead_code)]
         pub fn inv(self) -> Self {
             Field::inv(self)
         }

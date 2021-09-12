@@ -1,3 +1,5 @@
+#[allow(dead_code)]
+
 mod scanl {
     #[derive(Clone)]
     pub struct Scanl<I, B, F> {
@@ -7,7 +9,6 @@ mod scanl {
     }
 
     impl<I, B, F> Scanl<I, B, F> {
-        #[allow(dead_code)] //なぜdead_code？
         fn new(iter: I, init: B, f: F) -> Scanl<I, B, F> {
             Scanl {
                 iter,
