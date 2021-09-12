@@ -7,6 +7,7 @@ mod scanl {
     }
 
     impl<I, B, F> Scanl<I, B, F> {
+        #[allow(dead_code)] //なぜdead_code？
         fn new(iter: I, init: B, f: F) -> Scanl<I, B, F> {
             Scanl {
                 iter,

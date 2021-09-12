@@ -2,13 +2,13 @@
 
 #[allow(unused_macros)]
 macro_rules! mdo {
-    ($i:ident <- $e:expr; $($t:tt)*) => {
-        $e.and_then(move |$i| mdo!($($t)*))
+    ($i:ident <- $e:expr; $($t:tt)+) => {
+        $e.and_then(|$i| mdo!($($t)+))
     };
-    ($e:expr; $($t:tt)*) => {
-        $e.and_then(move |()| mdo!($($t)*))
+    ($e:expr; $($t:tt)+) => {
+        $e.and_then(|()| mdo!($($t)+))
     };
-    (ret $e:expr) => {
+    ($e:expr) => {
         $e
     };
 }
@@ -26,7 +26,7 @@ fn _sandbox1() {
     let y = mdo! {
         a <- a_opt;
         b <- b_opt;
-        ret Some(a+b)
+        Some(a+b)
     };
     println!("{:?}, {:?}", &x, &y);
 }
@@ -88,4 +88,43 @@ fn _sandbox6() {
 fn _sandbox7() {
     use num;
     assert_eq!(num::pow::<i32>(3, 5), 243);
+}
+
+fn _div2(x: i32) -> Option<i32> {
+    (i32::rem_euclid(x, 2) == 0).then(|| x / 2)
+}
+
+#[test]
+fn _sandbox8() {
+    let x1 = Some(8);
+    let x2 = Some(6);
+
+    // Haskellだとand_thenは >>=
+    let y1 = x1.and_then(_div2).and_then(_div2);
+    let y2 = x2.and_then(_div2).and_then(_div2);
+
+    assert_eq!(y1, Some(2));
+    assert_eq!(y2, None);
+}
+
+#[test]
+fn _sandbox9() {
+    let a_opt = Some(3);
+    let b_opt = Some(4);
+    let c_opt: Option<i32> = None;
+
+    let ans_opt1 = (|| -> Option<i32> {
+        let a = a_opt?;
+        let b = b_opt?;
+        Some(a + b)
+    })();
+
+    let ans_opt2 = (|| -> Option<i32> {
+        let a = a_opt?;
+        let c = c_opt?;
+        Some(a + c)
+    })();
+
+    assert_eq!(ans_opt1, Some(7));
+    assert_eq!(ans_opt2, None);
 }
