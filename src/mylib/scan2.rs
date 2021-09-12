@@ -34,6 +34,26 @@ mod scanl {
     {
         scanl(vec, T::zero(), |acc, x| *acc + *x)
     }
+
+    //--cumsum用
+
+    pub struct CumSum<T>
+    where
+        T: std::ops::Add<Output = T> + std::ops::Sub<Output = T> + num::Zero + Copy,
+    {
+        cumsum: Vec<T>,
+    }
+    impl<T: std::ops::Add<Output = T> + std::ops::Sub<Output = T> + num::Zero + Copy> CumSum<T> {
+        pub fn make(vec: &[T]) -> CumSum<T> {
+            CumSum {
+                cumsum: cumsum(vec),
+            }
+        }
+
+        pub fn partial_sum(&self, begin: usize, end: usize) -> T {
+            T::sub(self.cumsum[end], self.cumsum[begin])
+        }
+    }
 }
 
 #[cfg(test)]
@@ -47,10 +67,18 @@ mod test {
         let cumsum1 = scanl(&xs, 0, |acc, x| *acc + *x);
         let cumsum2 = cumsum(&xs);
 
-        let cumsum_left = scanr(&xs, 0, |acc, x| *acc + *x);
+        let cumsum_right = scanr(&xs, 0, |acc, x| *acc + *x);
 
         assert_eq!(cumsum1, vec![0, 1, 3, 6]);
         assert_eq!(cumsum2, vec![0, 1, 3, 6]);
-        assert_eq!(cumsum_left, vec![6, 5, 3, 0]);
+        assert_eq!(cumsum_right, vec![6, 5, 3, 0]);
+    }
+
+    #[test]
+    fn test_cumsum() {
+        let xs: Vec<i32> = vec![1, 2, 3, 4, 5];
+        let cumsum = CumSum::make(&xs);
+        //// xs[1] + xs[2] + xs[3] = 2 + 3 + 4 = 9
+        assert_eq!(cumsum.partial_sum(1, 4), 9)
     }
 }
