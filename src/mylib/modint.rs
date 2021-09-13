@@ -103,6 +103,22 @@ mod tests {
     }
 
     #[test]
+    fn test_rr_assign() {
+        use super::rr::*;
+
+        let mut x = RR::new(3);
+        let y = RR::new(4);
+
+        x += y;
+        assert_eq!(x, RR::new(7));
+
+        x -= y;
+        assert_eq!(x, RR::new(3));
+
+        x *= y;
+        assert_eq!(x, RR::new(12));
+    }
+    #[test]
     fn test_rr_pow() {
         use super::rr::*;
         assert_eq!(num::pow(RR::new(2), 10), RR::new(1024));

@@ -1,2 +1,2 @@
-mod num_prob;
+mod integer;
 mod general;
