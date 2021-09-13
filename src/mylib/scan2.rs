@@ -53,7 +53,7 @@ mod scanl {
         }
 
         pub fn partial_sum(&self, begin: usize, end: usize) -> T {
-            T::sub(self.cumsum[end], self.cumsum[begin])
+            self.cumsum[end] - self.cumsum[begin]
         }
     }
 }
@@ -81,6 +81,6 @@ mod test {
         let xs: Vec<i32> = vec![1, 2, 3, 4, 5];
         let cumsum = CumSum::make(&xs);
         //// xs[1] + xs[2] + xs[3] = 2 + 3 + 4 = 9
-        assert_eq!(cumsum.partial_sum(1, 4), 9)
+        assert_eq!(cumsum.partial_sum(1, 4), 9);
     }
 }

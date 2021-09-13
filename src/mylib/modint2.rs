@@ -13,9 +13,9 @@ mod rf {
     }
 
     impl RF {
-        pub fn new(rep: i64) -> RF {
+        pub fn new(x: i64) -> RF {
             RF {
-                rep: rep.rem_euclid(MOD),
+                rep: x.rem_euclid(MOD),
             }
         }
 
@@ -24,64 +24,15 @@ mod rf {
         }
     }
 
-    trait Ring: std::marker::Sized + Copy {
-        fn zero() -> Self;
-        fn one() -> Self;
-        fn mul(self, rhs: Self) -> Self;
-        fn add(self, rhs: Self) -> Self;
-        fn neg(self) -> Self;
-        fn sub(self, rhs: Self) -> Self {
-            self.add(rhs.neg())
-        }
-    }
-
-    trait Field: Ring {
-        fn inv(self) -> Self;
-        fn div(self, rhs: Self) -> Self
-        where
-            Self: std::marker::Sized,
-        {
-            self.mul(rhs.inv())
-        }
-    }
-
-    impl Ring for RF {
-        fn zero() -> Self {
-            RF::new(0)
-        }
-
-        fn one() -> Self {
-            RF::new(1)
-        }
-
-        fn mul(self, rhs: Self) -> Self {
-            RF::new(self.rep * rhs.rep)
-        }
-
-        fn add(self, rhs: Self) -> Self {
-            RF::new(self.rep + rhs.rep)
-        }
-
-        fn neg(self) -> Self {
-            RF::new(-self.rep)
-        }
-    }
-
-    impl Field for RF {
-        fn inv(self) -> Self {
-            num::pow(self, (MOD - 2) as usize)
-        }
-    }
-
     impl RF {
         pub fn inv(self) -> Self {
-            Field::inv(self)
+            num::pow(self, (MOD - 2) as usize)
         }
     }
 
     impl num_traits::Zero for RF {
         fn zero() -> Self {
-            Ring::zero()
+            RF::new(0)
         }
 
         fn is_zero(&self) -> bool {
@@ -91,45 +42,54 @@ mod rf {
 
     impl num_traits::One for RF {
         fn one() -> Self {
-            Ring::one()
+            RF::new(1)
         }
     }
 
-    impl std::ops::Add for RF {
+    macro_rules! bi_ops_impl {
+        ($std_ops: ident, $fn: ident, $op: tt) => {
+            impl std::ops::$std_ops for RF {
+                type Output = Self;
+
+                fn $fn (self, rhs: Self) -> Self::Output {
+                    RF::new(self.rep $op rhs.rep)
+                }
+            }
+        };
+    }
+
+    bi_ops_impl!(Add, add, +);
+    bi_ops_impl!(Sub, sub, -);
+    bi_ops_impl!(Mul, mul, *);
+
+    impl std::ops::Div for RF {
         type Output = Self;
-
-        fn add(self, rhs: Self) -> Self::Output {
-            Ring::add(self, rhs)
+        fn div(self, rhs: Self) -> Self::Output {
+            // *はまだ使えない？
+            std::ops::Mul::mul(self, rhs.inv())
         }
     }
+
+    macro_rules! bi_ops_assign_impl {
+        ($std_ops_assign: ident, $fn_assign: ident, $op: tt) => {
+            impl std::ops::$std_ops_assign for RF {
+                fn $fn_assign(&mut self, rhs: Self) {
+                    *self = *self $op rhs
+                }
+            }
+        };
+    }
+
+    bi_ops_assign_impl!(AddAssign, add_assign, +);
+    bi_ops_assign_impl!(SubAssign, sub_assign, -);
+    bi_ops_assign_impl!(MulAssign, mul_assign, *);
+    bi_ops_assign_impl!(DivAssign, div_assign, /);
+
     impl std::ops::Neg for RF {
         type Output = Self;
 
         fn neg(self) -> Self::Output {
-            Ring::neg(self)
-        }
-    }
-    impl std::ops::Sub for RF {
-        type Output = Self;
-
-        fn sub(self, rhs: Self) -> Self::Output {
-            Ring::sub(self, rhs)
-        }
-    }
-
-    impl std::ops::Mul for RF {
-        type Output = Self;
-
-        fn mul(self, rhs: Self) -> Self::Output {
-            Ring::mul(self, rhs)
-        }
-    }
-
-    impl std::ops::Div for RF {
-        type Output = Self;
-
-        fn div(self, rhs: Self) -> Self::Output {
-            Field::div(self, rhs)
+            RF::new(-self.rep)
         }
     }
 }
@@ -159,6 +119,24 @@ mod tests {
         assert_eq!(x * y, RF::new(21));
         assert_eq!((x / y) * y, x);
         assert_eq!((y.inv()) * y, RF::one());
+    }
+
+    #[test]
+    fn test_rf_assign() {
+        let mut x = RF::new(3);
+        let y = RF::new(4);
+
+        x += y;
+        assert_eq!(x, RF::new(7));
+
+        x -= y;
+        assert_eq!(x, RF::new(3));
+
+        x *= y;
+        assert_eq!(x, RF::new(12));
+
+        x /= y;
+        assert_eq!(x, RF::new(3));
     }
 
     #[test]

@@ -13,9 +13,9 @@ mod rr {
     }
 
     impl RR {
-        pub fn new(rep: i64) -> RR {
+        pub fn new(x: i64) -> RR {
             RR {
-                rep: rep.rem_euclid(MOD),
+                rep: x.rem_euclid(MOD),
             }
         }
 
@@ -24,45 +24,9 @@ mod rr {
         }
     }
 
-    trait Ring {
-        fn zero() -> Self;
-        fn one() -> Self;
-        fn mul(self, rhs: Self) -> Self;
-        fn add(self, rhs: Self) -> Self;
-        fn neg(self) -> Self;
-        fn sub(self, rhs: Self) -> Self
-        where
-            Self: std::marker::Sized,
-        {
-            self.add(rhs.neg())
-        }
-    }
-
-    impl Ring for RR {
-        fn zero() -> Self {
-            RR::new(0)
-        }
-
-        fn one() -> Self {
-            RR::new(1)
-        }
-
-        fn mul(self, rhs: Self) -> Self {
-            RR::new(self.rep * rhs.rep)
-        }
-
-        fn add(self, rhs: Self) -> Self {
-            RR::new(self.rep + rhs.rep)
-        }
-
-        fn neg(self) -> Self {
-            RR::new(-self.rep)
-        }
-    }
-
     impl num_traits::Zero for RR {
         fn zero() -> Self {
-            Ring::zero()
+            RR::new(0)
         }
 
         fn is_zero(&self) -> bool {
@@ -72,37 +36,45 @@ mod rr {
 
     impl num_traits::One for RR {
         fn one() -> Self {
-            Ring::one()
+            RR::new(1)
         }
     }
 
-    impl std::ops::Add for RR {
-        type Output = Self;
+    macro_rules! bi_ops_impl {
+        ($std_ops: ident, $fn: ident, $op: tt) => {
+            impl std::ops::$std_ops for RR {
+                type Output = Self;
 
-        fn add(self, rhs: Self) -> Self::Output {
-            Ring::add(self, rhs)
-        }
+                fn $fn (self, rhs: Self) -> Self::Output {
+                    RR::new(self.rep $op rhs.rep)
+                }
+            }
+        };
     }
+
+    bi_ops_impl!(Add, add, +);
+    bi_ops_impl!(Sub, sub, -);
+    bi_ops_impl!(Mul, mul, *);
+
+    macro_rules! bi_ops_assign_impl {
+        ($std_ops_assign: ident, $fn_assign: ident, $op: tt) => {
+            impl std::ops::$std_ops_assign for RR {
+                fn $fn_assign(&mut self, rhs: Self) {
+                    *self = *self $op rhs
+                }
+            }
+        };
+    }
+
+    bi_ops_assign_impl!(AddAssign, add_assign, +);
+    bi_ops_assign_impl!(SubAssign, sub_assign, -);
+    bi_ops_assign_impl!(MulAssign, mul_assign, *);
+
     impl std::ops::Neg for RR {
         type Output = Self;
 
         fn neg(self) -> Self::Output {
-            Ring::neg(self)
-        }
-    }
-    impl std::ops::Sub for RR {
-        type Output = Self;
-
-        fn sub(self, rhs: Self) -> Self::Output {
-            Ring::sub(self, rhs)
-        }
-    }
-
-    impl std::ops::Mul for RR {
-        type Output = Self;
-
-        fn mul(self, rhs: Self) -> Self::Output {
-            Ring::mul(self, rhs)
+            RR::new(-self.rep)
         }
     }
 }

@@ -22,6 +22,7 @@ mod tests {
         let xs = vec![1, 2, 3, 4];
 
         // into_iterの方にしか対応していないのか
+        // 基本的には使わない方針で
 
         xs.into_iter().vec();
         // xs.iter().vec();コンパイルエラー
