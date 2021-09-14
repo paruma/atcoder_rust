@@ -27,7 +27,7 @@ pub mod rf_fake {
         }
 
         fn is_zero(&self) -> bool {
-            self.rep == 0.0
+            f64::is_zero(&self.rep)
         }
     }
 
