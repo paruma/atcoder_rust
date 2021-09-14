@@ -1,7 +1,7 @@
 pub mod iter;
-pub mod integer;
-pub mod modint;
-pub mod modint2;
+pub mod math;
+pub mod modint_ring;
+pub mod modint_field;
 pub mod odo;
 pub mod scan;
 pub mod scan2;

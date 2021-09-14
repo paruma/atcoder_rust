@@ -81,14 +81,14 @@ mod tests {
 
     #[test]
     fn test_frac() {
-        use crate::mylib::modint2::rf::*;
+        use crate::mylib::modint_field::rf::*;
         assert_eq!(frac(5), 120);
         assert_eq!(frac(RF::new(5)), RF::new(120));
     }
 
     #[test]
     fn test_permutation() {
-        use crate::mylib::modint2::rf::*;
+        use crate::mylib::modint_field::rf::*;
         assert_eq!(permutation(5, 3), 60); //5*4*3=60
         assert_eq!(permutation(RF::new(5), RF::new(3)), RF::new(60));
     }
