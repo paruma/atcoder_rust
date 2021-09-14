@@ -1,3 +1,6 @@
+use cargo_snippet::snippet;
+
+#[snippet]
 pub mod rf_fake {
     #[allow(clippy::upper_case_acronyms)]
     #[derive(Clone, Copy, Debug, PartialEq, Default)]

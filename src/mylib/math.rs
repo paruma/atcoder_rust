@@ -1,3 +1,6 @@
+use cargo_snippet::snippet;
+
+#[snippet]
 pub mod math_tools {
     use num::Integer;
 

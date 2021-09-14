@@ -34,6 +34,13 @@ path = "src/contest/genocon2021/mainc.rs"
 
 
 [dependencies]
+
+# スニペット用(AtCoderでは使えない)
+# 参考: Rustで競技プログラミングをするときの"スニペット管理"をまじめに考える(cargo-snippetの紹介) - Qiita https://qiita.com/hatoo@github/items/5c6814e72ddd2ecaf48f
+cargo-snippet = "0.6.5"
+
+
+#----
 #atcoder-rust-base/Cargo.toml at ja · rust-lang-ja/atcoder-rust-base · GitHub https://github.com/rust-lang-ja/atcoder-rust-base/blob/ja/Cargo.toml からコピー
 
 

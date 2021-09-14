@@ -6,6 +6,7 @@ version = 3
 name = "atcoder_rust"
 version = "0.1.0"
 dependencies = [
+ "cargo-snippet",
  "cli_test_dir",
  "itertools 0.9.0",
  "ndarray",
@@ -21,6 +22,12 @@ name = "autocfg"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
+
+[[package]]
+name = "cargo-snippet"
+version = "0.6.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5b5d683f04783a882180b7cd232a4e5cb2d01b305e145968e6062a71f66d5ead"
 
 [[package]]
 name = "cli_test_dir"

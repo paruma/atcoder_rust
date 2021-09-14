@@ -1,3 +1,6 @@
+use cargo_snippet::snippet;
+
+#[snippet]
 pub mod union_find {
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]

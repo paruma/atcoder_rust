@@ -1,4 +1,7 @@
-pub mod sum {
+use cargo_snippet::snippet;
+
+#[snippet]
+pub mod iter_sum {
     pub trait Sum2<A>: Sized {
         fn sum2<I: Iterator<Item = A>>(iter: I) -> Self;
     }
@@ -28,7 +31,8 @@ pub mod sum {
     impl<T: Iterator> IteratorExtSum2 for T {}
 }
 
-mod product {
+#[snippet]
+mod iter_product {
     pub trait Product2<A>: Sized {
         fn product2<I: Iterator<Item = A>>(iter: I) -> Self;
     }
@@ -59,8 +63,8 @@ mod product {
 }
 #[cfg(test)]
 mod tests {
-    use super::product::*;
-    use super::sum::*;
+    use super::iter_product::*;
+    use super::iter_sum::*;
 
     #[allow(clippy::redundant_clone)]
     #[test]

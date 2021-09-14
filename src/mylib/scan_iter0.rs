@@ -1,3 +1,6 @@
+use cargo_snippet::snippet;
+
+#[snippet]
 pub mod scan_iter {
     #[derive(Clone)]
     pub struct Scanl<I, B, F> {
