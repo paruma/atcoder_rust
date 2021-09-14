@@ -1,6 +1,3 @@
-// https://github.com/rust-lang-ja/ac-library-rs/blob/72fe2a19cf6efcb225327912d4da332425d1a37d/src/modint.rs#L513
-// From<i32>とかあるのか。なるほどなぁ。
-#[allow(dead_code)]
 pub mod rf {
     pub const MOD: i64 = 1_000_000_007;
 
@@ -144,3 +141,6 @@ mod tests {
         assert_eq!(z, RF::new(7));
     }
 }
+
+// https://github.com/rust-lang-ja/ac-library-rs/blob/72fe2a19cf6efcb225327912d4da332425d1a37d/src/modint.rs#L513
+// From<i32>とかあるのか。なるほどなぁ。

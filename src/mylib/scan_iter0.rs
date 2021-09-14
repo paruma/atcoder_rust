@@ -1,6 +1,4 @@
-#[allow(dead_code)]
-
-mod scan_iter {
+pub mod scan_iter {
     #[derive(Clone)]
     pub struct Scanl<I, B, F> {
         iter: I,

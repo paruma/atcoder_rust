@@ -1,8 +1,7 @@
 use itertools::Itertools;
 use proconio::input;
 
-#[allow(dead_code)]
-mod union_find {
+pub mod union_find {
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
     struct Root {
@@ -110,7 +109,7 @@ mod union_find {
     }
 }
 
-mod scanl {
+pub mod scanl {
     #[derive(Clone)]
     pub struct Scanl<I, B, F> {
         iter: I,

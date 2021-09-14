@@ -1,6 +1,4 @@
-#[allow(dead_code)]
-
-mod scan_vec {
+pub mod scan_vec {
 
     pub fn scanl<A, B, F>(vec: &[A], init: B, mut f: F) -> Vec<B>
     where

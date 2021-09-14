@@ -1,5 +1,4 @@
-#[allow(dead_code)]
-mod math_tools {
+pub mod math_tools {
     use num::Integer;
 
     pub fn divisor(n: i64) -> Vec<i64> {

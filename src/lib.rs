@@ -1,3 +1,3 @@
 mod example;
-mod mylib;
+pub mod mylib;
 mod sandbox;

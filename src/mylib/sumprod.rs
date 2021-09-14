@@ -1,4 +1,4 @@
-mod sum {
+pub mod sum {
     pub trait Sum2<A>: Sized {
         fn sum2<I: Iterator<Item = A>>(iter: I) -> Self;
     }

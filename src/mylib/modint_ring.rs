@@ -1,9 +1,4 @@
-#[allow(dead_code)]
-
-// https://github.com/rust-lang-ja/ac-library-rs/blob/72fe2a19cf6efcb225327912d4da332425d1a37d/src/modint.rs#L513
-// From<i32>とかあるのか。なるほどなぁ。
-
-mod rr {
+pub mod rr {
     pub const MOD: i64 = 1_000_000_007;
 
     #[allow(clippy::upper_case_acronyms)]
@@ -124,3 +119,6 @@ mod tests {
         assert_eq!(num::pow(RR::new(2), 10), RR::new(1024));
     }
 }
+
+// https://github.com/rust-lang-ja/ac-library-rs/blob/72fe2a19cf6efcb225327912d4da332425d1a37d/src/modint.rs#L513
+// From<i32>とかあるのか。なるほどなぁ。

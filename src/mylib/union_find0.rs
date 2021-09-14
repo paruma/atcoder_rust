@@ -1,5 +1,4 @@
-#[allow(dead_code)]
-mod union_find {
+pub mod union_find {
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
     struct Root {
