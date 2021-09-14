@@ -8,6 +8,9 @@ edition = "2018"
 [[bin]]
 name = "abc120_d"
 path = "src/contest/abc120/maind.rs"
+[[bin]]
+name = "abc120_d2"
+path = "src/contest/abc120/maind2.rs"
 
 [[bin]]
 name = "genocon2021_maina"

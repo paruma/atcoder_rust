@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use proconio::input;
 mod union_find {
 
@@ -107,6 +108,57 @@ mod union_find {
     }
 }
 
+mod scanl {
+    #[derive(Clone)]
+    pub struct Scanl<I, B, F> {
+        iter: I,
+        state: Option<B>,
+        f: F,
+    }
+
+    impl<I, B, F> Scanl<I, B, F> {
+        fn new(iter: I, init: B, f: F) -> Scanl<I, B, F> {
+            Scanl {
+                iter,
+                state: Some(init),
+                f,
+            }
+        }
+    }
+
+    impl<I, B, F> Iterator for Scanl<I, B, F>
+    where
+        B: Clone + Copy,
+        I: Iterator,
+        F: FnMut(&mut B, I::Item) -> B,
+    {
+        type Item = B;
+
+        #[inline]
+        fn next(&mut self) -> Option<B> {
+            let retval = self.state?;
+            let a_opt = self.iter.next();
+
+            self.state = self
+                .state
+                .and_then(|mut s| a_opt.map(|a| (self.f)(&mut s, a)));
+
+            Some(retval)
+        }
+    }
+
+    pub trait IteratorExtScanLeft: Iterator + Sized {
+        fn scanl<B, F>(self, init: B, f: F) -> Scanl<Self, B, F>
+        where
+            Self: Sized,
+            F: FnMut(&mut B, Self::Item) -> B,
+        {
+            Scanl::new(self, init, f)
+        }
+    }
+
+    impl<T: Iterator> IteratorExtScanLeft for T {}
+}
 //0:50~1:35
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -132,31 +184,38 @@ fn read() -> (usize, usize, Vec<Bridge>) {
     (n_islands, n_bridges, bridges)
 }
 
+fn test<T: std::iter::DoubleEndedIterator>(a: T) {}
+
 fn solve(n_islands: usize, n_bridges: usize, bridges: &[Bridge]) -> Vec<i64> {
+    use scanl::*;
     use union_find::*;
     let mut uf = UnionFind::new(n_islands);
 
-    let mut ans_rev: Vec<i64> = Vec::new();
     let comb2 = |n: i64| n * (n - 1) / 2;
-    let mut score = comb2(n_islands as i64);
-    ans_rev.push(score);
 
-    // scanチャンス
-    for &bridge in bridges.iter().rev() {
+    let diffs = bridges.iter().rev().map(|&bridge| {
         if !uf.same(bridge.a, bridge.b) {
             let same_count_a: i64 = uf.same_count(bridge.a) as i64;
             let same_count_b: i64 = uf.same_count(bridge.b) as i64;
-            let score_sub =
+            let diff =
                 comb2(same_count_a + same_count_b) - comb2(same_count_a) - comb2(same_count_b);
             uf.unite(bridge.a, bridge.b);
-            score -= score_sub;
-        }
-        ans_rev.push(score);
-    }
 
-    ans_rev
+            diff
+        } else {
+            0
+        }
+    });
+
+    let all_score = comb2(n_islands as i64);
+
+    diffs
+        .scanl(0_i64, |acc, x| *acc + x)
+        .map(|score| all_score - score)
+        //.take(n_bridges)
+        .collect::<Vec<i64>>() // revが取れない。
         .into_iter()
-        .take(n_bridges) // 1つ除く
+        .dropping_back(1)
         .rev()
         .collect::<Vec<i64>>()
 }
