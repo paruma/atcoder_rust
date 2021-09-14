@@ -1,5 +1,5 @@
-pub mod integer;
 pub mod iter;
+pub mod integer;
 pub mod modint;
 pub mod modint2;
 pub mod odo;

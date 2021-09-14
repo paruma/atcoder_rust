@@ -1,5 +1,7 @@
 use itertools::Itertools;
 use proconio::input;
+
+#[allow(dead_code)]
 mod union_find {
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -184,9 +186,7 @@ fn read() -> (usize, usize, Vec<Bridge>) {
     (n_islands, n_bridges, bridges)
 }
 
-fn test<T: std::iter::DoubleEndedIterator>(a: T) {}
-
-fn solve(n_islands: usize, n_bridges: usize, bridges: &[Bridge]) -> Vec<i64> {
+fn solve(n_islands: usize, _n_bridges: usize, bridges: &[Bridge]) -> Vec<i64> {
     use scanl::*;
     use union_find::*;
     let mut uf = UnionFind::new(n_islands);

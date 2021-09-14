@@ -1,4 +1,5 @@
 use proconio::input;
+#[allow(dead_code)]
 mod union_find {
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
