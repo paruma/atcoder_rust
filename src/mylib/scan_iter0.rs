@@ -1,6 +1,6 @@
 #[allow(dead_code)]
 
-mod scanl {
+mod scan_iter {
     #[derive(Clone)]
     pub struct Scanl<I, B, F> {
         iter: I,
@@ -55,7 +55,7 @@ mod scanl {
 #[cfg(test)]
 mod test {
 
-    use super::scanl::*;
+    use super::scan_iter::*;
 
     #[test]
     fn test_scan() {

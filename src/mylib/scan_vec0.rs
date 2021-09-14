@@ -1,6 +1,6 @@
 #[allow(dead_code)]
 
-mod scanl {
+mod scan_vec {
 
     pub fn scanl<A, B, F>(vec: &[A], init: B, mut f: F) -> Vec<B>
     where
@@ -61,7 +61,7 @@ mod scanl {
 #[cfg(test)]
 mod test {
 
-    use super::scanl::*;
+    use super::scan_vec::*;
 
     #[test]
     fn test_scanl() {
