@@ -1,4 +1,13 @@
 {
+  "fn_guard": {
+    "scope": "rust",
+    "prefix": "fn_guard",
+    "body": [
+      "pub fn guard(p: bool) -> Option<()> {",
+      "    p.then(|| ())",
+      "}"
+    ]
+  },
   "iter_product": {
     "scope": "rust",
     "prefix": "iter_product",

@@ -1,3 +1,5 @@
+use cargo_snippet::snippet;
+
 #[allow(unused_macros)]
 macro_rules! odo {
         (let $p: pat = $e: expr ; $($t:tt)+)=>{
@@ -19,14 +21,15 @@ macro_rules! odo {
             $e
         };
 }
-/*
-fn guard(p: bool) -> Option<()> {
+
+#[snippet("fn_guard")]
+pub fn guard(p: bool) -> Option<()> {
     p.then(|| ())
 }
-*/
 
 #[cfg(test)]
 mod test {
+    use super::guard;
 
     #[test]
     fn test_odo2() {
@@ -83,6 +86,28 @@ mod test {
         };
 
         assert_eq!(ans4, None);
+    }
+
+    #[test]
+    fn test_guard() {
+        let x_opt = Some(3);
+        let y_opt = Some(4);
+        let z_opt1 = || -> Option<_> {
+            let x = x_opt?;
+            let y = y_opt?;
+            guard(x + y < 5)?;
+            Some(x + y)
+        }();
+
+        let z_opt2 = || -> Option<_> {
+            let x = x_opt?;
+            let y = y_opt?;
+            guard(x + y < 10)?;
+            Some(x + y)
+        }();
+
+        assert_eq!(z_opt1, None);
+        assert_eq!(z_opt2, Some(7));
     }
 }
 
