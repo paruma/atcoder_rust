@@ -4,6 +4,49 @@ version = "0.1.0"
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[[bin]]
+name = "abc206_d"
+path = "src/contest/abc206/maind.rs"
+    
+
+
+[[bin]]
+name = "abc211_b"
+path = "src/contest/abc211/mainb.rs"
+    
+[[bin]]
+name = "abc211_c"
+path = "src/contest/abc211/mainc.rs"
+    
+
+
+[[bin]]
+name = "abc210_b"
+path = "src/contest/abc210/mainb.rs"
+    
+[[bin]]
+name = "abc210_c"
+path = "src/contest/abc210/mainc.rs"
+    
+
+[[bin]]
+name = "abc209_b"
+path = "src/contest/abc209/mainb.rs"
+    
+[[bin]]
+name = "abc209_c"
+path = "src/contest/abc209/mainc.rs"
+    
+
+
+[[bin]]
+name = "abc208_b"
+path = "src/contest/abc208/mainb.rs"
+    
+[[bin]]
+name = "abc208_c"
+path = "src/contest/abc208/mainc.rs"
+    
 
 [[bin]]
 name = "abc207_b"
