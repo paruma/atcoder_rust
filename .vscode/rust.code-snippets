@@ -19,17 +19,17 @@
 		"scope": "rust",
 		"prefix": "derive_all",
 		"body": [
-			"#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]"
+			"#[derive(Clone, Copy, Debug, PartialEq, Eq)]"
 		],
-		"description": "#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]"
+		"description": "#[derive(Clone, Copy, Debug, PartialEq, Eq)]"
 	},
 	"to_vec": {
 		"scope": "rust",
-		"prefix": ".to_vec",
+		"prefix": "to_vec",
 		"body": [
-			".collect::<Vec<_>>()"
+			"collect::<Vec<_>>()"
 		],
-		"description": ".collect::<Vec<_>>()"
+		"description": "collect::<Vec<_>>()"
 	},
 	// cf: dbg!
 	"println": {
@@ -66,5 +66,14 @@
 			"        };",
 			"}",
 		]
-	}
+	},
+	"cl_odo": {
+		"scope": "rust",
+		"prefix": "cl_odo",
+		"body": [
+			"|| -> Option<_> {",
+			"    $1",
+			"}();",
+		],
+	},
 }
