@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+
+# example
+# ./contest.py abc206 b c
+
 import sys
 import os
 import shutil
