@@ -2,7 +2,6 @@ use cargo_snippet::snippet;
 
 #[snippet]
 pub mod rf_fake {
-    #[allow(clippy::upper_case_acronyms)]
     #[derive(Clone, Copy, Debug, PartialEq, Default)]
     pub struct RF {
         rep: f64,
@@ -90,7 +89,10 @@ mod tests {
     use super::rf_fake::*;
 
     fn approx_eq(x: f64, y: f64) -> bool {
-        (x - y).abs() < f64::EPSILON
+        #[allow(clippy::unreadable_literal)]
+        #[allow(clippy::excessive_precision)]
+        const EPS: f64 = 2.2204460492503131e-16_f64;
+        (x - y).abs() < EPS
     }
 
     #[test]

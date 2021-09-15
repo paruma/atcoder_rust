@@ -13,7 +13,11 @@ fn solve(a: i64, b: i64, c: i64, d: i64) -> Option<i64> {
     // a/(dc-b) >= n (if dc -d < 0)
     // a <= 0 (if bc -d = 0)
 
-    (d * c - b > 0).then(|| num_integer::div_ceil(a, d * c - b))
+    if d * c - b > 0 {
+        Some(num_integer::div_ceil(a, d * c - b))
+    } else {
+        None
+    }
 }
 
 fn output(ans: Option<i64>) {

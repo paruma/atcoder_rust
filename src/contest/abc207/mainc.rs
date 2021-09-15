@@ -1,3 +1,4 @@
+#![allow(clippy::let_unit_value)]
 use proconio::input;
 
 fn read() {

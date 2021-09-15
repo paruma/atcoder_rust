@@ -36,6 +36,20 @@ fn max<T: Ord>(v1: T, v2: T, v3: T) -> T {
     v1.max(v2.max(v3))
 }
 
+pub trait BoolExtScanLeft {
+    fn mythen<T, F: FnOnce() -> T>(self, f: F) -> Option<T>;
+}
+
+impl BoolExtScanLeft for bool {
+    fn mythen<T, F: FnOnce() -> T>(self, f: F) -> Option<T> {
+        if self {
+            Some(f())
+        } else {
+            None
+        }
+    }
+}
+
 fn solve(seq1: &[u8], seq2: &[u8]) -> (Vec<u8>, Vec<u8>) {
     let dp_width = seq1.len() + 1;
     let dp_height = seq2.len() + 1;
@@ -52,9 +66,9 @@ fn solve(seq1: &[u8], seq2: &[u8]) -> (Vec<u8>, Vec<u8>) {
                 continue;
             }
             let score1 =
-                (!(x == 0 || y == 0)).then(|| dp[[y - 1, x - 1]] + sim(seq1[x - 1], seq2[y - 1]));
-            let score2 = (y != 0).then(|| dp[[y - 1, x]] + sim(b'-', seq2[y - 1]));
-            let score3 = (x != 0).then(|| dp[[y, x - 1]] + sim(seq1[x - 1], b'-'));
+                (!(x == 0 || y == 0)).mythen(|| dp[[y - 1, x - 1]] + sim(seq1[x - 1], seq2[y - 1]));
+            let score2 = (y != 0).mythen(|| dp[[y - 1, x]] + sim(b'-', seq2[y - 1]));
+            let score3 = (x != 0).mythen(|| dp[[y, x - 1]] + sim(seq1[x - 1], b'-'));
             //dp[[y, x]] = max(score1, score2, score3);
             dp[[y, x]] = *[score1, score2, score3].iter().flatten().max().unwrap();
         }
@@ -69,9 +83,9 @@ fn solve(seq1: &[u8], seq2: &[u8]) -> (Vec<u8>, Vec<u8>) {
 
     while !(x == 0 && y == 0) {
         let score1 =
-            (!(x == 0 || y == 0)).then(|| dp[[y - 1, x - 1]] + sim(seq1[x - 1], seq2[y - 1]));
-        let score2 = (y != 0).then(|| dp[[y - 1, x]] + sim(b'-', seq2[y - 1]));
-        let score3 = (x != 0).then(|| dp[[y, x - 1]] + sim(seq1[x - 1], b'-'));
+            (!(x == 0 || y == 0)).mythen(|| dp[[y - 1, x - 1]] + sim(seq1[x - 1], seq2[y - 1]));
+        let score2 = (y != 0).mythen(|| dp[[y - 1, x]] + sim(b'-', seq2[y - 1]));
+        let score3 = (x != 0).mythen(|| dp[[y, x - 1]] + sim(seq1[x - 1], b'-'));
 
         if Some(dp[[y, x]]) == score1 {
             seq1_aligned.push(seq1[x - 1]);

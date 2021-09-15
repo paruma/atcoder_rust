@@ -59,6 +59,20 @@ struct DPElem {
     op: Op,
 }
 
+pub trait BoolExtScanLeft {
+    fn mythen<T, F: FnOnce() -> T>(self, f: F) -> Option<T>;
+}
+
+impl BoolExtScanLeft for bool {
+    fn mythen<T, F: FnOnce() -> T>(self, f: F) -> Option<T> {
+        if self {
+            Some(f())
+        } else {
+            None
+        }
+    }
+}
+
 fn solve(seq1: &[u8], seq2: &[u8]) -> (Vec<u8>, Vec<u8>) {
     let dp_width = seq1.len() + 1;
     let dp_height = seq2.len() + 1;
@@ -82,15 +96,15 @@ fn solve(seq1: &[u8], seq2: &[u8]) -> (Vec<u8>, Vec<u8>) {
         if x == 0 && y == 0 {
             continue;
         }
-        let score1 = (!(x == 0 || y == 0)).then(|| DPElem {
+        let score1 = (!(x == 0 || y == 0)).mythen(|| DPElem {
             score: dp[[y - 1, x - 1]].score + sim(seq1[x - 1], seq2[y - 1]),
             op: Op::Change,
         });
-        let score2 = (y != 0).then(|| DPElem {
+        let score2 = (y != 0).mythen(|| DPElem {
             score: dp[[y - 1, x]].score + sim(b'-', seq2[y - 1]),
             op: Op::Insert,
         });
-        let score3 = (x != 0).then(|| DPElem {
+        let score3 = (x != 0).mythen(|| DPElem {
             score: dp[[y, x - 1]].score + sim(seq1[x - 1], b'-'),
             op: Op::Delete,
         });

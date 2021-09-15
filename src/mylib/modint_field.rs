@@ -4,7 +4,7 @@ use cargo_snippet::snippet;
 pub mod rf {
     pub const MOD: i64 = 1_000_000_007;
 
-    #[allow(clippy::upper_case_acronyms)]
+    #[allow()]
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
     pub struct RF {
         rep: i64,

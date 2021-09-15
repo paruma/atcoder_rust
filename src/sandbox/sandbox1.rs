@@ -91,7 +91,12 @@ fn _sandbox7() {
 }
 
 fn _div2(x: i32) -> Option<i32> {
-    (i32::rem_euclid(x, 2) == 0).then(|| x / 2)
+    //(i32::rem_euclid(x, 2) == 0).then(|| x / 2)
+    if i32::rem_euclid(x, 2) == 0 {
+        Some(x / 2)
+    } else {
+        None
+    }
 }
 
 #[test]
