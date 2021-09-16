@@ -1,5 +1,5 @@
 #![allow(clippy::let_unit_value)]
-use ndarray::{s, Array, Array2, Array3};
+use ndarray::{s, Array, Array3};
 use proconio::input;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -23,8 +23,11 @@ fn read() -> (usize, usize, Vec<Edge>) {
         .collect::<Vec<_>>();
     (n_vertex, n_edge, edges)
 }
+// min_opt, add_optはトロピカル半環の演算:
+// 動的計画法を実現する代数〜トロピカル演算でグラフの最短経路を計算する〜 - Qiita https://qiita.com/lotz/items/094bffd77b24e37bf20e
 
 // flatten→minのイメージ
+// T:ordまで一般化可能
 fn min_opt(a: Option<i64>, b: Option<i64>) -> Option<i64> {
     match (a, b) {
         (None, None) => None,
