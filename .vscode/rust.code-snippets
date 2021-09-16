@@ -23,14 +23,6 @@
 		],
 		"description": "#[derive(Clone, Copy, Debug, PartialEq, Eq)]"
 	},
-	"to_vec": {
-		"scope": "rust",
-		"prefix": "to_vec",
-		"body": [
-			"collect::<Vec<_>>()"
-		],
-		"description": "collect::<Vec<_>>()"
-	},
 	// cf: dbg!
 	"println": {
 		"scope": "rust",
