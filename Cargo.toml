@@ -5,6 +5,12 @@ edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [[bin]]
+name = "abc208_d"
+path = "src/contest/abc208/maind.rs"
+    
+
+
+[[bin]]
 name = "abc206_d"
 path = "src/contest/abc206/maind.rs"
     
@@ -135,7 +141,7 @@ ndarray = "=0.13.0"
 #libm = "=0.2.1"
 
 # 乱数
-#rand = { version = "=0.7.3", features = ["small_rng"] }
+rand = { version = "=0.7.3", features = ["small_rng"] }
 #getrandom = "=0.1.14"
 #rand_chacha = "=0.2.2"
 #rand_core = "=0.5.1"
