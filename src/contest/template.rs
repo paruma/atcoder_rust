@@ -2,7 +2,9 @@
 use proconio::input;
 
 fn read() {
-    input! {}
+    input! {
+        //from OnceSource::from(""),
+    }
 }
 
 fn solve() {}
