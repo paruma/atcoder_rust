@@ -1,5 +1,5 @@
 #![allow(clippy::let_unit_value)]
-use proconio::{input, source::once::OnceSource};
+use proconio::input;
 
 fn read() {
     input! {
