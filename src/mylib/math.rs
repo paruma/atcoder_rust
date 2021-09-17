@@ -1,6 +1,6 @@
 use cargo_snippet::snippet;
 
-#[snippet]
+#[snippet(prefix = "use math_tools::*;")]
 pub mod math_tools {
     use num::Integer;
 

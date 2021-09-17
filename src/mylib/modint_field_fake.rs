@@ -1,6 +1,7 @@
 use cargo_snippet::snippet;
 
-#[snippet]
+#[snippet(prefix = "use rf_fake::*;")]
+#[snippet(prefix = "use num::{One, Zero};")]
 pub mod rf_fake {
     #[derive(Clone, Copy, Debug, PartialEq, Default)]
     pub struct RF {

@@ -115,6 +115,10 @@ name = "genocon2021_mainc"
 path = "src/contest/genocon2021/mainc.rs"
 
 [[bin]]
+name = "snippet_test"
+path = "src/sandbox/snippet_test.rs"
+
+[[bin]]
 name = "template"
 path = "src/contest/template.rs"
 

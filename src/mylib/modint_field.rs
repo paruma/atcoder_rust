@@ -1,6 +1,7 @@
 use cargo_snippet::snippet;
 
-#[snippet]
+#[snippet(prefix = "use rf::*;")]
+#[snippet(prefix = "use num::{One, Zero};")]
 pub mod rf {
     pub const MOD: i64 = 1_000_000_007;
 

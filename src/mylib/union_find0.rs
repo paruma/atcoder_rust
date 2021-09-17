@@ -1,6 +1,6 @@
 use cargo_snippet::snippet;
 
-#[snippet]
+#[snippet(prefix = "use union_find::*;")]
 pub mod union_find {
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]

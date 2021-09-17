@@ -1,6 +1,6 @@
 use cargo_snippet::snippet;
 
-#[snippet]
+#[snippet(prefix = "use iter_sum::*;")]
 pub mod iter_sum {
     pub trait Sum2<A>: Sized {
         fn sum2<I: Iterator<Item = A>>(iter: I) -> Self;
@@ -31,7 +31,7 @@ pub mod iter_sum {
     impl<T: Iterator> IteratorExtSum2 for T {}
 }
 
-#[snippet]
+#[snippet(prefix = "use iter_product::*;")]
 mod iter_product {
     pub trait Product2<A>: Sized {
         fn product2<I: Iterator<Item = A>>(iter: I) -> Self;

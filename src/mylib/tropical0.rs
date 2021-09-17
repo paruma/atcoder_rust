@@ -1,6 +1,6 @@
 use cargo_snippet::snippet;
 
-#[snippet]
+#[snippet(prefix = "use tropical::Trop::*;")]
 pub mod tropical {
     use std::{cmp::Ordering, ops::Add};
     use Trop::*;

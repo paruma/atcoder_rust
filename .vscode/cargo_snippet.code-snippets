@@ -16,6 +16,7 @@
     "scope": "rust",
     "prefix": "iter_product",
     "body": [
+      "use iter_product::*;",
       "mod iter_product {",
       "    pub trait Product2<A>: Sized {",
       "        fn product2<I: Iterator<Item = A>>(iter: I) -> Self;",
@@ -47,6 +48,7 @@
     "scope": "rust",
     "prefix": "iter_sum",
     "body": [
+      "use iter_sum::*;",
       "pub mod iter_sum {",
       "    pub trait Sum2<A>: Sized {",
       "        fn sum2<I: Iterator<Item = A>>(iter: I) -> Self;",
@@ -78,6 +80,7 @@
     "scope": "rust",
     "prefix": "math_tools",
     "body": [
+      "use math_tools::*;",
       "pub mod math_tools {",
       "    use num::Integer;",
       "    pub fn divisor(n: i64) -> Vec<i64> {",
@@ -138,6 +141,8 @@
     "scope": "rust",
     "prefix": "rf",
     "body": [
+      "use num::{One, Zero};",
+      "use rf::*;",
       "pub mod rf {",
       "    pub const MOD: i64 = 1_000_000_007;",
       "    #[allow()]",
@@ -201,6 +206,8 @@
     "scope": "rust",
     "prefix": "rf_fake",
     "body": [
+      "use num::{One, Zero};",
+      "use rf_fake::*;",
       "pub mod rf_fake {",
       "    #[derive(Clone, Copy, Debug, PartialEq, Default)]",
       "    pub struct RF {",
@@ -255,6 +262,8 @@
     "scope": "rust",
     "prefix": "rr",
     "body": [
+      "use num::{One, Zero};",
+      "use rr::*;",
       "pub mod rr {",
       "    pub const MOD: i64 = 1_000_000_007;",
       "    #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]",
@@ -305,6 +314,7 @@
     "scope": "rust",
     "prefix": "scan_iter",
     "body": [
+      "use scan_iter::*;",
       "pub mod scan_iter {",
       "    #[derive(Clone)]",
       "    pub struct Scanl<I, B, F> {",
@@ -355,6 +365,7 @@
     "scope": "rust",
     "prefix": "scan_vec",
     "body": [
+      "use scan_vec::*;",
       "pub mod scan_vec {",
       "    pub fn scanl<A, B, F>(vec: &[A], init: B, mut f: F) -> Vec<B>",
       "    where",
@@ -409,6 +420,7 @@
     "scope": "rust",
     "prefix": "tropical",
     "body": [
+      "use tropical::Trop::*;",
       "pub mod tropical {",
       "    use std::{cmp::Ordering, ops::Add};",
       "    use Trop::*;",
@@ -470,6 +482,7 @@
     "scope": "rust",
     "prefix": "union_find",
     "body": [
+      "use union_find::*;",
       "pub mod union_find {",
       "    #[derive(Clone, Copy, Debug, PartialEq, Eq)]",
       "    struct Root {",
