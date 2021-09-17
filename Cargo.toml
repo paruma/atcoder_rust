@@ -115,8 +115,8 @@ name = "genocon2021_mainc"
 path = "src/contest/genocon2021/mainc.rs"
 
 [[bin]]
-name = "templete"
-path = "src/contest/templete.rs"
+name = "template"
+path = "src/contest/template.rs"
 
 [dependencies]
 

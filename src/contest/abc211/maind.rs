@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 
 use itertools::Itertools;
 use num::{One, Zero};
-use proconio::{input, marker::Usize1, source::once::OnceSource};
+use proconio::{input, marker::Usize1};
 
 pub mod rf {
     pub const MOD: i64 = 1_000_000_007;
