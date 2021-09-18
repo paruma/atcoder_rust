@@ -5,6 +5,11 @@ edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [[bin]]
+name = "abc211_d2"
+path = "src/contest/abc211/maind2.rs"
+    
+
+[[bin]]
 name = "abc211_d"
 path = "src/contest/abc211/maind.rs"
     

@@ -420,7 +420,7 @@
     "scope": "rust",
     "prefix": "tropical",
     "body": [
-      "use tropical::Trop::*;",
+      "use tropical::Trop::{self, *};",
       "pub mod tropical {",
       "    use std::{cmp::Ordering, ops::Add};",
       "    use Trop::*;",
@@ -433,7 +433,7 @@
       "        pub fn get_fin(self) -> i64 {",
       "            match self {",
       "                Fin(val) => val,",
-      "                Inf => panic!(\"called `Trap::get_fin()` on a `Fin` value\"),",
+      "                Inf => panic!(\"called `Trop::get_fin()` on a `Fin` value\"),",
       "            }",
       "        }",
       "        pub fn get_fin_or(self, default: i64) -> i64 {",

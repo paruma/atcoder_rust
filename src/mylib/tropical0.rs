@@ -1,6 +1,6 @@
 use cargo_snippet::snippet;
 
-#[snippet(prefix = "use tropical::Trop::*;")]
+#[snippet(prefix = "use tropical::Trop::{self, *};")]
 pub mod tropical {
     use std::{cmp::Ordering, ops::Add};
     use Trop::*;
@@ -15,7 +15,7 @@ pub mod tropical {
         pub fn get_fin(self) -> i64 {
             match self {
                 Fin(val) => val,
-                Inf => panic!("called `Trap::get_fin()` on a `Fin` value"),
+                Inf => panic!("called `Trop::get_fin()` on a `Fin` value"),
             }
         }
 
@@ -68,11 +68,13 @@ pub mod tropical {
 
 #[cfg(test)]
 mod tests {
-    use super::tropical::Trop::*;
+    use super::tropical::Trop::{self, *};
 
     #[allow(clippy::eq_op)]
     #[test]
     fn test_trop_ord() {
+        let _x: Trop = Fin(3);
+
         assert!(Inf <= Inf);
         assert!(Fin(3) <= Inf);
         assert!(Fin(4) <= Fin(6));
@@ -107,6 +109,7 @@ mod tests {
         Inf.get_fin();
     }
 
+    #[allow(const_err)]
     #[test]
     fn test_trop_util() {
         assert_eq!(Fin(3).get_fin(), 3);
