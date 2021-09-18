@@ -1,4 +1,4 @@
-pub mod tropical0;
+pub mod bin_search0;
 pub mod iter;
 pub mod math;
 pub mod modint_field;
@@ -8,4 +8,5 @@ pub mod odo;
 pub mod scan_iter0;
 pub mod scan_vec0;
 pub mod sumprod;
+pub mod tropical0;
 pub mod union_find0;

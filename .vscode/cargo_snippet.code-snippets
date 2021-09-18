@@ -1,4 +1,24 @@
 {
+  "bin_search": {
+    "scope": "rust",
+    "prefix": "bin_search",
+    "body": [
+      "pub fn bin_search<F>(mut ok: i64, mut ng: i64, mut p: F) -> i64",
+      "where",
+      "    F: FnMut(i64) -> bool,",
+      "{",
+      "    while num::abs(ok - ng) > 1 {",
+      "        let mid = (ok + ng) / 2;",
+      "        if p(mid) {",
+      "            ok = mid;",
+      "        } else {",
+      "            ng = mid;",
+      "        }",
+      "    }",
+      "    ok",
+      "}"
+    ]
+  },
   "fn_guard": {
     "scope": "rust",
     "prefix": "fn_guard",
