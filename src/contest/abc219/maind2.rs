@@ -1,16 +1,20 @@
-use cargo_snippet::snippet;
+#![allow(clippy::let_unit_value)]
+use std::cmp::{max, min};
 
-#[snippet(prefix = "use tropical::Trop::{self, *};")]
+use itertools::Itertools;
+use ndarray::{Array, Array3};
+use proconio::input;
+
+//------snippet------
+use tropical::Trop::{self, *};
 pub mod tropical {
     use std::{cmp::Ordering, ops::Add};
     use Trop::*;
-
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
     pub enum Trop {
         Inf,
         Fin(i64),
     }
-
     impl Trop {
         pub fn get_fin(self) -> i64 {
             match self {
@@ -18,22 +22,18 @@ pub mod tropical {
                 Inf => panic!("called `Trop::get_fin()` on a `Fin` value"),
             }
         }
-
         pub fn get_fin_or(self, default: i64) -> i64 {
             match self {
                 Fin(val) => val,
                 Inf => default,
             }
         }
-
         pub fn is_fin(self) -> bool {
             matches!(self, Fin(_))
         }
-
         pub fn is_inf(self) -> bool {
             matches!(self, Inf)
         }
-
         pub fn to_option(self) -> Option<i64> {
             match self {
                 Inf => None,
@@ -41,10 +41,8 @@ pub mod tropical {
             }
         }
     }
-
     impl Add for Trop {
         type Output = Trop;
-
         fn add(self, rhs: Self) -> Self::Output {
             match (self, rhs) {
                 (Inf, Inf) => Inf,
@@ -54,7 +52,6 @@ pub mod tropical {
             }
         }
     }
-
     impl PartialOrd for Trop {
         fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
             match (self, other) {
@@ -65,72 +62,56 @@ pub mod tropical {
             }
         }
     }
-
     impl Ord for Trop {
         fn cmp(&self, other: &Self) -> Ordering {
             self.partial_cmp(other).unwrap()
         }
     }
 }
+//-------------------
 
-#[cfg(test)]
-mod tests {
-    use super::tropical::Trop::{self, *};
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Lb {
+    a: i64,
+    b: i64,
+}
 
-    #[allow(clippy::eq_op)]
-    #[test]
-    fn test_trop_ord() {
-        let _x: Trop = Fin(3);
-
-        assert!(Inf <= Inf);
-        assert!(Fin(3) <= Inf);
-        assert!(Fin(4) <= Fin(6));
-        assert!(Fin(4) <= Fin(4));
-
-        assert!(Inf >= Inf);
-        assert!(Inf >= Fin(3));
-        assert!(Fin(6) >= Fin(4));
-        assert!(Fin(4) >= Fin(4));
-
-        use std::cmp::min;
-
-        assert_eq!(min(Inf, Inf), Inf);
-        assert_eq!(min(Inf, Fin(3)), Fin(3));
-        assert_eq!(min(Fin(3), Inf), Fin(3));
-        assert_eq!(min(Fin(6), Fin(4)), Fin(4));
-        assert_eq!(min(Fin(4), Fin(4)), Fin(4));
+fn read() -> (usize, i64, i64, Vec<Lb>) {
+    input! {
+        //from OnceSource::from(""),
+        n: usize,
+        x:i64, y:i64,
+        lb_info: [(i64, i64); n],
     }
+    let lbs = lb_info
+        .iter()
+        .map(|(a, b)| Lb { a: *a, b: *b })
+        .collect_vec();
+    (n, x, y, lbs)
+}
 
-    #[test]
-    fn test_trop_add() {
-        assert_eq!(Inf + Inf, Inf);
-        assert_eq!(Inf + Fin(3), Inf);
-        assert_eq!(Fin(3) + Inf, Inf);
-        assert_eq!(Fin(3) + Fin(4), Fin(7));
+fn solve(n: usize, xx: i64, yy: i64, lbs: &[Lb]) -> Option<i64> {
+    let xx = xx as usize;
+    let yy = yy as usize;
+    let mut dp: Array3<Trop> = Array::from_shape_fn((n + 1, xx + 1, yy + 1), |_| Inf);
+
+    // usize: 引き算に注意
+    dp[[0, 0, 0]] = Fin(0);
+
+    for (i, lb) in lbs.iter().enumerate() {
+        for x in 0..=xx {
+            for y in 0..=yy {
+                let prev_x = max(x as i64 - lb.a, 0) as usize;
+                let prev_y = max(y as i64 - lb.b, 0) as usize;
+                dp[[i + 1, x, y]] = min(dp[[i, x, y]], dp[[i, prev_x, prev_y]] + Fin(1));
+            }
+        }
     }
+    dp[[n, xx, yy]].to_option()
+}
 
-    // VSCodeでは #[should_panic]は無視されてしまうので通らない。
-    #[test]
-    #[should_panic]
-    fn test_trop_get_fin_panic() {
-        Inf.get_fin();
-    }
-
-    #[allow(const_err)]
-    #[test]
-    fn test_trop_util() {
-        assert_eq!(Fin(3).get_fin(), 3);
-
-        assert_eq!(Fin(3).get_fin_or(0), 3);
-        assert_eq!(Inf.get_fin_or(0), 0);
-
-        assert!(Fin(3).is_fin());
-        assert!(!Inf.is_fin());
-
-        assert!(!Fin(3).is_inf());
-        assert!(Inf.is_inf());
-
-        assert_eq!(Fin(3).to_option(), Some(3));
-        assert_eq!(Inf.to_option(), None);
-    }
+fn main() {
+    let (n, x, y, lbs) = read();
+    let ans = solve(n, x, y, &lbs);
+    println!("{}", ans.unwrap_or(-1));
 }
