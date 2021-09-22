@@ -7,6 +7,12 @@ import sys
 import os
 import shutil
 
+if len(sys.argv) <= 2:
+    print(
+        "usage  : ./contest.py [contest_name] [task_name_list]", file=sys.stderr)
+    print("example: ./contest.py abc206 b c", file=sys.stderr)
+    sys.exit(1)
+
 
 contest_name: str = sys.argv[1]
 problems: list[str] = sys.argv[2:]
