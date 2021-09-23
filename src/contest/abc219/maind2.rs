@@ -68,6 +68,31 @@ pub mod tropical {
         }
     }
 }
+
+//use print_arr::*;
+pub mod print_arr {
+    use ndarray::{Array2, Array3};
+    pub fn print_arr2<T: std::fmt::Debug>(arr: &Array2<T>) {
+        for i in 0..arr.nrows() {
+            for j in 0..arr.ncols() {
+                print!("{:?} ", arr[[i, j]]);
+            }
+            println!();
+        }
+    }
+    pub fn print_arr3<T: std::fmt::Debug>(arr: &Array3<T>) {
+        let shape = arr.shape();
+        for i in 0..shape[0] {
+            for j in 0..shape[1] {
+                for k in 0..shape[2] {
+                    print!("{:?} ", arr[[i, j, k]]);
+                }
+                println!();
+            }
+            println!();
+        }
+    }
+}
 //-------------------
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -107,6 +132,7 @@ fn solve(n: usize, xx: i64, yy: i64, lbs: &[Lb]) -> Option<i64> {
             }
         }
     }
+
     dp[[n, xx, yy]].to_option()
 }
 
