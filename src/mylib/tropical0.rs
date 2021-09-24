@@ -40,6 +40,13 @@ pub mod tropical {
                 Fin(a) => Some(a),
             }
         }
+
+        pub fn from_option(opt: Option<i64>) -> Trop {
+            match opt {
+                Some(a) => Fin(a),
+                None => Inf,
+            }
+        }
     }
 
     impl Add for Trop {
@@ -72,7 +79,6 @@ pub mod tropical {
         }
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -133,5 +139,8 @@ mod tests {
 
         assert_eq!(Fin(3).to_option(), Some(3));
         assert_eq!(Inf.to_option(), None);
+
+        assert_eq!(Trop::from_option(Some(3)), Fin(3));
+        assert_eq!(Trop::from_option(None), Inf);
     }
 }

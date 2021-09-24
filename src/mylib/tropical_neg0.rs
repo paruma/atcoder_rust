@@ -40,6 +40,13 @@ pub mod neg_tropical {
                 Fin(a) => Some(a),
             }
         }
+
+        pub fn from_option(opt: Option<i64>) -> NegTrop {
+            match opt {
+                Some(a) => Fin(a),
+                None => NegInf,
+            }
+        }
     }
 
     impl Add for NegTrop {
@@ -132,5 +139,8 @@ mod tests {
 
         assert_eq!(Fin(3).to_option(), Some(3));
         assert_eq!(NegInf.to_option(), None);
+
+        assert_eq!(NegTrop::from_option(Some(3)), Fin(3));
+        assert_eq!(NegTrop::from_option(None), NegInf);
     }
 }

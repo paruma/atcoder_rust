@@ -160,6 +160,7 @@ fn solve3(n: usize, items: &[Item], max_weight: i64) -> i64 {
     let mut dp: Array2<NegTrop> = Array::from_shape_fn((n + 1, max_weight + 1), |_| NegInf);
 
     // これを定義しようとすると借用ルールに引っかかる
+    // dpを引数に入れればとりあえずは大丈夫か。
     /*
     let dpfn = |i: usize, w: i64| {
         if w < 0 {
