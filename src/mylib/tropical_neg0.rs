@@ -1,28 +1,28 @@
 use cargo_snippet::snippet;
 
-#[snippet(prefix = "use tropical::Trop::{self, *};")]
-pub mod tropical {
+#[snippet(prefix = "use neg_tropical::NegTrop::{self, *};")]
+pub mod neg_tropical {
     use std::{cmp::Ordering, ops::Add};
-    use Trop::*;
+    use NegTrop::*;
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-    pub enum Trop {
-        Inf,
+    pub enum NegTrop {
+        NegInf,
         Fin(i64),
     }
 
-    impl Trop {
+    impl NegTrop {
         pub fn get_fin(self) -> i64 {
             match self {
                 Fin(val) => val,
-                Inf => panic!("called `Trop::get_fin()` on a `Fin` value"),
+                NegInf => panic!("called `Trop::get_fin()` on a `Fin` value"),
             }
         }
 
         pub fn get_fin_or(self, default: i64) -> i64 {
             match self {
                 Fin(val) => val,
-                Inf => default,
+                NegInf => default,
             }
         }
 
@@ -30,83 +30,82 @@ pub mod tropical {
             matches!(self, Fin(_))
         }
 
-        pub fn is_inf(self) -> bool {
-            matches!(self, Inf)
+        pub fn is_neginf(self) -> bool {
+            matches!(self, NegInf)
         }
 
         pub fn to_option(self) -> Option<i64> {
             match self {
-                Inf => None,
+                NegInf => None,
                 Fin(a) => Some(a),
             }
         }
     }
 
-    impl Add for Trop {
-        type Output = Trop;
+    impl Add for NegTrop {
+        type Output = NegTrop;
 
         fn add(self, rhs: Self) -> Self::Output {
             match (self, rhs) {
-                (Inf, Inf) => Inf,
-                (Inf, Fin(_)) => Inf,
-                (Fin(_), Inf) => Inf,
+                (NegInf, NegInf) => NegInf,
+                (NegInf, Fin(_)) => NegInf,
+                (Fin(_), NegInf) => NegInf,
                 (Fin(a), Fin(b)) => Fin(a + b),
             }
         }
     }
 
-    impl PartialOrd for Trop {
+    impl PartialOrd for NegTrop {
         fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
             match (self, other) {
-                (Inf, Inf) => Some(Ordering::Equal),
-                (Inf, Fin(_)) => Some(Ordering::Greater),
-                (Fin(_), Inf) => Some(Ordering::Less),
+                (NegInf, NegInf) => Some(Ordering::Equal),
+                (NegInf, Fin(_)) => Some(Ordering::Less),
+                (Fin(_), NegInf) => Some(Ordering::Greater),
                 (Fin(a), Fin(b)) => PartialOrd::partial_cmp(a, b),
             }
         }
     }
 
-    impl Ord for Trop {
+    impl Ord for NegTrop {
         fn cmp(&self, other: &Self) -> Ordering {
             self.partial_cmp(other).unwrap()
         }
     }
 }
 
-
 #[cfg(test)]
 mod tests {
-    use super::tropical::Trop::{self, *};
+    use super::neg_tropical::NegTrop::{self, *};
 
     #[allow(clippy::eq_op)]
     #[test]
     fn test_trop_ord() {
-        let _x: Trop = Fin(3);
+        let _x: NegTrop = Fin(3);
 
-        assert!(Inf <= Inf);
-        assert!(Fin(3) <= Inf);
-        assert!(Fin(4) <= Fin(6));
-        assert!(Fin(4) <= Fin(4));
-
-        assert!(Inf >= Inf);
-        assert!(Inf >= Fin(3));
+        assert!(NegInf >= NegInf);
+        assert!(Fin(3) >= NegInf);
         assert!(Fin(6) >= Fin(4));
         assert!(Fin(4) >= Fin(4));
 
-        use std::cmp::min;
+        assert!(NegInf <= NegInf);
+        assert!(NegInf <= Fin(3));
+        assert!(Fin(4) <= Fin(6));
+        assert!(Fin(4) <= Fin(4));
 
-        assert_eq!(min(Inf, Inf), Inf);
-        assert_eq!(min(Inf, Fin(3)), Fin(3));
-        assert_eq!(min(Fin(3), Inf), Fin(3));
-        assert_eq!(min(Fin(6), Fin(4)), Fin(4));
-        assert_eq!(min(Fin(4), Fin(4)), Fin(4));
+        use std::cmp::max;
+
+        assert_eq!(max(NegInf, NegInf), NegInf);
+        assert_eq!(max(NegInf, Fin(3)), Fin(3));
+        assert_eq!(max(Fin(3), NegInf), Fin(3));
+        assert_eq!(max(Fin(6), Fin(4)), Fin(6));
+        assert_eq!(max(Fin(4), Fin(4)), Fin(4));
     }
 
     #[test]
     fn test_trop_add() {
-        assert_eq!(Inf + Inf, Inf);
-        assert_eq!(Inf + Fin(3), Inf);
-        assert_eq!(Fin(3) + Inf, Inf);
+        assert_eq!(NegInf + NegInf, NegInf);
+        assert_eq!(NegInf + Fin(3), NegInf);
+        assert_eq!(Fin(3) + NegInf, NegInf);
         assert_eq!(Fin(3) + Fin(4), Fin(7));
     }
 
@@ -114,7 +113,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn test_trop_get_fin_panic() {
-        Inf.get_fin();
+        NegInf.get_fin();
     }
 
     #[allow(const_err)]
@@ -123,15 +122,15 @@ mod tests {
         assert_eq!(Fin(3).get_fin(), 3);
 
         assert_eq!(Fin(3).get_fin_or(0), 3);
-        assert_eq!(Inf.get_fin_or(0), 0);
+        assert_eq!(NegInf.get_fin_or(0), 0);
 
         assert!(Fin(3).is_fin());
-        assert!(!Inf.is_fin());
+        assert!(!NegInf.is_fin());
 
-        assert!(!Fin(3).is_inf());
-        assert!(Inf.is_inf());
+        assert!(!Fin(3).is_neginf());
+        assert!(NegInf.is_neginf());
 
         assert_eq!(Fin(3).to_option(), Some(3));
-        assert_eq!(Inf.to_option(), None);
+        assert_eq!(NegInf.to_option(), None);
     }
 }
