@@ -4,6 +4,13 @@ use cargo_snippet::snippet;
 pub mod print_arr {
     use ndarray::{Array2, Array3};
 
+    pub fn print_arr<T: std::fmt::Debug>(arr: &[T]) {
+        for a in arr {
+            print!("{:?} ", a);
+        }
+        println!();
+    }
+
     pub fn print_arr2<T: std::fmt::Debug>(arr: &Array2<T>) {
         for i in 0..arr.nrows() {
             for j in 0..arr.ncols() {
@@ -31,6 +38,13 @@ mod tests {
     use ndarray::{Array, Array2, Array3};
 
     use super::print_arr::*;
+
+    #[test]
+    fn test_print_arr() {
+        let arr: Vec<i64> = vec![3; 4];
+
+        print_arr(&arr);
+    }
 
     #[test]
     fn test_print_arr2() {
