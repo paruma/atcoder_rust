@@ -122,6 +122,7 @@ fn solve(n: usize, xx: i64, yy: i64, lbs: &[Lb]) -> Option<i64> {
 
     // usize: 引き算に注意
     dp[[0, 0, 0]] = Fin(0);
+    // dp[[0, x, y]] = Inf  if (x,y)!=(0,0) を暗黙のうちに使っている。
 
     for (i, lb) in lbs.iter().enumerate() {
         for x in 0..=xx {
