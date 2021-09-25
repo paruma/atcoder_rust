@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+# hoge = """
 [[bin]]
 name = "arc126_a"
 path = "src/contest/arc126/maina.rs"
@@ -11,7 +12,6 @@ path = "src/contest/arc126/maina.rs"
 [[bin]]
 name = "arc126_b"
 path = "src/contest/arc126/mainb.rs"
-    
     
 [[bin]]
 name = "abc219_b2"
@@ -165,6 +165,12 @@ path = "src/sandbox/snippet_test.rs"
 [[bin]]
 name = "template"
 path = "src/contest/template.rs"
+
+[[bin]]
+name = "template_a"
+path = "src/contest/template_a.rs"
+
+#"""
 
 [dependencies]
 
