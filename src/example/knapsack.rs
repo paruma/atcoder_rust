@@ -65,6 +65,38 @@ pub mod neg_tropical {
         }
     }
 }
+
+//use print_arr::*;
+#[allow(dead_code)]
+pub mod print_arr {
+    use ndarray::{Array2, Array3};
+    pub fn print_arr<T: std::fmt::Debug>(arr: &[T]) {
+        for a in arr {
+            print!("{:?} ", a);
+        }
+        println!();
+    }
+    pub fn print_arr2<T: std::fmt::Debug>(arr: &Array2<T>) {
+        for i in 0..arr.nrows() {
+            for j in 0..arr.ncols() {
+                print!("{:?} ", arr[[i, j]]);
+            }
+            println!();
+        }
+    }
+    pub fn print_arr3<T: std::fmt::Debug>(arr: &Array3<T>) {
+        let shape = arr.shape();
+        for i in 0..shape[0] {
+            for j in 0..shape[1] {
+                for k in 0..shape[2] {
+                    print!("{:?} ", arr[[i, j, k]]);
+                }
+                println!();
+            }
+            println!();
+        }
+    }
+}
 //---------snippet---------
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -79,7 +111,7 @@ fn solve(n: usize, items: &[Item], max_weight: i64) -> i64 {
 
     // dp[[i, w]] := [0,i)のitemsを使用したときの重さw以下での価値の最大値
     // dp[[0, 0]] = 0
-    // dp[[0, w]] = -Inf (w!=0)
+    // dp[[0, w]] = -Inf (w!=0) ←ここ間違えてる
     // dp[[i+1, w]] = max(dp[[i, w]], dp[[i, w-items[i].weight]] + items[i].value;
     // 答えは必ず存在する、max_weight>=0なら、重さmax_weight以下となるような選び方は必ず存在するので（何も選ばないという選び方）
 
@@ -140,38 +172,34 @@ fn solve2(n: usize, items: &[Item], max_weight: i64) -> i64 {
 }
 */
 
-fn dpfn(dp: &Array2<NegTrop>, i: usize, w: i64) -> NegTrop {
-    if w < 0 {
-        NegInf
-    } else {
-        dp[[i, w as usize]]
-    }
-}
 #[allow(dead_code)]
 fn solve3(n: usize, items: &[Item], max_weight: i64) -> i64 {
     let max_weight = max_weight as usize;
 
     // dp[[i, w]] := [0,i)のitemsを使用したときの重さw以下での価値の最大値
     // dp[[0, 0]] = 0
-    // dp[[0, w]] = -Inf (w!=0)
+    // dp[[0, w]] = 0 (w!=0) (ここ-Infと勘違いしてた。何も考えずに経験だけから決めないようにする。ちゃんと考える。)
     // dp[[i+1, w]] = max(dp[[i, w]], dp[[i, w-items[i].weight]] + items[i].value;
     // 答えは必ず存在する、max_weight>=0なら、重さmax_weight以下となるような選び方は必ず存在するので（何も選ばないという選び方）
 
     let mut dp: Array2<NegTrop> = Array::from_shape_fn((n + 1, max_weight + 1), |_| NegInf);
 
-    // これを定義しようとすると借用ルールに引っかかる
-    // dpを引数に入れればとりあえずは大丈夫か。
-    /*
-    let dpfn = |i: usize, w: i64| {
+    // dpを関数化するときは小さい方の添字の考慮をする。（もらうDPでは）大きい方の添字の考慮はいらない
+    // dpを引数に入れないと借用ルールに引っかかる
+    let dpfn = |dp: &Array2<NegTrop>, i: usize, w: i64| {
+        // 必要ないが、例えば[0, -2)=[0, 0)なので、iが負の場合は0にしてよい(今回はusizeで取ってるから関係ないけど)
+        // iに関する2項間漸化式だとこういう考慮が必要になるかもしれない。
         if w < 0 {
             NegInf
         } else {
             dp[[i, w as usize]]
         }
     };
-    */
 
-    dp[[0, 0]] = Fin(0);
+    //
+    for w in 0..=max_weight {
+        dp[[0, w]] = Fin(0);
+    }
 
     for (i, item) in items.iter().enumerate() {
         for w in 0..=max_weight {
@@ -182,6 +210,7 @@ fn solve3(n: usize, items: &[Item], max_weight: i64) -> i64 {
             );
         }
     }
+    //print_arr2(&dp);
     dp[[n, max_weight]].get_fin()
 }
 #[cfg(test)]
