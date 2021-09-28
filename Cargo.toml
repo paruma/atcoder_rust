@@ -4,6 +4,28 @@ version = "0.1.0"
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[[bin]]
+name = "abc220_a"
+path = "src/contest/abc220/maina.rs"
+    
+[[bin]]
+name = "abc220_b"
+path = "src/contest/abc220/mainb.rs"
+    
+[[bin]]
+name = "abc220_c"
+path = "src/contest/abc220/mainc.rs"
+    
+[[bin]]
+name = "abc220_d"
+path = "src/contest/abc220/maind.rs"
+
+[[bin]]
+name = "abc220_f"
+path = "src/contest/abc220/mainf.rs"
+
+
+hoge = """
 
 [[bin]]
 name = "arc127_a"
@@ -13,7 +35,6 @@ path = "src/contest/arc127/maina.rs"
 name = "arc127_b"
 path = "src/contest/arc127/mainb.rs"
 
-hoge = """
 [[bin]]
 name = "arc126_a"
 path = "src/contest/arc126/maina.rs"
