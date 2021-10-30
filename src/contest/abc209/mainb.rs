@@ -24,7 +24,7 @@ fn output(ans: bool) {
 }
 
 fn main() {
-    let (n_items, money, item_prices)= read();
+    let (n_items, money, item_prices) = read();
     let ans = solve(n_items, money, &item_prices);
     output(ans);
 }
