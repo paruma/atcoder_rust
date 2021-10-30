@@ -189,7 +189,8 @@ fn solve(n_v: usize, _n_e: usize, edges: &[Edge]) -> RF {
         let current_idx = open.pop_back().unwrap();
 
         for &next_idx in &next_list[current_idx] {
-            // いつものBFSみたいにここでvisited判定しない。visitedしてても、足し算をする必要がある。
+            // いつものBFSみたいにここでvisited判定しない。
+            // visitedしてても、足し算をする必要がある。(queueに入れる必要はないが)
             if dist[next_idx] == dist[current_idx] + Fin(1) {
                 if !visited[next_idx] {
                     open.push_front(next_idx);
