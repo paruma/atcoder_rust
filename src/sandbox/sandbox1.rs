@@ -86,7 +86,6 @@ fn _sandbox6() {
 // numトレイトのテスト
 #[test]
 fn _sandbox7() {
-    use num;
     assert_eq!(num::pow::<i32>(3, 5), 243);
 }
 

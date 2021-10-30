@@ -14,6 +14,7 @@ fn read() -> (i64, i64, i64) {
     (a, b, k)
 }
 
+#[allow(dead_code)]
 fn to_k(x: i64, k: i64) -> i64 {
     // 100_000
 

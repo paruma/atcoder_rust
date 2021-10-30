@@ -86,6 +86,7 @@ fn read() -> (usize, Vec<i64>, i64) {
     ret
 }
 
+#[allow(clippy::many_single_char_names)]
 fn solve(n: usize, a: &[i64], x: i64) -> i64 {
     let sum_a: i64 = a.iter().sum();
     let cumsum_a = cumsum(a);
@@ -98,8 +99,6 @@ fn solve(n: usize, a: &[i64], x: i64) -> i64 {
     // 答えは1オリジン
     nloops * (n as i64) + i
 }
-
-fn output() {}
 
 fn main() {
     let (n, a, x) = read();
