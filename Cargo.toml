@@ -4,6 +4,49 @@ version = "0.1.0"
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "abc226_a"
+path = "src/contest/abc226/maina.rs"
+    
+[[bin]]
+name = "abc226_b"
+path = "src/contest/abc226/mainb.rs"
+    
+[[bin]]
+name = "abc226_c"
+path = "src/contest/abc226/mainc.rs"
+    
+[[bin]]
+name = "abc226_d"
+path = "src/contest/abc226/maind.rs"
+    
+[[bin]]
+name = "abc226_e"
+path = "src/contest/abc226/maine.rs"
+    
+[[bin]]
+name = "abc226_f"
+path = "src/contest/abc226/mainf.rs"
+[[bin]]
+name = "abc225_a"
+path = "src/contest/abc225/maina.rs"
+
+hoge = """
+    
+[[bin]]
+name = "abc225_b"
+path = "src/contest/abc225/mainb.rs"
+    
+[[bin]]
+name = "abc225_c"
+path = "src/contest/abc225/mainc.rs"
+    
+[[bin]]
+name = "abc225_d"
+path = "src/contest/abc225/maind.rs"
+
+
 [[bin]]
 name = "abc220_a"
 path = "src/contest/abc220/maina.rs"
@@ -25,7 +68,6 @@ name = "abc220_f"
 path = "src/contest/abc220/mainf.rs"
 
 
-hoge = """
 
 [[bin]]
 name = "arc127_a"
@@ -304,7 +346,7 @@ proconio = { version = "=0.3.6", features = ["derive"] }
 #text_io = "=0.1.8"
 
 # 競技プログラミングの入出力サポートその3
-#whiteread = "=0.5.0"
+whiteread = "=0.5.0"
 
 # 高速なハッシュ関数
 #rustc-hash = "=1.1.0"
