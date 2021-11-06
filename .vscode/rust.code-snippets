@@ -23,6 +23,14 @@
 		],
 		"description": "#[derive(Clone, Copy, Debug, PartialEq, Eq)]"
 	},
+	"yesno": {
+		"scope": "rust",
+		"prefix": "yesno",
+		"body": [
+			"if $1 { \"Yes\" } else { \"No\" }"
+		],
+		"description": "if $1 { \"Yes\" } else { \"No\" }"
+	},
 	// cf: dbg!
 	"println": {
 		"scope": "rust",
