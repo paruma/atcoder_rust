@@ -24,10 +24,7 @@ path = "src/contest/abc226/maind.rs"
 [[bin]]
 name = "abc226_e"
 path = "src/contest/abc226/maine.rs"
-    
-[[bin]]
-name = "abc226_f"
-path = "src/contest/abc226/mainf.rs"
+
 [[bin]]
 name = "abc225_a"
 path = "src/contest/abc225/maina.rs"

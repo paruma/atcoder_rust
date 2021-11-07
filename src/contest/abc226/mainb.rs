@@ -1,23 +1,32 @@
 #![allow(clippy::let_unit_value)]
-use proconio::input;
+use itertools::Itertools;
+use whiteread::Reader;
 
 //------snippet------
 
 //-------------------
 
-fn read() {
-    input! {
-        //from OnceSource::from(""),
-    }
+fn read() -> Vec<Vec<i64>> {
+    let mut rdr = Reader::from_stdin_naive();
+    let n = rdr.p::<usize>();
+    let a = (0..n)
+        .map(|_| {
+            let len = rdr.p::<usize>();
+            (0..len).map(|_| rdr.p::<i64>()).collect_vec()
+        })
+        .collect_vec();
+    a
 }
 
-fn solve() {}
+fn solve(a: &[Vec<i64>]) -> usize {
+    a.iter().unique().count()
+}
 
-fn output() {}
+//fn output() {}
 
 fn main() {
-    let () = read();
-    let _ = solve();
-    output();
-    //println!("{}", ans);
+    let a = read();
+    let ans = solve(&a);
+    //output();
+    println!("{}", ans);
 }

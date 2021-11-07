@@ -5,19 +5,10 @@ use proconio::input;
 
 //-------------------
 
-fn read() {
-    input! {
-        //from OnceSource::from(""),
-    }
-}
-
-fn solve() {}
-
-fn output() {}
-
 fn main() {
-    let () = read();
-    let _ = solve();
-    output();
-    //println!("{}", ans);
+    input! {
+        a: f32
+    }
+    let ans = (a + 0.5f32) as i32;
+    println!("{}", ans);
 }
