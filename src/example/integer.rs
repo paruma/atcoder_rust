@@ -3,6 +3,9 @@ fn ex_gcd() {
     //fn gcd<T: Integer>(x: T, y: T) -> T
     assert_eq!(num_integer::gcd(4, 6), 2);
     assert_eq!(num_integer::lcm(4, 6), 12);
+
+    assert_eq!(num_integer::gcd(0, 6), 6);
+    assert_eq!(num_integer::gcd(0, 0), 0);
 }
 
 #[test]

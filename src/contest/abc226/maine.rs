@@ -66,6 +66,9 @@ pub mod union_find {
         }
         pub fn unite(&mut self, x: usize, y: usize) {
             if self.same(x, y) {
+                // RootAndIndexの値はパターンマッチで
+                // let {root, index} = self.root_node(x);
+                // と書いたほうがいいのかもしれないなぁ。
                 let root_node = self.root_node(x);
                 let root_index = root_node.index;
 
@@ -75,7 +78,10 @@ pub mod union_find {
                         n_loops: root_node.root.n_loops + 1,
                     },
                 };
-                return;// これが抜けてた...
+                // これが抜けてた...
+                // UnionFindのテンプレコードにはreturnがあるんだけど、コピーするときにreturnを何故か消してしまった。
+                // 早期returnやめるか？？？
+                return;
             }
             let x_root_node = self.root_node(x);
             let y_root_node = self.root_node(y);
@@ -204,14 +210,15 @@ fn solve(n_v: usize, edges: &[Edge]) -> RF {
             Node::Root { root } => {
                 //dbg!(root.n_loops); //dbgあると間に合わない
                 if root.n_loops == 1 {
-                    ans = ans * RF::new(2);
+                    ans *= RF::new(2);
                 } else {
                     ans = RF::zero();
                 }
             }
-            Node::NonRoot { parent_index } => {}
+            Node::NonRoot { parent_index: _ } => {}
         }
     }
+    // これ不要(何も考えずにコード修正してたときの名残)
     if ans == RF::one() {
         RF::zero()
     } else {

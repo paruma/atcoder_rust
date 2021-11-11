@@ -2,7 +2,7 @@
 use std::collections::VecDeque;
 
 use itertools::Itertools;
-use proconio::input;
+
 use whiteread::Reader;
 
 //------snippet------
@@ -30,6 +30,8 @@ fn read() -> Vec<Skill> {
 }
 
 fn solve(skills: &[Skill]) -> i64 {
+    // 最初の実装、will_useを使わずにvisitedだけで実装しようとしたら事故った
+    // 何があったんだっけ。
     let mut visited = vec![false; skills.len()];
     let mut will_use = vec![false; skills.len()];
     let mut open: VecDeque<usize> = VecDeque::new();

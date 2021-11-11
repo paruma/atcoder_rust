@@ -1,6 +1,6 @@
 #![allow(clippy::let_unit_value)]
 use itertools::Itertools;
-use num::Zero;
+
 use proconio::input;
 
 //------snippet------
@@ -65,6 +65,7 @@ fn normalize(p: IPos) -> IPos {
 fn solve(pos_list: &[IPos]) -> usize {
     let mut buf: Vec<IPos> = Vec::new();
 
+    // ここ、最初順列ではなく組み合わせと勘違い
     for i in 0..pos_list.len() {
         for j in 0..pos_list.len() {
             if i != j {
