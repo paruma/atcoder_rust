@@ -4,7 +4,7 @@ use cargo_snippet::snippet;
 pub mod pos {
     use std::ops::{Add, Sub};
 
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct Pos<T> {
         pub x: T,
         pub y: T,

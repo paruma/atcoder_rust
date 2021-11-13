@@ -1,6 +1,7 @@
 #![allow(clippy::let_unit_value)]
 use itertools::Itertools;
 
+use num::Zero;
 use proconio::input;
 
 //------snippet------
@@ -52,17 +53,37 @@ fn read() -> Vec<IPos> {
 }
 
 fn normalize(p: IPos) -> IPos {
+    assert!(p.is_zero());
+
+    // 本当は場合分け不要
     if p.x == 0 {
         Pos::new(0, p.y.signum())
     } else if p.y == 0 {
         Pos::new(p.x.signum(), 0)
     } else {
         let gcd = num_integer::gcd(p.x.abs(), p.y.abs());
+        assert!(gcd > 0); //p != (0,0)を仮定。
         Pos::new(p.x / gcd, p.y / gcd)
     }
 }
 
 fn solve(pos_list: &[IPos]) -> usize {
+    //iproduct!(0..pos_list.len(), 0..pos_list.len())
+    //    .filter(|(i, j)| i != j)
+
+    /*
+    (0..pos_list.len())
+        .permutations(2)
+        .map(|p| {
+            let src = pos_list[p[0]];
+            let dst = pos_list[p[1]];
+            let diff = dst - src;
+            normalize(diff)
+        })
+        .unique()
+        .count();
+    */
+
     let mut buf: Vec<IPos> = Vec::new();
 
     // ここ、最初順列ではなく組み合わせと勘違い
