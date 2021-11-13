@@ -2,41 +2,38 @@ use cargo_snippet::snippet;
 
 #[snippet(prefix = "use union_find::*;")]
 pub mod union_find {
-
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-    struct Root {
-        count: i32,
+    pub struct Root {
+        pub count: i32,
+        pub n_loops: i32,
     }
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-    enum Node {
+    pub enum Node {
         Root { root: Root },
         NonRoot { parent_index: usize },
     }
-
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-    struct RootAndIndex {
-        root: Root,
-        index: usize,
+    pub struct RootAndIndex {
+        pub root: Root,
+        pub index: usize,
     }
-
     #[derive(Clone, Debug)]
     pub struct UnionFind {
-        nodes: Vec<Node>,
+        pub nodes: Vec<Node>,
     }
-
     impl UnionFind {
         pub fn new(n: usize) -> UnionFind {
+            let init_node = Node::Root {
+                root: Root {
+                    count: 1,
+                    n_loops: 0,
+                },
+            };
             UnionFind {
-                nodes: vec![
-                    Node::Root {
-                        root: Root { count: 1 }
-                    };
-                    n
-                ],
+                nodes: vec![init_node; n],
             }
         }
-
-        fn root_node(&mut self, index: usize) -> RootAndIndex {
+        pub fn root_node(&mut self, index: usize) -> RootAndIndex {
             match self.nodes[index] {
                 Node::Root { root } => RootAndIndex { root, index },
                 Node::NonRoot { parent_index } => {
@@ -48,67 +45,57 @@ pub mod union_find {
                 }
             }
         }
-
         pub fn root(&mut self, index: usize) -> usize {
             self.root_node(index).index
         }
-
         pub fn same_count(&mut self, index: usize) -> i32 {
             self.root_node(index).root.count
         }
-
         pub fn same(&mut self, x: usize, y: usize) -> bool {
             self.root(x) == self.root(y)
         }
-
         pub fn num_groups(&self) -> usize {
             self.nodes
                 .iter()
-                .filter(|&node| matches!(node, Node::Root { .. }))
+                .filter(|&node| matches ! (node , Node :: Root {.. } ))
                 .count()
         }
-
         pub fn unite(&mut self, x: usize, y: usize) {
             if self.same(x, y) {
-                return;
+                let root_info = self.root_node(x);
+
+                self.nodes[root_info.index] = Node::Root {
+                    root: Root {
+                        count: root_info.root.count,
+                        n_loops: root_info.root.n_loops + 1,
+                    },
+                };
+                return; //消さないように
             }
 
-            let x_root_node = self.root_node(x);
-            let y_root_node = self.root_node(y);
+            let x_root_info = self.root_node(x);
+            let y_root_info = self.root_node(y);
 
-            // 自分と同じグループのノードの数
-            let x_count = x_root_node.root.count;
-            let y_count = y_root_node.root.count;
-
-            let x_root_index = x_root_node.index;
-            let y_root_index = y_root_node.index;
-
-            if x_count < y_count {
-                // yのrootにxのrootをくっつける
-                self.nodes[x_root_index] = Node::NonRoot {
-                    parent_index: y_root_index,
+            let (parent_root_info, child_root_info) =
+                if x_root_info.root.count < y_root_info.root.count {
+                    (y_root_info, x_root_info)
+                } else {
+                    (x_root_info, y_root_info)
                 };
-                self.nodes[y_root_index] = Node::Root {
-                    root: Root {
-                        count: x_count + y_count,
-                    },
-                }
-            } else {
-                // xのrootにyのrootをくっつける
 
-                self.nodes[y_root_index] = Node::NonRoot {
-                    parent_index: x_root_index,
-                };
-                self.nodes[x_root_index] = Node::Root {
-                    root: Root {
-                        count: x_count + y_count,
-                    },
-                }
-            }
+            self.nodes[parent_root_info.index] = Node::Root {
+                root: Root {
+                    count: parent_root_info.root.count + child_root_info.root.count,
+                    n_loops: parent_root_info.root.n_loops + child_root_info.root.n_loops,
+                },
+            };
+
+            self.nodes[child_root_info.index] = Node::NonRoot {
+                parent_index: parent_root_info.index,
+            };
         }
     }
 }
-
 #[cfg(test)]
 mod tests {
     #[test]
@@ -126,5 +113,27 @@ mod tests {
         assert_eq!(uf.num_groups(), 3);
         assert!(uf.same(0, 4));
         assert!(!uf.same(2, 4));
+    }
+
+    #[test]
+    fn test_uf_loop() {
+        use super::union_find::*;
+        let mut uf = UnionFind::new(8);
+
+        assert_eq!(uf.root_node(0).root.n_loops, 0);
+        uf.unite(0, 1);
+        assert_eq!(uf.root_node(0).root.n_loops, 0);
+        uf.unite(1, 2);
+        assert_eq!(uf.root_node(0).root.n_loops, 0);
+        uf.unite(2, 0);
+        assert_eq!(uf.root_node(0).root.n_loops, 1);
+
+        uf.unite(3, 4);
+        uf.unite(4, 5);
+        uf.unite(5, 3);
+
+        uf.unite(1, 4);
+
+        assert_eq!(uf.root_node(0).root.n_loops, 2);
     }
 }
