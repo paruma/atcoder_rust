@@ -53,7 +53,7 @@ fn read() -> Vec<IPos> {
 }
 
 fn normalize(p: IPos) -> IPos {
-    assert!(p.is_zero());
+    assert!(!p.is_zero());
 
     // 本当は場合分け不要
     if p.x == 0 {

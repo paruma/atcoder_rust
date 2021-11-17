@@ -50,6 +50,7 @@ fn solve(n_v: usize, _n_q: usize, edges: &[Edge], queries: &[Query]) -> Vec<Pos>
     let mut open: VecDeque<usize> = VecDeque::new();
 
     open.push_front(0);
+    visited[0] = true;
     labels[0] = 0;
 
     while !open.is_empty() {
