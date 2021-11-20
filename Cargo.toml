@@ -30,10 +30,14 @@ name = "abc226_e2"
 path = "src/contest/abc226/maine2.rs"
 
 [[bin]]
+name = "abc226_e3"
+path = "src/contest/abc226/maine3.rs"
+hoge = """
+
+[[bin]]
 name = "abc225_a"
 path = "src/contest/abc225/maina.rs"
 
-hoge = """
     
 [[bin]]
 name = "abc225_b"
