@@ -88,8 +88,50 @@ fn read() -> (usize, Vec<Edge>) {
     (n_v, edges)
 }
 
-// DFS解(再帰なし)
-// 再帰ありのほうが書きやすい
+// loop_cntが2重にカウントされてしまうのでだめ。
+fn dfs_loop_cnt_wrong(
+    before_idx: usize,
+    current_idx: usize,
+    next_list: &[Vec<usize>],
+    visited: &mut [bool],
+) -> usize {
+    dbg!(current_idx);
+    let mut loop_cnt = 0;
+
+    for &next_idx in &next_list[current_idx] {
+        // before → current → beforeみたいな訪問を防ぎたい
+        if next_idx != before_idx {
+            if visited[next_idx] {
+                loop_cnt += 1;
+            } else {
+                visited[next_idx] = true;
+                loop_cnt += dfs_loop_cnt_wrong(current_idx, next_idx, next_list, visited);
+            }
+        }
+    }
+    loop_cnt
+}
+
+fn dfs_loop_cnt(
+    before_idx: usize,
+    current_idx: usize,
+    next_list: &[Vec<usize>],
+    visited: &mut [bool],
+) -> usize {
+    dbg!(current_idx);
+    let mut loop_cnt = if visited[current_idx] { 1 } else { 0 };
+    visited[current_idx] = true;
+
+    for &next_idx in &next_list[current_idx] {
+        // before → current → beforeみたいな訪問を防ぎたい
+        if next_idx != before_idx && !visited[next_idx] {
+            loop_cnt += dfs_loop_cnt(current_idx, next_idx, next_list, visited);
+        }
+    }
+    loop_cnt
+}
+
+// DFS解(再帰あり)
 #[allow(clippy::needless_range_loop)]
 fn solve(n_v: usize, edges: &[Edge]) -> RF {
     let mut next_list = vec![Vec::<usize>::new(); n_v];
@@ -108,30 +150,9 @@ fn solve(n_v: usize, edges: &[Edge]) -> RF {
 
     for init_idx in 0..n_v {
         if !visited[init_idx] {
-            // viを含む連結成分について考える
-            let mut open: VecDeque<(usize, usize)> = VecDeque::new();
+            let loop_cnt = dfs_loop_cnt(init_idx, init_idx, &next_list, &mut visited);
 
-            // before_idxの初期値はありえない値(-1)にすれば良い(してない。)
-            open.push_front((init_idx, init_idx));
-
-            let mut loop_cnt = 0; // 今の連結成分の閉路の数
-
-            while let Some((before_idx, current_idx)) = open.pop_front() {
-                // DFSの場合はここで
-                if visited[current_idx] {
-                    loop_cnt += 1;
-                } else {
-                    visited[current_idx] = true;
-                }
-
-                for &next_idx in &next_list[current_idx] {
-                    // before → current → beforeみたいな訪問を防ぎたい
-                    if next_idx != before_idx && !visited[next_idx] {
-                        open.push_front((current_idx, next_idx));
-                    }
-                }
-            }
-
+            dbg!(loop_cnt);
             if loop_cnt == 1 {
                 connected_cnt += 1;
             } else {

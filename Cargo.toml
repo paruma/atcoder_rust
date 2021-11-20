@@ -32,6 +32,12 @@ path = "src/contest/abc226/maine2.rs"
 [[bin]]
 name = "abc226_e3"
 path = "src/contest/abc226/maine3.rs"
+
+[[bin]]
+name = "abc226_e4"
+path = "src/contest/abc226/maine4.rs"
+
+
 hoge = """
 
 [[bin]]
