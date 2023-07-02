@@ -1,9 +1,13 @@
 [package]
 name = "atcoder_rust"
 version = "0.1.0"
-edition = "2018"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "algo-method"
+path = "src/contest/algo_method/main.rs"
 
 [[bin]]
 name = "abc226_a"
