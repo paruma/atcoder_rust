@@ -42,12 +42,19 @@ fn read() -> (i64, i64, i64, i64) {
     read_i64_4()
 }*/
 
-
 fn main() {
-    use std::iter::successors;
-    let xs = successors(Some(1), |acc| Some(acc * 2)).take(21);
-    xs.for_each(|x| println!("{}", x));
+    let (n, a, b) = read_i64_3();
+    let mut b = b as f64;
+    let mut a = a as f64;
+    let ans = std::iter::from_fn(move || {
+        let ret = a + b;
+        b = (a + b) / 2.0;
+        Some(ret)
+    })
+    .take(n);
+    ans.for_each(|x| println!("{}", x));
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;

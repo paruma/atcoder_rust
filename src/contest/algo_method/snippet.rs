@@ -38,7 +38,6 @@ pub mod myio {
     }
 }
 
-
 fn pow(base: i64, exponent: i64) -> i64 {
     if exponent == 0 {
         return 1;
@@ -50,6 +49,19 @@ fn pow(base: i64, exponent: i64) -> i64 {
         base * half * half
     }
 }
+
+fn pow_f64(base: f64, exponent: i64) -> f64 {
+    if exponent == 0 {
+        return 1.0;
+    }
+    let half = pow_f64(base, exponent / 2);
+    if exponent % 2 == 0 {
+        half * half
+    } else {
+        base * half * half
+    }
+}
+
 fn mod_pow(base: i64, exponent: i64, modulus: i64) -> i64 {
     if exponent == 0 {
         return 1;
@@ -81,4 +93,41 @@ fn ext_gcd(a: i64, b: i64) -> (i64, i64, i64) {
     let y = qx_plus_y - q * x;
     assert_eq!(a * x + b * y, d);
     (x, y, d)
+}
+
+fn scanl<I, B, F>(iter: I, init: B, f: F) -> impl Iterator<Item = B>
+where
+    B: Clone + Copy,
+    I: Iterator,
+    I::Item: Clone,
+    F: Fn(&B, I::Item) -> B,
+{
+    let mut iter = iter;
+    let mut acc = init;
+    std::iter::once(acc).chain(std::iter::from_fn(move || {
+        iter.next().map(|x| {
+            acc = f(&acc, x);
+            acc
+        })
+    }))
+}
+
+fn frac(n: i64) -> i64 {
+    (1..=n).product::<i64>()
+}
+
+fn permu(n: i64, r: i64) -> i64 {
+    (n - r + 1..=n).product::<i64>()
+}
+
+fn comb(n: i64, r: i64) -> i64 {
+    permu(n, r) / permu(r, r)
+}
+
+// 引数に範囲外が来ることは考慮されていない
+
+
+struct EntryCount<T> {
+    elem: T,
+    prob: f64,
 }
