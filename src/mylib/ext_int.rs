@@ -3,19 +3,19 @@ use cargo_snippet::snippet;
 #[snippet(prefix = "use tropical::Trop::{self, *};")]
 pub mod tropical {
     use std::{cmp::Ordering, ops::Add};
-    use Trop::*;
+    use ExtInt::*;
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-    pub enum Trop {
+    pub enum ExtInt {
         Inf,
         Fin(i64),
     }
 
-    impl Trop {
+    impl ExtInt {
         pub fn get_fin(self) -> i64 {
             match self {
                 Fin(val) => val,
-                Inf => panic!("called `Trop::get_fin()` on a `Fin` value"),
+                Inf => panic!("called `ExtInt::get_fin()` on a `Fin` value"),
             }
         }
 
@@ -41,7 +41,7 @@ pub mod tropical {
             }
         }
 
-        pub fn from_option(opt: Option<i64>) -> Trop {
+        pub fn from_option(opt: Option<i64>) -> ExtInt {
             match opt {
                 Some(a) => Fin(a),
                 None => Inf,
@@ -49,8 +49,8 @@ pub mod tropical {
         }
     }
 
-    impl Add for Trop {
-        type Output = Trop;
+    impl Add for ExtInt {
+        type Output = ExtInt;
 
         fn add(self, rhs: Self) -> Self::Output {
             match (self, rhs) {
@@ -62,7 +62,7 @@ pub mod tropical {
         }
     }
 
-    impl PartialOrd for Trop {
+    impl PartialOrd for ExtInt {
         fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
             match (self, other) {
                 (Inf, Inf) => Some(Ordering::Equal),
@@ -73,7 +73,7 @@ pub mod tropical {
         }
     }
 
-    impl Ord for Trop {
+    impl Ord for ExtInt {
         fn cmp(&self, other: &Self) -> Ordering {
             self.partial_cmp(other).unwrap()
         }
@@ -82,13 +82,11 @@ pub mod tropical {
 
 #[cfg(test)]
 mod tests {
-    use super::tropical::Trop::{self, *};
+    use super::tropical::ExtInt::{self, *};
 
     #[allow(clippy::eq_op)]
     #[test]
     fn test_trop_ord() {
-        let _x: Trop = Fin(3);
-
         assert!(Inf <= Inf);
         assert!(Fin(3) <= Inf);
         assert!(Fin(4) <= Fin(6));
@@ -116,14 +114,12 @@ mod tests {
         assert_eq!(Fin(3) + Fin(4), Fin(7));
     }
 
-    // VSCodeでは #[should_panic]は無視されてしまうので通らない。
     #[test]
     #[should_panic]
     fn test_trop_get_fin_panic() {
         Inf.get_fin();
     }
 
-    #[allow(const_err)]
     #[test]
     fn test_trop_util() {
         assert_eq!(Fin(3).get_fin(), 3);
@@ -140,7 +136,7 @@ mod tests {
         assert_eq!(Fin(3).to_option(), Some(3));
         assert_eq!(Inf.to_option(), None);
 
-        assert_eq!(Trop::from_option(Some(3)), Fin(3));
-        assert_eq!(Trop::from_option(None), Inf);
+        assert_eq!(ExtInt::from_option(Some(3)), Fin(3));
+        assert_eq!(ExtInt::from_option(None), Inf);
     }
 }

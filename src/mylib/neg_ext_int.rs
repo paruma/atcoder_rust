@@ -3,19 +3,19 @@ use cargo_snippet::snippet;
 #[snippet(prefix = "use neg_tropical::NegTrop::{self, *};")]
 pub mod neg_tropical {
     use std::{cmp::Ordering, ops::Add};
-    use NegTrop::*;
+    use NegExtInt::*;
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-    pub enum NegTrop {
+    pub enum NegExtInt {
         NegInf,
         Fin(i64),
     }
 
-    impl NegTrop {
+    impl NegExtInt {
         pub fn get_fin(self) -> i64 {
             match self {
                 Fin(val) => val,
-                NegInf => panic!("called `Trop::get_fin()` on a `Fin` value"),
+                NegInf => panic!("called `NegExtInt::get_fin()` on a `Fin` value"),
             }
         }
 
@@ -41,7 +41,7 @@ pub mod neg_tropical {
             }
         }
 
-        pub fn from_option(opt: Option<i64>) -> NegTrop {
+        pub fn from_option(opt: Option<i64>) -> NegExtInt {
             match opt {
                 Some(a) => Fin(a),
                 None => NegInf,
@@ -49,8 +49,8 @@ pub mod neg_tropical {
         }
     }
 
-    impl Add for NegTrop {
-        type Output = NegTrop;
+    impl Add for NegExtInt {
+        type Output = NegExtInt;
 
         fn add(self, rhs: Self) -> Self::Output {
             match (self, rhs) {
@@ -62,7 +62,7 @@ pub mod neg_tropical {
         }
     }
 
-    impl PartialOrd for NegTrop {
+    impl PartialOrd for NegExtInt {
         fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
             match (self, other) {
                 (NegInf, NegInf) => Some(Ordering::Equal),
@@ -73,7 +73,7 @@ pub mod neg_tropical {
         }
     }
 
-    impl Ord for NegTrop {
+    impl Ord for NegExtInt {
         fn cmp(&self, other: &Self) -> Ordering {
             self.partial_cmp(other).unwrap()
         }
@@ -82,12 +82,12 @@ pub mod neg_tropical {
 
 #[cfg(test)]
 mod tests {
-    use super::neg_tropical::NegTrop::{self, *};
+    use super::neg_tropical::NegExtInt::{self, *};
 
     #[allow(clippy::eq_op)]
     #[test]
     fn test_trop_ord() {
-        let _x: NegTrop = Fin(3);
+        let _x: NegExtInt = Fin(3);
 
         assert!(NegInf >= NegInf);
         assert!(Fin(3) >= NegInf);
@@ -116,14 +116,12 @@ mod tests {
         assert_eq!(Fin(3) + Fin(4), Fin(7));
     }
 
-    // VSCodeでは #[should_panic]は無視されてしまうので通らない。
     #[test]
     #[should_panic]
     fn test_trop_get_fin_panic() {
         NegInf.get_fin();
     }
 
-    #[allow(const_err)]
     #[test]
     fn test_trop_util() {
         assert_eq!(Fin(3).get_fin(), 3);
@@ -140,7 +138,7 @@ mod tests {
         assert_eq!(Fin(3).to_option(), Some(3));
         assert_eq!(NegInf.to_option(), None);
 
-        assert_eq!(NegTrop::from_option(Some(3)), Fin(3));
-        assert_eq!(NegTrop::from_option(None), NegInf);
+        assert_eq!(NegExtInt::from_option(Some(3)), Fin(3));
+        assert_eq!(NegExtInt::from_option(None), NegInf);
     }
 }

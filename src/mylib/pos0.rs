@@ -2,7 +2,7 @@ use cargo_snippet::snippet;
 
 #[snippet(prefix = "use pos::*;")]
 pub mod pos {
-    use std::ops::{Add, Sub};
+    use std::ops::{Add, Mul, Sub};
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
     pub struct Pos<T> {
@@ -13,6 +13,18 @@ pub mod pos {
     impl<T> Pos<T> {
         pub fn new(x: T, y: T) -> Pos<T> {
             Pos { x, y }
+        }
+    }
+
+    impl<T: Mul<Output = T> + Copy> Pos<T> {
+        pub fn scala_mul(self, rhs: T) -> Pos<T> {
+            Pos::new(self.x * rhs, self.y * rhs)
+        }
+    }
+
+    impl<T: Add<Output = T> + Mul<Output = T> + Copy> Pos<T> {
+        pub fn norm_square(self) -> T {
+            self.x * self.x + self.y * self.y
         }
     }
 
@@ -50,21 +62,36 @@ mod test {
 
     use super::pos::*;
     #[test]
-    fn pos_test() {
-        // type UPos = Pos<usize>;
+    fn test_pos_add() {
         let p1: Pos<usize> = Pos::new(2, 3);
         let p2: Pos<usize> = Pos::new(4, 7);
 
-        let p3 = p1 + p2;
+        assert_eq!(p1 + p2, Pos::new(6, 10));
+    }
 
-        assert_eq!(p3, Pos::new(6, 10));
+    #[test]
+    fn test_pos_sub() {
+        let p1: Pos<usize> = Pos::new(2, 3);
+        let p2: Pos<usize> = Pos::new(4, 7);
+        assert_eq!(p2 - p1, Pos::new(2, 4));
+    }
 
-        let p4 = p2 - p1;
+    #[test]
+    fn test_pos_zero() {
+        let zero: Pos<usize> = Pos::new(0, 0);
+        assert_eq!(Pos::zero(), zero);
+        assert!(zero.is_zero());
+    }
 
-        assert_eq!(p4, Pos::new(2, 4));
+    #[test]
+    fn test_pos_scala_mul() {
+        let p: Pos<usize> = Pos::new(2, 3);
+        assert_eq!(p.scala_mul(4), Pos::new(8, 12));
+    }
 
-        let p5: Pos<usize> = Pos::new(0, 0);
-        assert_eq!(p5, Pos::zero());
-        assert!(p5.is_zero());
+    #[test]
+    fn test_pos_norm_square() {
+        let p: Pos<usize> = Pos::new(2, 3);
+        assert_eq!(p.norm_square(), 13);
     }
 }

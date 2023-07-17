@@ -60,6 +60,7 @@ mod test {
 
     #[test]
     fn test_scan() {
+        // Rust 標準の scan の動作確認
         let xs: Vec<i32> = vec![1, 2, 3];
         let cumsum = xs
             .into_iter()
@@ -70,14 +71,21 @@ mod test {
             .collect::<Vec<i32>>();
 
         assert_eq!(cumsum, vec![1, 3, 6]);
-        // vec![0,1,3,6]が帰ってきてほしい。
+        // vec![0, 1, 3, 6]が返ってきてほしい。
     }
 
     #[test]
     fn test_scanl() {
         let xs: Vec<i32> = vec![1, 2, 3];
         let cumsum = xs.iter().scanl(0, |acc, x| *acc + *x).collect::<Vec<i32>>();
-
         assert_eq!(cumsum, vec![0, 1, 3, 6]);
+    }
+
+    #[test]
+    fn test_scanl_empty() {
+        let xs: Vec<i32> = vec![];
+        let cumsum = xs.iter().scanl(0, |acc, x| *acc + *x).collect::<Vec<i32>>();
+
+        assert_eq!(cumsum, vec![0]);
     }
 }

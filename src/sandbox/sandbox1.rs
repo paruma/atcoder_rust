@@ -42,6 +42,8 @@ fn _sandbox2() {
 fn _test(v: &Vec<i32>) {
     println!("{}", v.len());
 }
+
+#[allow(clippy::needless_borrow)]
 #[test]
 fn _sandbox4() {
     let v = vec![1, 2];
@@ -67,6 +69,7 @@ impl Hoge {
     fn hoge(&self) {}
 }
 
+#[allow(clippy::needless_borrow)]
 #[test]
 fn _sandbox5() {
     let x: Hoge = Hoge {};

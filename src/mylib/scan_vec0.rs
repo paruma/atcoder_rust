@@ -13,7 +13,7 @@ pub mod scan_vec {
         ret.push(acc);
 
         for x in vec {
-            acc = f(&mut acc, &x);
+            acc = f(&mut acc, x);
             ret.push(acc);
         }
 
@@ -26,9 +26,9 @@ pub mod scan_vec {
         A: Clone,
         B: Copy,
     {
-        let vec2 = vec.to_vec().into_iter().rev().collect::<Vec<A>>();
+        let vec2 = vec.iter().cloned().rev().collect::<Vec<A>>();
         let vec3 = scanl(&vec2, init, f);
-        vec3.to_vec().into_iter().rev().collect::<Vec<B>>()
+        vec3.iter().copied().rev().collect::<Vec<B>>()
     }
 
     pub fn cumsum<T>(vec: &[T]) -> Vec<T>
