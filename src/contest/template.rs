@@ -1,7 +1,9 @@
+use std::io::stdin;
+
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {
-    use std::io;
+    use std::io::BufRead;
 
     pub trait Reader {
         fn read_line(&mut self) -> String;
@@ -66,44 +68,11 @@ pub mod myio {
         }
     }
 
-    #[derive(Default)]
-    pub struct StdReader {}
-    impl StdReader {
-        pub fn new() -> StdReader {
-            StdReader {}
-        }
-    }
-    impl Reader for StdReader {
+    impl<R: BufRead> Reader for R {
         fn read_line(&mut self) -> String {
             let mut buffer = String::new();
-            io::stdin().read_line(&mut buffer).unwrap();
+            self.read_line(&mut buffer).unwrap();
             buffer.trim().to_string()
-        }
-    }
-
-    pub struct TextReader {
-        lines: Vec<String>,
-        current_line: usize,
-    }
-
-    impl TextReader {
-        pub fn new(s: &str) -> Self {
-            TextReader {
-                lines: s.lines().map(|s| s.to_string()).collect(),
-                current_line: 0,
-            }
-        }
-    }
-
-    impl Reader for TextReader {
-        fn read_line(&mut self) -> String {
-            if self.current_line < self.lines.len() {
-                let line = self.lines[self.current_line].clone();
-                self.current_line += 1;
-                line
-            } else {
-                panic!("cannot read line");
-            }
         }
     }
 }
@@ -139,7 +108,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read(StdReader::new()).solve().print();
+    Problem::read(stdin().lock()).solve().print();
 }
 
 #[cfg(test)]
@@ -147,7 +116,7 @@ mod tests {
     use super::*;
 
     fn check(input: &str, expected: Answer) {
-        let actual = Problem::read(TextReader::new(input)).solve();
+        let actual = Problem::read(input.as_bytes()).solve();
         assert_eq!(expected, actual);
     }
 
