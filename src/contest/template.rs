@@ -41,6 +41,29 @@ pub mod myio {
             let ns = self.read_vec_i64();
             (ns[0], ns[1], ns[2], ns[3])
         }
+
+        fn read_any1<T>(&mut self) -> T
+        where
+            T: std::str::FromStr,
+            T::Err: std::fmt::Debug,
+        {
+            let buf = self.read_line();
+            buf.parse::<T>().unwrap()
+        }
+
+        fn read_any2<T0, T1>(&mut self) -> (T0, T1)
+        where
+            T0: std::str::FromStr,
+            T0::Err: std::fmt::Debug,
+            T1: std::str::FromStr,
+            T1::Err: std::fmt::Debug,
+        {
+            let buf = self.read_line();
+            let splitted = buf.trim().split(' ').collect::<Vec<_>>();
+            let a0 = splitted[0].parse::<T0>().unwrap();
+            let a1 = splitted[0].parse::<T1>().unwrap();
+            (a0, a1)
+        }
     }
 
     #[derive(Default)]
@@ -58,21 +81,21 @@ pub mod myio {
         }
     }
 
-    pub struct StringReader {
+    pub struct TextReader {
         lines: Vec<String>,
         current_line: usize,
     }
 
-    impl StringReader {
+    impl TextReader {
         pub fn new(s: &str) -> Self {
-            StringReader {
+            TextReader {
                 lines: s.lines().map(|s| s.to_string()).collect(),
                 current_line: 0,
             }
         }
     }
 
-    impl Reader for StringReader {
+    impl Reader for TextReader {
         fn read_line(&mut self) -> String {
             if self.current_line < self.lines.len() {
                 let line = self.lines[self.current_line].clone();
@@ -96,11 +119,12 @@ struct Answer {
 }
 
 impl Problem {
-    fn read(mut r: Box<dyn Reader>) -> Problem {
+    fn read<R: Reader>(mut r: R) -> Problem {
         let a = r.read_i64_1();
         let b = r.read_i64_1();
         Problem { a, b }
     }
+    // 必要に応じてダミーデータでassertを書くのをする。
     fn solve(self) -> Answer {
         Answer {
             ans: self.a + self.b,
@@ -115,7 +139,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read(Box::new(StdReader::new())).solve().print();
+    Problem::read(StdReader::new()).solve().print();
 }
 
 #[cfg(test)]
@@ -123,7 +147,7 @@ mod tests {
     use super::*;
 
     fn check(input: &str, expected: Answer) {
-        let actual = Problem::read(Box::new(StringReader::new(input))).solve();
+        let actual = Problem::read(TextReader::new(input)).solve();
         assert_eq!(expected, actual);
     }
 
