@@ -122,11 +122,21 @@ impl Problem {
     }
     /*
     len, per_day
-    ___ 0
-    6 3 3
-    4 2 5 ← 3日目以降は5になる
-    2 5 10
+    ___ 
+    6 3 0 
+    4 2 3  ← 3日目以降は5になる
+    2 5 5 
+    1 9 10
+        19
+    
+
     1 9 19
+    2 5 10
+    4 2 5
+    6 3 3
+        0
+    2日目までは10錠飲む
+    4日目までは5錠飲む
 
     k = 20
     k = 19
@@ -153,7 +163,7 @@ impl Problem {
             .map(|x| x.per_day)
             .scanl(0, |acc, x| *acc + x)
             .collect_vec();
-        let find_result = cumsum.iter().enumerate().find(|(_i, x)| **x > self.k);
+        let find_result = cumsum.iter().enumerate().find(|(_i, sum)| **sum > self.k);
 
         let ans = match find_result {
             Some((i, _)) => sorted_medicine[i - 1].len + 1,

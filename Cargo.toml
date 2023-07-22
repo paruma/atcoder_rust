@@ -30,6 +30,10 @@ path = "src/contest/abc309/mainc.rs"
 name = "abc309_d"
 path = "src/contest/abc309/maind.rs"
 
+[[bin]]
+name = "abc309_e"
+path = "src/contest/abc309/maine.rs"
+
 hoge = """
 
 

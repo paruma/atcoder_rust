@@ -63,8 +63,19 @@ pub mod myio {
             let buf = self.read_line();
             let splitted = buf.trim().split(' ').collect::<Vec<_>>();
             let a0 = splitted[0].parse::<T0>().unwrap();
-            let a1 = splitted[0].parse::<T1>().unwrap();
+            let a1 = splitted[1].parse::<T1>().unwrap();
             (a0, a1)
+        }
+        fn read_vec_any<T>(&mut self) -> Vec<T>
+        where
+            T: std::str::FromStr,
+            T::Err: std::fmt::Debug,
+        {
+            let buf = self.read_line();
+            buf.trim()
+                .split(' ')
+                .map(|s| s.parse::<T>().unwrap())
+                .collect::<Vec<T>>()
         }
     }
 
