@@ -55,6 +55,26 @@ pub mod pos {
     }
 }
 
+#[snippet(include = "pos")]
+#[snippet(prefix = "use vec_vec_at::*;")]
+pub mod vec_vec_at {
+    use super::pos::*;
+    pub trait VecVecAt<T> {
+        fn at(&self, pos: Pos<i64>) -> &T;
+        fn at_mut(&mut self, pos: Pos<i64>) -> &mut T;
+    }
+
+    impl<T> VecVecAt<T> for Vec<Vec<T>> {
+        fn at(&self, pos: Pos<i64>) -> &T {
+            &self[pos.y as usize][pos.x as usize]
+        }
+
+        fn at_mut(&mut self, pos: Pos<i64>) -> &mut T {
+            &mut self[pos.y as usize][pos.x as usize]
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
 
@@ -93,5 +113,17 @@ mod test {
     fn test_pos_norm_square() {
         let p: Pos<usize> = Pos::new(2, 3);
         assert_eq!(p.norm_square(), 13);
+    }
+
+    #[test]
+
+    fn test_vec_vec_at() {
+        use super::vec_vec_at::*;
+
+        let mut xss = vec![vec![1, 2, 3], vec![4, 5, 6]];
+        assert_eq!(*xss.at(Pos::new(2, 1)), 6);
+        *xss.at_mut(Pos::new(2, 1)) = 60;
+
+        assert_eq!(xss, vec![vec![1, 2, 3], vec![4, 5, 60]])
     }
 }

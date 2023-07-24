@@ -6,54 +6,23 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [[bin]]
-name = "algo-method"
-path = "src/contest/algo_method/main.rs"
+    name = "abc311_e"
+    path = "src/contest/2023/abc311/e.rs"
 
 [[bin]]
-name = "template"
-path = "src/contest/template.rs"
+    name = "abc311_e2"
+    path = "src/contest/2023/abc311/e2.rs"
 
 [[bin]]
-name = "template_test"
-path = "src/contest/template_test.rs"
+    name = "template"
+    path = "src/contest/template.rs"
 
 [[bin]]
-name = "abc311_a"
-path = "src/contest/abc311/maina.rs"
-
-[[bin]]
-name = "abc311_b"
-path = "src/contest/abc311/mainb.rs"
-
-[[bin]]
-name = "abc311_c"
-path = "src/contest/abc311/mainc.rs"
-
-[[bin]]
-name = "abc311_d"
-path = "src/contest/abc311/maind.rs"
+    name = "template_test"
+    path = "src/contest/template_test.rs"
 
 hoge = """
 
-[[bin]]
-name = "abc309_a"
-path = "src/contest/abc309/maina.rs"
-
-[[bin]]
-name = "abc309_b"
-path = "src/contest/abc309/mainb.rs"
-
-[[bin]]
-name = "abc309_c"
-path = "src/contest/abc309/mainc.rs"
-
-[[bin]]
-name = "abc309_d"
-path = "src/contest/abc309/maind.rs"
-
-[[bin]]
-name = "abc309_e"
-path = "src/contest/abc309/maine.rs"
 """
 
 [dependencies]

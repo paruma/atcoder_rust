@@ -1,5 +1,6 @@
 use std::io::stdin;
 
+use itertools::Itertools;
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {
@@ -12,7 +13,7 @@ pub mod myio {
             self.read_line().as_bytes().to_vec()
         }
 
-        fn read_any_1<T>(&mut self) -> T
+        fn read_any1<T>(&mut self) -> T
         where
             T: std::str::FromStr,
             T::Err: std::fmt::Debug,
@@ -21,7 +22,7 @@ pub mod myio {
             buf.parse::<T>().unwrap()
         }
 
-        fn read_any_2<T0, T1>(&mut self) -> (T0, T1)
+        fn read_any2<T0, T1>(&mut self) -> (T0, T1)
         where
             T0: std::str::FromStr,
             T0::Err: std::fmt::Debug,
@@ -35,7 +36,7 @@ pub mod myio {
             (a0, a1)
         }
 
-        fn read_any_3<T0, T1, T2>(&mut self) -> (T0, T1, T2)
+        fn read_any3<T0, T1, T2>(&mut self) -> (T0, T1, T2)
         where
             T0: std::str::FromStr,
             T0::Err: std::fmt::Debug,
@@ -73,27 +74,27 @@ pub mod myio {
         }
 
         fn read_i64_1(&mut self) -> i64 {
-            self.read_any_1::<i64>()
+            self.read_any1::<i64>()
         }
 
         fn read_i64_2(&mut self) -> (i64, i64) {
-            self.read_any_2::<i64, i64>()
+            self.read_any2::<i64, i64>()
         }
 
         fn read_i64_3(&mut self) -> (i64, i64, i64) {
-            self.read_any_3::<i64, i64, i64>()
+            self.read_any3::<i64, i64, i64>()
         }
 
         fn read_usize_1(&mut self) -> usize {
-            self.read_any_1::<usize>()
+            self.read_any1::<usize>()
         }
 
         fn read_usize_2(&mut self) -> (usize, usize) {
-            self.read_any_2::<usize, usize>()
+            self.read_any2::<usize, usize>()
         }
 
         fn read_usize_3(&mut self) -> (usize, usize, usize) {
-            self.read_any_3::<usize, usize, usize>()
+            self.read_any3::<usize, usize, usize>()
         }
     }
 
@@ -115,21 +116,108 @@ pub mod myio {
         }
     }
 }
+use pos::*;
+pub mod pos {
+    use std::ops::{Add, Mul, Sub};
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub struct Pos<T> {
+        pub x: T,
+        pub y: T,
+    }
+    impl<T> Pos<T> {
+        pub fn new(x: T, y: T) -> Pos<T> {
+            Pos { x, y }
+        }
+    }
+    impl<T: Mul<Output = T> + Copy> Pos<T> {
+        pub fn scala_mul(self, rhs: T) -> Pos<T> {
+            Pos::new(self.x * rhs, self.y * rhs)
+        }
+    }
+    impl<T: Add<Output = T> + Mul<Output = T> + Copy> Pos<T> {
+        pub fn norm_square(self) -> T {
+            self.x * self.x + self.y * self.y
+        }
+    }
+    impl<T: Add<Output = T> + Copy> Add for Pos<T> {
+        type Output = Pos<T>;
+        fn add(self, rhs: Self) -> Self::Output {
+            Pos::new(self.x + rhs.x, self.y + rhs.y)
+        }
+    }
+    impl<T: Sub<Output = T> + Copy> Sub for Pos<T> {
+        type Output = Pos<T>;
+        fn sub(self, rhs: Self) -> Self::Output {
+            Pos::new(self.x - rhs.x, self.y - rhs.y)
+        }
+    }
+    impl<T: num_traits::Zero + Copy> num_traits::Zero for Pos<T> {
+        fn zero() -> Self {
+            Pos::new(T::zero(), T::zero())
+        }
+        fn is_zero(&self) -> bool {
+            self.x.is_zero() && self.y.is_zero()
+        }
+    }
+}
+
+pub fn print_vecvec<T: std::fmt::Debug>(arr: &Vec<Vec<T>>, height: usize, width: usize) {
+    for i in 0..height {
+        for j in 0..width {
+            print!("{:?} ", arr[i][j]);
+        }
+        println!();
+    }
+}
 
 struct Problem {
-    a: i64,
-    b: i64,
+    height: usize,
+    width: usize,
+    n_holes: usize,
+    hole_pos_list: Vec<Pos<usize>>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let (height, width, n_holes) = r.read_usize_3();
+        let hole_pos_list = (0..n_holes)
+            .map(|_| {
+                let (y, x) = r.read_usize_2();
+                Pos::new(x - 1, y - 1)
+            })
+            .collect_vec();
+        Problem { height, width, n_holes, hole_pos_list }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
-        Answer { ans }
+        let mut dp = vec![vec![0; self.width]; self.height];
+        let mut is_hole = vec![vec![false; self.width]; self.height];
+
+        for &hole_pos in &self.hole_pos_list {
+            is_hole[hole_pos.y][hole_pos.x] = true;
+        }
+
+        for x in 0..self.width {
+            if !is_hole[0][x] {
+                dp[0][x] = 1;
+            }
+        }
+
+        for y in 0..self.height {
+            if !is_hole[y][0] {
+                dp[y][0] = 1;
+            }
+        }
+
+        for y in 1..self.height {
+            for x in 1..self.width {
+                if !is_hole[y][x] {
+                    dp[y][x] =
+                        [dp[y - 1][x - 1], dp[y - 1][x], dp[y][x - 1]].iter().min().unwrap() + 1;
+                }
+            }
+        }
+
+        Answer { ans: dp.iter().flatten().sum() }
     }
 }
 
@@ -165,43 +253,5 @@ mod tests {
         "
         .trim();
         check(input, Answer { ans: 7 });
-    }
-
-    #[test]
-    fn test_reader() {
-        let input = "
-        hoge fuga piyo
-        hoge2
-        1
-        2 3
-        4 5 6
-        7 8 9 10
-        11 12 13 14
-        15 16 17 18
-        hoge3 hoge4
-        19
-        20 21
-        22 23 24
-        25
-        26 27
-        28 29 30"
-            .trim();
-
-        let mut r = ProconReader::new(input.as_bytes());
-        assert_eq!(r.read_line(), "hoge fuga piyo".to_string());
-        assert_eq!(r.read_bytes(), vec![b'h', b'o', b'g', b'e', b'2']);
-        assert_eq!(r.read_any_1::<i64>(), 1_i64);
-        assert_eq!(r.read_any_2::<i64, i64>(), (2, 3));
-        assert_eq!(r.read_any_3::<i64, i64, i64>(), (4, 5, 6));
-        assert_eq!(r.read_vec_any::<i64>(), vec![7, 8, 9, 10]);
-        assert_eq!(r.read_vec_i64(), vec![11, 12, 13, 14]);
-        assert_eq!(r.read_vec_usize(), vec![15, 16, 17, 18]);
-        assert_eq!(r.read_vec_str(), vec!["hoge3".to_string(), "hoge4".to_string()]);
-        assert_eq!(r.read_i64_1(), 19);
-        assert_eq!(r.read_i64_2(), (20, 21));
-        assert_eq!(r.read_i64_3(), (22, 23, 24));
-        assert_eq!(r.read_usize_1(), 25);
-        assert_eq!(r.read_usize_2(), (26, 27));
-        assert_eq!(r.read_usize_3(), (28, 29, 30));
     }
 }

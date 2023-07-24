@@ -11,18 +11,12 @@ pub mod myio {
 
         fn read_vec_i64(&mut self) -> Vec<i64> {
             let buf = self.read_line();
-            buf.trim()
-                .split(' ')
-                .map(|s| s.parse::<i64>().unwrap())
-                .collect::<Vec<i64>>()
+            buf.trim().split(' ').map(|s| s.parse::<i64>().unwrap()).collect::<Vec<i64>>()
         }
 
         fn read_vec_str(&mut self) -> Vec<String> {
             let buf = self.read_line();
-            buf.trim()
-                .split(' ')
-                .map(|s| s.to_string())
-                .collect::<Vec<String>>()
+            buf.trim().split(' ').map(|s| s.to_string()).collect::<Vec<String>>()
         }
 
         fn read_i64_1(&mut self) -> i64 {
@@ -73,10 +67,7 @@ pub mod myio {
             T::Err: std::fmt::Debug,
         {
             let buf = self.read_line();
-            buf.trim()
-                .split(' ')
-                .map(|s| s.parse::<T>().unwrap())
-                .collect::<Vec<T>>()
+            buf.trim().split(' ').map(|s| s.parse::<T>().unwrap()).collect::<Vec<T>>()
         }
     }
 
@@ -97,17 +88,13 @@ struct Problem {
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
     n_v: usize,
-    vs: Vec<usize>,
+    vs: Vec<usize>, // i → vs[i] の辺がある。
 }
 
 impl Problem {
     fn read<R: Reader>(mut r: R) -> Problem {
         let n_v = r.read_any1::<usize>();
-        let vs = r
-            .read_vec_any::<usize>()
-            .iter()
-            .map(|v| v - 1)
-            .collect_vec();
+        let vs = r.read_vec_any::<usize>().iter().map(|v| v - 1).collect_vec();
 
         Problem { n_v, vs }
     }
@@ -159,10 +146,29 @@ impl Problem {
                 open.push_front(next_idx);
             }
         }
-        Answer {
-            n_v: cycle.len(),
-            vs: cycle.clone(),
+        Answer { n_v: cycle.len(), vs: cycle.clone() }
+    }
+
+    fn solve2(&self) -> Answer {
+        let mut now = 0;
+        // n_v 回移動する
+        for _ in 0..self.n_v {
+            now = self.vs[now]
         }
+
+        let mut cycle: Vec<usize> = vec![];
+        let from = now;
+        cycle.push(from);
+        loop {
+            now = self.vs[now];
+            if now == from {
+                break;
+            } else {
+                cycle.push(now)
+            }
+        }
+
+        Answer { n_v: cycle.len(), vs: cycle.clone() }
     }
 }
 
@@ -176,7 +182,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read(stdin().lock()).solve().print();
+    Problem::read(stdin().lock()).solve2().print();
 }
 
 #[cfg(test)]

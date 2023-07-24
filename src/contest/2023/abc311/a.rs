@@ -1,4 +1,4 @@
-use std::io::stdin;
+use std::{collections::HashSet, io::stdin};
 
 use itertools::Itertools;
 #[allow(unused_imports)]
@@ -11,18 +11,12 @@ pub mod myio {
 
         fn read_vec_i64(&mut self) -> Vec<i64> {
             let buf = self.read_line();
-            buf.trim()
-                .split(' ')
-                .map(|s| s.parse::<i64>().unwrap())
-                .collect::<Vec<i64>>()
+            buf.trim().split(' ').map(|s| s.parse::<i64>().unwrap()).collect::<Vec<i64>>()
         }
 
         fn read_vec_str(&mut self) -> Vec<String> {
             let buf = self.read_line();
-            buf.trim()
-                .split(' ')
-                .map(|s| s.to_string())
-                .collect::<Vec<String>>()
+            buf.trim().split(' ').map(|s| s.to_string()).collect::<Vec<String>>()
         }
 
         fn read_i64_1(&mut self) -> i64 {
@@ -73,10 +67,7 @@ pub mod myio {
             T::Err: std::fmt::Debug,
         {
             let buf = self.read_line();
-            buf.trim()
-                .split(' ')
-                .map(|s| s.parse::<T>().unwrap())
-                .collect::<Vec<T>>()
+            buf.trim().split(' ').map(|s| s.parse::<T>().unwrap()).collect::<Vec<T>>()
         }
     }
 
@@ -90,56 +81,42 @@ pub mod myio {
 }
 
 struct Problem {
-    n_people: usize,
-    day_len: usize,
-    schedule: Vec<Vec<bool>>, // schedule[i][j]: 人i がj日目に暇なら true
+    n: usize,
+    s: Vec<u8>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: usize,
 }
 
 impl Problem {
     fn read<R: Reader>(mut r: R) -> Problem {
-        let (n_people, day_len) = r.read_any2::<usize, usize>();
-        let schedule = (0..n_people)
-            .map(|_| {
-                r.read_line()
-                    .as_bytes()
-                    .iter()
-                    .map(|c| *c == b'o')
-                    .collect_vec()
-            })
-            .collect_vec();
-        Problem {
-            n_people,
-            day_len,
-            schedule,
-        }
+        let n = r.read_i64_1() as usize;
+        let s = r.read_line().bytes().collect_vec();
+        Problem { n, s }
     }
-    // 必要に応じてダミーデータでassertを書くのをする。
     fn solve(self) -> Answer {
-        // free[i]: i日目がみんな暇
-        let free = (0..self.day_len)
-            .map(|day| (0..self.n_people).all(|person| self.schedule[person][day]))
-            .collect_vec();
+        let ia = self.s.iter().enumerate().find(|(_, c)| **c == b'A').unwrap().0;
+        let ib = self.s.iter().enumerate().find(|(_, c)| **c == b'B').unwrap().0;
+        let ic = self.s.iter().enumerate().find(|(_, c)| **c == b'C').unwrap().0;
 
-        let mut max_cnt = 0;
-        let mut cnt = 0;
-        for is_free_day in free {
-            if is_free_day {
-                cnt += 1;
-            } else {
-                max_cnt = i64::max(max_cnt, cnt);
-                cnt = 0;
-            }
-            // ここでmax_cnt の更新をしても良かった
-        }
-        max_cnt = i64::max(max_cnt, cnt);
-        // group_by を使うと良かった？
+        // こう書くとよかった
+        [b'A', b'B', b'C']
+            .map(|ch| self.s.iter().enumerate().find(|(_, ch2)| ch == **ch2).unwrap().0) // 各文字が現れる最初のindex
+            .iter()
+            .max();
 
-        Answer { ans: max_cnt }
+        [b'A', b'B', b'C']
+            .map(|ch| self.s.iter().find_position(|ch2| **ch2 == ch).unwrap().0) // 各文字が現れる最初のindex
+            .iter()
+            .max();
+
+
+        // [ia, ib, ic].iter().max()
+        // usize::max(ia, usize::max(ib, ic))
+        let ans = usize::max(ia, usize::max(ib, ic)) + 1;
+        Answer { ans }
     }
 }
 

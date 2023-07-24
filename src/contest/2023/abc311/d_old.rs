@@ -11,18 +11,12 @@ pub mod myio {
 
         fn read_vec_i64(&mut self) -> Vec<i64> {
             let buf = self.read_line();
-            buf.trim()
-                .split(' ')
-                .map(|s| s.parse::<i64>().unwrap())
-                .collect::<Vec<i64>>()
+            buf.trim().split(' ').map(|s| s.parse::<i64>().unwrap()).collect::<Vec<i64>>()
         }
 
         fn read_vec_str(&mut self) -> Vec<String> {
             let buf = self.read_line();
-            buf.trim()
-                .split(' ')
-                .map(|s| s.to_string())
-                .collect::<Vec<String>>()
+            buf.trim().split(' ').map(|s| s.to_string()).collect::<Vec<String>>()
         }
 
         fn read_i64_1(&mut self) -> i64 {
@@ -73,10 +67,7 @@ pub mod myio {
             T::Err: std::fmt::Debug,
         {
             let buf = self.read_line();
-            buf.trim()
-                .split(' ')
-                .map(|s| s.parse::<T>().unwrap())
-                .collect::<Vec<T>>()
+            buf.trim().split(' ').map(|s| s.parse::<T>().unwrap()).collect::<Vec<T>>()
         }
     }
 
@@ -138,14 +129,8 @@ impl Problem {
     fn read<R: Reader>(mut r: R) -> Problem {
         // TODO: read_usize2 がほしい
         let (height, width) = r.read_any2::<usize, usize>();
-        let grid = (0..height)
-            .map(|_| r.read_line().as_bytes().to_vec())
-            .collect_vec();
-        Problem {
-            height,
-            width,
-            grid,
-        }
+        let grid = (0..height).map(|_| r.read_line().as_bytes().to_vec()).collect_vec();
+        Problem { height, width, grid }
     }
     fn is_ice(&self, pos: Pos<i64>) -> bool {
         self.grid[pos.y as usize][pos.x as usize] == b'.'
@@ -158,18 +143,13 @@ impl Problem {
     fn solve(&self) -> Answer {
         // 初期値(1, 1)
         let init_pos: Pos<i64> = Pos::new(1, 1);
-        let dir = [
-            Pos::new(1, 0),
-            Pos::new(-1, 0),
-            Pos::new(0, 1),
-            Pos::new(0, -1),
-        ];
+        let dir = [Pos::new(1, 0), Pos::new(-1, 0), Pos::new(0, 1), Pos::new(0, -1)];
         let mut visited_all = vec![vec![false; self.width]; self.height];
         let mut visited_stop = vec![vec![false; self.width]; self.height];
 
         let mut open: VecDeque<Pos<i64>> = VecDeque::new();
         open.push_front(init_pos);
-        // ↓この添字アクセスはつらい。at関数を作る？array2d を使うのもありかも
+        // ↓この添字アクセスはつらい。at関数を作る？Array2 を使うのもありかも
         visited_all[init_pos.y as usize][init_pos.x as usize] = true;
         visited_stop[init_pos.y as usize][init_pos.x as usize] = true;
 
@@ -201,10 +181,7 @@ impl Problem {
         }
         // flatten 使っても良かったかも
         // visited_all.iter().flatten().filter(|x| **x).count();
-        let ans = visited_all
-            .iter()
-            .map(|row| row.iter().filter(|x| **x).count())
-            .sum::<usize>();
+        let ans = visited_all.iter().map(|row| row.iter().filter(|x| **x).count()).sum::<usize>();
         Answer { ans }
     }
 }

@@ -34,7 +34,7 @@ def make_files(dir_path: str, problems: list[str]):
             shutil.copy(template_file_path, dst_file_path)
 
 
-def print_toml(dir_path: str, problems: list[str]):
+def print_toml(dir_path: str, contest_name: str, problems: list[str]):
     for problem in problems:
         print(
             f"""[[bin]]
@@ -56,7 +56,7 @@ def main():
         make_files(dir_path, problems)
 
     # cargo.tomlコードの出力
-    print_toml(dir_path, problems)
+    print_toml(dir_path, contest_name, problems)
 
 
 if __name__ == '__main__':
