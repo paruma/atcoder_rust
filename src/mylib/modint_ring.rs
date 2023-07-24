@@ -3,7 +3,8 @@ use cargo_snippet::snippet;
 #[snippet(prefix = "use rr::*;")]
 #[snippet(prefix = "use num::{One, Zero};")]
 pub mod rr {
-    pub const MOD: i64 = 1_000_000_007;
+    // pub const MOD: i64 = 1_000_000_007;
+    pub const MOD: i64 = 998_244_353;
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
     pub struct RR {
