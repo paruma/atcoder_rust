@@ -6,36 +6,58 @@
 import sys
 import os
 import shutil
-
-if len(sys.argv) <= 2:
-    print(
-        "usage  : ./contest.py [contest_name] [task_name_list]", file=sys.stderr)
-    print("example: ./contest.py abc206 b c", file=sys.stderr)
-    sys.exit(1)
+import argparse
 
 
-contest_name: str = sys.argv[1]
-problems: list[str] = sys.argv[2:]
+def get_args():
+    parser = argparse.ArgumentParser(description='コンテスト用のファイル生成')
+    parser.add_argument('contest_name', type=str)
+    parser.add_argument('task_name_list', nargs='*')
+    parser.add_argument('--year', type=str, default='2023')
+    parser.add_argument('--only_toml', action='store_true')
+
+    return parser.parse_args()
 
 
-# ソースコードの準備(ディレクトリの生成)
-dir_path: str = f"src/contest/{contest_name}/"
-if not os.path.exists(dir_path):
-    os.mkdir(dir_path)
-
-# ソースコードの準備(ファイルのコピー)
-templete_file_path: str = "src/contest/template.rs"
-for problem in problems:
-    dst_file_path = f"src/contest/{contest_name}/main{problem}.rs"
-    if not os.path.exists(dst_file_path):
-        shutil.copy(templete_file_path, dst_file_path)
-
-
-# cargo.tomlコードの出力
-for problem in problems:
-    print(
-        f"""[[bin]]
-name = "{contest_name}_{problem}"
-path = "src/contest/{contest_name}/main{problem}.rs"
+def make_files(dir_path: str, problems: list[str]):
     """
-    )
+    ディレクトリ（なければ）とファイルを作成する
+    """
+    if not os.path.exists(dir_path):
+        os.mkdir(dir_path)
+
+    # ソースコードの準備(ファイルのコピー)
+    template_file_path: str = "src/contest/template.rs"
+    for problem in problems:
+        dst_file_path = f"{dir_path}{problem}.rs"
+        if not os.path.exists(dst_file_path):
+            shutil.copy(template_file_path, dst_file_path)
+
+
+def print_toml(dir_path: str, problems: list[str]):
+    for problem in problems:
+        print(
+            f"""[[bin]]
+    name = "{contest_name}_{problem}"
+    path = "{dir_path}{problem}.rs"
+        """
+        )
+
+
+def main():
+    args = get_args()
+
+    contest_name: str = args.contest_name
+    problems: list[str] = args.task_name_list
+    year: str = args.year
+
+    dir_path: str = f"src/contest/{year}/{contest_name}/"
+    if not args.only_toml:
+        make_files(dir_path, problems)
+
+    # cargo.tomlコードの出力
+    print_toml(dir_path, problems)
+
+
+if __name__ == '__main__':
+    main()
