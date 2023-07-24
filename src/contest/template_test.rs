@@ -171,4 +171,45 @@ mod tests {
         .trim();
         check(input, Answer { ans: 7 });
     }
+
+    #[test]
+    fn test_reader() {
+        let input = "
+        hoge fuga piyo
+        hoge2
+        1
+        2 3
+        4 5 6
+        7 8 9 10
+        11 12 13 14
+        15 16 17 18
+        hoge3 hoge4
+        19
+        20 21
+        22 23 24
+        25
+        26 27
+        28 29 30"
+            .trim();
+
+        let mut r = ProconReader::new(input.as_bytes());
+        assert_eq!(r.read_line(), "hoge fuga piyo".to_string());
+        assert_eq!(r.read_bytes(), vec![b'h', b'o', b'g', b'e', b'2']);
+        assert_eq!(r.read_any1::<i64>(), 1_i64);
+        assert_eq!(r.read_any2::<i64, i64>(), (2, 3));
+        assert_eq!(r.read_any3::<i64, i64, i64>(), (4, 5, 6));
+        assert_eq!(r.read_vec_any::<i64>(), vec![7, 8, 9, 10]);
+        assert_eq!(r.read_vec_i64(), vec![11, 12, 13, 14]);
+        assert_eq!(r.read_vec_usize(), vec![15, 16, 17, 18]);
+        assert_eq!(
+            r.read_vec_str(),
+            vec!["hoge3".to_string(), "hoge4".to_string()]
+        );
+        assert_eq!(r.read_i64_1(), 19);
+        assert_eq!(r.read_i64_2(), (20, 21));
+        assert_eq!(r.read_i64_3(), (22, 23, 24));
+        assert_eq!(r.read_usize_1(), 25);
+        assert_eq!(r.read_usize_2(), (26, 27));
+        assert_eq!(r.read_usize_3(), (28, 29, 30));
+    }
 }
