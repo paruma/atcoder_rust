@@ -124,11 +124,6 @@ struct Problem {
     b: i64,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-struct Answer {
-    ans: i64,
-}
-
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
         let a = r.read_i64_1();
@@ -139,6 +134,11 @@ impl Problem {
         let ans = self.a + self.b;
         Answer { ans }
     }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct Answer {
+    ans: i64,
 }
 
 impl Answer {
