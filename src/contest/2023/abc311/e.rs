@@ -198,6 +198,7 @@ impl Problem {
 
         for x in 0..self.width {
             if !is_hole[0][x] {
+                // これつけ忘れていた
                 dp[0][x] = 1;
             }
         }
