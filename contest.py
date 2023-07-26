@@ -3,7 +3,6 @@
 # example
 # ./contest.py abc206 b c
 
-import sys
 import os
 import shutil
 import argparse
