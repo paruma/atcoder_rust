@@ -5,6 +5,8 @@
     "cSpell.words": [
         "cumsum",
         "Deque",
+        "iproduct",
+        "Itertools",
         "Procon"
     ]
 }
