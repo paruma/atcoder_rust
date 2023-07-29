@@ -116,19 +116,85 @@ pub mod myio {
     }
 }
 
+use num::{One, Zero};
+use rr::*;
+pub mod rr {
+    pub const MOD: i64 = 998_244_353;
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+    pub struct RR {
+        rep: i64,
+    }
+    impl RR {
+        pub fn new(x: i64) -> RR {
+            RR { rep: x.rem_euclid(MOD) }
+        }
+        pub fn rep(self) -> i64 {
+            self.rep
+        }
+    }
+    impl num_traits::Zero for RR {
+        fn zero() -> Self {
+            RR::new(0)
+        }
+        fn is_zero(&self) -> bool {
+            self.rep == 0
+        }
+    }
+    impl num_traits::One for RR {
+        fn one() -> Self {
+            RR::new(1)
+        }
+    }
+    macro_rules ! bi_ops_impl {($ std_ops : ident , $ fn : ident , $ op : tt ) => {impl std :: ops ::$ std_ops for RR {type Output = Self ; fn $ fn (self , rhs : Self ) -> Self :: Output {RR :: new (self . rep $ op rhs . rep ) } } } ; }
+    bi_ops_impl ! (Add , add , + );
+    bi_ops_impl ! (Sub , sub , - );
+    bi_ops_impl ! (Mul , mul , * );
+    macro_rules ! bi_ops_assign_impl {($ std_ops_assign : ident , $ fn_assign : ident , $ op : tt ) => {impl std :: ops ::$ std_ops_assign for RR {fn $ fn_assign (& mut self , rhs : Self ) {* self = * self $ op rhs } } } ; }
+    bi_ops_assign_impl ! (AddAssign , add_assign , + );
+    bi_ops_assign_impl ! (SubAssign , sub_assign , - );
+    bi_ops_assign_impl ! (MulAssign , mul_assign , * );
+    impl std::ops::Neg for RR {
+        type Output = Self;
+        fn neg(self) -> Self::Output {
+            RR::new(-self.rep)
+        }
+    }
+}
+
 struct Problem {
-    a: i64,
-    b: i64,
+    s: Vec<u8>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let s = r.read_bytes();
+        Problem { s }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let n = self.s.len();
+        if n % 2 == 1 {
+            return Answer { ans: 0 };
+        }
+        assert!(n % 2 == 0);
+        let mut dp = vec![vec![RR::zero(); n / 2 + 1]; n / 2 + 1];
+        dp[0][0] = RR::one();
+        for y in 0..=n / 2 {
+            for x in 0..=n / 2 {
+                if x < y {
+                    continue;
+                }
+                if x == 0 && y == 0 {
+                    continue;
+                }
+                // 配列外に気をつける
+                let from_left =
+                    if x == 0 || self.s[x + y - 1] == b')' { RR::zero() } else { dp[y][x - 1] };
+                let from_bottom =
+                    if y == 0 || self.s[x + y - 1] == b'(' { RR::zero() } else { dp[y - 1][x] };
+                dp[y][x] = from_left + from_bottom;
+            }
+        }
+        let ans = dp[n / 2][n / 2].rep();
         Answer { ans }
     }
 }

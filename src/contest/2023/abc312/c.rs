@@ -1,5 +1,6 @@
 use std::io::stdin;
 
+use itertools::Itertools;
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {
@@ -117,19 +118,60 @@ pub mod myio {
 }
 
 struct Problem {
-    a: i64,
-    b: i64,
+    n_sellers: usize,
+    n_buyers: usize,
+    seller_hope_list: Vec<i64>,
+    buyer_hope_list: Vec<i64>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Person {
+    Seller { price: i64 },
+    Buyer { price: i64 },
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let (n_sellers, n_buyers) = r.read_usize_2();
+        let seller_hope_list = r.read_vec_i64();
+        let buyer_hope_list = r.read_vec_i64();
+        Problem { n_sellers, n_buyers, seller_hope_list, buyer_hope_list }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
-        Answer { ans }
+        let mut people: Vec<Person> = vec![];
+        for &seller_hope in &self.seller_hope_list {
+            people.push(Person::Seller { price: seller_hope });
+        }
+        for &buyer_hope in &self.buyer_hope_list {
+            // ここバグってる
+            // Seller ではなく、Buyer がただしい
+            // （なんかACしてしまった）
+            people.push(Person::Seller { price: buyer_hope + 1 });
+        }
+        people.sort_by_key(|&person| match person {
+            Person::Seller { price } => price,
+            Person::Buyer { price } => price,
+        });
+        let mut n_cnt_sellers = 0;
+        let mut n_cnt_buyers = self.n_buyers;
+        for person in people {
+            match person {
+                Person::Seller { price } => {
+                    n_cnt_sellers += 1;
+                }
+                Person::Buyer { price } => {
+                    n_cnt_buyers -= 1;
+                }
+            }
+            if n_cnt_sellers == n_cnt_buyers {
+                let ans = match person {
+                    Person::Seller { price } => price,
+                    Person::Buyer { price } => price,
+                };
+                return Answer { ans };
+            }
+        }
+        panic!();
     }
 }
 

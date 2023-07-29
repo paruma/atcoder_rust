@@ -6,92 +6,25 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [[bin]]
-name = "abc2xx_b_200"
-path = "src/contest/2023/abc2xx/b/200.rs"
+name = "abc312_a"
+path = "src/contest/2023/abc312/a.rs"
 
 [[bin]]
-name = "abc2xx_b_201"
-path = "src/contest/2023/abc2xx/b/201.rs"
+name = "abc312_b"
+path = "src/contest/2023/abc312/b.rs"
 
 [[bin]]
-name = "abc2xx_b_202"
-path = "src/contest/2023/abc2xx/b/202.rs"
+name = "abc312_c"
+path = "src/contest/2023/abc312/c.rs"
 
 [[bin]]
-name = "abc2xx_b_203"
-path = "src/contest/2023/abc2xx/b/203.rs"
+name = "abc312_d"
+path = "src/contest/2023/abc312/d.rs"
 
 [[bin]]
-name = "abc2xx_b_204"
-path = "src/contest/2023/abc2xx/b/204.rs"
+name = "abc312_f"
+path = "src/contest/2023/abc312/f.rs"
 
-[[bin]]
-name = "abc2xx_b_205"
-path = "src/contest/2023/abc2xx/b/205.rs"
-
-[[bin]]
-name = "abc2xx_b_206"
-path = "src/contest/2023/abc2xx/b/206.rs"
-
-[[bin]]
-name = "abc2xx_b_207"
-path = "src/contest/2023/abc2xx/b/207.rs"
-
-[[bin]]
-name = "abc2xx_b_208"
-path = "src/contest/2023/abc2xx/b/208.rs"
-
-[[bin]]
-name = "abc2xx_b_209"
-path = "src/contest/2023/abc2xx/b/209.rs"
-
-[[bin]]
-name = "abc2xx_b_210"
-path = "src/contest/2023/abc2xx/b/210.rs"
-        
-[[bin]]
-name = "abc2xx_b_211"
-path = "src/contest/2023/abc2xx/b/211.rs"
-        
-[[bin]]
-name = "abc2xx_b_212"
-path = "src/contest/2023/abc2xx/b/212.rs"
-        
-[[bin]]
-name = "abc2xx_b_213"
-path = "src/contest/2023/abc2xx/b/213.rs"
-        
-[[bin]]
-name = "abc2xx_b_214"
-path = "src/contest/2023/abc2xx/b/214.rs"
-        
-[[bin]]
-name = "abc2xx_b_215"
-path = "src/contest/2023/abc2xx/b/215.rs"
-        
-[[bin]]
-name = "abc2xx_b_216"
-path = "src/contest/2023/abc2xx/b/216.rs"
-        
-[[bin]]
-name = "abc2xx_b_217"
-path = "src/contest/2023/abc2xx/b/217.rs"
-        
-[[bin]]
-name = "abc2xx_b_218"
-path = "src/contest/2023/abc2xx/b/218.rs"
-        
-[[bin]]
-name = "abc2xx_b_219"
-path = "src/contest/2023/abc2xx/b/219.rs"
-
-[[bin]]
-name = "abc311_e"
-path = "src/contest/2023/abc311/e.rs"
-
-[[bin]]
-name = "abc311_e2"
-path = "src/contest/2023/abc311/e2.rs"
 
 [[bin]]
 name = "template"

@@ -1,5 +1,6 @@
 use std::io::stdin;
 
+use itertools::{iproduct, Itertools};
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {
@@ -117,30 +118,59 @@ pub mod myio {
 }
 
 struct Problem {
-    a: i64,
-    b: i64,
+    height: usize,
+    width: usize,
+    grid: Vec<Vec<u8>>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let (height, width) = r.read_usize_2();
+        let grid = (0..height).map(|_| r.read_bytes()).collect_vec();
+        Problem { height, width, grid }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let tak_code = [
+            "###.?????",
+            "###.?????",
+            "###.?????",
+            "....?????",
+            "?????????",
+            "?????....",
+            "?????.###",
+            "?????.###",
+            "?????.###",
+        ]
+        .iter()
+        .map(|s| s.as_bytes().to_vec())
+        .collect_vec();
+        let ans = iproduct!(0..=self.height - 9, 0..=self.width - 9) // ここバグらせた
+            .filter(|(y0, x0)| {
+                // (x0, y0) が左上として判定
+                iproduct!(0..9, 0..9).all(|(y, x)| {
+                    tak_code[y][x] == b'?' || self.grid[y0 + y][x0 + x] == tak_code[y][x]
+                })
+            })
+            .map(|(y, x)| (y + 1, x + 1))
+            .collect_vec();
+        // ソートが必要
+
+        let x0 = 9;
+        let y0 = 0;
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<(usize, usize)>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        self.ans.iter().for_each(|&(y, x)| {
+            println!("{} {}", y, x);
+        });
     }
 }
 
