@@ -1,5 +1,6 @@
 use std::io::stdin;
 
+use itertools::Itertools;
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {
@@ -117,30 +118,36 @@ pub mod myio {
 }
 
 struct Problem {
-    a: i64,
-    b: i64,
+    n: usize,
+    names: Vec<(String, String)>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let n = r.read_usize_1();
+        let names = (0..n)
+            .map(|_| {
+                let name_vec = r.read_vec_str();
+                (name_vec[0].clone(), name_vec[1].clone())
+            })
+            .collect_vec();
+        Problem { n, names }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let ans = self.names.iter().unique().count() != self.n;
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans)
+        let msg = if self.ans { "Yes" } else { "No" };
+        println!("{}", msg)
     }
 }
 
@@ -156,7 +163,11 @@ mod tests {
         let actual = Problem::read(ProconReader::new(input.as_bytes())).solve();
         assert_eq!(expected, actual);
     }
-
+    #[test]
+    fn test0() {
+        assert_eq!(1 << 2, 4);
+        assert_eq!(1 << 3, 8);
+    }
     #[test]
     fn test_problem() {
         let input = "

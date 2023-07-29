@@ -117,18 +117,17 @@ pub mod myio {
 }
 
 struct Problem {
-    a: i64,
-    b: i64,
+    n: i64,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let n = r.read_i64_1();
+        Problem { n }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        // 1<<k: 2^k
+        let ans = (0..64_i64).find(|k| 1_i64 << k > self.n).unwrap() - 1;
         Answer { ans }
     }
 }
@@ -156,7 +155,11 @@ mod tests {
         let actual = Problem::read(ProconReader::new(input.as_bytes())).solve();
         assert_eq!(expected, actual);
     }
-
+    #[test]
+    fn test0() {
+        assert_eq!(1 << 2, 4);
+        assert_eq!(1 << 3, 8);
+    }
     #[test]
     fn test_problem() {
         let input = "

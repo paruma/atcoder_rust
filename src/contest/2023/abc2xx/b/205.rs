@@ -139,6 +139,7 @@ impl Problem {
     fn solve2(&self) -> Answer {
         let set: HashSet<i64> = self.xs.iter().cloned().collect::<HashSet<_>>();
         // let set: HashSet<i64> = HashSet::from_iter(self.xs.iter().cloned()); // use std::iter::FromIterator; が必要
+        // self.xs の中身は1..=n であることが保証されている
         let ans = set.len() == self.n;
         Answer { ans }
     }
@@ -167,15 +168,5 @@ mod tests {
     fn check(input: &str, expected: Answer) {
         let actual = Problem::read(ProconReader::new(input.as_bytes())).solve();
         assert_eq!(expected, actual);
-    }
-
-    #[test]
-    fn test_problem() {
-        let input = "
-3
-4
-        "
-        .trim();
-        check(input, Answer { ans: 7 });
     }
 }

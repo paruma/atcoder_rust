@@ -128,6 +128,7 @@ impl Problem {
         Problem { n_trees, n_nuts }
     }
     fn solve(&self) -> Answer {
+        // max(n_nut -10, 0) と書いても良さそう
         let ans = self.n_nuts.iter().map(|&n_nut| if n_nut <= 10 { 0 } else { n_nut - 10 }).sum();
         Answer { ans }
     }

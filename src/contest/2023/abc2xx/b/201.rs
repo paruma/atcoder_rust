@@ -169,14 +169,4 @@ mod tests {
         let actual = Problem::read(ProconReader::new(input.as_bytes())).solve();
         assert_eq!(expected, actual);
     }
-
-    #[test]
-    fn test_problem() {
-        let input = "
-3
-4
-        "
-        .trim();
-        check(input, Answer { ans: 7 });
-    }
 }

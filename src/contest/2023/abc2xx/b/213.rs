@@ -1,5 +1,6 @@
-use std::io::stdin;
+use std::{cmp::Reverse, io::stdin};
 
+use itertools::Itertools;
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {
@@ -117,25 +118,33 @@ pub mod myio {
 }
 
 struct Problem {
-    a: i64,
-    b: i64,
+    n: usize,
+    scores: Vec<i64>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let n = r.read_usize_1();
+        let scores = r.read_vec_i64();
+        Problem { n, scores }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let ans = self
+            .scores
+            .iter()
+            .enumerate()
+            .sorted_by_key(|(_i, score)| Reverse(**score))
+            .nth(1)
+            .unwrap()
+            .0
+            + 1; // +1で1オリジンにする
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: usize,
 }
 
 impl Answer {

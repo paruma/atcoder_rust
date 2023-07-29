@@ -117,25 +117,29 @@ pub mod myio {
 }
 
 struct Problem {
-    a: i64,
-    b: i64,
+    number: Vec<u8>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let number = r.read_bytes();
+        Problem { number }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let is_1111_like = (0..3).all(|i| self.number[i + 1] == self.number[0]);
+        let is_1234_like =
+            (0..3).all(|i| (self.number[i + 1] - b'0') == (self.number[i] - b'0' + 1) % 10);
+
+        let is_week = is_1111_like || is_1234_like;
+        let ans = if is_week { "Weak".to_string() } else { "Strong".to_string() };
+
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: String,
 }
 
 impl Answer {

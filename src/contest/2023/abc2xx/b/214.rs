@@ -1,5 +1,6 @@
 use std::io::stdin;
 
+use itertools::iproduct;
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {
@@ -117,18 +118,19 @@ pub mod myio {
 }
 
 struct Problem {
-    a: i64,
-    b: i64,
+    s: i64,
+    t: i64,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let (s, t) = r.read_i64_2();
+        Problem { s, t }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let ans = iproduct!(0..=100, 0..=100, 0..=100)// 100の部分は self.s で良かった
+            .filter(|&(a, b, c)| a + b + c <= self.s && a * b * c <= self.t)
+            .count() as i64;
         Answer { ans }
     }
 }

@@ -1,5 +1,6 @@
-use std::io::stdin;
+use std::{io::stdin, str::from_utf8};
 
+use itertools::Itertools;
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {
@@ -117,25 +118,24 @@ pub mod myio {
 }
 
 struct Problem {
-    a: i64,
-    b: i64,
+    xs: Vec<i64>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let xs = r.read_vec_i64();
+        Problem { xs }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let ans_utf8 = self.xs.iter().map(|&i| b'a' + i as u8 - 1).collect_vec();
+        let ans = String::from_utf8(ans_utf8).unwrap();
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: String,
 }
 
 impl Answer {

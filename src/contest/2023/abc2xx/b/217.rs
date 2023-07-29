@@ -1,5 +1,6 @@
 use std::io::stdin;
 
+use itertools::Itertools;
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {
@@ -117,25 +118,27 @@ pub mod myio {
 }
 
 struct Problem {
-    a: i64,
-    b: i64,
+    xs: Vec<String>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let xs = (0..3).map(|_| r.read_line()).collect_vec();
+        Problem { xs }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let ans = ["ABC", "ARC", "AGC", "AHC"]
+            .iter()
+            .map(|s| s.to_string())
+            .find(|s| !self.xs.contains(s))
+            .unwrap();
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: String,
 }
 
 impl Answer {
