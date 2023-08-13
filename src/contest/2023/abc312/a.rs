@@ -1,5 +1,5 @@
 use std::io::stdin;
-
+#[allow(unused_imports)]
 use itertools::Itertools;
 #[allow(unused_imports)]
 use myio::*;
@@ -127,12 +127,15 @@ impl Problem {
         Problem { s }
     }
     fn solve(&self) -> Answer {
+        /*
         let ideal = ["ACE", "BDF", "CEG", "DFA", "EGB", "FAC", "GBD"]
             .iter()
             .map(|s| s.to_string())
             .collect_vec();
         let ans = ideal.contains(&self.s);
-
+        */
+        let ideal = ["ACE", "BDF", "CEG", "DFA", "EGB", "FAC", "GBD"];
+        let ans = ideal.contains(&self.s.as_str());
         Answer { ans }
     }
 }

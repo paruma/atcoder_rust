@@ -117,6 +117,47 @@ pub mod myio {
     }
 }
 
+/// 二分探索をする
+/// ```text
+/// ng ng ng ok ok ok
+///          ↑ここの引数の値を返す
+/// ```
+/// ## Arguments
+/// * ok != ng
+/// * |ok - ng| <= 2^63 - 1, |ok + ng| <= 2^63 - 1
+/// * p の定義域について
+///     * ng < ok の場合、p は区間 ng..ok で定義されている。
+///     * ok < ng の場合、p は区間 ok..ng で定義されている。
+/// * p の単調性について
+///     * ng < ok の場合、p は単調増加
+///     * ok < ng の場合、p は単調減少
+/// ## Return
+/// * ng < ok の場合: I = { i in ng..ok | p(i) == true } としたとき
+///     * I が空でなければ、min I を返す。
+///     * I が空ならば、ok を返す。
+/// * ok < ng の場合: I = { i in ok..ng | p(i) == true } としたとき
+///     * I が空でなければ、max I を返す。
+///     * I が空ならば、ok を返す。
+pub fn bin_search<F>(mut ok: i64, mut ng: i64, p: F) -> i64
+where
+    F: Fn(i64) -> bool,
+{
+    assert!(ok != ng);
+    assert!(ok.checked_sub(ng).is_some());
+    assert!(ok.checked_add(ng).is_some());
+    while num::abs(ok - ng) > 1 {
+        let mid = (ok + ng) / 2;
+        assert!(mid != ok);
+        assert!(mid != ng);
+        if p(mid) {
+            ok = mid;
+        } else {
+            ng = mid;
+        }
+    }
+    ok
+}
+
 struct Problem {
     n_sellers: usize,
     n_buyers: usize,
@@ -173,6 +214,27 @@ impl Problem {
         }
         panic!();
     }
+
+    // 二分探索解法
+    fn solve2(&self) -> Answer {
+        let count_sellers = |price: i64| {
+            // price 円なら売る人数
+            // 希望以上の値段なら売る
+            self.seller_hope_list.iter().filter(|price_lb| price >= **price_lb).count()
+        };
+
+        let count_buyers = |price: i64| {
+            // price 円なら買う人数
+            // 希望以下の値段なら買う
+            self.buyer_hope_list.iter().filter(|price_ub| price <= **price_ub).count()
+        };
+
+        // min{price | count_sellers(price) >= count_buyers(price)} を求める。
+        // 売りたい人数 >= 買いたい人数か？
+        let pred = |price: i64| count_sellers(price) >= count_buyers(price);
+        let ans = bin_search(2_000_000_000, 0, pred);
+        Answer { ans }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -187,7 +249,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read(ProconReader::new(stdin().lock())).solve().print();
+    Problem::read(ProconReader::new(stdin().lock())).solve2().print();
 }
 
 #[cfg(test)]

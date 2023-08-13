@@ -153,10 +153,6 @@ impl Problem {
             })
             .map(|(y, x)| (y + 1, x + 1))
             .collect_vec();
-        // ソートが必要
-
-        let x0 = 9;
-        let y0 = 0;
         Answer { ans }
     }
 }
