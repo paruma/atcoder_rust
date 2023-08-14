@@ -1,5 +1,97 @@
 use std::io::stdin;
 
+struct Problem {
+    a: i64,
+    b: i64,
+}
+
+impl Problem {
+    fn read<R: IProconReader>(mut r: R) -> Problem {
+        let a = r.read_i64_1();
+        let b = r.read_i64_1();
+        Problem { a, b }
+    }
+    fn solve(&self) -> Answer {
+        let ans = self.a + self.b;
+        Answer { ans }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct Answer {
+    ans: i64,
+}
+
+impl Answer {
+    fn print(&self) {
+        println!("{}", self.ans);
+    }
+}
+
+fn main() {
+    Problem::read(ProconReader::new(stdin().lock())).solve().print();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[allow(dead_code)]
+    fn check(input: &str, expected: Answer) {
+        let actual = Problem::read(ProconReader::new(input.as_bytes())).solve();
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn test_problem() {
+        let _input = "
+3
+4
+        "
+        .trim();
+        // check(_input, Answer { ans: 7 });
+    }
+    #[test]
+    fn test_reader() {
+        let input = "
+        hoge fuga piyo
+        hoge2
+        1
+        2 3
+        4 5 6
+        7 8 9 10
+        11 12 13 14
+        15 16 17 18
+        hoge3 hoge4
+        19
+        20 21
+        22 23 24
+        25
+        26 27
+        28 29 30"
+            .trim();
+
+        let mut r = ProconReader::new(input.as_bytes());
+        assert_eq!(r.read_line(), "hoge fuga piyo".to_string());
+        assert_eq!(r.read_bytes(), vec![b'h', b'o', b'g', b'e', b'2']);
+        assert_eq!(r.read_any_1::<i64>(), 1_i64);
+        assert_eq!(r.read_any_2::<i64, i64>(), (2, 3));
+        assert_eq!(r.read_any_3::<i64, i64, i64>(), (4, 5, 6));
+        assert_eq!(r.read_vec_any::<i64>(), vec![7, 8, 9, 10]);
+        assert_eq!(r.read_vec_i64(), vec![11, 12, 13, 14]);
+        assert_eq!(r.read_vec_usize(), vec![15, 16, 17, 18]);
+        assert_eq!(r.read_vec_str(), vec!["hoge3".to_string(), "hoge4".to_string()]);
+        assert_eq!(r.read_i64_1(), 19);
+        assert_eq!(r.read_i64_2(), (20, 21));
+        assert_eq!(r.read_i64_3(), (22, 23, 24));
+        assert_eq!(r.read_usize_1(), 25);
+        assert_eq!(r.read_usize_2(), (26, 27));
+        assert_eq!(r.read_usize_3(), (28, 29, 30));
+    }
+}
+
+// ====== snippet ======
+
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {
@@ -113,95 +205,5 @@ pub mod myio {
             self.buf_read.read_line(&mut buffer).unwrap();
             buffer.trim().to_string()
         }
-    }
-}
-
-struct Problem {
-    a: i64,
-    b: i64,
-}
-
-impl Problem {
-    fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
-    }
-    fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
-        Answer { ans }
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-struct Answer {
-    ans: i64,
-}
-
-impl Answer {
-    fn print(&self) {
-        println!("{}", self.ans)
-    }
-}
-
-fn main() {
-    Problem::read(ProconReader::new(stdin().lock())).solve().print();
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn check(input: &str, expected: Answer) {
-        let actual = Problem::read(ProconReader::new(input.as_bytes())).solve();
-        assert_eq!(expected, actual);
-    }
-
-    #[test]
-    fn test_problem() {
-        let input = "
-3
-4
-        "
-        .trim();
-        check(input, Answer { ans: 7 });
-    }
-
-    #[test]
-    fn test_reader() {
-        let input = "
-        hoge fuga piyo
-        hoge2
-        1
-        2 3
-        4 5 6
-        7 8 9 10
-        11 12 13 14
-        15 16 17 18
-        hoge3 hoge4
-        19
-        20 21
-        22 23 24
-        25
-        26 27
-        28 29 30"
-            .trim();
-
-        let mut r = ProconReader::new(input.as_bytes());
-        assert_eq!(r.read_line(), "hoge fuga piyo".to_string());
-        assert_eq!(r.read_bytes(), vec![b'h', b'o', b'g', b'e', b'2']);
-        assert_eq!(r.read_any_1::<i64>(), 1_i64);
-        assert_eq!(r.read_any_2::<i64, i64>(), (2, 3));
-        assert_eq!(r.read_any_3::<i64, i64, i64>(), (4, 5, 6));
-        assert_eq!(r.read_vec_any::<i64>(), vec![7, 8, 9, 10]);
-        assert_eq!(r.read_vec_i64(), vec![11, 12, 13, 14]);
-        assert_eq!(r.read_vec_usize(), vec![15, 16, 17, 18]);
-        assert_eq!(r.read_vec_str(), vec!["hoge3".to_string(), "hoge4".to_string()]);
-        assert_eq!(r.read_i64_1(), 19);
-        assert_eq!(r.read_i64_2(), (20, 21));
-        assert_eq!(r.read_i64_3(), (22, 23, 24));
-        assert_eq!(r.read_usize_1(), 25);
-        assert_eq!(r.read_usize_2(), (26, 27));
-        assert_eq!(r.read_usize_3(), (28, 29, 30));
     }
 }

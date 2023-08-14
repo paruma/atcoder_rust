@@ -1,5 +1,60 @@
 use std::io::stdin;
 
+struct Problem {
+    a: i64,
+    b: i64,
+}
+
+impl Problem {
+    fn read<R: IProconReader>(mut r: R) -> Problem {
+        let a = r.read_i64_1();
+        let b = r.read_i64_1();
+        Problem { a, b }
+    }
+    fn solve(&self) -> Answer {
+        let ans = self.a + self.b;
+        Answer { ans }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct Answer {
+    ans: i64,
+}
+
+impl Answer {
+    fn print(&self) {
+        println!("{}", self.ans);
+    }
+}
+
+fn main() {
+    Problem::read(ProconReader::new(stdin().lock())).solve().print();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[allow(dead_code)]
+    fn check(input: &str, expected: Answer) {
+        let actual = Problem::read(ProconReader::new(input.as_bytes())).solve();
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn test_problem() {
+        let _input = "
+3
+4
+        "
+        .trim();
+        // check(_input, Answer { ans: 7 });
+    }
+}
+
+// ====== snippet ======
+
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {
@@ -113,57 +168,5 @@ pub mod myio {
             self.buf_read.read_line(&mut buffer).unwrap();
             buffer.trim().to_string()
         }
-    }
-}
-
-struct Problem {
-    a: i64,
-    b: i64,
-}
-
-impl Problem {
-    fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
-    }
-    fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
-        Answer { ans }
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-struct Answer {
-    ans: i64,
-}
-
-impl Answer {
-    fn print(&self) {
-        println!("{}", self.ans);
-    }
-}
-
-fn main() {
-    Problem::read(ProconReader::new(stdin().lock())).solve().print();
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn check(input: &str, expected: Answer) {
-        let actual = Problem::read(ProconReader::new(input.as_bytes())).solve();
-        assert_eq!(expected, actual);
-    }
-
-    #[test]
-    fn test_problem() {
-        let input = "
-3
-4
-        "
-        .trim();
-        // check(input, Answer { ans: 7 });
     }
 }
