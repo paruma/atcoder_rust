@@ -9,8 +9,8 @@ oj_download() {
 
 oj_test() {
     contest=$(basename "$(pwd)")
-    cargo build --bin "abc${contest}_${task}"
-    oj test -c "$(git rev-parse --show-toplevel)/target/debug/abc${contest}_${task}"
+    cargo build --bin "abc2xx_${task}_${contest}"
+    oj test -c "$(git rev-parse --show-toplevel)/target/debug/abc2xx_${task}_${contest}"
 }
 
 oj_submit() {

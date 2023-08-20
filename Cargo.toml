@@ -6,8 +6,40 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [[bin]]
-name = "abc220_b"
-path = "src/contest/2023/abc2xx/b/220/220.rs"
+name = "abc2xx_b_221"
+path = "src/contest/2023/abc2xx/b/221/221.rs"
+
+[[bin]]
+name = "abc2xx_b_222"
+path = "src/contest/2023/abc2xx/b/222/222.rs"
+
+[[bin]]
+name = "abc2xx_b_223"
+path = "src/contest/2023/abc2xx/b/223/223.rs"
+
+[[bin]]
+name = "abc2xx_b_224"
+path = "src/contest/2023/abc2xx/b/224/224.rs"
+
+[[bin]]
+name = "abc2xx_b_225"
+path = "src/contest/2023/abc2xx/b/225/225.rs"
+
+[[bin]]
+name = "abc2xx_b_226"
+path = "src/contest/2023/abc2xx/b/226/226.rs"
+
+[[bin]]
+name = "abc2xx_b_227"
+path = "src/contest/2023/abc2xx/b/227/227.rs"
+
+[[bin]]
+name = "abc2xx_b_228"
+path = "src/contest/2023/abc2xx/b/228/228.rs"
+
+[[bin]]
+name = "abc2xx_b_229"
+path = "src/contest/2023/abc2xx/b/229/229.rs"
 
 [[bin]]
 name = "abc312_a"
