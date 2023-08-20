@@ -1,5 +1,65 @@
 use std::io::stdin;
 
+struct Problem {
+    k: i64,
+    a: Vec<u8>,
+    b: Vec<u8>,
+}
+
+impl Problem {
+    fn read<R: IProconReader>(mut r: R) -> Problem {
+        let k = r.read_i64_1();
+        let xss = r.read_vec_str().iter().map(|s| s.as_bytes().to_vec()).collect_vec();
+        Problem { k, a: xss[0].clone(), b: xss[1].clone() }
+    }
+    fn convert(xs: &[u8], k: i64) -> i64 {
+        xs.iter().fold(0, |acc, x| acc * k + (x - b'0') as i64)
+    }
+    fn solve(&self) -> Answer {
+        let ans = Self::convert(&self.a, self.k) * Self::convert(&self.b, self.k);
+        Answer { ans }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct Answer {
+    ans: i64,
+}
+
+impl Answer {
+    fn print(&self) {
+        println!("{}", self.ans);
+    }
+}
+
+fn main() {
+    Problem::read(ProconReader::new(stdin().lock())).solve().print();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[allow(dead_code)]
+    fn check(input: &str, expected: Answer) {
+        let actual = Problem::read(ProconReader::new(input.as_bytes())).solve();
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn test_problem() {
+        let _input = "
+3
+4
+        "
+        .trim();
+        // check(_input, Answer { ans: 7 });
+    }
+}
+
+// ====== snippet ======
+
+use itertools::Itertools;
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {
@@ -113,62 +173,5 @@ pub mod myio {
             self.buf_read.read_line(&mut buffer).unwrap();
             buffer.trim().to_string()
         }
-    }
-}
-
-struct Problem {
-    number: Vec<u8>,
-}
-
-impl Problem {
-    fn read<R: IProconReader>(mut r: R) -> Problem {
-        let number = r.read_bytes();
-        Problem { number }
-    }
-    fn solve(&self) -> Answer {
-        let is_1111_like = (0..3).all(|i| self.number[i + 1] == self.number[0]);
-        // - b'0' の部分は to_number みたいな関数を作ってもいいかも
-        let is_1234_like =
-            (0..3).all(|i| (self.number[i + 1] - b'0') == (self.number[i] - b'0' + 1) % 10);
-
-        let is_week = is_1111_like || is_1234_like;
-        let ans = if is_week { "Weak".to_string() } else { "Strong".to_string() };
-
-        Answer { ans }
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-struct Answer {
-    ans: String,
-}
-
-impl Answer {
-    fn print(&self) {
-        println!("{}", self.ans)
-    }
-}
-
-fn main() {
-    Problem::read(ProconReader::new(stdin().lock())).solve().print();
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn check(input: &str, expected: Answer) {
-        let actual = Problem::read(ProconReader::new(input.as_bytes())).solve();
-        assert_eq!(expected, actual);
-    }
-
-    #[test]
-    fn test_problem() {
-        let input = "
-3
-4
-        "
-        .trim();
-        // check(input, Answer { ans: 7 });
     }
 }
