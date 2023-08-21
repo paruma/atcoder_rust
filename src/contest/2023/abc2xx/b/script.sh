@@ -9,8 +9,10 @@ oj_download() {
 
 oj_test() {
     contest=$(basename "$(pwd)")
-    cargo build --bin "abc2xx_${task}_${contest}"
-    oj test -c "$(git rev-parse --show-toplevel)/target/debug/abc2xx_${task}_${contest}"
+    if cargo build --bin "abc2xx_${task}_${contest}"; then
+        export RUST_BACKTRACE=1
+        oj test -c "$(git rev-parse --show-toplevel)/target/debug/abc2xx_${task}_${contest}"
+    fi
 }
 
 oj_submit() {
