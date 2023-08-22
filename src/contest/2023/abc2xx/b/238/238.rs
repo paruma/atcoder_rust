@@ -1,19 +1,40 @@
 use std::io::stdin;
 
 struct Problem {
-    a: i64,
-    b: i64,
+    xs: Vec<i64>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let _n = r.read_usize_1();
+        let xs = r.read_vec_i64();
+        Problem { xs }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
-        Answer { ans }
+        let xs = &self.xs;
+        let mut cut_degree = vec![false; 360];
+        cut_degree[0] = true;
+        let mut sum = 0;
+        for &x in xs {
+            sum += x;
+            cut_degree[sum as usize % 360] = true;
+        }
+        // 0 1 2 3
+        // t f f t
+        // という場合は [0, 3) で カウントアップする
+
+        let mut degree_cnt = 0;
+        let mut max_degree_cnt = 0;
+        for degree in 0_usize..360 {
+            if cut_degree[degree] {
+                degree_cnt = 1;
+            } else {
+                degree_cnt += 1;
+            }
+            max_degree_cnt = i64::max(max_degree_cnt, degree_cnt);
+        }
+
+        Answer { ans: max_degree_cnt }
     }
 }
 

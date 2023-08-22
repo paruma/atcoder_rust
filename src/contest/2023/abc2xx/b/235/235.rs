@@ -1,19 +1,26 @@
 use std::io::stdin;
 
 struct Problem {
-    a: i64,
-    b: i64,
+    height_list: Vec<i64>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let _n = r.read_usize_1();
+        let height_list = r.read_vec_i64();
+        Problem { height_list }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
-        Answer { ans }
+        let height_list = &self.height_list;
+        let mut current_height = 0; // 最初は高さ0の台に乗っているとして良い。
+        for &height in height_list {
+            if current_height >= height {
+                break;
+            } else {
+                current_height = height;
+            }
+        }
+        Answer { ans: current_height }
     }
 }
 
@@ -55,6 +62,7 @@ mod tests {
 
 // ====== snippet ======
 
+use itertools::Itertools;
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {

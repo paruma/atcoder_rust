@@ -1,25 +1,32 @@
 use std::io::stdin;
 
 struct Problem {
-    a: i64,
-    b: i64,
+    n: usize,
+    xs: Vec<i64>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let n = r.read_usize_1();
+        let xs = r.read_vec_i64().iter().map(|&x| x - 1).collect_vec();
+        Problem { n, xs }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        // カウント集計するタイプの関数ない？
+        let Problem { n, xs } = self;
+        let mut cnt_list = vec![0_i64; 4 * n - 1];
+        for &x in xs {
+            let x = x as usize;
+            cnt_list[x] += 1;
+        }
+        let ans = cnt_list.iter().enumerate().find(|(_, cnt)| **cnt == 3).unwrap().0 + 1; //1オリジンに直す
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: usize,
 }
 
 impl Answer {
@@ -55,6 +62,7 @@ mod tests {
 
 // ====== snippet ======
 
+use itertools::Itertools;
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {

@@ -1,30 +1,35 @@
 use std::io::stdin;
 
 struct Problem {
-    a: i64,
-    b: i64,
+    height: usize,
+    width: usize,
+    matrix: Vec<Vec<i64>>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let (height, width) = r.read_usize_2();
+        let matrix = (0..height).map(|_| r.read_vec_i64()).collect_vec();
+        Problem { height, width, matrix }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let Problem { height, width, matrix } = self;
+        let ans =
+            (0..*width).map(|x| (0..*height).map(|y| matrix[y][x]).collect_vec()).collect_vec();
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<Vec<i64>>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        for row in &self.ans {
+            println!("{}", row.iter().map(|x| x.to_string()).join(" "));
+        }
     }
 }
 
@@ -55,8 +60,10 @@ mod tests {
 
 // ====== snippet ======
 
+use itertools::Itertools;
 #[allow(unused_imports)]
 use myio::*;
+use ndarray::{arr2, Array};
 pub mod myio {
     use std::io::BufRead;
 

@@ -1,18 +1,26 @@
 use std::io::stdin;
 
 struct Problem {
-    a: i64,
-    b: i64,
+    x: i64,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let x = r.read_i64_1();
+        Problem { x }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let x = self.x;
+        //let ans = num_integer::div_floor(x, 10);
+        let ans = if x >= 0 {
+            x / 10
+        } else {
+            // -31 → -4
+            // -39 → -4
+            // -40 → -4
+
+            (x + 1) / 10 - 1
+        };
         Answer { ans }
     }
 }
@@ -57,6 +65,7 @@ mod tests {
 
 #[allow(unused_imports)]
 use myio::*;
+use num_integer::Integer;
 pub mod myio {
     use std::io::BufRead;
 
