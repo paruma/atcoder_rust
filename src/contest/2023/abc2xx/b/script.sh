@@ -8,6 +8,10 @@ oj_download() {
 }
 
 oj_test() {
+    if [ ! -d 'test' ]; then
+        oj_download
+    fi
+
     contest=$(basename "$(pwd)")
     if cargo build --bin "abc2xx_${task}_${contest}"; then
         export RUST_BACKTRACE=1
