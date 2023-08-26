@@ -1,18 +1,53 @@
-use std::io::stdin;
+use std::{collections::HashSet, io::stdin};
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+struct Edge {
+    a: usize,
+    b: usize,
+}
+
+impl Edge {
+    fn new(a: usize, b: usize) -> Edge {
+        Edge { a, b }
+    }
+}
 
 struct Problem {
-    a: i64,
-    b: i64,
+    n_vertex: usize,
+    n_edge: usize,
+    edges: Vec<Edge>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let (n_vertex, n_edge) = r.read_usize_2();
+        let edges = (0..n_edge)
+            .map(|_| {
+                let (a, b) = r.read_usize_2();
+                let a = a - 1;
+                let b = b - 1;
+                Edge::new(a, b)
+            })
+            .collect_vec();
+        Problem { n_vertex, n_edge, edges }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let Problem { n_vertex, n_edge, edges } = self;
+        // 無向グラフなので、逆向きも用意する
+        let edge_set =
+            edges.iter().flat_map(|e| vec![*e, Edge::new(e.b, e.a)]).collect::<HashSet<_>>();
+        let ans = (0..*n_vertex)
+            .combinations(3)
+            .filter(|vs| {
+                let a = vs[0];
+                let b = vs[1];
+                let c = vs[2];
+                edge_set.contains(&Edge::new(a, b))
+                    && edge_set.contains(&Edge::new(b, c))
+                    && edge_set.contains(&Edge::new(c, a))
+            })
+            .count() as i64;
+
         Answer { ans }
     }
 }
@@ -55,6 +90,7 @@ mod tests {
 
 // ====== snippet ======
 
+use itertools::Itertools;
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {
@@ -106,26 +142,6 @@ pub mod myio {
             let a2 = splitted[2].parse::<T2>().unwrap();
             (a0, a1, a2)
         }
-
-        fn read_any_4<T0, T1, T2, T3>(&mut self) -> (T0, T1, T2, T3)
-        where
-            T0: std::str::FromStr,
-            T0::Err: std::fmt::Debug,
-            T1: std::str::FromStr,
-            T1::Err: std::fmt::Debug,
-            T2: std::str::FromStr,
-            T2::Err: std::fmt::Debug,
-            T3: std::str::FromStr,
-            T3::Err: std::fmt::Debug,
-        {
-            let buf = self.read_line();
-            let splitted = buf.trim().split(' ').collect::<Vec<_>>();
-            let a0 = splitted[0].parse::<T0>().unwrap();
-            let a1 = splitted[1].parse::<T1>().unwrap();
-            let a2 = splitted[2].parse::<T2>().unwrap();
-            let a3 = splitted[3].parse::<T3>().unwrap();
-            (a0, a1, a2, a3)
-        }
         fn read_vec_any<T>(&mut self) -> Vec<T>
         where
             T: std::str::FromStr,
@@ -159,10 +175,6 @@ pub mod myio {
             self.read_any_3::<i64, i64, i64>()
         }
 
-        fn read_i64_4(&mut self) -> (i64, i64, i64, i64) {
-            self.read_any_4::<i64, i64, i64, i64>()
-        }
-
         fn read_usize_1(&mut self) -> usize {
             self.read_any_1::<usize>()
         }
@@ -173,10 +185,6 @@ pub mod myio {
 
         fn read_usize_3(&mut self) -> (usize, usize, usize) {
             self.read_any_3::<usize, usize, usize>()
-        }
-
-        fn read_usize_4(&mut self) -> (usize, usize, usize, usize) {
-            self.read_any_4::<usize, usize, usize, usize>()
         }
     }
 

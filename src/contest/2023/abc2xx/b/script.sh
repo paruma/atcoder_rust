@@ -21,5 +21,5 @@ oj_test() {
 
 oj_submit() {
     contest=$(basename "$(pwd)")
-    oj submit "https://atcoder.jp/contests/abc${contest}/tasks/abc${contest}_${task}" "${contest}.rs"
+    oj submit "https://atcoder.jp/contests/abc${contest}/tasks/abc${contest}_${task}" "${contest}.rs" -w 1
 }

@@ -1,30 +1,35 @@
 use std::io::stdin;
 
 struct Problem {
-    a: i64,
-    b: i64,
+    s: Vec<u8>,
+    t: Vec<u8>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let s = r.read_bytes();
+        let t = r.read_bytes();
+        Problem { s, t }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let Problem { s, t } = self;
+        if s.len() > t.len() {
+            return Answer { ans: false };
+        }
+        let ans = (0..s.len()).all(|i| s[i] == t[i]);
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        let msg = if self.ans { "Yes" } else { "No" };
+        println!("{}", msg);
     }
 }
 
@@ -106,26 +111,6 @@ pub mod myio {
             let a2 = splitted[2].parse::<T2>().unwrap();
             (a0, a1, a2)
         }
-
-        fn read_any_4<T0, T1, T2, T3>(&mut self) -> (T0, T1, T2, T3)
-        where
-            T0: std::str::FromStr,
-            T0::Err: std::fmt::Debug,
-            T1: std::str::FromStr,
-            T1::Err: std::fmt::Debug,
-            T2: std::str::FromStr,
-            T2::Err: std::fmt::Debug,
-            T3: std::str::FromStr,
-            T3::Err: std::fmt::Debug,
-        {
-            let buf = self.read_line();
-            let splitted = buf.trim().split(' ').collect::<Vec<_>>();
-            let a0 = splitted[0].parse::<T0>().unwrap();
-            let a1 = splitted[1].parse::<T1>().unwrap();
-            let a2 = splitted[2].parse::<T2>().unwrap();
-            let a3 = splitted[3].parse::<T3>().unwrap();
-            (a0, a1, a2, a3)
-        }
         fn read_vec_any<T>(&mut self) -> Vec<T>
         where
             T: std::str::FromStr,
@@ -159,10 +144,6 @@ pub mod myio {
             self.read_any_3::<i64, i64, i64>()
         }
 
-        fn read_i64_4(&mut self) -> (i64, i64, i64, i64) {
-            self.read_any_4::<i64, i64, i64, i64>()
-        }
-
         fn read_usize_1(&mut self) -> usize {
             self.read_any_1::<usize>()
         }
@@ -173,10 +154,6 @@ pub mod myio {
 
         fn read_usize_3(&mut self) -> (usize, usize, usize) {
             self.read_any_3::<usize, usize, usize>()
-        }
-
-        fn read_usize_4(&mut self) -> (usize, usize, usize, usize) {
-            self.read_any_4::<usize, usize, usize, usize>()
         }
     }
 
