@@ -1,31 +1,30 @@
 use std::io::stdin;
 
 struct Problem {
-    n: usize,
-    s: Vec<i64>,
+    a: i64,
+    b: i64,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let n = r.read_usize_1();
-        let s = r.read_vec_i64();
-        Problem { n, s }
+        let a = r.read_i64_1();
+        let b = r.read_i64_1();
+        Problem { a, b }
     }
     fn solve(&self) -> Answer {
-        let s = [vec![0], self.s.clone()].concat();
-        let ans = (0..self.n).map(|i| s[i + 1] - s[i]).collect_vec();
+        let ans = self.a + self.b;
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: Vec<i64>,
+    ans: i64,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans.iter().join(" "));
+        println!("{}", self.ans);
     }
 }
 
@@ -56,7 +55,6 @@ mod tests {
 
 // ====== snippet ======
 
-use itertools::Itertools;
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {

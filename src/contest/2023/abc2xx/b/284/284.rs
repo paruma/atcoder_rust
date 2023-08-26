@@ -1,19 +1,32 @@
 use std::io::stdin;
 
-struct Problem {
+struct TestCase {
     n: usize,
-    s: Vec<i64>,
+    xs: Vec<i64>,
+}
+struct Problem {
+    n_test: usize,
+    test_case_list: Vec<TestCase>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let n = r.read_usize_1();
-        let s = r.read_vec_i64();
-        Problem { n, s }
+        let n_test = r.read_usize_1();
+        let test_case_list = (0..n_test)
+            .map(|_| {
+                let n = r.read_usize_1();
+                let xs = r.read_vec_i64();
+                TestCase { n, xs }
+            })
+            .collect_vec();
+        Problem { n_test, test_case_list }
     }
     fn solve(&self) -> Answer {
-        let s = [vec![0], self.s.clone()].concat();
-        let ans = (0..self.n).map(|i| s[i + 1] - s[i]).collect_vec();
+        let ans = self
+            .test_case_list
+            .iter()
+            .map(|test_case| test_case.xs.iter().filter(|x| *x % 2 == 1).count() as i64)
+            .collect_vec();
         Answer { ans }
     }
 }
@@ -25,7 +38,9 @@ struct Answer {
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans.iter().join(" "));
+        for &x in &self.ans {
+            println!("{}", x);
+        }
     }
 }
 

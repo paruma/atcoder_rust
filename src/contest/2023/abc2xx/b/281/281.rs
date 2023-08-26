@@ -1,36 +1,51 @@
 use std::io::stdin;
 
 struct Problem {
-    n: usize,
-    s: Vec<i64>,
+    s: Vec<u8>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let n = r.read_usize_1();
-        let s = r.read_vec_i64();
-        Problem { n, s }
+        let s = r.read_bytes();
+        Problem { s }
     }
     fn solve(&self) -> Answer {
-        let s = [vec![0], self.s.clone()].concat();
-        let ans = (0..self.n).map(|i| s[i + 1] - s[i]).collect_vec();
+        let s = &self.s;
+        if s.len() != 8 {
+            return Answer { ans: false };
+        }
+
+        let ans = s[0].is_ascii_uppercase()
+            && s[1].is_ascii_digit()
+            && s[1] != b'0'
+            && s[2..7].iter().all(|ch| ch.is_ascii_digit())
+            && s[7].is_ascii_uppercase();
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // 正規表現を使う
+        use regex::Regex;
+        let re = Regex::new(r"^[A-Z][1-9][0-9]{5}[A-Z]$").unwrap();
+        let ans = re.is_match(&String::from_utf8(self.s.clone()).unwrap());
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: Vec<i64>,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans.iter().join(" "));
+        let msg = if self.ans { "Yes" } else { "No" };
+        println!("{}", msg);
     }
 }
 
 fn main() {
-    Problem::read(ProconReader::new(stdin().lock())).solve().print();
+    Problem::read(ProconReader::new(stdin().lock())).solve2().print();
 }
 
 #[cfg(test)]
@@ -56,7 +71,6 @@ mod tests {
 
 // ====== snippet ======
 
-use itertools::Itertools;
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {

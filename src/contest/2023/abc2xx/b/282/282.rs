@@ -1,31 +1,44 @@
 use std::io::stdin;
 
 struct Problem {
-    n: usize,
-    s: Vec<i64>,
+    n_people: usize,
+    n_problem: usize,
+    solvable: Vec<Vec<bool>>, //solvable[i][j]: 人iが問題jを解けるかどうか
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let n = r.read_usize_1();
-        let s = r.read_vec_i64();
-        Problem { n, s }
+        let (n_people, n_problem) = r.read_usize_2();
+        let solvable = (0..n_people)
+            .map(|_| r.read_bytes().iter().map(|ch| *ch == b'o').collect_vec())
+            .collect_vec();
+        Problem { n_people, n_problem, solvable }
     }
     fn solve(&self) -> Answer {
-        let s = [vec![0], self.s.clone()].concat();
-        let ans = (0..self.n).map(|i| s[i + 1] - s[i]).collect_vec();
+        let Problem { n_people, n_problem, solvable } = self;
+
+        let ans = (0..*n_people)
+            .combinations(2)
+            .filter(|c| {
+                let person0 = c[0];
+                let person1 = c[1];
+                (0..*n_problem).all(|problem_idx| {
+                    solvable[person0][problem_idx] || solvable[person1][problem_idx]
+                })
+            })
+            .count() as i64;
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: Vec<i64>,
+    ans: i64,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans.iter().join(" "));
+        println!("{}", self.ans);
     }
 }
 

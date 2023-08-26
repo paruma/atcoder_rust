@@ -1,36 +1,60 @@
 use std::io::stdin;
 
 struct Problem {
-    n: usize,
-    s: Vec<i64>,
+    s: Vec<u8>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let n = r.read_usize_1();
-        let s = r.read_vec_i64();
-        Problem { n, s }
+        r.read_usize_1();
+        let s = r.read_bytes();
+        Problem { s }
     }
     fn solve(&self) -> Answer {
-        let s = [vec![0], self.s.clone()].concat();
-        let ans = (0..self.n).map(|i| s[i + 1] - s[i]).collect_vec();
+        let s = &self.s;
+        let n = s.len();
+        let s = [vec![b'0'], s.clone()].concat(); // ダミーを先頭に追加して1オリジンにする
+        let ans = (1..=n - 1)
+            .map(|i| {
+                //  ここらへんで前処理が必要
+                // s[1] != s[3] && s[2] != s[4] && s[3] != s[5]...
+                let cum = (1..=n - i).scanl(true, |acc, k| *acc && s[k] != s[k + i]).collect_vec();
+
+                (0..=n - i).filter(|&l| cum[l]).max().unwrap()
+            })
+            .collect_vec();
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        let s = &self.s;
+        let n = s.len();
+        let s = [vec![b'0'], s.clone()].concat(); // ダミーを先頭に追加して1オリジンにする
+        let ans = (1..=n - 1)
+            .map(|i| {
+                // s[1] != s[1 + i],  s[2] != s[2 + i], s[3] != s[3 + i]...
+                (1..=n - i).map(|k| s[k] != s[k + i]).take_while(|p| *p).count()
+            })
+            .collect_vec();
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: Vec<i64>,
+    ans: Vec<usize>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans.iter().join(" "));
+        for &x in &self.ans {
+            println!("{}", x);
+        }
     }
 }
 
 fn main() {
-    Problem::read(ProconReader::new(stdin().lock())).solve().print();
+    Problem::read(ProconReader::new(stdin().lock())).solve2().print();
 }
 
 #[cfg(test)]
@@ -55,7 +79,45 @@ mod tests {
 }
 
 // ====== snippet ======
-
+use scan_iter::*;
+pub mod scan_iter {
+    #[derive(Clone)]
+    pub struct Scanl<I, B, F> {
+        iter: I,
+        state: Option<B>,
+        f: F,
+    }
+    impl<I, B, F> Scanl<I, B, F> {
+        fn new(iter: I, init: B, f: F) -> Scanl<I, B, F> {
+            Scanl { iter, state: Some(init), f }
+        }
+    }
+    impl<I, B, F> Iterator for Scanl<I, B, F>
+    where
+        B: Clone + Copy,
+        I: Iterator,
+        F: FnMut(&mut B, I::Item) -> B,
+    {
+        type Item = B;
+        #[inline]
+        fn next(&mut self) -> Option<B> {
+            let retval = self.state?;
+            let a_opt = self.iter.next();
+            self.state = self.state.and_then(|mut s| a_opt.map(|a| (self.f)(&mut s, a)));
+            Some(retval)
+        }
+    }
+    pub trait IteratorExtScanLeft: Iterator + Sized {
+        fn scanl<B, F>(self, init: B, f: F) -> Scanl<Self, B, F>
+        where
+            Self: Sized,
+            F: FnMut(&mut B, Self::Item) -> B,
+        {
+            Scanl::new(self, init, f)
+        }
+    }
+    impl<T: Iterator> IteratorExtScanLeft for T {}
+}
 use itertools::Itertools;
 #[allow(unused_imports)]
 use myio::*;

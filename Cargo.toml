@@ -4,86 +4,123 @@ version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-[[bin]]
-name = "abc2xx_b_270"
-path = "src/contest/2023/abc2xx/b/270/270.rs"
-    
-[[bin]]
-name = "abc2xx_b_271"
-path = "src/contest/2023/abc2xx/b/271/271.rs"
-    
-[[bin]]
-name = "abc2xx_b_272"
-path = "src/contest/2023/abc2xx/b/272/272.rs"
-    
-[[bin]]
-name = "abc2xx_b_273"
-path = "src/contest/2023/abc2xx/b/273/273.rs"
-    
-[[bin]]
-name = "abc2xx_b_274"
-path = "src/contest/2023/abc2xx/b/274/274.rs"
-    
-[[bin]]
-name = "abc2xx_b_275"
-path = "src/contest/2023/abc2xx/b/275/275.rs"
-    
-[[bin]]
-name = "abc2xx_b_276"
-path = "src/contest/2023/abc2xx/b/276/276.rs"
-    
-[[bin]]
-name = "abc2xx_b_277"
-path = "src/contest/2023/abc2xx/b/277/277.rs"
-    
-[[bin]]
-name = "abc2xx_b_278"
-path = "src/contest/2023/abc2xx/b/278/278.rs"
-    
-[[bin]]
-name = "abc2xx_b_279"
-path = "src/contest/2023/abc2xx/b/279/279.rs"
-    
+
 [[bin]]
 name = "abc2xx_b_280"
 path = "src/contest/2023/abc2xx/b/280/280.rs"
 
 [[bin]]
+name = "abc2xx_b_281"
+path = "src/contest/2023/abc2xx/b/281/281.rs"
+
+[[bin]]
+name = "abc2xx_b_282"
+path = "src/contest/2023/abc2xx/b/282/282.rs"
+
+[[bin]]
+name = "abc2xx_b_283"
+path = "src/contest/2023/abc2xx/b/283/283.rs"
+
+[[bin]]
+name = "abc2xx_b_284"
+path = "src/contest/2023/abc2xx/b/284/284.rs"
+
+[[bin]]
+name = "abc2xx_b_285"
+path = "src/contest/2023/abc2xx/b/285/285.rs"
+
+[[bin]]
+name = "abc2xx_b_286"
+path = "src/contest/2023/abc2xx/b/286/286.rs"
+
+[[bin]]
+name = "abc2xx_b_287"
+path = "src/contest/2023/abc2xx/b/287/287.rs"
+
+[[bin]]
+name = "abc2xx_b_288"
+path = "src/contest/2023/abc2xx/b/288/288.rs"
+
+[[bin]]
+name = "abc2xx_b_289"
+path = "src/contest/2023/abc2xx/b/289/289.rs"
+
+[[bin]]
+name = "abc2xx_b_270"
+path = "src/contest/2023/abc2xx/b/270/270.rs"
+
+[[bin]]
+name = "abc2xx_b_271"
+path = "src/contest/2023/abc2xx/b/271/271.rs"
+
+[[bin]]
+name = "abc2xx_b_272"
+path = "src/contest/2023/abc2xx/b/272/272.rs"
+
+[[bin]]
+name = "abc2xx_b_273"
+path = "src/contest/2023/abc2xx/b/273/273.rs"
+
+[[bin]]
+name = "abc2xx_b_274"
+path = "src/contest/2023/abc2xx/b/274/274.rs"
+
+[[bin]]
+name = "abc2xx_b_275"
+path = "src/contest/2023/abc2xx/b/275/275.rs"
+
+[[bin]]
+name = "abc2xx_b_276"
+path = "src/contest/2023/abc2xx/b/276/276.rs"
+
+[[bin]]
+name = "abc2xx_b_277"
+path = "src/contest/2023/abc2xx/b/277/277.rs"
+
+[[bin]]
+name = "abc2xx_b_278"
+path = "src/contest/2023/abc2xx/b/278/278.rs"
+
+[[bin]]
+name = "abc2xx_b_279"
+path = "src/contest/2023/abc2xx/b/279/279.rs"
+
+[[bin]]
 name = "abc2xx_b_260"
 path = "src/contest/2023/abc2xx/b/260/260.rs"
-    
+
 [[bin]]
 name = "abc2xx_b_261"
 path = "src/contest/2023/abc2xx/b/261/261.rs"
-    
+
 [[bin]]
 name = "abc2xx_b_262"
 path = "src/contest/2023/abc2xx/b/262/262.rs"
-    
+
 [[bin]]
 name = "abc2xx_b_263"
 path = "src/contest/2023/abc2xx/b/263/263.rs"
-    
+
 [[bin]]
 name = "abc2xx_b_264"
 path = "src/contest/2023/abc2xx/b/264/264.rs"
-    
+
 [[bin]]
 name = "abc2xx_b_265"
 path = "src/contest/2023/abc2xx/b/265/265.rs"
-    
+
 [[bin]]
 name = "abc2xx_b_266"
 path = "src/contest/2023/abc2xx/b/266/266.rs"
-    
+
 [[bin]]
 name = "abc2xx_b_267"
 path = "src/contest/2023/abc2xx/b/267/267.rs"
-    
+
 [[bin]]
 name = "abc2xx_b_268"
 path = "src/contest/2023/abc2xx/b/268/268.rs"
-    
+
 [[bin]]
 name = "abc2xx_b_269"
 path = "src/contest/2023/abc2xx/b/269/269.rs"
@@ -336,7 +373,7 @@ rand = { version = "=0.7.3", features = ["small_rng"] }
 #indexmap = "=1.3.2"
 
 # 正規表現
-#regex = "=1.3.6"
+regex = "=1.3.6"
 
 # staticアイテムの遅延初期化
 #lazy_static = "=1.4.0"

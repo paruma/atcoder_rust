@@ -1,19 +1,51 @@
 use std::io::stdin;
 
+enum Query {
+    Modify { idx: usize, value: i64 },
+    Output { idx: usize },
+}
+
 struct Problem {
-    n: usize,
-    s: Vec<i64>,
+    len: usize,
+    xs: Vec<i64>,
+    n_query: usize,
+    queries: Vec<Query>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let n = r.read_usize_1();
-        let s = r.read_vec_i64();
-        Problem { n, s }
+        let len = r.read_usize_1();
+        let xs = r.read_vec_i64();
+        let n_query = r.read_usize_1();
+        let queries = (0..n_query)
+            .map(|_| {
+                let row = r.read_vec_i64();
+                if row[0] == 1 {
+                    Query::Modify { idx: row[1] as usize - 1, value: row[2] }
+                } else {
+                    Query::Output { idx: row[1] as usize - 1 }
+                }
+            })
+            .collect_vec();
+        Problem { len, xs, n_query, queries }
     }
     fn solve(&self) -> Answer {
-        let s = [vec![0], self.s.clone()].concat();
-        let ans = (0..self.n).map(|i| s[i + 1] - s[i]).collect_vec();
+        let Problem { len, xs, n_query, queries } = self;
+        let mut xs = xs.clone();
+
+        let mut ans = vec![];
+
+        for query in queries {
+            match query {
+                Query::Modify { idx, value } => {
+                    xs[*idx] = *value;
+                }
+                Query::Output { idx } => {
+                    ans.push(xs[*idx]);
+                }
+            }
+        }
+
         Answer { ans }
     }
 }
@@ -25,7 +57,9 @@ struct Answer {
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans.iter().join(" "));
+        for &x in &self.ans {
+            println!("{}", x);
+        }
     }
 }
 
