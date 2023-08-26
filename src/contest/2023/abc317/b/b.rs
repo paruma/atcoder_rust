@@ -1,18 +1,23 @@
-use std::io::stdin;
+use std::{collections::HashSet, io::stdin};
 
 struct Problem {
-    a: i64,
-    b: i64,
+    n: usize,
+    xs: Vec<i64>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let n = r.read_usize_1();
+        let xs = r.read_vec_i64();
+        Problem { n, xs }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let xs = &self.xs.iter().collect::<HashSet<_>>();
+        let min = *xs.iter().min().unwrap();
+        let max = *xs.iter().max().unwrap();
+
+        let ans = (*min..=*max).find(|i| !xs.contains(i)).unwrap();
+
         Answer { ans }
     }
 }

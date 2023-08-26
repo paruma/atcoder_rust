@@ -1,18 +1,52 @@
-use std::io::stdin;
+use std::{collections::HashMap, io::stdin};
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Edge {
+    a: usize,
+    b: usize,
+    len: i64,
+}
 struct Problem {
-    a: i64,
-    b: i64,
+    n_vertex: usize,
+    n_edge: usize,
+    edges: Vec<Edge>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let (n_vertex, n_edge) = r.read_usize_2();
+        let edges = (0..n_edge)
+            .map(|_| {
+                let (a, b, c) = r.read_i64_3();
+                Edge { a: (a - 1) as usize, b: (b - 1) as usize, len: c }
+            })
+            .collect_vec();
+        Problem { n_vertex, n_edge, edges }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let Problem { n_vertex, n_edge, edges } = self;
+
+        let mut edge_to_len: HashMap<(usize, usize), i64> = HashMap::new();
+        for &edge in edges {
+            edge_to_len.entry((edge.a, edge.b)).or_insert(edge.len);
+            edge_to_len.entry((edge.b, edge.a)).or_insert(edge.len);
+        }
+
+        let ans = (0..*n_vertex)
+            .permutations(*n_vertex)
+            .map(|path| {
+                (0..*n_vertex - 1)
+                    .map(|i| {
+                        //i→i+1
+                        edge_to_len.get(&(path[i], path[i + 1]))
+                    })
+                    .take_while(|x| x.is_some())
+                    .map(|x| x.unwrap())
+                    .sum()
+            })
+            .max()
+            .unwrap();
+
         Answer { ans }
     }
 }
@@ -55,6 +89,7 @@ mod tests {
 
 // ====== snippet ======
 
+use itertools::Itertools;
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {

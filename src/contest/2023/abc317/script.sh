@@ -16,11 +16,11 @@ oj_test() {
     task=$(basename "$(pwd)")
     if cargo build --bin "abc${contest}_${task}"; then
         export RUST_BACKTRACE=1
-        oj test -c "$(git rev-parse --show-toplevel)/target/debug/abc2xx_${task}_${contest}"
+        oj test -c "$(git rev-parse --show-toplevel)/target/debug/abc${contest}_${task}"
     fi
 }
 
 oj_submit() {
     task=$(basename "$(pwd)")
-    oj submit "https://atcoder.jp/contests/abc${contest}/tasks/abc${contest}_${task}" "${contest}.rs" -w 1 --no-open
+    oj submit "https://atcoder.jp/contests/abc${contest}/tasks/abc${contest}_${task}" "${task}.rs" -w 1 --no-open
 }

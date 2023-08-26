@@ -1,25 +1,35 @@
 use std::io::stdin;
 
 struct Problem {
-    a: i64,
-    b: i64,
+    n_portions: usize,
+    current_hp: i64,
+    hp_want: i64,
+    portions: Vec<i64>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let (n_portions, current_hp, hp_want) = r.read_any_3::<usize, i64, i64>();
+        let portions = r.read_vec_i64();
+        Problem { n_portions, current_hp, hp_want, portions }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let Problem { n_portions, current_hp, hp_want, portions } = self;
+        // hp_want - current_hp 以上回復する薬を探す
+        let (idx, _) = portions
+            .iter()
+            .enumerate()
+            .find(|(i, &portion)| portion >= hp_want - current_hp)
+            .unwrap();
+        // 1オリジン
+        let ans = idx + 1;
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: usize,
 }
 
 impl Answer {

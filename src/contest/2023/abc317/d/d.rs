@@ -1,18 +1,69 @@
 use std::io::stdin;
 
+struct ElectoralDistrict {
+    x: i64, // 高橋派
+    y: i64, // 青木派
+    z: i64, // 買った場合に得られる議席数
+}
 struct Problem {
-    a: i64,
-    b: i64,
+    n: usize,
+    district: Vec<ElectoralDistrict>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let n = r.read_usize_1();
+        let district = (0..n)
+            .map(|_| {
+                let (x, y, z) = r.read_i64_3();
+                ElectoralDistrict { x, y, z }
+            })
+            .collect_vec();
+        Problem { n, district }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let Problem { n, district } = self;
+        let n = *n;
+        //必要総議席数
+        let max_sheets = 100_010;
+        // dp[i][j]:  [0, i) の選挙区で j議席以上得るのに必要な鞍替え人数
+        let mut dp = vec![vec![Inf; max_sheets]; n + 1];
+        // 選挙区の数0の場合について初期化
+        dp[0][0] = Fin(0);
+
+        for i in 0..n {
+            // 選挙区iを使う
+            let d = &district[i];
+            if d.x >= d.y {
+                // 高橋派がもとから多い
+                for j in 0..max_sheets {
+                    // この選挙区は鞍替えしなくても勝つ
+                    if d.z as usize > j {
+                        dp[i + 1][j] = ExtInt::min(Fin(0), dp[i + 1][j])
+                    } else {
+                        dp[i + 1][j] = ExtInt::min(dp[i][j - d.z as usize], dp[i + 1][j])
+                    }
+                }
+            } else {
+                // 鞍替えをする
+                let kuragae = (d.x + d.y) / 2 + 1 - d.x;
+                for j in 0..max_sheets {
+                    // usizeの引き算注意
+                    // j-z からとってくる
+                    if d.z as usize > j {
+                        dp[i + 1][j] = ExtInt::min(Fin(kuragae), dp[i + 1][j]);
+                    } else {
+                        dp[i + 1][j] =
+                            ExtInt::min(dp[i][j - d.z as usize] + Fin(kuragae), dp[i + 1][j]);
+                    }
+                    // この選挙区をあきらめる。
+                    dp[i + 1][j] = ExtInt::min(dp[i][j], dp[i + 1][j])
+                }
+            }
+        }
+
+        let need = district.iter().map(|e| e.z).sum::<i64>() / 2 + 1;
+        let ans = dp[n][need as usize].get_fin();
         Answer { ans }
     }
 }
@@ -55,6 +106,76 @@ mod tests {
 
 // ====== snippet ======
 
+use tropical::ExtInt::{self, *};
+pub mod tropical {
+    use std::{cmp::Ordering, ops::Add};
+    use ExtInt::*;
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub enum ExtInt {
+        Inf,
+        Fin(i64),
+    }
+    impl ExtInt {
+        pub fn get_fin(self) -> i64 {
+            match self {
+                Fin(val) => val,
+                Inf => panic!("called `ExtInt::get_fin()` on a `Fin` value"),
+            }
+        }
+        pub fn get_fin_or(self, default: i64) -> i64 {
+            match self {
+                Fin(val) => val,
+                Inf => default,
+            }
+        }
+        pub fn is_fin(self) -> bool {
+            matches!(self, Fin(_))
+        }
+        pub fn is_inf(self) -> bool {
+            matches!(self, Inf)
+        }
+        pub fn to_option(self) -> Option<i64> {
+            match self {
+                Inf => None,
+                Fin(a) => Some(a),
+            }
+        }
+        pub fn from_option(opt: Option<i64>) -> ExtInt {
+            match opt {
+                Some(a) => Fin(a),
+                None => Inf,
+            }
+        }
+    }
+    impl Add for ExtInt {
+        type Output = ExtInt;
+        fn add(self, rhs: Self) -> Self::Output {
+            match (self, rhs) {
+                (Inf, Inf) => Inf,
+                (Inf, Fin(_)) => Inf,
+                (Fin(_), Inf) => Inf,
+                (Fin(a), Fin(b)) => Fin(a + b),
+            }
+        }
+    }
+    impl PartialOrd for ExtInt {
+        fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+            match (self, other) {
+                (Inf, Inf) => Some(Ordering::Equal),
+                (Inf, Fin(_)) => Some(Ordering::Greater),
+                (Fin(_), Inf) => Some(Ordering::Less),
+                (Fin(a), Fin(b)) => PartialOrd::partial_cmp(a, b),
+            }
+        }
+    }
+    impl Ord for ExtInt {
+        fn cmp(&self, other: &Self) -> Ordering {
+            self.partial_cmp(other).unwrap()
+        }
+    }
+}
+
+use itertools::Itertools;
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {

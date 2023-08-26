@@ -1,0 +1,3024 @@
+{
+    // IntelliSense を使用して利用可能な属性を学べます。
+    // 既存の属性の説明をホバーして表示します。
+    // 詳細情報は次を確認してください: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'atcoder_rust'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "atcoder_rust",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc317_a'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc317_a",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc317_a",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc317_a'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc317_a",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc317_a",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc317_b'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc317_b",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc317_b",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc317_b'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc317_b",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc317_b",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc317_c'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc317_c",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc317_c",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc317_c'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc317_c",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc317_c",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc317_d'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc317_d",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc317_d",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc317_d'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc317_d",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc317_d",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc317_e'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc317_e",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc317_e",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc317_e'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc317_e",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc317_e",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_280'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_280",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_280",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_280'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_280",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_280",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_281'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_281",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_281",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_281'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_281",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_281",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_282'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_282",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_282",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_282'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_282",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_282",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_283'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_283",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_283",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_283'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_283",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_283",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_284'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_284",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_284",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_284'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_284",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_284",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_285'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_285",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_285",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_285'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_285",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_285",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_286'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_286",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_286",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_286'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_286",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_286",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_287'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_287",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_287",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_287'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_287",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_287",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_288'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_288",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_288",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_288'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_288",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_288",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_289'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_289",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_289",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_289'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_289",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_289",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_270'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_270",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_270",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_270'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_270",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_270",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_271'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_271",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_271",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_271'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_271",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_271",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_272'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_272",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_272",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_272'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_272",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_272",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_273'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_273",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_273",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_273'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_273",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_273",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_274'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_274",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_274",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_274'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_274",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_274",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_275'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_275",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_275",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_275'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_275",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_275",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_276'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_276",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_276",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_276'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_276",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_276",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_277'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_277",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_277",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_277'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_277",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_277",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_278'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_278",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_278",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_278'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_278",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_278",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_279'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_279",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_279",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_279'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_279",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_279",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_260'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_260",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_260",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_260'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_260",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_260",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_261'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_261",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_261",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_261'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_261",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_261",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_262'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_262",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_262",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_262'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_262",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_262",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_263'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_263",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_263",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_263'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_263",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_263",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_264'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_264",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_264",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_264'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_264",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_264",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_265'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_265",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_265",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_265'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_265",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_265",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_266'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_266",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_266",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_266'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_266",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_266",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_267'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_267",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_267",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_267'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_267",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_267",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_268'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_268",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_268",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_268'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_268",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_268",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_269'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_269",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_269",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_269'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_269",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_269",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_250'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_250",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_250",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_250'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_250",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_250",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_251'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_251",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_251",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_251'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_251",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_251",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_252'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_252",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_252",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_252'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_252",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_252",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_253'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_253",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_253",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_253'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_253",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_253",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_254'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_254",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_254",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_254'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_254",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_254",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_255'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_255",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_255",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_255'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_255",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_255",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_256'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_256",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_256",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_256'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_256",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_256",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_257'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_257",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_257",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_257'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_257",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_257",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_258'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_258",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_258",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_258'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_258",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_258",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_259'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_259",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_259",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_259'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_259",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_259",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_240'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_240",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_240",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_240'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_240",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_240",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_241'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_241",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_241",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_241'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_241",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_241",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_242'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_242",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_242",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_242'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_242",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_242",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_243'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_243",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_243",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_243'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_243",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_243",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_244'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_244",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_244",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_244'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_244",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_244",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_245'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_245",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_245",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_245'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_245",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_245",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_246'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_246",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_246",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_246'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_246",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_246",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_247'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_247",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_247",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_247'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_247",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_247",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_248'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_248",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_248",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_248'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_248",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_248",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_249'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_249",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_249",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_249'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_249",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_249",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_230'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_230",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_230",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_230'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_230",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_230",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_231'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_231",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_231",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_231'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_231",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_231",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_232'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_232",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_232",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_232'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_232",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_232",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_233'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_233",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_233",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_233'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_233",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_233",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_234'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_234",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_234",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_234'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_234",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_234",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_235'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_235",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_235",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_235'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_235",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_235",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_236'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_236",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_236",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_236'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_236",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_236",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_237'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_237",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_237",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_237'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_237",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_237",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_238'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_238",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_238",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_238'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_238",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_238",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_239'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_239",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_239",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_239'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_239",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_239",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_221'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_221",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_221",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_221'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_221",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_221",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_222'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_222",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_222",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_222'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_222",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_222",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_223'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_223",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_223",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_223'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_223",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_223",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_224'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_224",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_224",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_224'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_224",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_224",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_225'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_225",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_225",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_225'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_225",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_225",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_226'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_226",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_226",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_226'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_226",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_226",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_227'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_227",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_227",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_227'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_227",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_227",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_228'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_228",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_228",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_228'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_228",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_228",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc2xx_b_229'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc2xx_b_229",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_229",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc2xx_b_229'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc2xx_b_229",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc2xx_b_229",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc312_a'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc312_a",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc312_a",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc312_a'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc312_a",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc312_a",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc312_b'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc312_b",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc312_b",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc312_b'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc312_b",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc312_b",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc312_c'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc312_c",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc312_c",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc312_c'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc312_c",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc312_c",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc312_d'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc312_d",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc312_d",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc312_d'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc312_d",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc312_d",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'abc312_f'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=abc312_f",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc312_f",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'abc312_f'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=abc312_f",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "abc312_f",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'template'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=template",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "template",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'template'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=template",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "template",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'template_test'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=template_test",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "template_test",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'template_test'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=template_test",
+                    "--package=atcoder_rust"
+                ],
+                "filter": {
+                    "name": "template_test",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

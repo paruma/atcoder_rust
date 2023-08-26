@@ -1,18 +1,94 @@
-use std::io::stdin;
+use std::{collections::VecDeque, io::stdin};
 
 struct Problem {
-    a: i64,
-    b: i64,
+    h: usize,
+    w: usize,
+    grid: Vec<Vec<u8>>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let (h, w) = r.read_usize_2();
+        let grid = (0..h).map(|_| r.read_bytes()).collect_vec();
+        Problem { h, w, grid }
+    }
+
+    fn is_within(&self, y: i64, x: i64) -> bool {
+        let h = self.h as i64;
+        let w = self.w as i64;
+        0 <= y && y < h && 0 <= x && x < w
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let Problem { h, w, grid } = self;
+        let h = *h;
+        let w = *w;
+        let dir = [Pos::new(1, 0), Pos::new(-1, 0), Pos::new(0, 1), Pos::new(0, -1)];
+        let mut grid = grid.clone();
+        // 視線の処理
+        for (y, x) in iproduct!(0..h, 0..w) {
+            let y = y as i64;
+            let x = x as i64;
+            let d_opt: Option<Pos<i64>> = match grid[y as usize][x as usize] {
+                b'>' => Some(Pos::new(1, 0)),
+                b'<' => Some(Pos::new(-1, 0)),
+                b'v' => Some(Pos::new(0, 1)),
+                b'^' => Some(Pos::new(0, -1)),
+                _ => None,
+            };
+            if let Some(d) = d_opt {
+                // (x,y) から dの方向に進む
+                let mut current_x = x;
+                let mut current_y = y;
+                loop {
+                    current_x += d.x;
+                    current_y += d.y;
+                    if self.is_within(current_y, current_x)
+                        && [b'.', b'!'].contains(&grid[current_y as usize][current_x as usize])
+                    {
+                        grid[current_y as usize][current_x as usize] = b'!';
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+
+        // BFS
+        let mut open: VecDeque<Pos<i64>> = VecDeque::new();
+
+        let init_pos = iproduct!(0..h, 0..w).find(|(y, x)| grid[*y][*x] == b'S').unwrap();
+        let init_pos = Pos::new(init_pos.1 as i64, init_pos.0 as i64);
+        open.push_front(init_pos);
+
+        let mut visited = vec![vec![false; w]; h];
+        let mut cnt = vec![vec![12_000_000_000_i64; w]; h];
+        visited[init_pos.y as usize][init_pos.x as usize] = true;
+        cnt[init_pos.y as usize][init_pos.x as usize] = 0;
+
+        while !open.is_empty() {
+            let current_pos = open.pop_back().unwrap();
+            for &d in &dir {
+                let next_pos = current_pos + d;
+                if self.is_within(next_pos.y, next_pos.x)
+                    && [b'.', b'G'].contains(&grid[next_pos.y as usize][next_pos.x as usize])
+                    && !visited[next_pos.y as usize][next_pos.x as usize]
+                {
+                    visited[next_pos.y as usize][next_pos.x as usize] = true;
+                    cnt[next_pos.y as usize][next_pos.x as usize] =
+                        cnt[current_pos.y as usize][current_pos.x as usize] + 1;
+                    open.push_front(next_pos);
+                }
+            }
+        }
+
+        let goal_pos = iproduct!(0..h, 0..w).find(|(y, x)| grid[*y][*x] == b'G').unwrap();
+        let goal_pos = Pos::new(goal_pos.1, goal_pos.0);
+        let ans = cnt[goal_pos.y][goal_pos.x];
+        let ans = if ans >= 12_000_000_000_i64 { -1 } else { ans };
+
+        for row in grid.clone() {
+            // println!("{}", String::from_utf8(row.clone()).unwrap());
+        }
         Answer { ans }
     }
 }
@@ -55,6 +131,52 @@ mod tests {
 
 // ====== snippet ======
 
+use pos::*;
+pub mod pos {
+    use std::ops::{Add, Mul, Sub};
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub struct Pos<T> {
+        pub x: T,
+        pub y: T,
+    }
+    impl<T> Pos<T> {
+        pub fn new(x: T, y: T) -> Pos<T> {
+            Pos { x, y }
+        }
+    }
+    impl<T: Mul<Output = T> + Copy> Pos<T> {
+        pub fn scala_mul(self, rhs: T) -> Pos<T> {
+            Pos::new(self.x * rhs, self.y * rhs)
+        }
+    }
+    impl<T: Add<Output = T> + Mul<Output = T> + Copy> Pos<T> {
+        pub fn norm_square(self) -> T {
+            self.x * self.x + self.y * self.y
+        }
+    }
+    impl<T: Add<Output = T> + Copy> Add for Pos<T> {
+        type Output = Pos<T>;
+        fn add(self, rhs: Self) -> Self::Output {
+            Pos::new(self.x + rhs.x, self.y + rhs.y)
+        }
+    }
+    impl<T: Sub<Output = T> + Copy> Sub for Pos<T> {
+        type Output = Pos<T>;
+        fn sub(self, rhs: Self) -> Self::Output {
+            Pos::new(self.x - rhs.x, self.y - rhs.y)
+        }
+    }
+    impl<T: num_traits::Zero + Copy> num_traits::Zero for Pos<T> {
+        fn zero() -> Self {
+            Pos::new(T::zero(), T::zero())
+        }
+        fn is_zero(&self) -> bool {
+            self.x.is_zero() && self.y.is_zero()
+        }
+    }
+}
+
+use itertools::{iproduct, Itertools};
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {
