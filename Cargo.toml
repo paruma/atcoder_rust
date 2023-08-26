@@ -5,6 +5,50 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [[bin]]
+name = "abc2xx_b_270"
+path = "src/contest/2023/abc2xx/b/270/270.rs"
+    
+[[bin]]
+name = "abc2xx_b_271"
+path = "src/contest/2023/abc2xx/b/271/271.rs"
+    
+[[bin]]
+name = "abc2xx_b_272"
+path = "src/contest/2023/abc2xx/b/272/272.rs"
+    
+[[bin]]
+name = "abc2xx_b_273"
+path = "src/contest/2023/abc2xx/b/273/273.rs"
+    
+[[bin]]
+name = "abc2xx_b_274"
+path = "src/contest/2023/abc2xx/b/274/274.rs"
+    
+[[bin]]
+name = "abc2xx_b_275"
+path = "src/contest/2023/abc2xx/b/275/275.rs"
+    
+[[bin]]
+name = "abc2xx_b_276"
+path = "src/contest/2023/abc2xx/b/276/276.rs"
+    
+[[bin]]
+name = "abc2xx_b_277"
+path = "src/contest/2023/abc2xx/b/277/277.rs"
+    
+[[bin]]
+name = "abc2xx_b_278"
+path = "src/contest/2023/abc2xx/b/278/278.rs"
+    
+[[bin]]
+name = "abc2xx_b_279"
+path = "src/contest/2023/abc2xx/b/279/279.rs"
+    
+[[bin]]
+name = "abc2xx_b_280"
+path = "src/contest/2023/abc2xx/b/280/280.rs"
+
+[[bin]]
 name = "abc2xx_b_260"
 path = "src/contest/2023/abc2xx/b/260/260.rs"
     
