@@ -1,7 +1,7 @@
 use cargo_snippet::snippet;
 
-#[snippet(prefix = "use neg_tropical::NegTrop::{self, *};")]
-pub mod neg_tropical {
+#[snippet(prefix = "use mod_neg_ext_int::NegTrop::{self, *};")]
+pub mod mod_neg_ext_int {
     use std::{cmp::Ordering, ops::Add};
     use NegExtInt::*;
 
@@ -82,7 +82,7 @@ pub mod neg_tropical {
 
 #[cfg(test)]
 mod tests {
-    use super::neg_tropical::NegExtInt::{self, *};
+    use super::mod_neg_ext_int::NegExtInt::{self, *};
 
     #[allow(clippy::eq_op)]
     #[test]

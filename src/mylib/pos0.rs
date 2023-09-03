@@ -2,7 +2,7 @@ use cargo_snippet::snippet;
 
 #[snippet(prefix = "use pos::*;")]
 pub mod pos {
-    use std::ops::{Add, Mul, Sub};
+    use std::ops::{Add, AddAssign, Mul, Sub, SubAssign};
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
     pub struct Pos<T> {
@@ -53,9 +53,20 @@ pub mod pos {
             self.x.is_zero() && self.y.is_zero()
         }
     }
+
+    impl<T: Add<Output = T> + Copy> AddAssign for Pos<T> {
+        fn add_assign(&mut self, rhs: Self) {
+            *self = *self + rhs
+        }
+    }
+
+    impl<T: Sub<Output = T> + Copy> SubAssign for Pos<T> {
+        fn sub_assign(&mut self, rhs: Self) {
+            *self = *self - rhs
+        }
+    }
 }
 
-#[snippet(include = "pos")]
 #[snippet(prefix = "use vec_vec_at::*;")]
 pub mod vec_vec_at {
     use super::pos::*;
@@ -101,6 +112,24 @@ mod test {
         let zero: Pos<usize> = Pos::new(0, 0);
         assert_eq!(Pos::zero(), zero);
         assert!(zero.is_zero());
+    }
+
+    #[test]
+    fn test_pos_add_assign() {
+        let p1: Pos<i64> = Pos::new(2, 3);
+        let mut p2: Pos<i64> = Pos::new(4, 7);
+        p2 += p1;
+        assert_eq!(p2.x, 6);
+        assert_eq!(p2.y, 10);
+    }
+
+    #[test]
+    fn test_pos_sub_assign() {
+        let p1: Pos<i64> = Pos::new(2, 3);
+        let mut p2: Pos<i64> = Pos::new(4, 7);
+        p2 -= p1;
+        assert_eq!(p2.x, 2);
+        assert_eq!(p2.y, 4);
     }
 
     #[test]

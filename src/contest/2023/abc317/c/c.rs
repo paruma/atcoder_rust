@@ -6,6 +6,13 @@ struct Edge {
     b: usize,
     len: i64,
 }
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct DirectedEdge {
+    from: usize,
+    to: usize,
+    len: i64,
+}
 struct Problem {
     n_vertex: usize,
     n_edge: usize,
@@ -24,13 +31,44 @@ impl Problem {
         Problem { n_vertex, n_edge, edges }
     }
     fn solve(&self) -> Answer {
+        // 最初に書いたコード(permutation)
         let Problem { n_vertex, n_edge, edges } = self;
 
         let mut edge_to_len: HashMap<(usize, usize), i64> = HashMap::new();
         for &edge in edges {
+            // ↓こうかけばよかった
+            // edge_to_len.insert((edge.a, edge.b), edge.len);
+            // edge_to_len.insert((edge.b, edge.a), edge.len);
             edge_to_len.entry((edge.a, edge.b)).or_insert(edge.len);
             edge_to_len.entry((edge.b, edge.a)).or_insert(edge.len);
         }
+
+        let ans = (0..*n_vertex)
+            .permutations(*n_vertex)
+            .map(|path| {
+                (0..*n_vertex - 1)
+                    .map(|i| {
+                        //i→i+1
+                        edge_to_len.get(&(path[i], path[i + 1]))
+                    })
+                    .take_while(|x| x.is_some())
+                    .map(|x| x.unwrap()) // flatten もありかも。ただし、エラーがでるmapとunwrap の方が安全かも。
+                    .sum()
+            })
+            .max()
+            .unwrap();
+
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // solveのリファクタリング(permuation)
+        let Problem { n_vertex, n_edge, edges } = self;
+
+        let edge_to_len = edges
+            .iter()
+            .flat_map(|e| [((e.a, e.b), e.len), ((e.b, e.a), e.len)])
+            .collect::<HashMap<(usize, usize), i64>>();
 
         let ans = (0..*n_vertex)
             .permutations(*n_vertex)
@@ -49,6 +87,144 @@ impl Problem {
 
         Answer { ans }
     }
+
+    fn solve3(&self) -> Answer {
+        // DFS(再帰)
+        struct Dfs<'a> {
+            visited: &'a mut Vec<bool>,
+            adj: &'a Vec<Vec<DirectedEdge>>,
+        }
+
+        impl Dfs<'_> {
+            fn exec(&mut self, v: usize) -> i64 {
+                // v から訪問した場合の最大の長さを返す
+                self.visited[v] = true;
+                let mut max = 0;
+                // 行きがけ
+                for &edge in &self.adj[v] {
+                    if !self.visited[edge.to] {
+                        let max_cand = self.exec(edge.to) + edge.len;
+                        max = i64::max(max, max_cand);
+                    }
+                }
+                // 帰りがけ
+                self.visited[v] = false;
+                max
+            }
+        }
+        let Problem { n_vertex, n_edge, edges } = self;
+
+        // 隣接リスト
+        let mut adj: Vec<Vec<DirectedEdge>> = vec![vec![]; *n_vertex];
+        for &edge in edges {
+            adj[edge.a].push(DirectedEdge { from: edge.a, to: edge.b, len: edge.len });
+            adj[edge.b].push(DirectedEdge { from: edge.b, to: edge.a, len: edge.len });
+        }
+
+        let mut visited = vec![false; *n_vertex];
+        let mut dfs = Dfs { adj: &adj, visited: &mut visited };
+        let mut max = 0;
+        for init in 0..*n_vertex {
+            let cand_max = dfs.exec(init);
+            max = i64::max(max, cand_max);
+        }
+
+        let ans = max;
+
+        Answer { ans }
+    }
+    /*
+    Stack では解けなかった
+        fn solve4(&self) -> Answer {
+            // DFS(Stackを使う)
+            let Problem { n_vertex, n_edge, edges } = self;
+
+            // 隣接リスト
+            let mut adj: Vec<Vec<DirectedEdge>> = vec![vec![]; *n_vertex];
+            for &edge in edges {
+                adj[edge.a].push(DirectedEdge { from: edge.a, to: edge.b, len: edge.len });
+                adj[edge.b].push(DirectedEdge { from: edge.b, to: edge.a, len: edge.len });
+            }
+
+            struct State {
+                v: usize,       //頂点
+                total_len: i64, // 今までの経路の長さ
+            }
+
+            // 経路だけ求めたい
+            let ans = (0..*n_vertex)
+                .map(|init| {
+                    // init から始めた場合の長さの最大値を求める。
+                    let mut visited = vec![false; *n_vertex];
+                    let mut open = Vec::<State>::new();
+                    open.push(State { v: init, total_len: 0 });
+
+                    while let Some(current) = open.pop() {
+                        // 行きがけ
+                        visited[current.v] = true;
+                        for e in &adj[current.v] {
+                            if !visited[e.to] {
+                                open.push(State { v: e.to, total_len: current.total_len + e.len })
+                            }
+                        }
+
+                        // visited[current.v] をfalse にするタイミングがない？
+                    }
+                    0
+                })
+                .max()
+                .unwrap();
+
+            Answer { ans }
+        }
+        */
+
+    fn solve5(&self) -> Answer {
+        // DFS(再帰2)
+        struct Dfs<'a> {
+            adj: &'a Vec<Vec<DirectedEdge>>,
+            visited: Vec<bool>,
+            max: i64,
+        }
+
+        impl Dfs<'_> {
+            fn new(adj: &Vec<Vec<DirectedEdge>>) -> Dfs<'_> {
+                Dfs { adj, visited: vec![false; adj.len()], max: 0 }
+            }
+            fn exec(&mut self, v: usize, sum: i64) {
+                // 頂点 v から先の探索をする。v までの経路長は sum である。
+
+                // 行きがけ
+                self.visited[v] = true;
+                self.max = i64::max(self.max, sum);
+
+                for &edge in &self.adj[v] {
+                    if !self.visited[edge.to] {
+                        self.exec(edge.to, sum + edge.len);
+                    }
+                }
+                // 帰りがけ
+                self.visited[v] = false;
+            }
+        }
+        let Problem { n_vertex, n_edge, edges } = self;
+
+        // 隣接リスト
+        let mut adj: Vec<Vec<DirectedEdge>> = vec![vec![]; *n_vertex];
+        for &edge in edges {
+            adj[edge.a].push(DirectedEdge { from: edge.a, to: edge.b, len: edge.len });
+            adj[edge.b].push(DirectedEdge { from: edge.b, to: edge.a, len: edge.len });
+        }
+
+        let mut dfs = Dfs::new(&adj);
+        for init in 0..*n_vertex {
+            dfs.exec(init, 0);
+        }
+
+        let ans = dfs.max;
+
+        Answer { ans }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -63,7 +239,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read(ProconReader::new(stdin().lock())).solve().print();
+    Problem::read(ProconReader::new(stdin().lock())).solve5().print();
 }
 
 #[cfg(test)]

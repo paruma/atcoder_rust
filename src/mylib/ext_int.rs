@@ -1,7 +1,7 @@
 use cargo_snippet::snippet;
 
-#[snippet(prefix = "use tropical::Trop::{self, *};")]
-pub mod tropical {
+#[snippet(prefix = "use mod_ext_int::ExtInt::{self, *};")]
+pub mod mod_ext_int {
     use std::{cmp::Ordering, ops::Add};
     use ExtInt::*;
 
@@ -82,7 +82,7 @@ pub mod tropical {
 
 #[cfg(test)]
 mod tests {
-    use super::tropical::ExtInt::{self, *};
+    use super::mod_ext_int::ExtInt::{self, *};
 
     #[allow(clippy::eq_op)]
     #[test]

@@ -21,6 +21,18 @@ impl Problem {
             .enumerate()
             .find(|(i, &portion)| portion >= hp_want - current_hp)
             .unwrap();
+
+        // 1オリジン
+        let ans = idx + 1;
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        let Problem { n_portions, current_hp, hp_want, portions } = self;
+        // hp_want - current_hp 以上回復する薬を探す
+        let (idx, _) =
+            portions.iter().find_position(|&&portion| portion >= hp_want - current_hp).unwrap();
+
         // 1オリジン
         let ans = idx + 1;
         Answer { ans }
@@ -39,7 +51,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read(ProconReader::new(stdin().lock())).solve().print();
+    Problem::read(ProconReader::new(stdin().lock())).solve2().print();
 }
 
 #[cfg(test)]
@@ -65,6 +77,7 @@ mod tests {
 
 // ====== snippet ======
 
+use itertools::Itertools;
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {

@@ -25,7 +25,6 @@ name = "abc317_e"
 path = "src/contest/2023/abc317/e/e.rs"
 
 
-
 [[bin]]
 name = "abc2xx_b_280"
 path = "src/contest/2023/abc2xx/b/280/280.rs"
@@ -323,7 +322,6 @@ path = "src/contest/2023/abc312/d.rs"
 [[bin]]
 name = "abc312_f"
 path = "src/contest/2023/abc312/f.rs"
-
 
 [[bin]]
 name = "template"
