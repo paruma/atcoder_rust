@@ -354,7 +354,7 @@ cargo-snippet = "0.6.5"
 # ライブラリの説明(2023): https://github.com/rust-lang-ja/atcoder-rust-resources/wiki/Jan-2023-Language-Update-%E3%83%A9%E3%82%A4%E3%83%96%E3%83%A9%E3%83%AA%E6%A1%88
 
 # --- 2023年から ---
-# ac-library-rs = "=0.1.1"
+ac-library-rs = "=0.1.1"
 # once_cell = "=1.18.0"
 # static_assertions = "=1.1.0"
 # varisat = "=0.2.2"
