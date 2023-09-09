@@ -122,6 +122,25 @@ impl Problem {
 
         Answer { ans: max_cnt }
     }
+
+    fn solve2(self) -> Answer {
+        // dedup_with_count を使った解法
+        // free[i]: i日目がみんな暇
+        let free = (0..self.day_len)
+            .map(|day| (0..self.n_people).all(|person| self.schedule[person][day]))
+            .collect_vec();
+
+        // trueが連続している区間の最大の長さ
+        let ans = free
+            .iter()
+            .dedup_with_count()
+            .filter(|(_cnt, is_free)| **is_free)
+            .map(|(cnt, _is_free)| cnt)
+            .max()
+            .unwrap_or(0) as i64;
+
+        Answer { ans }
+    }
 }
 
 impl Answer {
@@ -131,7 +150,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read(stdin().lock()).solve().print();
+    Problem::read(stdin().lock()).solve2().print();
 }
 
 #[cfg(test)]

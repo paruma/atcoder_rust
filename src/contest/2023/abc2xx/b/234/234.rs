@@ -32,6 +32,14 @@ impl Problem {
             .unwrap();
         Answer { ans }
     }
+
+    fn solve2(&self) -> Answer {
+        let ans = iproduct!(self.points.iter(), self.points.iter())
+            .map(|(&p1, &p2)| dist(p1, p2))
+            .max_by(|x, y| x.total_cmp(y))
+            .unwrap();
+        Answer { ans }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -46,7 +54,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read(ProconReader::new(stdin().lock())).solve().print();
+    Problem::read(ProconReader::new(stdin().lock())).solve2().print();
 }
 
 #[cfg(test)]

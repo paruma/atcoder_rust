@@ -304,6 +304,10 @@ name = "abc2xx_b_229"
 path = "src/contest/2023/abc2xx/b/229/229.rs"
 
 [[bin]]
+name = "abc2xx_b_215"
+path = "src/contest/2023/abc2xx/b/215.rs"
+
+[[bin]]
 name = "abc312_a"
 path = "src/contest/2023/abc312/a.rs"
 
@@ -322,6 +326,11 @@ path = "src/contest/2023/abc312/d.rs"
 [[bin]]
 name = "abc312_f"
 path = "src/contest/2023/abc312/f.rs"
+
+[[bin]]
+name = "abc311_b"
+path = "src/contest/2023/abc311/b.rs"
+
 
 [[bin]]
 name = "template"

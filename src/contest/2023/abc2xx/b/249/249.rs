@@ -18,6 +18,16 @@ impl Problem {
         let ans = has_lower && has_upper && is_pairwise_distinct;
         Answer { ans }
     }
+
+    fn solve2(&self) -> Answer {
+        let s = &self.s;
+        let has_lower = s.iter().any(|ch| ch.is_ascii_lowercase());
+        let has_upper = s.iter().any(|ch| ch.is_ascii_uppercase());
+        let is_pairwise_distinct = s.iter().all_unique();
+
+        let ans = has_lower && has_upper && is_pairwise_distinct;
+        Answer { ans }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -33,7 +43,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read(ProconReader::new(stdin().lock())).solve().print();
+    Problem::read(ProconReader::new(stdin().lock())).solve2().print();
 }
 
 #[cfg(test)]

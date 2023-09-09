@@ -130,6 +130,11 @@ impl Problem {
         let ans = (0..64_i64).find(|k| 1_i64 << k > self.n).unwrap() - 1;
         Answer { ans }
     }
+
+    fn solve2(&self) -> Answer {
+        let ans = self.n.ilog2() as i64;
+        Answer { ans }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -144,7 +149,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read(ProconReader::new(stdin().lock())).solve().print();
+    Problem::read(ProconReader::new(stdin().lock())).solve2().print();
 }
 
 #[cfg(test)]
