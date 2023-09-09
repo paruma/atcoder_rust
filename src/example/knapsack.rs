@@ -1,6 +1,5 @@
 use std::cmp::max;
 
-use ndarray::{Array, Array2};
 //---------snippet---------
 use mod_neg_ext_int::NegExtInt::{self, *};
 pub mod mod_neg_ext_int {
@@ -11,6 +10,7 @@ pub mod mod_neg_ext_int {
         NegInf,
         Fin(i64),
     }
+    #[allow(dead_code)]
     impl NegExtInt {
         pub fn get_fin(self) -> i64 {
             match self {
