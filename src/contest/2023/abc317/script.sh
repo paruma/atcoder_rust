@@ -1,38 +1,50 @@
-#!/bin/sh
+#!/bin/bash
 
-contest='317'
-task='b'
+get_task(){
+    basename "$(pwd)"
+}
+
+get_contest(){
+    wd=$(pwd)
+    contest_path=${wd%/*}
+    basename "$contest_path"
+}
+
 
 oj_download() {
-    task=$(basename "$(pwd)")
-    oj download "https://atcoder.jp/contests/abc${contest}/tasks/abc${contest}_${task}"
+    contest="$(get_contest)"
+    task="$(get_task)"
+    oj download "https://atcoder.jp/contests/${contest}/tasks/${contest}_${task}"
 }
 
 oj_test() {
+    contest="$(get_contest)"
+    task="$(get_task)"
     if [ ! -d 'test' ]; then
         oj_download
     fi
 
-    task=$(basename "$(pwd)")
-    if cargo build --bin "abc${contest}_${task}"; then
+    if cargo build --bin "${contest}_${task}"; then
         export RUST_BACKTRACE=1
-        oj test -c "$(git rev-parse --show-toplevel)/target/debug/abc${contest}_${task}"
+        oj test -c "$(git rev-parse --show-toplevel)/target/debug/${contest}_${task}"
     fi
 }
 
 oj_test_release() {
+    contest="$(get_contest)"
+    task="$(get_task)"
     if [ ! -d 'test' ]; then
         oj_download
     fi
 
-    task=$(basename "$(pwd)")
-    if cargo build -r --bin "abc${contest}_${task}"; then
+    if cargo build -r --bin "${contest}_${task}"; then
         export RUST_BACKTRACE=1
-        oj test -c "$(git rev-parse --show-toplevel)/target/release/abc${contest}_${task}"
+        oj test -c "$(git rev-parse --show-toplevel)/target/release/${contest}_${task}"
     fi
 }
 
 oj_submit() {
-    task=$(basename "$(pwd)")
-    oj submit "https://atcoder.jp/contests/abc${contest}/tasks/abc${contest}_${task}" "${task}.rs" -w 1 --no-open
+    contest="$(get_contest)"
+    task="$(get_task)"
+    oj submit "https://atcoder.jp/contests/${contest}/tasks/${contest}_${task}" "${task}.rs" -w 1 --no-open
 }

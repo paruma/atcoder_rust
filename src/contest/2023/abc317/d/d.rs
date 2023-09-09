@@ -3,7 +3,7 @@ use std::io::stdin;
 struct ElectoralDistrict {
     x: i64, // 高橋派
     y: i64, // 青木派
-    z: i64, // 買った場合に得られる議席数
+    z: i64, // 勝った場合に得られる議席数
 }
 struct Problem {
     n: usize,
@@ -66,6 +66,45 @@ impl Problem {
         let ans = dp[n][need as usize].get_fin();
         Answer { ans }
     }
+
+    fn solve2(&self) -> Answer {
+        let Problem { n, district } = self;
+        let n = *n;
+        //必要総議席数
+        let max_sheets = 100_010;
+        // dp[i][j]:  [0, i) の選挙区で j議席以上得るのに必要な鞍替え人数
+        let mut dp = vec![vec![Inf; max_sheets]; n + 1];
+        // 選挙区の数0の場合について初期化
+        dp[0][0] = Fin(0);
+
+        for i in 0..n {
+            // 選挙区iを使う
+            let d = &district[i];
+            // この選挙区で高橋派が勝つのに必要な鞍替えの数
+            let kuragae = if d.x >= d.y { 0 } else { (d.x + d.y) / 2 + 1 - d.x };
+
+            for j in 0..max_sheets {
+                // dp[i+1][j] を求める
+                // dp[i+1][j] = i番目までの選挙区でj議席以上獲得するのに必要な鞍替えの人数
+
+                // この選挙区で高橋派が「勝つ」場合に必要な今までの鞍替えの数
+                let case_win = if d.z as usize > j {
+                    //この選挙区だけで勝てば良い
+                    Fin(kuragae)
+                } else {
+                    dp[i][j - d.z as usize] + Fin(kuragae)
+                };
+                // // この選挙区で高橋派が「負ける」場合に必要な今までの鞍替えの数
+                let case_lose = dp[i][j];
+
+                dp[i + 1][j] = ExtInt::min(case_win, case_lose);
+            }
+        }
+
+        let need = district.iter().map(|e| e.z).sum::<i64>() / 2 + 1;
+        let ans = dp[n][need as usize].get_fin();
+        Answer { ans }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -80,7 +119,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read(ProconReader::new(stdin().lock())).solve().print();
+    Problem::read(ProconReader::new(stdin().lock())).solve2().print();
 }
 
 #[cfg(test)]
