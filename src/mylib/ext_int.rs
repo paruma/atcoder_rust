@@ -86,7 +86,7 @@ mod tests {
 
     #[allow(clippy::eq_op)]
     #[test]
-    fn test_trop_ord() {
+    fn test_ext_int_ord() {
         assert!(Inf <= Inf);
         assert!(Fin(3) <= Inf);
         assert!(Fin(4) <= Fin(6));
@@ -107,7 +107,7 @@ mod tests {
     }
 
     #[test]
-    fn test_trop_add() {
+    fn test_ext_int_add() {
         assert_eq!(Inf + Inf, Inf);
         assert_eq!(Inf + Fin(3), Inf);
         assert_eq!(Fin(3) + Inf, Inf);
@@ -116,12 +116,12 @@ mod tests {
 
     #[test]
     #[should_panic]
-    fn test_trop_get_fin_panic() {
+    fn test_ext_int_get_fin_panic() {
         Inf.get_fin();
     }
 
     #[test]
-    fn test_trop_util() {
+    fn test_ext_int_util() {
         assert_eq!(Fin(3).get_fin(), 3);
 
         assert_eq!(Fin(3).get_fin_or(0), 3);

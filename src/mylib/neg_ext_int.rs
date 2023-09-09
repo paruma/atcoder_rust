@@ -1,6 +1,6 @@
 use cargo_snippet::snippet;
 
-#[snippet(prefix = "use mod_neg_ext_int::NegTrop::{self, *};")]
+#[snippet(prefix = "use mod_neg_ext_int::NegExtInt::{self, *};")]
 pub mod mod_neg_ext_int {
     use std::{cmp::Ordering, ops::Add};
     use NegExtInt::*;
@@ -86,7 +86,7 @@ mod tests {
 
     #[allow(clippy::eq_op)]
     #[test]
-    fn test_trop_ord() {
+    fn test_neg_ext_int_ord() {
         let _x: NegExtInt = Fin(3);
 
         assert!(NegInf >= NegInf);
@@ -109,7 +109,7 @@ mod tests {
     }
 
     #[test]
-    fn test_trop_add() {
+    fn test_neg_ext_int_add() {
         assert_eq!(NegInf + NegInf, NegInf);
         assert_eq!(NegInf + Fin(3), NegInf);
         assert_eq!(Fin(3) + NegInf, NegInf);
@@ -118,12 +118,12 @@ mod tests {
 
     #[test]
     #[should_panic]
-    fn test_trop_get_fin_panic() {
+    fn test_neg_ext_int_get_fin_panic() {
         NegInf.get_fin();
     }
 
     #[test]
-    fn test_trop_util() {
+    fn test_neg_ext_int_util() {
         assert_eq!(Fin(3).get_fin(), 3);
 
         assert_eq!(Fin(3).get_fin_or(0), 3);

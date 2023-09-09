@@ -70,17 +70,15 @@ pub mod pos {
 #[snippet(prefix = "use vec_vec_at::*;")]
 pub mod vec_vec_at {
     use super::pos::*;
-    pub trait VecVecAt<T> {
-        fn at(&self, pos: Pos<i64>) -> &T;
-        fn at_mut(&mut self, pos: Pos<i64>) -> &mut T;
-    }
+    use easy_ext::ext;
 
-    impl<T> VecVecAt<T> for Vec<Vec<T>> {
-        fn at(&self, pos: Pos<i64>) -> &T {
+    #[ext]
+    impl<T> Vec<Vec<T>> {
+        pub fn at(&self, pos: Pos<i64>) -> &T {
             &self[pos.y as usize][pos.x as usize]
         }
 
-        fn at_mut(&mut self, pos: Pos<i64>) -> &mut T {
+        pub fn at_mut(&mut self, pos: Pos<i64>) -> &mut T {
             &mut self[pos.y as usize][pos.x as usize]
         }
     }
