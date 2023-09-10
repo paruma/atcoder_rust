@@ -1,18 +1,61 @@
 use std::io::stdin;
 
 struct Problem {
-    a: i64,
-    b: i64,
+    n_word: usize,
+    n_row: i64,
+    word_len_list: Vec<i64>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let (n_word, n_row) = r.read_any_2::<usize, i64>();
+        let word_len_list = r.read_vec_i64();
+        Problem { n_word, n_row, word_len_list }
     }
+
+    fn is_ok(word_len_list: &[i64], width: i64, height: i64) -> bool {
+        if width <= 0 {
+            return false;
+        }
+        let mut y = 0;
+        let mut x = 0;
+        for &word_len in word_len_list {
+            if word_len > width {
+                return false;
+            }
+            // x==0: 文頭
+            // x!=0: 文の途中→空白が必要
+            if x == 0 {
+                //文頭→空白が不要
+                x += word_len
+            } else {
+                // 文の途中→空白が必要
+                x += word_len + 1;
+                if x >= width + 1 {
+                    // はみ出た場合
+                    y += 1;
+                    x = word_len
+                }
+            }
+        }
+        // 3行だったらy=2になっている
+        y < height
+    }
+
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let Problem { n_word, n_row, word_len_list } = self;
+
+        //dbg!(Problem::is_ok(word_len_list, 26, *n_row)); //true
+        // dbg!(Problem::is_ok(word_len_list, 25, *n_row)); //false
+        // dbg!(Problem::is_ok(word_len_list, 9, *n_row)); //false
+        // dbg!(Problem::is_ok(word_len_list, 10, *n_row)); //false
+        // dbg!(Problem::is_ok(word_len_list, 11, *n_row)); //false
+
+        let max_len = word_len_list.iter().sum::<i64>() + word_len_list.len() as i64 + 100; // 空白も考慮, +100は保険
+        let p = |width: i64| -> bool { Problem::is_ok(word_len_list, width, *n_row) };
+
+        let ans = bin_search(max_len + 1, 0, p);
+
         Answer { ans }
     }
 }
@@ -54,6 +97,47 @@ mod tests {
 }
 
 // ====== snippet ======
+
+/// 二分探索をする
+/// ```text
+/// ng ng ng ok ok ok
+///          ↑ここの引数の値を返す
+/// ```
+/// ## Arguments
+/// * ok != ng
+/// * |ok - ng| <= 2^63 - 1, |ok + ng| <= 2^63 - 1
+/// * p の定義域について
+///     * ng < ok の場合、p は区間 ng..ok で定義されている。
+///     * ok < ng の場合、p は区間 ok..ng で定義されている。
+/// * p の単調性について
+///     * ng < ok の場合、p は単調増加
+///     * ok < ng の場合、p は単調減少
+/// ## Return
+/// * ng < ok の場合: I = { i in ng..ok | p(i) == true } としたとき
+///     * I が空でなければ、min I を返す。
+///     * I が空ならば、ok を返す。
+/// * ok < ng の場合: I = { i in ok..ng | p(i) == true } としたとき
+///     * I が空でなければ、max I を返す。
+///     * I が空ならば、ok を返す。
+pub fn bin_search<F>(mut ok: i64, mut ng: i64, p: F) -> i64
+where
+    F: Fn(i64) -> bool,
+{
+    assert!(ok != ng);
+    assert!(ok.checked_sub(ng).is_some());
+    assert!(ok.checked_add(ng).is_some());
+    while num::abs(ok - ng) > 1 {
+        let mid = (ok + ng) / 2;
+        assert!(mid != ok);
+        assert!(mid != ng);
+        if p(mid) {
+            ok = mid;
+        } else {
+            ng = mid;
+        }
+    }
+    ok
+}
 
 #[allow(unused_imports)]
 use myio::*;

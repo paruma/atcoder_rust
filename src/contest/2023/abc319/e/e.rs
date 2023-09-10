@@ -1,30 +1,74 @@
 use std::io::stdin;
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct BusKukan {
+    p: i64,
+    t: i64,
+}
+
 struct Problem {
-    a: i64,
-    b: i64,
+    n_bus_stop: usize,
+    x: i64,
+    y: i64,
+    bus_info: Vec<BusKukan>,
+    nq: usize,
+    qs: Vec<i64>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let (n_bus_stop, x, y) = r.read_any_3::<usize, i64, i64>();
+        let bus_info = (0..n_bus_stop - 1)
+            .map(|_| {
+                let (p, t) = r.read_i64_2();
+                BusKukan { p, t }
+            })
+            .collect_vec();
+        let nq = r.read_usize_1();
+        let qs = (0..nq).map(|_| r.read_i64_1()).collect_vec();
+        Problem { n_bus_stop, x, y, bus_info, nq, qs }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let Problem { n_bus_stop, x, y, bus_info, nq, qs } = self;
+
+        // 始まりの時刻→かかる時間
+        let mut table = vec![0; 840]; //lcm(1,2,..,8)
+        for start_time in 0..840 {
+            let mut time = start_time;
+            time += *x;
+            for &bus_kukaku in bus_info {
+                // バス待ち(bus_kukaku.p の倍数で切り上げる)
+                if time % bus_kukaku.p != 0 {
+                    // p=5, time=6の場合は4分待つ
+                    time += bus_kukaku.p - time % bus_kukaku.p;
+                }
+                time += bus_kukaku.t;
+            }
+            time += y;
+            table[start_time as usize] = time;
+        }
+        dbg!(table[7]);
+        dbg!(table[13]);
+        dbg!(table[0]);
+
+        let ans = qs
+            .iter()
+            .map(|&start_time| start_time / 840 * 840 + table[(start_time % 840) as usize])
+            .collect_vec();
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        for &e in &self.ans {
+            println!("{}", e);
+        }
     }
 }
 
@@ -55,6 +99,7 @@ mod tests {
 
 // ====== snippet ======
 
+use itertools::Itertools;
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {

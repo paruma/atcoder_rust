@@ -1,25 +1,59 @@
 use std::io::stdin;
 
 struct Problem {
-    a: i64,
-    b: i64,
+    grid: Vec<Vec<i64>>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let grid = (0..3).map(|_| r.read_vec_i64()).collect_vec();
+        Problem { grid }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        // 縦横斜めの列を8つ作る
+        let pos_list = iproduct!(0..3_usize, 0..3_usize).collect_vec();
+        let cnt = pos_list
+            .iter()
+            .permutations(9)
+            .filter(|route| {
+                let mut yoko: Vec<Vec<i64>> = vec![vec![]; 3];
+                let mut tate: Vec<Vec<i64>> = vec![vec![]; 3];
+                let mut naname1: Vec<i64> = vec![]; // ➘
+                let mut naname2: Vec<i64> = vec![]; // ↙
+
+                for &(y, x) in route {
+                    let y = *y;
+                    let x = *x;
+                    let value = self.grid[y][x];
+                    yoko[y].push(value);
+                    tate[x].push(value);
+                    if x == y {
+                        naname1.push(value)
+                    }
+                    if x + y == 2 {
+                        naname2.push(value)
+                    }
+                }
+
+                let gakkari = [
+                    &yoko[0], &yoko[1], &yoko[2], &tate[0], &tate[1], &tate[2], &naname1, &naname2,
+                ]
+                .iter()
+                .any(|r| r[0] == r[1]);
+
+                !gakkari
+            })
+            .count();
+
+        let all = 362880;
+        let ans = (cnt as f64) / (all as f64);
         Answer { ans }
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 struct Answer {
-    ans: i64,
+    ans: f64,
 }
 
 impl Answer {
@@ -55,6 +89,7 @@ mod tests {
 
 // ====== snippet ======
 
+use itertools::{iproduct, Itertools};
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {

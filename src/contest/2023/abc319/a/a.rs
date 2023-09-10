@@ -1,18 +1,29 @@
 use std::io::stdin;
 
 struct Problem {
-    a: i64,
-    b: i64,
+    name: String,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let name = r.read_line();
+        Problem { name }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let table = hashmap! {
+        "tourist" =>  3858,
+        "ksun48" =>  3679,
+        "Benq" =>  3658,
+        "Um_nik" =>  3648,
+        "apiad" =>  3638,
+        "Stonefeang" =>  3630,
+        "ecnerwala" =>  3613,
+        "mnbvmar" =>  3555,
+        "newbiedmy" =>  3516,
+        "semiexp" =>  3481,
+        };
+
+        let ans = table[&self.name[..]];
         Answer { ans }
     }
 }
@@ -55,6 +66,7 @@ mod tests {
 
 // ====== snippet ======
 
+use maplit::hashmap;
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {
