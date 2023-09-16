@@ -1,30 +1,135 @@
-use std::io::stdin;
+use std::{collections::BinaryHeap, io::stdin};
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct SoumenEvent {
+    time: i64,
+    amount: i64, // 流すそうめんの量
+    len: i64,    //そうめんを取ってからもとに戻るまでの時間
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct ComeBackEvent {
+    person: usize,
+    time: i64, // 戻ってくる時刻
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Event {
+    Soumen(SoumenEvent),
+    ComeBack(ComeBackEvent), // 同時刻の場合はこっちが優先
+}
+
+impl Event {
+    fn is_somen(&self) -> bool {
+        matches!(self, Event::Soumen(_))
+    }
+    fn is_come_back(&self) -> bool {
+        matches!(self, Event::ComeBack(_))
+    }
+    fn get_time(&self) -> i64 {
+        match self {
+            Event::Soumen(e) => e.time,
+            Event::ComeBack(e) => e.time,
+        }
+    }
+}
+
+impl PartialOrd for Event {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        // 時間の小さい順にBinaryHeapが出てくるようにする
+        if self.get_time() == other.get_time() {
+            if self.is_come_back() {
+                return Some(std::cmp::Ordering::Greater);
+            } else {
+                return Some(std::cmp::Ordering::Less);
+            }
+        }
+        PartialOrd::partial_cmp(&self.get_time(), &other.get_time()).map(|c| c.reverse())
+    }
+}
+
+impl Ord for Event {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.partial_cmp(other).unwrap()
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Person {
+    person: usize,
+}
+
+impl PartialOrd for Person {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        PartialOrd::partial_cmp(&self.person, &other.person).map(|c| c.reverse())
+    }
+}
+
+impl Ord for Person {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.partial_cmp(other).unwrap()
+    }
+}
 
 struct Problem {
-    a: i64,
-    b: i64,
+    n_people: usize,
+    n_event: usize,
+    events: Vec<SoumenEvent>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let (n_people, n_event) = r.read_usize_2();
+        let events = (0..n_event)
+            .map(|_| {
+                let (time, amount, len) = r.read_i64_3();
+                SoumenEvent { time, amount, len }
+            })
+            .collect_vec();
+        Problem { n_people, n_event, events }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
-        Answer { ans }
+        let Problem { n_people, n_event, events } = self;
+        let mut p_queue: BinaryHeap<Event> = BinaryHeap::new();
+
+        for soumen_event in events {
+            p_queue.push(Event::Soumen(*soumen_event));
+        }
+
+        let mut people_to_somen = vec![0; self.n_people];
+        let mut waiting_people: BinaryHeap<Person> = BinaryHeap::new(); // そうめんの列に並んでいる人
+        for i in 0..*n_people {
+            waiting_people.push(Person { person: i })
+        }
+
+        while let Some(event) = p_queue.pop() {
+            match event {
+                Event::Soumen(e) => {
+                    if let Some(top_person) = waiting_people.pop() {
+                        people_to_somen[top_person.person] += e.amount;
+                        p_queue.push(Event::ComeBack(ComeBackEvent {
+                            person: top_person.person,
+                            time: e.time + e.len,
+                        }));
+                    }
+                }
+                Event::ComeBack(e) => waiting_people.push(Person { person: e.person }),
+            }
+        }
+        Answer { ans: people_to_somen }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        for &x in &self.ans {
+            println!("{}", x);
+        }
     }
 }
 
@@ -55,6 +160,7 @@ mod tests {
 
 // ====== snippet ======
 
+use itertools::Itertools;
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {

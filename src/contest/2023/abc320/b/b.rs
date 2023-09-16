@@ -1,18 +1,28 @@
 use std::io::stdin;
 
 struct Problem {
-    a: i64,
-    b: i64,
+    s: Vec<u8>,
+}
+
+fn is_kaibun(s: &[u8]) -> bool {
+    let n = s.len();
+    (0..n).all(|i| s[i] == s[n - i - 1])
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let s = r.read_bytes();
+        Problem { s }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let s = &self.s;
+        let n = s.len();
+        let ans = (0..=n)
+            .tuple_combinations()
+            .filter(|(i, j)| is_kaibun(&s[*i..*j]))
+            .map(|(i, j)| j - i)
+            .max()
+            .unwrap() as i64;
         Answer { ans }
     }
 }
@@ -55,6 +65,7 @@ mod tests {
 
 // ====== snippet ======
 
+use itertools::Itertools;
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {

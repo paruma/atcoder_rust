@@ -7,12 +7,13 @@ struct Problem {
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
+        let (a, b) = r.read_i64_2();
         Problem { a, b }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let a = self.a;
+        let b = self.b;
+        let ans = a.pow(b as u32) + b.pow(a as u32);
         Answer { ans }
     }
 }

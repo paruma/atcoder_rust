@@ -1,30 +1,65 @@
 use std::io::stdin;
 
 struct Problem {
-    a: i64,
-    b: i64,
+    m: i64,
+    slots: Vec<Vec<i64>>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let m = r.read_i64_1();
+        let slots = (0..3)
+            .map(|_| r.read_bytes().iter().map(|ch| (ch - b'0') as i64).collect_vec())
+            .collect_vec();
+        Problem { m, slots }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let m = self.m;
+        let slots = &self.slots;
+        #[allow(clippy::map_flatten)]
+        let ans = (0..10)
+            .map(|i| {
+                // i で揃えたい。最小で何秒かかるか。揃えられない場合はNoneを返す
+                if slots.iter().any(|slot| !slot.contains(&i)) {
+                    return None;
+                }
+
+                let time = (0..3)
+                    .permutations(3)
+                    .map(|route| {
+                        // route[0], route[1], route[2] の順番にスロットを止める
+                        let mut time = 0;
+                        for j in route {
+                            // slots[j] を止める
+                            loop {
+                                if slots[j][(time % m) as usize] == i {
+                                    time += 1;
+                                    break;
+                                }
+                                time += 1;
+                            }
+                        }
+                        time
+                    })
+                    .min()
+                    .unwrap()
+                    - 1;
+                Some(time)
+            })
+            .flatten()
+            .min();
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Option<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        println!("{}", self.ans.unwrap_or(-1));
     }
 }
 
@@ -55,6 +90,7 @@ mod tests {
 
 // ====== snippet ======
 
+use itertools::Itertools;
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {

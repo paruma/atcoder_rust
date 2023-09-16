@@ -1,30 +1,81 @@
-use std::io::stdin;
+use std::{collections::VecDeque, io::stdin};
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Info {
+    from: usize,
+    to: usize,
+    diff: Pos<i64>,
+}
 
 struct Problem {
-    a: i64,
-    b: i64,
+    n_people: usize,
+    n_info: usize,
+    infos: Vec<Info>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let (n_people, n_info) = r.read_usize_2();
+        let infos = (0..n_info)
+            .map(|_| {
+                let (from, to, dx, dy) = r.read_any_4::<usize, usize, i64, i64>();
+                let from = from - 1;
+                let to = to - 1;
+                Info { from, to, diff: Pos::new(dx, dy) }
+            })
+            .collect_vec();
+        Problem { n_people, n_info, infos }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let Problem { n_people, n_info, infos } = self;
+        let mut adj = vec![vec![]; *n_people];
+        for &info in infos {
+            // 逆向きも作る
+            let rev_info =
+                Info { from: info.to, to: info.from, diff: Pos::new(-info.diff.x, -info.diff.y) };
+            adj[info.from].push(info);
+            adj[rev_info.from].push(rev_info);
+        }
+
+        let mut open: VecDeque<usize> = VecDeque::new();
+        let mut visited = vec![false; *n_people];
+        let mut pos_list = vec![None; *n_people]; // pos_list[i]: i番目の人の位置
+
+        // 人0は(0,0)にいる。
+        open.push_front(0);
+        // TODO: サンプルコードが間違えているので直す
+        visited[0] = true;
+        pos_list[0] = Some(Pos::new(0, 0));
+
+        while let Some(current) = open.pop_back() {
+            for &e in &adj[current] {
+                if !visited[e.to] {
+                    visited[e.to] = true;
+                    pos_list[e.to] = Some(pos_list[e.from].unwrap() + e.diff);
+                    open.push_front(e.to);
+                }
+            }
+        }
+
+        let ans = pos_list.clone();
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<Option<Pos<i64>>>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        for row in &self.ans {
+            if let Some(p) = row {
+                println!("{} {}", p.x, p.y);
+            } else {
+                println!("undecidable");
+            }
+        }
     }
 }
 
@@ -55,6 +106,62 @@ mod tests {
 
 // ====== snippet ======
 
+use pos::*;
+pub mod pos {
+    use std::ops::{Add, AddAssign, Mul, Sub, SubAssign};
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub struct Pos<T> {
+        pub x: T,
+        pub y: T,
+    }
+    impl<T> Pos<T> {
+        pub fn new(x: T, y: T) -> Pos<T> {
+            Pos { x, y }
+        }
+    }
+    impl<T: Mul<Output = T> + Copy> Pos<T> {
+        pub fn scala_mul(self, rhs: T) -> Pos<T> {
+            Pos::new(self.x * rhs, self.y * rhs)
+        }
+    }
+    impl<T: Add<Output = T> + Mul<Output = T> + Copy> Pos<T> {
+        pub fn norm_square(self) -> T {
+            self.x * self.x + self.y * self.y
+        }
+    }
+    impl<T: Add<Output = T> + Copy> Add for Pos<T> {
+        type Output = Pos<T>;
+        fn add(self, rhs: Self) -> Self::Output {
+            Pos::new(self.x + rhs.x, self.y + rhs.y)
+        }
+    }
+    impl<T: Sub<Output = T> + Copy> Sub for Pos<T> {
+        type Output = Pos<T>;
+        fn sub(self, rhs: Self) -> Self::Output {
+            Pos::new(self.x - rhs.x, self.y - rhs.y)
+        }
+    }
+    impl<T: num_traits::Zero + Copy> num_traits::Zero for Pos<T> {
+        fn zero() -> Self {
+            Pos::new(T::zero(), T::zero())
+        }
+        fn is_zero(&self) -> bool {
+            self.x.is_zero() && self.y.is_zero()
+        }
+    }
+    impl<T: Add<Output = T> + Copy> AddAssign for Pos<T> {
+        fn add_assign(&mut self, rhs: Self) {
+            *self = *self + rhs
+        }
+    }
+    impl<T: Sub<Output = T> + Copy> SubAssign for Pos<T> {
+        fn sub_assign(&mut self, rhs: Self) {
+            *self = *self - rhs
+        }
+    }
+}
+
+use itertools::Itertools;
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {
