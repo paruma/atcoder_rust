@@ -9,6 +9,7 @@ impl Problem {
         let grid = (0..3).map(|_| r.read_vec_i64()).collect_vec();
         Problem { grid }
     }
+
     fn solve(&self) -> Answer {
         // 縦横斜めの列を8つ作る
         let pos_list = iproduct!(0..3_usize, 0..3_usize).collect_vec();
@@ -16,6 +17,8 @@ impl Problem {
             .iter()
             .permutations(9)
             .filter(|route| {
+                // 解説では 場所→順番 をpermutation で取得している
+                // 自分の実装だと、順番→場所 を permutation で取得している
                 let mut yoko: Vec<Vec<i64>> = vec![vec![]; 3];
                 let mut tate: Vec<Vec<i64>> = vec![vec![]; 3];
                 let mut naname1: Vec<i64> = vec![]; // ➘
@@ -45,7 +48,7 @@ impl Problem {
             })
             .count();
 
-        let all = 362880;
+        let all = 362880; // 9!
         let ans = (cnt as f64) / (all as f64);
         Answer { ans }
     }

@@ -33,6 +33,7 @@ impl Problem {
 
         // 始まりの時刻→かかる時間
         let mut table = vec![0; 840]; //lcm(1,2,..,8)
+        // なぜかfor文で書いてしまった(mapで書けばよかったのに)
         for start_time in 0..840 {
             let mut time = start_time;
             time += *x;

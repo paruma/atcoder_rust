@@ -14,6 +14,7 @@ impl Problem {
     }
 
     fn is_ok(word_len_list: &[i64], width: i64, height: i64) -> bool {
+        // 幅を返す関数を作っても良かった
         if width <= 0 {
             return false;
         }

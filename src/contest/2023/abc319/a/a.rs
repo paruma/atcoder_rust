@@ -9,6 +9,7 @@ impl Problem {
         let name = r.read_line();
         Problem { name }
     }
+
     fn solve(&self) -> Answer {
         let table = hashmap! {
         "tourist" =>  3858,
@@ -22,8 +23,46 @@ impl Problem {
         "newbiedmy" =>  3516,
         "semiexp" =>  3481,
         };
-
+        // let ans = table[&self.name];// こう書くとエラーになる。ここでは参照外し型強制が発生しない？
+        // let ans = table[self.name.as_str()]; // こう書いても良い
         let ans = table[&self.name[..]];
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        let ans = match self.name.as_str() {
+            //この場合も as_str が必要
+            "tourist" => 3858,
+            "ksun48" => 3679,
+            "Benq" => 3658,
+            "Um_nik" => 3648,
+            "apiad" => 3638,
+            "Stonefeang" => 3630,
+            "ecnerwala" => 3613,
+            "mnbvmar" => 3555,
+            "newbiedmy" => 3516,
+            "semiexp" => 3481,
+            _ => unreachable!(),
+        };
+        Answer { ans }
+    }
+
+    fn solve3(&self) -> Answer {
+        let name = self.name.bytes().collect_vec();
+        // self.name.as_bytes でもOK
+        let ans = match name.as_slice() {
+            b"tourist" => 3858,
+            b"ksun48" => 3679,
+            b"Benq" => 3658,
+            b"Um_nik" => 3648,
+            b"apiad" => 3638,
+            b"Stonefeang" => 3630,
+            b"ecnerwala" => 3613,
+            b"mnbvmar" => 3555,
+            b"newbiedmy" => 3516,
+            b"semiexp" => 3481,
+            _ => unreachable!(),
+        };
         Answer { ans }
     }
 }
@@ -40,7 +79,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read(ProconReader::new(stdin().lock())).solve().print();
+    Problem::read(ProconReader::new(stdin().lock())).solve2().print();
 }
 
 #[cfg(test)]
@@ -66,6 +105,7 @@ mod tests {
 
 // ====== snippet ======
 
+use itertools::Itertools;
 use maplit::hashmap;
 #[allow(unused_imports)]
 use myio::*;
