@@ -32,8 +32,10 @@ fn janken(mine: u8, yours: u8) -> i64 {
 
 #[allow(clippy::collapsible_else_if)]
 fn ooninzu_janken(cnt_g: i64, cnt_c: i64, cnt_p: i64) -> Option<u8> {
+    // 各手の人数に対する勝ちの手を返す
     let cnt_sorted =
         izip!(b"GCP", [cnt_g, cnt_c, cnt_p]).sorted_by_key(|(_, cnt)| *cnt).collect_vec();
+
     if cnt_sorted[0].1 == 0 && cnt_sorted[1].1 == 0 {
         return Some(*cnt_sorted[2].0);
     }
@@ -61,6 +63,41 @@ fn ooninzu_janken(cnt_g: i64, cnt_c: i64, cnt_p: i64) -> Option<u8> {
     }
 }
 
+fn ooninzu_janken2(cnt_g: i64, cnt_c: i64, cnt_p: i64) -> Option<u8> {
+    // 各手の人数に対する勝ちの手を返す
+    struct HandCount {
+        hand: u8,
+        cnt: i64,
+    }
+    let min_cnt = *[cnt_g, cnt_c, cnt_p]
+        .iter()
+        .filter(|cnt| **cnt > 0) // 誰も出してない手は除く
+        .min()
+        .unwrap();
+
+    // 1人以上が出した手のうち、出した人数が最も少ない手のリスト
+    let min_cnt_hand = izip!(b"GCP", [cnt_g, cnt_c, cnt_p])
+        .map(|(hand, cnt)| HandCount { hand: *hand, cnt })
+        .filter(|e| e.cnt == min_cnt)
+        .collect_vec();
+
+    // 出した人数が最も少ない手が何種類あるかで場合分け
+    match min_cnt_hand.len() {
+        1 => Some(min_cnt_hand[0].hand),
+        2 => {
+            assert!(min_cnt_hand[0].hand != min_cnt_hand[1].hand);
+            if janken(min_cnt_hand[0].hand, min_cnt_hand[1].hand) == 1 {
+                // 0が勝ち
+                Some(min_cnt_hand[0].hand)
+            } else {
+                //1が勝ち
+                Some(min_cnt_hand[1].hand)
+            }
+        }
+        3 => None,
+        _ => panic!(),
+    }
+}
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
         let n_people = r.read_usize_1();
@@ -82,7 +119,6 @@ impl Problem {
         let cumsum_g = CumSum::new(&ind_g);
         let cumsum_c = CumSum::new(&ind_c);
         let cumsum_p = CumSum::new(&ind_p);
-        let x = false;
 
         let ans = qs
             .iter()
@@ -97,9 +133,9 @@ impl Problem {
                 b"GCP"
                     .iter()
                     .filter(move |te| match **te {
-                        b'G' => ooninzu_janken(cnt_g + 1, cnt_c, cnt_p) == Some(b'G'),
-                        b'C' => ooninzu_janken(cnt_g, cnt_c + 1, cnt_p) == Some(b'C'),
-                        b'P' => ooninzu_janken(cnt_g, cnt_c, cnt_p + 1) == Some(b'P'),
+                        b'G' => ooninzu_janken2(cnt_g + 1, cnt_c, cnt_p) == Some(b'G'),
+                        b'C' => ooninzu_janken2(cnt_g, cnt_c + 1, cnt_p) == Some(b'C'),
+                        b'P' => ooninzu_janken2(cnt_g, cnt_c, cnt_p + 1) == Some(b'P'),
                         _ => panic!(),
                     })
                     .copied()
@@ -176,7 +212,7 @@ pub mod cumsum {
 }
 
 use cumsum::CumSum;
-use itertools::{izip, zip, Itertools};
+use itertools::{izip, Itertools};
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {
