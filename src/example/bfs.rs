@@ -24,6 +24,7 @@ fn bfs(adj: &Vec<Vec<Edge>>, init: usize) -> Vec<bool> {
     let mut open: VecDeque<usize> = VecDeque::new();
     let mut visited = vec![false; n_vertex];
     open.push_front(init);
+    visited[init] = true;
 
     while let Some(current) = open.pop_back() {
         for &e in &adj[current] {
