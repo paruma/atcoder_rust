@@ -6,6 +6,30 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [[bin]]
+name = "midori_a"
+path = "src/contest/2023/_misc/0917_midori_ika/a.rs"
+
+[[bin]]
+name = "midori_b"
+path = "src/contest/2023/_misc/0917_midori_ika/b.rs"
+
+[[bin]]
+name = "midori_c"
+path = "src/contest/2023/_misc/0917_midori_ika/c.rs"
+
+[[bin]]
+name = "midori_d"
+path = "src/contest/2023/_misc/0917_midori_ika/d.rs"
+
+[[bin]]
+name = "midori_e"
+path = "src/contest/2023/_misc/0917_midori_ika/e.rs"
+
+[[bin]]
+name = "midori_f"
+path = "src/contest/2023/_misc/0917_midori_ika/f.rs"
+
+[[bin]]
 name = "abc320_a"
 path = "src/contest/2023/abc320/a/a.rs"
 
