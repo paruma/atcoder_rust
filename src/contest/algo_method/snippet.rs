@@ -62,6 +62,7 @@ fn pow_f64(base: f64, exponent: i64) -> f64 {
     }
 }
 
+// TODO: ACLを使うようにする
 fn mod_pow(base: i64, exponent: i64, modulus: i64) -> i64 {
     if exponent == 0 {
         return 1;
