@@ -46,12 +46,12 @@ where
 /// 指定された要素以上の値が現れる最初の位置を返す。
 /// ## Arguments
 /// * xs: 単調増加
-///     * 単調増加でなくても、 |i| key <= xs[i] が単調ならOK
+///     * 単調増加でなくても、 `|i| key <= xs[i]` が単調ならOK
 ///
 /// ## Return
-/// I = {i in 0..xs.len() | key <= xs[i]} としたとき、min I を返す。
-/// ただし、I が空の場合は xs.len() を返す
-/// 戻り値は、区間 0..=xs.len() の間で返る。
+/// `I = {i in 0..xs.len() | key <= xs[i]}` としたとき、`min I` を返す。
+/// ただし、`I` が空の場合は `xs.len()` を返す
+/// 戻り値は、区間 `0..=xs.len()` の間で返る。
 #[snippet(include = "bin_search")]
 pub fn lower_bound<T: PartialOrd>(xs: &[T], key: T) -> usize {
     let pred = |i: i64| key <= xs[i as usize];
@@ -61,12 +61,12 @@ pub fn lower_bound<T: PartialOrd>(xs: &[T], key: T) -> usize {
 /// 指定された要素より大きい値が現れる最初の位置を返す。
 /// ## Arguments
 /// * xs: 単調増加
-///     * 単調増加でなくても、 |i| key < xs[i] が単調ならOK
+///     * 単調増加でなくても、 `|i| key < xs[i]` が単調ならOK
 ///
 /// ## Return
-/// I = {i in 0..xs.len() | key < xs[i]} としたとき、min I を返す。
-/// ただし、I が空の場合は xs.len() を返す
-/// 戻り値は、区間 0..=xs.len() の間で返る。
+/// `I = {i in 0..xs.len() | key < xs[i]}` としたとき、`min I` を返す。
+/// ただし、`I` が空の場合は `xs.len()` を返す
+/// 戻り値は、区間 `0..=xs.len()` の間で返る。
 #[snippet(include = "bin_search")]
 pub fn upper_bound<T: PartialOrd>(xs: &[T], key: T) -> usize {
     let pred = |i: i64| key < xs[i as usize];
@@ -84,8 +84,10 @@ mod tests {
     ///
     /// ## example
     /// `create_predicate(0, 5, 3, true)` の場合、以下のようになる
-    /// | 0     | 1     | 2     | 3    | 4    |
-    /// | false | false | false | true | true |
+    /// 
+    /// | 0     | 1     | 2     | 3     | 4     |
+    /// | ----- | ----- | ----- | ----- | ----- |
+    /// | false | false | false | true  | true  |
     ///
     /// ## note
     /// FIXME: 論理結合している
