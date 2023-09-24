@@ -2,7 +2,7 @@ use cargo_snippet::snippet;
 
 #[snippet(prefix = "use pos::*;")]
 pub mod pos {
-    use std::ops::{Add, AddAssign, Mul, Sub, SubAssign};
+    use std::ops::{Add, AddAssign, Mul, Neg, Sub, SubAssign};
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
     pub struct Pos<T> {
@@ -41,6 +41,14 @@ pub mod pos {
 
         fn sub(self, rhs: Self) -> Self::Output {
             Pos::new(self.x - rhs.x, self.y - rhs.y)
+        }
+    }
+
+    impl<T: Neg<Output = T>> Neg for Pos<T> {
+        type Output = Self;
+
+        fn neg(self) -> Self::Output {
+            Pos::new(-self.x, -self.y)
         }
     }
 
@@ -103,6 +111,12 @@ mod test {
         let p1: Pos<usize> = Pos::new(2, 3);
         let p2: Pos<usize> = Pos::new(4, 7);
         assert_eq!(p2 - p1, Pos::new(2, 4));
+    }
+
+    #[test]
+    fn test_pos_neg() {
+        let p1: Pos<i64> = Pos::new(2, -3);
+        assert_eq!(-p1, Pos::new(-2, 3));
     }
 
     #[test]
