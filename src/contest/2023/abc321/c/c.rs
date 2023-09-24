@@ -12,10 +12,24 @@ impl Problem {
     fn solve(&self) -> Answer {
         let k = self.k;
         let base: [i64; 10] = [9, 8, 7, 6, 5, 4, 3, 2, 1, 0];
-        base.iter().powerset().map(|x|x)
         let ans = (0_usize..10)
             .powerset()
             .map(|s| s.iter().map(|i| base[*i]).fold(0, |acc, x| acc * 10 + x))
+            .filter(|x| *x != 0)
+            .sorted()
+            .nth(k - 1)
+            .unwrap();
+
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        let k = self.k;
+        let base: [i64; 10] = [9, 8, 7, 6, 5, 4, 3, 2, 1, 0];
+        let ans = base
+            .into_iter()
+            .powerset()
+            .map(|s| s.into_iter().fold(0, |acc, x| acc * 10 + x))
             .filter(|x| *x != 0)
             .sorted()
             .nth(k - 1)
@@ -37,7 +51,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read(ProconReader::new(stdin().lock())).solve().print();
+    Problem::read(ProconReader::new(stdin().lock())).solve2().print();
 }
 
 #[cfg(test)]

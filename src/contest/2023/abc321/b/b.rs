@@ -1,4 +1,4 @@
-use std::io::stdin;
+use std::{io::stdin, iter};
 
 struct Problem {
     n_rounds: usize,
@@ -29,6 +29,22 @@ impl Problem {
             .unwrap_or(-1);
         Answer { ans }
     }
+
+    fn solve2(&self) -> Answer {
+        let Problem { n_rounds, score_lb, xs } = self;
+        let ans = (0..=100)
+            .filter(|i| {
+                let xs_appended = xs.iter().copied().chain(iter::once(*i)).collect_vec();
+                let min = *xs_appended.iter().min().unwrap();
+                let max = *xs_appended.iter().max().unwrap();
+                let sum: i64 = xs_appended.iter().sum();
+                let score = sum - min - max;
+                score >= *score_lb
+            })
+            .min()
+            .unwrap_or(-1);
+        Answer { ans }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -43,7 +59,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read(ProconReader::new(stdin().lock())).solve().print();
+    Problem::read(ProconReader::new(stdin().lock())).solve2().print();
 }
 
 #[cfg(test)]

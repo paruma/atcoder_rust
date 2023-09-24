@@ -26,14 +26,12 @@ impl Problem {
             .iter()
             .map(|&x| {
                 //  I = {i in 0..xs.len() | key < xs[i]} としたとき、min I を返す。
-                let i = upper_bound(&ys, max_price - x);
+                let i = upper_bound(&ys, max_price - x); // y > max_price - x iff x + y > max_price
 
-                // [0, i): min_price
-                // [i,..): x + y
-
-                (*ny as i64 - i as i64) * max_price
-                    + x * (i as i64)
-                    + ys_cumsum.get_interval_sum(0, i)
+                // [0, i) : そのまま足し算
+                // [i, ny): max_price のキャップがある
+                (x * (i as i64) + ys_cumsum.get_interval_sum(0, i))
+                    + (*ny as i64 - i as i64) * max_price
             })
             .sum();
 
