@@ -8,6 +8,7 @@
         "iproduct",
         "Itertools",
         "powerset",
-        "Procon"
+        "Procon",
+        "struct"
     ]
 }

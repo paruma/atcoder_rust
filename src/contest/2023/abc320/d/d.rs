@@ -43,7 +43,39 @@ impl Problem {
 
         // 人0は(0,0)にいる。
         open.push_front(0);
-        // TODO: サンプルコードが間違えているので直す
+        visited[0] = true;
+        pos_list[0] = Some(Pos::new(0, 0));
+
+        while let Some(current) = open.pop_back() {
+            for &e in &adj[current] {
+                if !visited[e.to] {
+                    visited[e.to] = true;
+                    pos_list[e.to] = Some(pos_list[e.from].unwrap() + e.diff);
+                    open.push_front(e.to);
+                }
+            }
+        }
+
+        let ans = pos_list.clone();
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        let Problem { n_people, n_info, infos } = self;
+        let mut adj = vec![vec![]; *n_people];
+        for &info in infos {
+            // 逆向きも作る
+            let rev_info = Info { from: info.to, to: info.from, diff: -info.diff };
+            adj[info.from].push(info);
+            adj[rev_info.from].push(rev_info);
+        }
+
+        let mut open: VecDeque<usize> = VecDeque::new();
+        let mut visited = vec![false; *n_people];
+        let mut pos_list = vec![None; *n_people]; // pos_list[i]: i番目の人の位置
+
+        // 人0は(0,0)にいる。
+        open.push_front(0);
         visited[0] = true;
         pos_list[0] = Some(Pos::new(0, 0));
 
@@ -80,7 +112,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read(ProconReader::new(stdin().lock())).solve().print();
+    Problem::read(ProconReader::new(stdin().lock())).solve2().print();
 }
 
 #[cfg(test)]
@@ -105,10 +137,9 @@ mod tests {
 }
 
 // ====== snippet ======
-
 use pos::*;
 pub mod pos {
-    use std::ops::{Add, AddAssign, Mul, Sub, SubAssign};
+    use std::ops::{Add, AddAssign, Mul, Neg, Sub, SubAssign};
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
     pub struct Pos<T> {
         pub x: T,
@@ -139,6 +170,12 @@ pub mod pos {
         type Output = Pos<T>;
         fn sub(self, rhs: Self) -> Self::Output {
             Pos::new(self.x - rhs.x, self.y - rhs.y)
+        }
+    }
+    impl<T: Neg<Output = T>> Neg for Pos<T> {
+        type Output = Self;
+        fn neg(self) -> Self::Output {
+            Pos::new(-self.x, -self.y)
         }
     }
     impl<T: num_traits::Zero + Copy> num_traits::Zero for Pos<T> {

@@ -1,109 +1,140 @@
-use std::io::stdin;
+use std::{collections::BinaryHeap, io::stdin};
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct SoumenEvent {
+    time: i64,
+    amount: i64, // 流すそうめんの量
+    len: i64,    //そうめんを取ってからもとに戻るまでの時間
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct ComeBackEvent {
+    person: usize,
+    time: i64, // 戻ってくる時刻
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Event {
+    Soumen(SoumenEvent),
+    ComeBack(ComeBackEvent), // 同時刻の場合はこっちが優先
+}
+
+impl Event {
+    fn is_somen(&self) -> bool {
+        matches!(self, Event::Soumen(_))
+    }
+    fn is_come_back(&self) -> bool {
+        matches!(self, Event::ComeBack(_))
+    }
+    fn get_time(&self) -> i64 {
+        match self {
+            Event::Soumen(e) => e.time,
+            Event::ComeBack(e) => e.time,
+        }
+    }
+}
+
+impl PartialOrd for Event {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        // 時間の小さい順にBinaryHeapが出てくるようにする
+        if self.get_time() == other.get_time() {
+            if self.is_come_back() {
+                return Some(std::cmp::Ordering::Greater);
+            } else {
+                return Some(std::cmp::Ordering::Less);
+            }
+        }
+        PartialOrd::partial_cmp(&self.get_time(), &other.get_time()).map(|c| c.reverse())
+    }
+}
+
+impl Ord for Event {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.partial_cmp(other).unwrap()
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Person {
+    person: usize,
+}
+
+impl PartialOrd for Person {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        PartialOrd::partial_cmp(&self.person, &other.person).map(|c| c.reverse())
+    }
+}
+
+impl Ord for Person {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.partial_cmp(other).unwrap()
+    }
+}
 
 struct Problem {
-    m: i64,
-    slots: Vec<Vec<i64>>,
+    n_people: usize,
+    n_event: usize,
+    events: Vec<SoumenEvent>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let m = r.read_i64_1();
-        let slots = (0..3)
-            .map(|_| r.read_bytes().iter().map(|ch| (ch - b'0') as i64).collect_vec())
+        let (n_people, n_event) = r.read_usize_2();
+        let events = (0..n_event)
+            .map(|_| {
+                let (time, amount, len) = r.read_i64_3();
+                SoumenEvent { time, amount, len }
+            })
             .collect_vec();
-        Problem { m, slots }
+        Problem { n_people, n_event, events }
     }
     fn solve(&self) -> Answer {
-        let m = self.m;
-        let slots = &self.slots;
-        #[allow(clippy::map_flatten)]
-        let ans = (0..10)
-            .map(|i| {
-                // i で揃えたい。最小で何秒かかるか。揃えられない場合はNoneを返す
-                if slots.iter().any(|slot| !slot.contains(&i)) {
-                    return None;
+        let Problem { n_people, n_event, events } = self;
+        let mut p_queue: BinaryHeap<Event> = BinaryHeap::new();
+
+        for soumen_event in events {
+            p_queue.push(Event::Soumen(*soumen_event));
+        }
+
+        let mut people_to_somen = vec![0; self.n_people];
+        let mut waiting_people: BinaryHeap<Person> = BinaryHeap::new(); // そうめんの列に並んでいる人
+        for i in 0..*n_people {
+            waiting_people.push(Person { person: i })
+        }
+
+        while let Some(event) = p_queue.pop() {
+            match event {
+                Event::Soumen(e) => {
+                    if let Some(top_person) = waiting_people.pop() {
+                        people_to_somen[top_person.person] += e.amount;
+                        p_queue.push(Event::ComeBack(ComeBackEvent {
+                            person: top_person.person,
+                            time: e.time + e.len,
+                        }));
+                    }
                 }
-
-                let time = (0..3)
-                    .permutations(3)
-                    .map(|route| {
-                        // route[0], route[1], route[2] の順番にスロットを止める
-                        let mut time = 0;
-                        for j in route {
-                            // slots[j] を止める
-                            loop {
-                                if slots[j][(time % m) as usize] == i {
-                                    time += 1;
-                                    break;
-                                }
-                                time += 1;
-                            }
-                        }
-                        time
-                    })
-                    .min()
-                    .unwrap()
-                    - 1;
-                Some(time)
-            })
-            .flatten()
-            .min();
-        Answer { ans }
-    }
-
-    fn solve2(&self) -> Answer {
-        let m = self.m;
-        let slots = &self.slots;
-
-        #[allow(clippy::map_flatten)]
-        let ans = (0..10)
-            .map(|digit| {
-                // i で揃えたい。最小で何秒かかるか。揃えられない場合はNoneを返す
-                if slots.iter().any(|slot| !slot.contains(&digit)) {
-                    return None;
-                }
-
-                let min_time = (0..3)
-                    .permutations(3)
-                    .map(|route| {
-                        // route[0], route[1], route[2] の順番にスロットを止める
-                        let mut current_time = 0;
-                        for slot_idx in route {
-                            // slots[slot_idx] を止める
-                            loop {
-                                if slots[slot_idx][(current_time % m) as usize] == digit {
-                                    current_time += 1;
-                                    break;
-                                }
-                                current_time += 1;
-                            }
-                        }
-                        current_time
-                    })
-                    .min()
-                    .unwrap()
-                    - 1; // 最後のスロットを押した後に1秒経過している事になってしまっているので、元に戻す。
-                Some(min_time)
-            })
-            .flatten()
-            .min();
-        Answer { ans }
+                Event::ComeBack(e) => waiting_people.push(Person { person: e.person }),
+            }
+        }
+        Answer { ans: people_to_somen }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: Option<i64>,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans.unwrap_or(-1));
+        for &x in &self.ans {
+            println!("{}", x);
+        }
     }
 }
 
 fn main() {
-    Problem::read(ProconReader::new(stdin().lock())).solve2().print();
+    Problem::read(ProconReader::new(stdin().lock())).solve().print();
 }
 
 #[cfg(test)]

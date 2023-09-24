@@ -1,4 +1,4 @@
-use std::{collections::BinaryHeap, io::stdin};
+use std::{cmp::Reverse, collections::BinaryHeap, io::stdin};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct SoumenEvent {
@@ -20,12 +20,6 @@ enum Event {
 }
 
 impl Event {
-    fn is_somen(&self) -> bool {
-        matches!(self, Event::Soumen(_))
-    }
-    fn is_come_back(&self) -> bool {
-        matches!(self, Event::ComeBack(_))
-    }
     fn get_time(&self) -> i64 {
         match self {
             Event::Soumen(e) => e.time,
@@ -37,35 +31,20 @@ impl Event {
 impl PartialOrd for Event {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         // 時間の小さい順にBinaryHeapが出てくるようにする
+        // Soumen と ComeBack が同じ場合は ComeBack を優先する
         if self.get_time() == other.get_time() {
-            if self.is_come_back() {
-                return Some(std::cmp::Ordering::Greater);
-            } else {
-                return Some(std::cmp::Ordering::Less);
-            }
+            return match self {
+                Event::Soumen(_) => Some(std::cmp::Ordering::Less),
+                Event::ComeBack(_) => Some(std::cmp::Ordering::Greater), // ComeBack が優先
+            };
         }
         PartialOrd::partial_cmp(&self.get_time(), &other.get_time()).map(|c| c.reverse())
     }
+
+    // (get_time(), 1(Soumen) or 0(ComeBack)) で辞書順比較をするのもありかも
 }
 
 impl Ord for Event {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.partial_cmp(other).unwrap()
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-struct Person {
-    person: usize,
-}
-
-impl PartialOrd for Person {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        PartialOrd::partial_cmp(&self.person, &other.person).map(|c| c.reverse())
-    }
-}
-
-impl Ord for Person {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.partial_cmp(other).unwrap()
     }
@@ -89,31 +68,34 @@ impl Problem {
         Problem { n_people, n_event, events }
     }
     fn solve(&self) -> Answer {
+        // リファクタリング内容
+        //*  */ Reverse を使った(自前で順序逆転の構造体を作る必要はなかった)
+        // * `let Some(top_person)` → `let Some(Reverse(top_person))`
         let Problem { n_people, n_event, events } = self;
-        let mut p_queue: BinaryHeap<Event> = BinaryHeap::new();
+        let mut event_q_queue: BinaryHeap<Event> = BinaryHeap::new();
 
         for soumen_event in events {
-            p_queue.push(Event::Soumen(*soumen_event));
+            event_q_queue.push(Event::Soumen(*soumen_event));
         }
 
         let mut people_to_somen = vec![0; self.n_people];
-        let mut waiting_people: BinaryHeap<Person> = BinaryHeap::new(); // そうめんの列に並んでいる人
+        let mut waiting_people: BinaryHeap<Reverse<usize>> = BinaryHeap::new(); // そうめんの列に並んでいる人
         for i in 0..*n_people {
-            waiting_people.push(Person { person: i })
+            waiting_people.push(Reverse(i))
         }
 
-        while let Some(event) = p_queue.pop() {
+        while let Some(event) = event_q_queue.pop() {
             match event {
                 Event::Soumen(e) => {
-                    if let Some(top_person) = waiting_people.pop() {
-                        people_to_somen[top_person.person] += e.amount;
-                        p_queue.push(Event::ComeBack(ComeBackEvent {
-                            person: top_person.person,
+                    if let Some(Reverse(top_person)) = waiting_people.pop() {
+                        people_to_somen[top_person] += e.amount;
+                        event_q_queue.push(Event::ComeBack(ComeBackEvent {
+                            person: top_person,
                             time: e.time + e.len,
                         }));
                     }
                 }
-                Event::ComeBack(e) => waiting_people.push(Person { person: e.person }),
+                Event::ComeBack(e) => waiting_people.push(Reverse(e.person)),
             }
         }
         Answer { ans: people_to_somen }

@@ -9,6 +9,11 @@ fn is_kaibun(s: &[u8]) -> bool {
     (0..n).all(|i| s[i] == s[n - i - 1])
 }
 
+fn is_kaibun2(s: &[u8]) -> bool {
+    let rev_s = s.iter().copied().rev().collect_vec();
+    s == rev_s
+}
+
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
         let s = r.read_bytes();
@@ -25,6 +30,20 @@ impl Problem {
             .unwrap() as i64;
         Answer { ans }
     }
+
+    fn solve2(&self) -> Answer {
+        let s = &self.s;
+        let n = s.len();
+
+        let ans = (0..=n)
+            .tuple_combinations() // 区間全列挙
+            .filter(|(begin, end)| is_kaibun2(&s[*begin..*end]))
+            .map(|(begin, end)| end - begin)
+            .max()
+            .unwrap() as i64;
+
+        Answer { ans }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -39,7 +58,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read(ProconReader::new(stdin().lock())).solve().print();
+    Problem::read(ProconReader::new(stdin().lock())).solve2().print();
 }
 
 #[cfg(test)]
