@@ -9,7 +9,10 @@ import argparse
 
 
 def get_args():
-    parser = argparse.ArgumentParser(description='コンテスト用のファイル生成')
+    description='コンテスト用のファイル生成'
+    epilog='例: python contest.py abc312 a b c d e'
+
+    parser = argparse.ArgumentParser(description=description, epilog=epilog)
     parser.add_argument('contest_name', type=str)
     parser.add_argument('task_name_list', nargs='*')
     parser.add_argument('--year', type=str, default='2023')
@@ -18,27 +21,32 @@ def get_args():
     return parser.parse_args()
 
 
-def make_files(dir_path: str, problems: list[str]):
+def make_files(contest_dir_path: str, problems: list[str]):
     """
     ディレクトリ（なければ）とファイルを作成する
     """
-    if not os.path.exists(dir_path):
-        os.mkdir(dir_path)
+    if not os.path.exists(contest_dir_path):
+        os.mkdir(contest_dir_path)
+
+    for problem in problems:
+        problem_dir_path = f'{contest_dir_path}/{problem}'
+        if not os.path.exists(problem_dir_path):
+            os.mkdir(problem_dir_path)
 
     # ソースコードの準備(ファイルのコピー)
-    template_file_path: str = "src/contest/template.rs"
+    template_file_path: str = 'src/contest/template.rs'
     for problem in problems:
-        dst_file_path = f"{dir_path}{problem}.rs"
+        dst_file_path = f'{contest_dir_path}/{problem}/{problem}.rs'
         if not os.path.exists(dst_file_path):
             shutil.copy(template_file_path, dst_file_path)
 
 
-def print_toml(dir_path: str, contest_name: str, problems: list[str]):
+def print_toml(contest_dir_path: str, contest_name: str, problems: list[str]):
     for problem in problems:
         print(
             f"""[[bin]]
-    name = "{contest_name}_{problem}"
-    path = "{dir_path}{problem}.rs"
+name = "{contest_name}_{problem}"
+path = "{contest_dir_path}/{problem}/{problem}.rs"
         """
         )
 
@@ -50,12 +58,12 @@ def main():
     problems: list[str] = args.task_name_list
     year: str = args.year
 
-    dir_path: str = f"src/contest/{year}/{contest_name}/"
+    contest_dir_path: str = f'src/contest/{year}/{contest_name}'
     if not args.only_toml:
-        make_files(dir_path, problems)
+        make_files(contest_dir_path, problems)
 
     # cargo.tomlコードの出力
-    print_toml(dir_path, contest_name, problems)
+    print_toml(contest_dir_path, contest_name, problems)
 
 
 if __name__ == '__main__':
