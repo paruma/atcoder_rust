@@ -17,15 +17,15 @@ fn make_adj(n_vertex: usize, edges: &[Edge]) -> Vec<Vec<Edge>> {
     adj
 }
 
-struct Dfs<'a> {
+struct DfsGraph<'a> {
     adj: &'a Vec<Vec<Edge>>,
     visited: Vec<bool>,
 }
 
-impl Dfs<'_> {
-    fn new(adj: &Vec<Vec<Edge>>) -> Dfs<'_> {
+impl DfsGraph<'_> {
+    fn new(adj: &Vec<Vec<Edge>>) -> DfsGraph<'_> {
         // adj.len() は グラフの頂点の数
-        Dfs { adj, visited: vec![false; adj.len()] }
+        DfsGraph { adj, visited: vec![false; adj.len()] }
     }
     fn exec(&mut self, v: usize) {
         // 行きがけ
@@ -39,6 +39,7 @@ impl Dfs<'_> {
         // 帰りがけ
     }
 }
+
 #[cfg(test)]
 mod tests {
     use itertools::Itertools;
@@ -47,7 +48,7 @@ mod tests {
 
     #[allow(clippy::bool_assert_comparison)]
     #[test]
-    fn test_dfs() {
+    fn test_dfs_graph() {
         // 0 ← 1
         // ↓ ↗
         // 2
@@ -58,7 +59,7 @@ mod tests {
             .map(|(from, to)| Edge { from, to })
             .collect_vec();
         let adj = make_adj(n_vertex, &edges);
-        let mut dfs = Dfs::new(&adj);
+        let mut dfs = DfsGraph::new(&adj);
         dfs.exec(0);
         assert_eq!(dfs.visited[0], true);
         assert_eq!(dfs.visited[1], true);
