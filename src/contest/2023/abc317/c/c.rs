@@ -51,7 +51,7 @@ impl Problem {
                         //i→i+1
                         edge_to_len.get(&(path[i], path[i + 1]))
                     })
-                    .take_while(|x| x.is_some())
+                    .take_while(|x| x.is_some()) // while_some でも書ける
                     .map(|x| x.unwrap()) // flatten もありかも。ただし、エラーがでるmapとunwrap の方が安全かも。
                     .sum()
             })

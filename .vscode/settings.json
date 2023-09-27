@@ -7,6 +7,7 @@
         "Deque",
         "iproduct",
         "Itertools",
+        "izip",
         "powerset",
         "Procon",
         "struct"

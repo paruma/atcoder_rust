@@ -24,6 +24,7 @@ impl Problem {
     }
 
     fn solve2(&self) -> Answer {
+        // 初期実装の軽微なリファクタリング
         let k = self.k;
         let base: [i64; 10] = [9, 8, 7, 6, 5, 4, 3, 2, 1, 0];
         let ans = base
@@ -31,6 +32,90 @@ impl Problem {
             .powerset()
             .map(|s| s.into_iter().fold(0, |acc, x| acc * 10 + x))
             .filter(|x| *x != 0)
+            .sorted()
+            .nth(k - 1)
+            .unwrap();
+
+        Answer { ans }
+    }
+
+    fn solve3(&self) -> Answer {
+        // multi_cartesian_product を使った解法
+        let k = self.k;
+        let base: [i64; 10] = [9, 8, 7, 6, 5, 4, 3, 2, 1, 0];
+        // 2^10
+        let ans = std::iter::repeat([true, false])
+            .take(10)
+            .multi_cartesian_product()
+            .map(|s| {
+                izip!(base, s)
+                    .filter_map(|(digit, p)| p.then_some(digit))
+                    .fold(0, |acc, x| acc * 10 + x)
+            })
+            .filter(|&x| x != 0)
+            .sorted()
+            .nth(k - 1)
+            .unwrap();
+        Answer { ans }
+    }
+
+    fn solve4(&self) -> Answer {
+        // bit全探索 を使った解法
+        let k = self.k;
+        let base: [i64; 10] = [9, 8, 7, 6, 5, 4, 3, 2, 1, 0];
+        // 2^10
+        let ans = (0..(1 << 10))
+            .map(|bit_pattern| {
+                let bit_pattern_vec = (0..10).map(|i| (bit_pattern >> i) & 1 == 1).collect_vec();
+                izip!(base, bit_pattern_vec)
+                    .filter_map(|(digit, p)| p.then_some(digit))
+                    .fold(0, |acc, x| acc * 10 + x)
+            })
+            .filter(|&x| x != 0) //
+            .sorted()
+            .nth(k - 1)
+            .unwrap();
+        Answer { ans }
+    }
+
+    fn solve5(&self) -> Answer {
+        // DFS を使った解法
+
+        struct Dfs {
+            size: usize,
+            seq_list: Vec<Vec<bool>>,
+        }
+        impl Dfs {
+            fn new(size: usize) -> Dfs {
+                Dfs { size, seq_list: vec![] }
+            }
+            fn exec(&mut self, seq: &mut Vec<bool>) {
+                if seq.len() == self.size {
+                    // ここがforループの中のようなもの
+                    self.seq_list.push(seq.clone());
+                    return;
+                }
+
+                for p in [true, false] {
+                    seq.push(p);
+                    self.exec(seq);
+                    seq.pop();
+                }
+            }
+        }
+        let k = self.k;
+        let base: [i64; 10] = [9, 8, 7, 6, 5, 4, 3, 2, 1, 0];
+        let mut dfs = Dfs::new(10);
+        dfs.exec(&mut vec![]);
+        let seq_list = dfs.seq_list;
+        let ans = seq_list
+            .iter()
+            .map(|v| {
+                izip!(base, v)
+                    .filter_map(|(digit, p)| p.then_some(digit))
+                    .fold(0, |acc, x| acc * 10 + x)
+            })
+            .filter(|&x| x != 0)
             .sorted()
             .nth(k - 1)
             .unwrap();
@@ -51,7 +136,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read(ProconReader::new(stdin().lock())).solve2().print();
+    Problem::read(ProconReader::new(stdin().lock())).solve5().print();
 }
 
 #[cfg(test)]
@@ -77,7 +162,7 @@ mod tests {
 
 // ====== snippet ======
 
-use itertools::Itertools;
+use itertools::{izip, Itertools};
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {
