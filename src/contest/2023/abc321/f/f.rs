@@ -1,133 +1,74 @@
-use std::{cmp::min, io::stdin};
+use core::panic;
+use std::io::stdin;
 
-struct TestCase {
-    n: i64,
-    x: i64,
-    k: i64,
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Query {
+    Add(i64),
+    Erase(i64),
 }
 struct Problem {
-    n: usize,
-    test_case_list: Vec<TestCase>,
+    nq: usize,
+    sum: i64,
+    qs: Vec<Query>,
 }
 
-fn pow2(i: i64) -> i64 {
-    assert!(i >= 0);
-    assert!(i <= 63);
-    i64::pow(2, i as u32)
+struct Dp {
+    dp: Vec<Vec<RR>>,
 }
+impl Dp {
+    fn new(n: usize, sum: i64) -> Dp {
+        Dp { dp: vec![vec![RR::zero(); sum as usize + 1]; n + 1] }
+    }
 
-fn parent(i: i64) -> i64 {
-    assert!(i >= 2);
-    i / 2
-}
-
-fn brother(i: i64) -> i64 {
-    assert!(i >= 2);
-    i ^ 1
-}
-
-fn n_descendants(i: i64, k: i64, n: i64) -> i64 {
-    // iの子孫で距離がkのもの (k=0なら自分も含む)
-
-    // iの子孫で距離がkのもの: [i * 2^k, (i+1) * 2^k)
-    // [i * 2^k, (i+1) * 2^k) と [1, n] = [1, n+1) の共通部分の数を求める
-    // n<=10^18
-    // i * 2^k >= 10^18 + 1 のときは 0返す
-    // log_2(i) + k >= log_2(10^18 + 1) のときは 0を返す
-    // log_2(10^18 + 1) = 59.79....
-    // log_2(i) + k >= 60 だったら 0を返しておけば良い。
-    // k=55
-    // log_2(i) = 5.1
-    // k>= 60 であれば↑を満たす
-    if i.ilog2() as i64 + k >= 60 {
-        0
-    } else {
-        let begin = i * pow2(k);
-        if begin > n {
-            0
+    fn at(&self, i: usize, sum: i64) -> RR {
+        if sum < 0 {
+            RR::zero()
         } else {
-            let end = min((i + 1) * pow2(k), n + 1);
-            end - begin
+            self.dp[i][sum as usize]
         }
     }
-}
 
-#[allow(clippy::if_same_then_else)]
-fn n_not_descendants(i: i64, k: i64, n: i64) -> i64 {
-    // iの子孫以外で距離がkのもの
-    if i == 1 {
-        // ルート
-        0
-    } else if k == 0 {
-        0
-    } else if k == 1 {
-        1 //親だけ
-    } else {
-        n_descendants(brother(i), k - 2, n) + n_not_descendants(parent(i), k - 1, n)
+    fn at_mut(&mut self, i: usize, sum: i64) -> &mut RR {
+        &mut self.dp[i][sum as usize]
     }
 }
-
-impl TestCase {
-    fn solve(&self) -> i64 {
-        // 解法1: 子孫とそれ以外で場合分け。それ以外の部分は再帰になる
-        let n = self.n; // 頂点の数
-        let x = self.x; // x から距離 k の頂点の数を求めたい。
-        let k = self.k;
-
-        n_descendants(x, k, n) + n_not_descendants(x, k, n)
-    }
-    #[allow(clippy::if_same_then_else)]
-    fn solve2(&self) -> i64 {
-        // 解法2: 親の方を辿っていって、各頂点に対して親と兄弟でカウントをする
-        // FIXME: RE が発生している
-        let n = self.n; // 頂点の数
-        let x = self.x; // x から距離 k の頂点の数を求めたい。
-        let k = self.k;
-
-        let s: i64 = std::iter::successors(Some((x, k)), |&(i, d)| {
-            if parent(i) == 1 {
-                None
-            } else if d == 0 {
-                None
-            } else {
-                Some((parent(i), d - 1))
-            }
-            //xの高さとiの高さから距離の計算をしても良かったかも
-        })
-        .map(|(i, d)| {
-            //i の親と兄弟で距離がkのものを計算
-            // 個々の部分は別の関数に切り出した方がいい。kという使わない変数が環境にあるので紛らわしい。
-            if i == 1 {
-                0
-            } else if d == 0 {
-                0
-            } else if d == 1 {
-                1
-            } else {
-                n_descendants(brother(i), d - 2, n)
-            }
-        })
-        .sum();
-
-        n_descendants(x, k, n) + s
-    }
-}
-
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let n = r.read_usize_1();
-        let test_case_list = (0..n)
-            .map(|_| {
-                let (n, x, k) = r.read_i64_3();
-                TestCase { n, x, k }
-            })
-            .collect_vec();
-        Problem { n, test_case_list }
+        let (nq, sum) = r.read_i64_2();
+        let nq = nq as usize;
+        let qs = std::iter::repeat_with(|| {
+            let line = r.read_vec_str();
+            let v: i64 = line[1].parse().unwrap();
+            match line[0].as_str() {
+                "+" => Query::Add(v),
+                "-" => Query::Erase(v),
+                _ => panic!(),
+            }
+        })
+        .take(nq)
+        .collect_vec();
+        Problem { nq, sum, qs }
     }
     fn solve(&self) -> Answer {
-        let Problem { n, test_case_list } = self;
+        let Problem { nq, sum, qs } = self;
 
-        let ans = test_case_list.iter().map(|t| t.solve2()).collect_vec();
+        let mut dp = Dp::new(*nq, *sum);
+        *dp.at_mut(0, 0) = RR::one();
+        for (i, &query) in qs.iter().enumerate() {
+            match query {
+                Query::Add(v) => {
+                    for s in 0..=*sum {
+                        *dp.at_mut(i + 1, s) = dp.at(i, s - v) + dp.at(i, s);
+                    }
+                }
+                Query::Erase(v) => {
+                    for s in 0..=*sum {
+                        *dp.at_mut(i + 1, s) = dp.at(i, s) - dp.at(i + 1, s - v);
+                    }
+                }
+            }
+        }
+        let ans = (0..*nq).map(|i| dp.at(i + 1, *sum).rep()).collect_vec();
         Answer { ans }
     }
 }
@@ -160,15 +101,6 @@ mod tests {
     }
 
     #[test]
-    fn test_brother() {
-        assert_eq!(brother(4), 5);
-        assert_eq!(brother(5), 4);
-
-        assert_eq!(brother(6), 7);
-        assert_eq!(brother(7), 6);
-    }
-
-    #[test]
     fn test_problem() {
         let _input = "
 3
@@ -180,6 +112,51 @@ mod tests {
 }
 
 // ====== snippet ======
+
+use num::{One, Zero};
+use rr::*;
+pub mod rr {
+    pub const MOD: i64 = 998_244_353;
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+    pub struct RR {
+        rep: i64,
+    }
+    impl RR {
+        pub fn new(x: i64) -> RR {
+            RR { rep: x.rem_euclid(MOD) }
+        }
+        pub fn rep(self) -> i64 {
+            self.rep
+        }
+    }
+    impl num_traits::Zero for RR {
+        fn zero() -> Self {
+            RR::new(0)
+        }
+        fn is_zero(&self) -> bool {
+            self.rep == 0
+        }
+    }
+    impl num_traits::One for RR {
+        fn one() -> Self {
+            RR::new(1)
+        }
+    }
+    macro_rules ! bi_ops_impl {($ std_ops : ident , $ fn : ident , $ op : tt ) => {impl std :: ops ::$ std_ops for RR {type Output = Self ; fn $ fn (self , rhs : Self ) -> Self :: Output {RR :: new (self . rep $ op rhs . rep ) } } } ; }
+    bi_ops_impl ! (Add , add , + );
+    bi_ops_impl ! (Sub , sub , - );
+    bi_ops_impl ! (Mul , mul , * );
+    macro_rules ! bi_ops_assign_impl {($ std_ops_assign : ident , $ fn_assign : ident , $ op : tt ) => {impl std :: ops ::$ std_ops_assign for RR {fn $ fn_assign (& mut self , rhs : Self ) {* self = * self $ op rhs } } } ; }
+    bi_ops_assign_impl ! (AddAssign , add_assign , + );
+    bi_ops_assign_impl ! (SubAssign , sub_assign , - );
+    bi_ops_assign_impl ! (MulAssign , mul_assign , * );
+    impl std::ops::Neg for RR {
+        type Output = Self;
+        fn neg(self) -> Self::Output {
+            RR::new(-self.rep)
+        }
+    }
+}
 
 use itertools::Itertools;
 #[allow(unused_imports)]

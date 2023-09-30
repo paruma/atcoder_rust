@@ -25,6 +25,10 @@ path = "src/contest/2023/abc321/d/d.rs"
 name = "abc321_e"
 path = "src/contest/2023/abc321/e/e.rs"
 
+[[bin]]
+name = "abc321_f"
+path = "src/contest/2023/abc321/f/f.rs"
+
 
 [[bin]]
 name = "midori_a"
