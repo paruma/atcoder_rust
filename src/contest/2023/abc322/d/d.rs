@@ -14,9 +14,6 @@ struct MinoInfo {
 
 impl MinoInfo {
     fn new(mino: Grid) -> MinoInfo {
-        if (0_usize..4).filter(|&x| (0_usize..4).any(|y| mino[y][x] == b'#')).count() == 0 {
-            dbg!("何かがおかしい");
-        }
         let x_min =
             (0_usize..4).filter(|&x| (0_usize..4).any(|y| mino[y][x] == b'#')).min().unwrap();
         let x_max =
@@ -29,6 +26,52 @@ impl MinoInfo {
 
         MinoInfo { mino, x_min, x_max, y_min, y_max }
     }
+
+    fn print(&self) {
+        println!(
+            "x_min={}, y_min={}, x_max={}, y_max={}",
+            self.x_min, self.y_min, self.x_max, self.y_max
+        );
+        print_grid(&self.mino);
+    }
+}
+
+fn print_grid(grid: &Grid) {
+    for line in grid {
+        println!("{}", String::from_utf8(line.clone()).unwrap());
+    }
+}
+
+struct MinoInfoWithTrim {
+    mino: Grid,
+    height: usize,
+    width: usize,
+}
+
+impl MinoInfoWithTrim {
+    fn new(mino: Grid) -> MinoInfoWithTrim {
+        let x_min =
+            (0_usize..4).filter(|&x| (0_usize..4).any(|y| mino[y][x] == b'#')).min().unwrap();
+        let x_max =
+            (0_usize..4).filter(|&x| (0_usize..4).any(|y| mino[y][x] == b'#')).max().unwrap();
+
+        let y_min =
+            (0_usize..4).filter(|&y| (0_usize..4).any(|x| mino[y][x] == b'#')).min().unwrap();
+        let y_max =
+            (0_usize..4).filter(|&y| (0_usize..4).any(|x| mino[y][x] == b'#')).max().unwrap();
+
+        let height = y_max - y_min + 1;
+        let width = x_max - x_min + 1;
+
+        let mut trimmed_mino = vec![vec![b'-'; width]; height];
+        for y in 0..height {
+            for x in 0..width {
+                trimmed_mino[y][x] = mino[y + y_min][x + x_min];
+            }
+        }
+
+        MinoInfoWithTrim { mino: trimmed_mino, height, width }
+    }
 }
 
 type Grid = Vec<Vec<u8>>;
@@ -37,6 +80,7 @@ fn rotate(mino: &Grid) -> Grid {
     let mut next = vec![vec![b'-'; 4]; 4];
     for y in 0..4 {
         for x in 0..4 {
+            // 反時計回り
             next[y][x] = mino[x][3 - y];
         }
     }
@@ -63,16 +107,29 @@ impl Problem {
             })
             .collect_vec();
 
+        // mino_list[0][0].print();
+        // println!();
+
+        // mino_list[0][1].print();
+        // println!();
+
+        // mino_list[0][2].print();
+        // println!();
+
+        // mino_list[0][3].print();
+        // println!();
+
         let ans = mino_list.iter().multi_cartesian_product().any(|minos| {
             assert!(minos.len() == 3);
             let mut is_ok = false;
-            'loop0: for y0 in 0..4 - minos[0].y_max + minos[0].y_min {
+
+            for y0 in 0..4 - minos[0].y_max + minos[0].y_min {
                 for x0 in 0..4 - minos[0].x_max + minos[0].x_min {
-                    'loop1: for y1 in 0..4 - minos[1].y_max + minos[1].y_min {
+                    for y1 in 0..4 - minos[1].y_max + minos[1].y_min {
                         for x1 in 0..4 - minos[1].x_max + minos[1].x_min {
                             //
-                            'loop2: for y2 in 0..4 - minos[2].y_max + minos[2].y_min {
-                                for x2 in 0..4 - minos[2].x_max + minos[2].x_min {
+                            for y2 in 0..4 - minos[2].y_max + minos[2].y_min {
+                                'loop_x2: for x2 in 0..4 - minos[2].x_max + minos[2].x_min {
                                     // ここから塗り始める
                                     let mut grid = vec![vec![b'.'; 4]; 4];
                                     for ry0 in 0..=minos[0].y_max - minos[0].y_min {
@@ -81,7 +138,6 @@ impl Problem {
                                                 [minos[0].y_min + ry0][minos[0].x_min + rx0];
                                         }
                                     }
-
                                     for ry1 in 0..=minos[1].y_max - minos[1].y_min {
                                         for rx1 in 0..=minos[1].x_max - minos[1].x_min {
                                             if grid[y1 + ry1][x1 + rx1] == b'#'
@@ -89,7 +145,7 @@ impl Problem {
                                                     [minos[1].x_min + rx1]
                                                     == b'#'
                                             {
-                                                continue 'loop1;
+                                                continue 'loop_x2;
                                             }
                                             if grid[y1 + ry1][x1 + rx1] == b'.' {
                                                 grid[y1 + ry1][x1 + rx1] = minos[1].mino
@@ -105,7 +161,7 @@ impl Problem {
                                                     [minos[2].x_min + rx2]
                                                     == b'#'
                                             {
-                                                continue 'loop2;
+                                                continue 'loop_x2;
                                             }
                                             if grid[y2 + ry2][x2 + rx2] == b'.' {
                                                 grid[y2 + ry2][x2 + rx2] = minos[2].mino
@@ -131,6 +187,312 @@ impl Problem {
 
         Answer { ans }
     }
+
+    fn solve2(&self) -> Answer {
+        // 変更内容: forループの中身をリファクタリング
+        let mino_list = &self.mino_list;
+        // 回転を入れる
+        let mino_list = mino_list
+            .iter()
+            .map(|mino| {
+                let mino0 = mino.clone();
+                let mino1 = rotate(&mino0);
+                let mino2 = rotate(&mino1);
+                let mino3 = rotate(&mino2);
+                [mino0, mino1, mino2, mino3].map(|mino| MinoInfo::new(mino))
+            })
+            .collect_vec();
+
+        let ans = mino_list.iter().multi_cartesian_product().any(|minos| {
+            assert!(minos.len() == 3);
+
+            for y0 in 0..4 - minos[0].y_max + minos[0].y_min {
+                for x0 in 0..4 - minos[0].x_max + minos[0].x_min {
+                    for y1 in 0..4 - minos[1].y_max + minos[1].y_min {
+                        for x1 in 0..4 - minos[1].x_max + minos[1].x_min {
+                            //
+                            for y2 in 0..4 - minos[2].y_max + minos[2].y_min {
+                                for x2 in 0..4 - minos[2].x_max + minos[2].x_min {
+                                    // mino[0] を (x0, y0) が左上になるように置く
+                                    // mino[1] を...
+                                    // mino[2] を...
+                                    // このときに4×4に敷き詰められるか？
+
+                                    let make_grid =
+                                        |mino: &MinoInfo, y: usize, x: usize| -> [[u8; 4]; 4] {
+                                            let mut grid = [[b'.'; 4]; 4];
+                                            for ry in 0..=mino.y_max - mino.y_min {
+                                                for rx in 0..=mino.x_max - mino.x_min {
+                                                    grid[y + ry][x + rx] =
+                                                        mino.mino[mino.y_min + ry][mino.x_min + rx];
+                                                }
+                                            }
+                                            grid
+                                        };
+
+                                    let grid0 = make_grid(minos[0], y0, x0);
+                                    let grid1 = make_grid(minos[1], y1, x1);
+                                    let grid2 = make_grid(minos[2], y2, x2);
+
+                                    let is_ok_sub = iproduct!((0..4), (0..4)).all(|(y, x)| {
+                                        [&grid0, &grid1, &grid2]
+                                            .iter()
+                                            .filter(|grid| grid[y][x] == b'#')
+                                            .count()
+                                            == 1
+                                    });
+
+                                    if is_ok_sub {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            false
+        });
+
+        Answer { ans }
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn is_ok_solve3(
+        mino0: &MinoInfo,
+        mino1: &MinoInfo,
+        mino2: &MinoInfo,
+        y0: usize,
+        x0: usize,
+        y1: usize,
+        x1: usize,
+        y2: usize,
+        x2: usize,
+    ) -> bool {
+        // mino[0] を (x0, y0) が左上になるように置く
+        // mino[1] を...
+        // mino[2] を...
+        // このときに4×4に敷き詰められるか？
+
+        let make_grid = |mino: &MinoInfo, y: usize, x: usize| -> [[u8; 4]; 4] {
+            let mut grid = [[b'.'; 4]; 4];
+            for ry in 0..=mino.y_max - mino.y_min {
+                for rx in 0..=mino.x_max - mino.x_min {
+                    grid[y + ry][x + rx] = mino.mino[mino.y_min + ry][mino.x_min + rx];
+                }
+            }
+            grid
+        };
+
+        let grid0 = make_grid(mino0, y0, x0);
+        let grid1 = make_grid(mino1, y1, x1);
+        let grid2 = make_grid(mino2, y2, x2);
+
+        iproduct!((0..4), (0..4)).all(|(y, x)| {
+            [&grid0, &grid1, &grid2].iter().filter(|grid| grid[y][x] == b'#').count() == 1
+        })
+    }
+
+    fn solve3(&self) -> Answer {
+        // 変更内容: さらにリファクタリング
+        let mino_list = &self.mino_list;
+        let mino_list = mino_list
+            .iter()
+            .map(|mino| {
+                let mino0 = mino.clone();
+                let mino1 = rotate(&mino0);
+                let mino2 = rotate(&mino1);
+                let mino3 = rotate(&mino2);
+                [mino0, mino1, mino2, mino3].map(|mino| MinoInfo::new(mino))
+            })
+            .collect_vec();
+
+        let ans = mino_list.iter().multi_cartesian_product().any(|minos| {
+            assert!(minos.len() == 3);
+
+            for y0 in 0..4 - minos[0].y_max + minos[0].y_min {
+                for x0 in 0..4 - minos[0].x_max + minos[0].x_min {
+                    for y1 in 0..4 - minos[1].y_max + minos[1].y_min {
+                        for x1 in 0..4 - minos[1].x_max + minos[1].x_min {
+                            for y2 in 0..4 - minos[2].y_max + minos[2].y_min {
+                                for x2 in 0..4 - minos[2].x_max + minos[2].x_min {
+                                    if Problem::is_ok_solve3(
+                                        minos[0], minos[1], minos[2], y0, x0, y1, x1, y2, x2,
+                                    ) {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            false
+        });
+
+        Answer { ans }
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn is_ok_solve4(
+        mino0: &MinoInfoWithTrim,
+        mino1: &MinoInfoWithTrim,
+        mino2: &MinoInfoWithTrim,
+        y0: usize,
+        x0: usize,
+        y1: usize,
+        x1: usize,
+        y2: usize,
+        x2: usize,
+    ) -> bool {
+        // mino[0] を (x0, y0) が左上になるように置く
+        // mino[1] を...
+        // mino[2] を...
+        // このときに4×4に敷き詰められるか？
+
+        // 4×4のグリッドにミノを置く。左上が(x,y)になるように置く。
+        let make_grid = |mino: &MinoInfoWithTrim, y: usize, x: usize| -> [[u8; 4]; 4] {
+            let mut grid = [[b'.'; 4]; 4];
+            for ry in 0..mino.height {
+                for rx in 0..mino.width {
+                    grid[y + ry][x + rx] = mino.mino[ry][rx];
+                }
+            }
+            grid
+        };
+
+        let grid0 = make_grid(mino0, y0, x0);
+        let grid1 = make_grid(mino1, y1, x1);
+        let grid2 = make_grid(mino2, y2, x2);
+
+        iproduct!((0..4), (0..4)).all(|(y, x)| {
+            [&grid0, &grid1, &grid2].iter().filter(|grid| grid[y][x] == b'#').count() == 1
+        })
+    }
+
+    fn solve4(&self) -> Answer {
+        // 変更内容: ミノのトリムをする
+        let mino_list = &self.mino_list;
+        let mino_list = mino_list
+            .iter()
+            .map(|mino| {
+                let mino0 = mino.clone();
+                let mino1 = rotate(&mino0);
+                let mino2 = rotate(&mino1);
+                let mino3 = rotate(&mino2);
+                [mino0, mino1, mino2, mino3].map(|mino| MinoInfoWithTrim::new(mino))
+            })
+            .collect_vec();
+
+        let ans = mino_list.iter().multi_cartesian_product().any(|minos| {
+            assert!(minos.len() == 3);
+
+            for y0 in 0..4 - minos[0].height + 1 {
+                for x0 in 0..4 - minos[0].width + 1 {
+                    for y1 in 0..4 - minos[1].height + 1 {
+                        for x1 in 0..4 - minos[1].width + 1 {
+                            for y2 in 0..4 - minos[2].height + 1 {
+                                for x2 in 0..4 - minos[2].width + 1 {
+                                    if Problem::is_ok_solve4(
+                                        minos[0], minos[1], minos[2], y0, x0, y1, x1, y2, x2,
+                                    ) {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            false
+        });
+
+        Answer { ans }
+    }
+
+    fn is_ok_solve5(mino_list: &[&MinoInfoWithTrim], pos_list: &[Pos<usize>]) -> bool {
+        // i=0,1,2 に対して、mino_list[i] を 左上が pos_list[i] になるように置く
+        // このときに4×4に敷き詰められるか？
+
+        // 4×4のグリッドにミノを置く。左上が(x,y)になるように置く。
+        let make_grid = |mino: &MinoInfoWithTrim, pos: &Pos<usize>| -> [[u8; 4]; 4] {
+            let mut grid = [[b'.'; 4]; 4];
+            for ry in 0..mino.height {
+                for rx in 0..mino.width {
+                    grid[pos.y + ry][pos.x + rx] = mino.mino[ry][rx];
+                }
+            }
+            grid
+        };
+
+        let grid_list =
+            izip!(mino_list, pos_list).map(|(mino, pos)| make_grid(mino, pos)).collect_vec();
+
+        iproduct!((0..4), (0..4))
+            .all(|(y, x)| grid_list.iter().filter(|grid| grid[y][x] == b'#').count() == 1)
+    }
+
+    fn solve5(&self) -> Answer {
+        // 変更内容: 6重 for ループを DFS で実装
+        let mino_list = &self.mino_list;
+        let mino_list = mino_list
+            .iter()
+            .map(|mino| {
+                let mino0 = mino.clone();
+                let mino1 = rotate(&mino0);
+                let mino2 = rotate(&mino1);
+                let mino3 = rotate(&mino2);
+                [mino0, mino1, mino2, mino3].map(|mino| MinoInfoWithTrim::new(mino))
+            })
+            .collect_vec();
+
+        struct Dfs<'a> {
+            minos: &'a Vec<&'a MinoInfoWithTrim>,
+            is_ok: bool,
+        }
+
+        impl<'a> Dfs<'a> {
+            fn new(minos: &'a Vec<&MinoInfoWithTrim>) -> Self {
+                Self { minos, is_ok: false }
+            }
+
+            fn rec(&mut self, pos_list: &mut Vec<Pos<usize>>) {
+                if self.is_ok {
+                    return;
+                }
+                #[allow(clippy::collapsible_if)]
+                if pos_list.len() == 3 {
+                    if Problem::is_ok_solve5(self.minos, pos_list) {
+                        self.is_ok = true;
+                    }
+                    return;
+                }
+
+                let i = pos_list.len();
+                for y in 0..4 - self.minos[i].height + 1 {
+                    for x in 0..4 - self.minos[i].width + 1 {
+                        pos_list.push(Pos::new(x, y));
+                        self.rec(pos_list);
+                        pos_list.pop();
+                    }
+                }
+            }
+
+            fn rec_init(&mut self) {
+                self.rec(&mut vec![]);
+            }
+        }
+
+        let ans = mino_list.iter().multi_cartesian_product().any(|minos| {
+            assert!(minos.len() == 3);
+            let mut dfs = Dfs::new(&minos);
+            dfs.rec_init();
+            dfs.is_ok
+        });
+
+        Answer { ans }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -146,7 +508,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read(ProconReader::new(stdin().lock())).solve().print();
+    Problem::read(ProconReader::new(stdin().lock())).solve5().print();
 }
 
 #[cfg(test)]
@@ -247,7 +609,7 @@ pub mod vec_vec_at {
     }
 }
 
-use itertools::Itertools;
+use itertools::{iproduct, izip, Itertools};
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {
