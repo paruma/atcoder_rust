@@ -13,11 +13,31 @@ impl Problem {
     }
     fn solve(&self) -> Answer {
         let Problem { n, s } = self;
-        // 012 123  n=4 01
+        // tuple_windows はそんなに書きやすくならない
+        // let ans = s
+        //     .iter()
+        //     .tuple_windows()
+        //     .find_position(|(ch1, ch2, ch3)| &[**ch1, **ch2, **ch3] == b"ABC")
+        //     .map(|(i, _)| (i + 1) as i64)
+        //     .unwrap_or(-1);
+
         let ans = (0..n - 2)
-            .find(|&i| s[i] == b'A' && s[i + 1] == b'B' && s[i + 2] == b'C')
+            //.find(|&i| s[i] == b'A' && s[i + 1] == b'B' && s[i + 2] == b'C')
+            .find(|&i| &s[i..i + 3] == b"ABC") //こう書くと楽
             .map(|i| (i + 1) as i64)
             .unwrap_or(-1);
+
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        let Problem { n, s } = self;
+        let s = String::from_utf8(s.clone()).unwrap();
+
+        // find は bstr の関数
+        // String なら標準で find が入っているが、bstr を使うと Vec<u8> でも find ができる。
+        //let ans = s.find("ABC").map(|i| (i + 1) as i64).unwrap_or(-1);
+        let ans = s.find("ABC").map(|i| (i + 1) as i64).unwrap_or(-1);
 
         Answer { ans }
     }
@@ -35,7 +55,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read(ProconReader::new(stdin().lock())).solve().print();
+    Problem::read(ProconReader::new(stdin().lock())).solve2().print();
 }
 
 #[cfg(test)]
@@ -61,6 +81,8 @@ mod tests {
 
 // ====== snippet ======
 
+use bstr::ByteSlice;
+use itertools::Itertools;
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {

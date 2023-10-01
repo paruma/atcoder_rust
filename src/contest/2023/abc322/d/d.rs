@@ -74,6 +74,7 @@ impl MinoInfoWithTrim {
     }
 }
 
+// [[char; 4]; 4] のほうがいい説
 type Grid = Vec<Vec<u8>>;
 
 fn rotate(mino: &Grid) -> Grid {
@@ -493,6 +494,7 @@ impl Problem {
 
         Answer { ans }
     }
+
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
