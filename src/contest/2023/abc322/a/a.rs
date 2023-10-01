@@ -1,18 +1,24 @@
 use std::io::stdin;
 
 struct Problem {
-    a: i64,
-    b: i64,
+    n: usize,
+    s: Vec<u8>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let n = r.read_usize_1();
+        let s = r.read_bytes();
+        Problem { n, s }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let Problem { n, s } = self;
+        // 012 123  n=4 01
+        let ans = (0..n - 2)
+            .find(|&i| s[i] == b'A' && s[i + 1] == b'B' && s[i + 2] == b'C')
+            .map(|i| (i + 1) as i64)
+            .unwrap_or(-1);
+
         Answer { ans }
     }
 }

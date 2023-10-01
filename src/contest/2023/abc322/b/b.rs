@@ -1,18 +1,34 @@
 use std::io::stdin;
 
 struct Problem {
-    a: i64,
-    b: i64,
+    n: usize,
+    m: usize,
+    s: Vec<u8>,
+    t: Vec<u8>,
 }
 
+fn is_prefix(a: &[u8], b: &[u8]) -> bool {
+    a == &b[0..a.len()]
+}
+
+fn is_suffix(a: &[u8], b: &[u8]) -> bool {
+    a == &b[b.len() - a.len()..]
+}
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let (n, m) = r.read_usize_2();
+        let s = r.read_bytes();
+        let t = r.read_bytes();
+        Problem { n, m, s, t }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let Problem { n, m, s, t } = self;
+        let ans = match (is_prefix(s, t), is_suffix(s, t)) {
+            (true, true) => 0,
+            (true, false) => 1,
+            (false, true) => 2,
+            (false, false) => 3,
+        };
         Answer { ans }
     }
 }

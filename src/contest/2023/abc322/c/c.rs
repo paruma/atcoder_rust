@@ -1,30 +1,41 @@
 use std::io::stdin;
 
 struct Problem {
-    a: i64,
-    b: i64,
+    final_day: i64,
+    n_fire: usize,
+    day_list: Vec<i64>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let (final_day, n_fire) = r.read_any_2::<i64, usize>();
+        let day_list = r.read_vec_i64();
+        Problem { final_day, n_fire, day_list }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let Problem { final_day, n_fire, day_list } = self;
+        //day_list: 花火が上がる日
+        let ans = (1..=*final_day)
+            .map(|i| {
+                let next_fire_idx = lower_bound(day_list, i);
+                day_list[next_fire_idx] - i
+            })
+            .collect_vec();
+
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        for &x in &self.ans {
+            println!("{}", x);
+        }
     }
 }
 
@@ -54,7 +65,60 @@ mod tests {
 }
 
 // ====== snippet ======
+/// 二分探索をする
+/// ```text
+/// ng ng ng ok ok ok
+///          ↑ここの引数の値を返す
+/// ```
+/// ## Arguments
+/// * ok != ng
+/// * |ok - ng| <= 2^63 - 1, |ok + ng| <= 2^63 - 1
+/// * p の定義域について
+///     * ng < ok の場合、p は区間 ng..ok で定義されている。
+///     * ok < ng の場合、p は区間 ok..ng で定義されている。
+/// * p の単調性について
+///     * ng < ok の場合、p は単調増加
+///     * ok < ng の場合、p は単調減少
+/// ## Return
+/// * ng < ok の場合: I = { i in ng..ok | p(i) == true } としたとき
+///     * I が空でなければ、min I を返す。
+///     * I が空ならば、ok を返す。
+/// * ok < ng の場合: I = { i in ok..ng | p(i) == true } としたとき
+///     * I が空でなければ、max I を返す。
+///     * I が空ならば、ok を返す。
+pub fn bin_search<F>(mut ok: i64, mut ng: i64, p: F) -> i64
+where
+    F: Fn(i64) -> bool,
+{
+    assert!(ok != ng);
+    assert!(ok.checked_sub(ng).is_some());
+    assert!(ok.checked_add(ng).is_some());
+    while num::abs(ok - ng) > 1 {
+        let mid = (ok + ng) / 2;
+        assert!(mid != ok);
+        assert!(mid != ng);
+        if p(mid) {
+            ok = mid;
+        } else {
+            ng = mid;
+        }
+    }
+    ok
+}
+/// 指定された要素以上の値が現れる最初の位置を返す。
+/// ## Arguments
+/// * xs: 単調増加
+///     * 単調増加でなくても、 `|i| key <= xs[i]` が単調ならOK
+/// ## Return
+/// `I = {i in 0..xs.len() | key <= xs[i]}` としたとき、`min I` を返す。
+/// ただし、`I` が空の場合は `xs.len()` を返す
+/// 戻り値は、区間 `0..=xs.len()` の間で返る。
+pub fn lower_bound<T: PartialOrd>(xs: &[T], key: T) -> usize {
+    let pred = |i: i64| key <= xs[i as usize];
+    bin_search(xs.len() as i64, -1_i64, pred) as usize
+}
 
+use itertools::Itertools;
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {

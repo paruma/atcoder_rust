@@ -26,10 +26,6 @@ name = "abc322_e"
 path = "src/contest/2023/abc322/e/e.rs"
 
 [[bin]]
-name = "abc322_f"
-path = "src/contest/2023/abc322/f/f.rs"
-
-[[bin]]
 name = "abc321_a"
 path = "src/contest/2023/abc321/a/a.rs"
 
