@@ -46,30 +46,60 @@ where
 /// 指定された要素以上の値が現れる最初の位置を返す。
 /// ## Arguments
 /// * xs: 単調増加
-///     * 単調増加でなくても、 `|i| key <= xs[i]` が単調ならOK
+///     * 単調増加でなくても、 `|i| xs[i] >= key` が単調ならOK
 ///
 /// ## Return
-/// `I = {i in 0..xs.len() | key <= xs[i]}` としたとき、`min I` を返す。
+/// `I = {i in 0..xs.len() | xs[i] >= key}` としたとき、`min I` を返す。
 /// ただし、`I` が空の場合は `xs.len()` を返す
 /// 戻り値は、区間 `0..=xs.len()` の間で返る。
 #[snippet(include = "bin_search")]
 pub fn lower_bound<T: PartialOrd>(xs: &[T], key: T) -> usize {
-    let pred = |i: i64| key <= xs[i as usize];
+    let pred = |i: i64| xs[i as usize] >= key;
     bin_search(xs.len() as i64, -1_i64, pred) as usize
 }
 
 /// 指定された要素より大きい値が現れる最初の位置を返す。
 /// ## Arguments
 /// * xs: 単調増加
-///     * 単調増加でなくても、 `|i| key < xs[i]` が単調ならOK
+///     * 単調増加でなくても、 `|i| xs[i] > key` が単調ならOK
 ///
 /// ## Return
-/// `I = {i in 0..xs.len() | key < xs[i]}` としたとき、`min I` を返す。
+/// `I = {i in 0..xs.len() | xs[i] > key}` としたとき、`min I` を返す。
 /// ただし、`I` が空の場合は `xs.len()` を返す
 /// 戻り値は、区間 `0..=xs.len()` の間で返る。
 #[snippet(include = "bin_search")]
 pub fn upper_bound<T: PartialOrd>(xs: &[T], key: T) -> usize {
-    let pred = |i: i64| key < xs[i as usize];
+    let pred = |i: i64| xs[i as usize] > key;
+    bin_search(xs.len() as i64, -1_i64, pred) as usize
+}
+
+/// 指定された要素以下の値が現れる最初の位置を返す。
+/// ## Arguments
+/// * xs: 単調減少
+///     * 単調減少でなくても、 `|i| xs[i] <= key` が単調ならOK
+///
+/// ## Return
+/// `I = {i in 0..xs.len() | xs[i] <= key}` としたとき、`min I` を返す。
+/// ただし、`I` が空の場合は `xs.len()` を返す
+/// 戻り値は、区間 `0..=xs.len()` の間で返る。
+#[snippet(include = "bin_search")]
+pub fn lower_bound_dec<T: PartialOrd>(xs: &[T], key: T) -> usize {
+    let pred = |i: i64| xs[i as usize] <= key;
+    bin_search(xs.len() as i64, -1_i64, pred) as usize
+}
+
+/// 指定された要素より小さい値が現れる最初の位置を返す。
+/// ## Arguments
+/// * xs: 単勝減少
+///     * 単調減少でなくても、 `|i| xs[i] < key` が単調ならOK
+///
+/// ## Return
+/// `I = {i in 0..xs.len() | xs[i] < key}` としたとき、`min I` を返す。
+/// ただし、`I` が空の場合は `xs.len()` を返す
+/// 戻り値は、区間 `0..=xs.len()` の間で返る。
+#[snippet(include = "bin_search")]
+pub fn upper_bound_dec<T: PartialOrd>(xs: &[T], key: T) -> usize {
+    let pred = |i: i64| xs[i as usize] < key;
     bin_search(xs.len() as i64, -1_i64, pred) as usize
 }
 
@@ -84,7 +114,7 @@ mod tests {
     ///
     /// ## example
     /// `create_predicate(0, 5, 3, true)` の場合、以下のようになる
-    /// 
+    ///
     /// | 0     | 1     | 2     | 3     | 4     |
     /// | ----- | ----- | ----- | ----- | ----- |
     /// | false | false | false | true  | true  |
@@ -121,10 +151,7 @@ mod tests {
         impl TestCase {
             fn new(range_begin: i64, range_end: i64) -> Self {
                 assert!(range_begin <= range_end);
-                TestCase {
-                    range_begin,
-                    range_end,
-                }
+                TestCase { range_begin, range_end }
             }
             fn test_inc(&self) {
                 let ok = self.range_end;
@@ -181,8 +208,28 @@ mod tests {
         assert_eq!(upper_bound(&[1, 2, 2, 3], 2), 3); // key が配列にある場合
         assert_eq!(upper_bound(&[1, 3, 3, 4], 2), 1); // key が配列にない場合
         assert_eq!(upper_bound(&[1, 1, 2, 2], 1), 2); // key が配列にある場合
-        assert_eq!(lower_bound(&[1, 1, 2, 2], 0), 0); // 答えが左端 
+        assert_eq!(lower_bound(&[1, 1, 2, 2], 0), 0); // 答えが左端
         assert_eq!(upper_bound(&[1, 1, 2, 2], 10), 4); // 答えが右端
         assert_eq!(upper_bound(&[], 2), 0); // 空列
+    }
+
+    #[test]
+    fn test_lower_bound_dec() {
+        assert_eq!(lower_bound_dec(&[3, 2, 2, 1], 2), 1); // key が配列にある場合
+        assert_eq!(lower_bound_dec(&[4, 3, 3, 1], 2), 3); // key が配列にない場合
+        assert_eq!(lower_bound_dec(&[2, 2, 1, 1], 1), 2); //  key が配列にある場合
+        assert_eq!(lower_bound_dec(&[2, 2, 1, 1], 0), 4); // 答えが右端
+        assert_eq!(lower_bound_dec(&[2, 2, 1, 1], 10), 0); // 答えが左端
+        assert_eq!(lower_bound_dec(&[], 2), 0); // 空列
+    }
+
+    #[test]
+    fn test_upper_bound_dec() {
+        assert_eq!(upper_bound_dec(&[3, 2, 2, 1], 2), 3); // key が配列にある場合
+        assert_eq!(upper_bound_dec(&[4, 3, 3, 1], 2), 3); // key が配列にない場合
+        assert_eq!(upper_bound_dec(&[2, 2, 1, 1], 1), 4); // 答えが右端
+        assert_eq!(upper_bound_dec(&[2, 2, 1, 1], 0), 4); // 答えが右端
+        assert_eq!(upper_bound_dec(&[2, 2, 1, 1], 10), 0); // 答えが左端
+        assert_eq!(upper_bound_dec(&[], 2), 0); // 空列
     }
 }
