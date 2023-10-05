@@ -11,6 +11,7 @@
         "izip",
         "powerset",
         "Procon",
+        "proconio",
         "struct"
     ]
 }
