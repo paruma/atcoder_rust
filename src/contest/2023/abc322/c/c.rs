@@ -1,4 +1,4 @@
-use std::io::stdin;
+use std::{collections::HashSet, io::stdin};
 
 struct Problem {
     final_day: i64,
@@ -17,10 +17,85 @@ impl Problem {
         //day_list: 花火が上がる日
         let ans = (1..=*final_day)
             .map(|i| {
+                // ここの変数名 i は day とかがいいかも
                 let next_fire_idx = lower_bound(day_list, i);
                 day_list[next_fire_idx] - i
             })
             .collect_vec();
+
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // O(n) 解法
+        let Problem { final_day, n_fire, day_list } = self;
+
+        // next_fire_day_list[day] = day日以降で初めて花火が上がる日
+        let mut next_fire_day_list = vec![-1; *final_day as usize + 1];
+        let mut day_stack = day_list.iter().rev().collect_vec();
+        for day in 1..=*final_day {
+            let next_day = {
+                if day > **day_stack.last().unwrap() {
+                    day_stack.pop();
+                }
+
+                **day_stack.last().unwrap()
+            };
+            next_fire_day_list[day as usize] = next_day;
+        }
+        let ans = (1..=*final_day).map(|day| next_fire_day_list[day as usize] - day).collect_vec();
+
+        Answer { ans }
+    }
+
+    fn solve3(&self) -> Answer {
+        // O(n) 解法 (自作 Stack を使用する)
+        let Problem { final_day, n_fire, day_list } = self;
+
+        // next_fire_day_list[day] = day日以降で初めて花火が上がる日
+        let mut next_fire_day_list = vec![-1; *final_day as usize + 1];
+        let mut day_stack = Stack::new();
+        for day in day_list.iter().rev() {
+            day_stack.push(*day);
+        }
+        // stack のトップにある: 現時点での次の花火の日
+        for day in 1..=*final_day {
+            let next_day = {
+                if day > *day_stack.peek().unwrap() {
+                    day_stack.pop();
+                }
+
+                *day_stack.peek().unwrap()
+            };
+            next_fire_day_list[day as usize] = next_day;
+        }
+        let ans = (1..=*final_day).map(|day| next_fire_day_list[day as usize] - day).collect_vec();
+
+        Answer { ans }
+    }
+
+    fn solve4(&self) -> Answer {
+        // O(n) 解法 (DPぽい。後ろから見る)
+        let Problem { final_day, n_fire, day_list } = self;
+
+        // 変数名が微妙なので変える
+        let n_days = *final_day as usize;
+        let fire_day_list = day_list;
+
+        //ついでに0オリジンにする
+        let fire_day_set: HashSet<usize> =
+            fire_day_list.iter().map(|day| (*day - 1) as usize).collect();
+
+        let mut ans = vec![-1; n_days];
+        ans[n_days - 1] = 0;
+
+        for day in (0..n_days - 1).rev() {
+            if fire_day_set.contains(&day) {
+                ans[day] = 0;
+            } else {
+                ans[day] = ans[day + 1] + 1;
+            }
+        }
 
         Answer { ans }
     }
@@ -32,6 +107,7 @@ struct Answer {
 }
 
 impl Answer {
+    #[fastout]
     fn print(&self) {
         for &x in &self.ans {
             println!("{}", x);
@@ -40,7 +116,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read(ProconReader::new(stdin().lock())).solve().print();
+    Problem::read(ProconReader::new(stdin().lock())).solve4().print();
 }
 
 #[cfg(test)]
@@ -65,6 +141,37 @@ mod tests {
 }
 
 // ====== snippet ======
+
+use mod_stack::*;
+pub mod mod_stack {
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct Stack<T> {
+        raw: Vec<T>,
+    }
+    impl<T> Stack<T> {
+        pub fn new() -> Self {
+            Stack { raw: Vec::new() }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push(value)
+        }
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop()
+        }
+        pub fn peek(&self) -> Option<&T> {
+            self.raw.last()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.raw.is_empty()
+        }
+    }
+    impl<T> Default for Stack<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+}
+
 /// 二分探索をする
 /// ```text
 /// ng ng ng ok ok ok
@@ -110,7 +217,7 @@ where
 /// * xs: 単調増加
 ///     * 単調増加でなくても、 `|i| key <= xs[i]` が単調ならOK
 /// ## Return
-/// `I = {i in 0..xs.len() | key <= xs[i]}` としたとき、`min I` を返す。
+/// `I = {i in 0..xs.len() | key > xs[i]}` としたとき、`min I` を返す。
 /// ただし、`I` が空の場合は `xs.len()` を返す
 /// 戻り値は、区間 `0..=xs.len()` の間で返る。
 pub fn lower_bound<T: PartialOrd>(xs: &[T], key: T) -> usize {
@@ -118,9 +225,16 @@ pub fn lower_bound<T: PartialOrd>(xs: &[T], key: T) -> usize {
     bin_search(xs.len() as i64, -1_i64, pred) as usize
 }
 
+// 3 4 4 5 5
+//   ↑   ↑
+
+// 5 5 4 4 3
+//     ↑   ↑
+
 use itertools::Itertools;
 #[allow(unused_imports)]
 use myio::*;
+use proconio::fastout;
 pub mod myio {
     use std::io::BufRead;
 

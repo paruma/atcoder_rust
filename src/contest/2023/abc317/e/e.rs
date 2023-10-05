@@ -269,6 +269,113 @@ impl Problem {
 
         Answer { ans }
     }
+
+    fn solve4(&self) -> Answer {
+        let Problem { h, w, grid } = self;
+        let h = *h;
+        let w = *w;
+        let dir = [Pos::new(1, 0), Pos::new(-1, 0), Pos::new(0, 1), Pos::new(0, -1)];
+
+        struct Grid {
+            grid: Vec<Vec<u8>>,
+            h: usize,
+            w: usize,
+        }
+
+        impl Grid {
+            fn new(grid: Vec<Vec<u8>>) -> Grid {
+                let h = grid.len();
+                let w = grid[0].len();
+                Grid { grid, h, w }
+            }
+
+            fn is_within(&self, pos: Pos<i64>) -> bool {
+                let h = self.h as i64;
+                let w = self.w as i64;
+                0 <= pos.y && pos.y < h && 0 <= pos.x && pos.x < w
+            }
+
+            fn at(&self, pos: Pos<i64>) -> &u8 {
+                if self.is_within(pos) {
+                    self.grid.at(pos)
+                } else {
+                    &b'#'
+                }
+            }
+
+            fn at_mut(&mut self, pos: Pos<i64>) -> &mut u8 {
+                self.grid.at_mut(pos)
+            }
+
+            fn sight_can_move(&self, pos: Pos<i64>) -> bool {
+                b".!SG".contains(self.at(pos))
+            }
+
+            fn player_can_move(&self, pos: Pos<i64>) -> bool {
+                b".SG".contains(self.at(pos))
+            }
+        }
+
+        let mut grid = Grid::new(grid.clone());
+        // 視線の処理
+        for (y, x) in iproduct!(0..h, 0..w) {
+            let trainer_pos = Pos::new(x as i64, y as i64);
+            let d_opt: Option<Pos<i64>> = match *grid.at(trainer_pos) {
+                b'>' => Some(Pos::new(1, 0)),
+                b'<' => Some(Pos::new(-1, 0)),
+                b'v' => Some(Pos::new(0, 1)),
+                b'^' => Some(Pos::new(0, -1)),
+                _ => None,
+            };
+            if let Some(d) = d_opt {
+                // trainer_pos から d の方向に進む
+                let mut current_sight_pos = trainer_pos;
+                loop {
+                    current_sight_pos += d;
+                    if grid.sight_can_move(current_sight_pos) {
+                        *grid.at_mut(current_sight_pos) = b'!';
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+        let grid = grid;
+
+        let search_pos = |ch: u8| -> Option<Pos<i64>> {
+            iproduct!(0..h, 0..w)
+                .map(|(y, x)| Pos::new(x as i64, y as i64))
+                .find(|pos| *grid.at(*pos) == ch)
+        };
+
+        // BFS
+        let mut open: Queue<Pos<i64>> = Queue::new();
+
+        let init_pos = search_pos(b'S').unwrap();
+        open.push(init_pos);
+
+        let mut visited = vec![vec![false; w]; h];
+        let mut cnt = vec![vec![Inf; w]; h];
+        *visited.at_mut(init_pos) = true;
+        *cnt.at_mut(init_pos) = Fin(0);
+
+        while !open.is_empty() {
+            let current_pos = open.pop().unwrap();
+            for &d in &dir {
+                let next_pos = current_pos + d;
+                if grid.player_can_move(next_pos) && !visited.at(next_pos) {
+                    *visited.at_mut(next_pos) = true;
+                    *cnt.at_mut(next_pos) = *cnt.at(current_pos) + Fin(1);
+                    open.push(next_pos);
+                }
+            }
+        }
+
+        let goal_pos = search_pos(b'G').unwrap();
+        let ans = cnt.at(goal_pos).get_fin_or(-1);
+
+        Answer { ans }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -283,7 +390,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read(ProconReader::new(stdin().lock())).solve3().print();
+    Problem::read(ProconReader::new(stdin().lock())).solve4().print();
 }
 
 #[cfg(test)]
@@ -308,6 +415,38 @@ mod tests {
 }
 
 // ====== snippet ======
+
+use mod_queue::*;
+pub mod mod_queue {
+    use std::collections::VecDeque;
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct Queue<T> {
+        raw: VecDeque<T>,
+    }
+    impl<T> Queue<T> {
+        pub fn new() -> Self {
+            Queue { raw: VecDeque::new() }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push_front(value)
+        }
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop_back()
+        }
+        pub fn peek(&self) -> Option<&T> {
+            self.raw.back()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.raw.is_empty()
+        }
+    }
+    impl<T> Default for Queue<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+}
+
 use mod_ext_int::ExtInt::{self, *};
 pub mod mod_ext_int {
     use std::{cmp::Ordering, ops::Add};

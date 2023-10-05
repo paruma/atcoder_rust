@@ -13,6 +13,7 @@ impl Problem {
     }
     fn solve(&self) -> Answer {
         let Problem { n, s } = self;
+
         // tuple_windows はそんなに書きやすくならない
         // let ans = s
         //     .iter()
@@ -20,6 +21,13 @@ impl Problem {
         //     .find_position(|(ch1, ch2, ch3)| &[**ch1, **ch2, **ch3] == b"ABC")
         //     .map(|(i, _)| (i + 1) as i64)
         //     .unwrap_or(-1);
+
+        // slice にある windows 関数なら使いやすいかも
+        // let ans = s.windows(3).find_position(|v| v == b"ABC").map(|(i, _)| (i + 1) as i64).unwrap_or(-1);
+
+        //s.windows(2).all(|[a, b]| a <= b);
+
+        s.iter().tuple_windows().all(|(a, b)| a <= b);
 
         let ans = (0..n - 2)
             //.find(|&i| s[i] == b'A' && s[i + 1] == b'B' && s[i + 2] == b'C')
@@ -32,12 +40,12 @@ impl Problem {
 
     fn solve2(&self) -> Answer {
         let Problem { n, s } = self;
-        let s = String::from_utf8(s.clone()).unwrap();
+        //let s = String::from_utf8(s.clone()).unwrap();
 
         // find は bstr の関数
         // String なら標準で find が入っているが、bstr を使うと Vec<u8> でも find ができる。
-        //let ans = s.find("ABC").map(|i| (i + 1) as i64).unwrap_or(-1);
         let ans = s.find("ABC").map(|i| (i + 1) as i64).unwrap_or(-1);
+        // let ans = s.find("ABC").map(|i| (i + 1) as i64).unwrap_or(-1);
 
         Answer { ans }
     }

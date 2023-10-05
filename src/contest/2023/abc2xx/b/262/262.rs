@@ -34,6 +34,7 @@ impl Problem {
     fn solve(&self) -> Answer {
         let Problem { n_vertex, n_edge, edges } = self;
         // 無向グラフなので、逆向きも用意する
+        // 隣接行列を用意する解法もある
         let edge_set =
             edges.iter().flat_map(|e| vec![*e, Edge::new(e.b, e.a)]).collect::<HashSet<_>>();
         let ans = (0..*n_vertex)

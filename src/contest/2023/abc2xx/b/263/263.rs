@@ -29,6 +29,7 @@ impl Problem {
     fn solve2(&self) -> Answer {
         let Problem { n, parent_list } = self;
         // DP 解法
+        // 「人1が人Nの何代前か」を求める代わりに「人Nは人1の何代後か」を求める
         let mut dp = vec![-1; *n];
         dp[0] = 0;
 

@@ -31,6 +31,17 @@ impl Problem {
         };
         Answer { ans }
     }
+
+    fn solve2(&self) -> Answer {
+        let Problem { n, m, s, t } = self;
+        let ans = match (t.starts_with(s), t.ends_with(s)) {
+            (true, true) => 0,
+            (true, false) => 1,
+            (false, true) => 2,
+            (false, false) => 3,
+        };
+        Answer { ans }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -45,7 +56,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read(ProconReader::new(stdin().lock())).solve().print();
+    Problem::read(ProconReader::new(stdin().lock())).solve2().print();
 }
 
 #[cfg(test)]
@@ -71,6 +82,8 @@ mod tests {
 
 // ====== snippet ======
 
+use bstr::ByteSlice;
+use itertools::Itertools;
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {
