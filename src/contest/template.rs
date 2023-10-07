@@ -1,19 +1,17 @@
-#[derive_readable]
+//#[derive_readable]
 struct Problem {
-    a: i64,
-    b: i64,
+    _a: i64,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            a: i64,
-            b: i64,
+            _a: i64,
         }
-        Problem { a, b }
+        Problem { _a }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let ans = 0;
         Answer { ans }
     }
 }
@@ -24,7 +22,6 @@ struct Answer {
 }
 
 impl Answer {
-    #[fastout]
     fn print(&self) {
         println!("{}", self.ans);
     }
@@ -53,5 +50,48 @@ use proconio::{
     derive_readable, fastout, input,
     marker::{Bytes, Usize1},
 };
+
+// ====== output func ======
+#[allow(unused_imports)]
+use print_vec::*;
+pub mod print_vec {
+    use itertools::Itertools;
+    use proconio::fastout;
+    #[fastout]
+    pub fn print_vec<T: std::fmt::Debug>(arr: &[T]) {
+        for a in arr {
+            println!("{:?}", a);
+        }
+    }
+    #[fastout]
+    pub fn print_vec_1line<T: std::fmt::Debug>(arr: &[T]) {
+        let msg = arr.iter().map(|x| format!("{:?}", x)).join(" ");
+        println!("{}", msg);
+    }
+    #[fastout]
+    pub fn print_vec2<T: std::fmt::Debug>(arr: &Vec<Vec<T>>) {
+        for row in arr {
+            let msg = row.iter().map(|x| format!("{:?}", x)).join(" ");
+            println!("{}", msg);
+        }
+    }
+    pub fn print_bytes(bytes: &[u8]) {
+        let msg = String::from_utf8(bytes.to_vec()).unwrap();
+        println!("{}", msg);
+    }
+    #[fastout]
+    pub fn print_vec_bytes(vec_bytes: &[Vec<u8>]) {
+        for row in vec_bytes {
+            let msg = String::from_utf8(row.to_vec()).unwrap();
+            println!("{}", msg);
+        }
+    }
+}
+
+#[allow(unused)]
+fn print_yesno(ans: bool) {
+    let msg = if ans { "Yes" } else { "No" };
+    println!("{}", msg);
+}
 
 // ====== snippet ======

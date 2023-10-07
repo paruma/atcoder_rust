@@ -107,11 +107,8 @@ struct Answer {
 }
 
 impl Answer {
-    #[fastout]
     fn print(&self) {
-        for &x in &self.ans {
-            println!("{}", x);
-        }
+        print_vec(&self.ans);
     }
 }
 
@@ -141,6 +138,31 @@ mod tests {
 }
 
 // ====== snippet ======
+
+use print_vec::*;
+pub mod print_vec {
+    use itertools::Itertools;
+    use proconio::fastout;
+    #[fastout]
+    pub fn print_vec_1line<T: std::fmt::Debug>(arr: &[T]) {
+        let msg = arr.iter().map(|x| format!("{:?}", x)).join(" ");
+        println!("{}", msg);
+    }
+    #[fastout]
+    pub fn print_vec<T: std::fmt::Debug>(arr: &[T]) {
+        for a in arr {
+            println!("{:?}", a);
+        }
+    }
+    #[fastout]
+    #[allow(clippy::needless_range_loop)]
+    pub fn print_vec2<T: std::fmt::Debug>(arr: &Vec<Vec<T>>) {
+        for row in arr {
+            let msg = row.iter().map(|x| format!("{:?}", x)).join(" ");
+            println!("{}", msg);
+        }
+    }
+}
 
 use mod_stack::*;
 pub mod mod_stack {

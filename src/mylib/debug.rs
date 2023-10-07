@@ -3,7 +3,9 @@ use cargo_snippet::snippet;
 #[snippet(prefix = "use print_arr::*;")]
 pub mod print_arr {
     use ndarray::{Array2, Array3};
+    use proconio::fastout;
 
+    #[fastout]
     pub fn print_arr<T: std::fmt::Debug>(arr: &[T]) {
         for a in arr {
             print!("{:?} ", a);
@@ -11,6 +13,7 @@ pub mod print_arr {
         println!();
     }
 
+    #[fastout]
     pub fn print_arr2<T: std::fmt::Debug>(arr: &Array2<T>) {
         for i in 0..arr.nrows() {
             for j in 0..arr.ncols() {
@@ -20,6 +23,7 @@ pub mod print_arr {
         }
     }
 
+    #[fastout]
     pub fn print_arr3<T: std::fmt::Debug>(arr: &Array3<T>) {
         let shape = arr.shape();
         for i in 0..shape[0] {
@@ -36,23 +40,40 @@ pub mod print_arr {
 
 #[snippet(prefix = "use print_vec::*;")]
 pub mod print_vec {
+    use itertools::Itertools;
+    use proconio::fastout;
 
+    #[fastout]
     pub fn print_vec<T: std::fmt::Debug>(arr: &[T]) {
         for a in arr {
-            print!("{:?} ", a);
+            println!("{:?}", a);
         }
-        println!();
     }
 
-    #[allow(clippy::needless_range_loop)]
+    #[fastout]
+    pub fn print_vec_1line<T: std::fmt::Debug>(arr: &[T]) {
+        let msg = arr.iter().map(|x| format!("{:?}", x)).join(" ");
+        println!("{}", msg);
+    }
+
+    #[fastout]
     pub fn print_vec2<T: std::fmt::Debug>(arr: &Vec<Vec<T>>) {
-        let height = arr.len();
-        let width = arr[0].len();
-        for y in 0..height {
-            for x in 0..width {
-                print!("{:?} ", arr[y][x]);
-            }
-            println!();
+        for row in arr {
+            let msg = row.iter().map(|x| format!("{:?}", x)).join(" ");
+            println!("{}", msg);
+        }
+    }
+
+    pub fn print_bytes(bytes: &[u8]) {
+        let msg = String::from_utf8(bytes.to_vec()).unwrap();
+        println!("{}", msg);
+    }
+
+    #[fastout]
+    pub fn print_vec_bytes(vec_bytes: &[Vec<u8>]) {
+        for row in vec_bytes {
+            let msg = String::from_utf8(row.to_vec()).unwrap();
+            println!("{}", msg);
         }
     }
 }
@@ -92,9 +113,26 @@ mod tests {
     }
 
     #[test]
+    fn test_print_vec_1line() {
+        let arr = vec![1, 2, 3];
+        print_vec_1line(&arr);
+    }
+
+    #[test]
     fn test_print_vec2() {
         let arr = vec![vec![1, 2, 3], vec![4, 5, 6]];
-
         print_vec2(&arr);
+    }
+
+    #[test]
+    fn test_print_bytes() {
+        let bs = b"hoge";
+        print_bytes(bs);
+    }
+
+    #[test]
+    fn test_print_vec_bytes() {
+        let bs = vec![b"hoge".to_vec(), b"fuga".to_vec()];
+        print_vec_bytes(&bs);
     }
 }
