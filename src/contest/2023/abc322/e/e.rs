@@ -1,200 +1,272 @@
-use std::io::stdin;
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct Plan {
+    cost: i64,
+    param_inc_list: Vec<i64>,
+}
 
 struct Problem {
-    a: i64,
-    b: i64,
+    n_plans: usize,
+    n_params: usize,
+    param_lb: i64, // すべてのパラメータをこの値以上にしたい
+    plan_list: Vec<Plan>,
+}
+
+struct Dp {
+    // dp[i][vec![p0, p1, p2]]: [0,i) の 開発案を使って、各パラメータをp_i 以上にする場合のコストの最小値
+    dp: Vec<HashMap<Vec<i64>, ExtInt>>,
+    n_params: usize,
+}
+
+impl Dp {
+    fn new(n_plans: usize, n_params: usize, param_lb: i64) -> Dp {
+        // [0, param_lb]^n_params -> ExtInt
+        let map = repeat(0..=param_lb)
+            .take(n_params)
+            .multi_cartesian_product()
+            .map(|v| (v, Inf))
+            .collect::<HashMap<_, _>>();
+        Dp { dp: vec![map; n_plans + 1], n_params }
+    }
+
+    fn at(&self, i: usize, param_lb_list: &[i64]) -> &ExtInt {
+        assert_eq!(param_lb_list.len(), self.n_params);
+        // param_lb_list の中で負があったら0にする
+        let param_lb_list = param_lb_list.iter().map(|p| max(*p, 0)).collect_vec();
+        &self.dp[i][&param_lb_list]
+    }
+
+    fn at_mut(&mut self, i: usize, param_lb_list: &[i64]) -> &mut ExtInt {
+        assert_eq!(param_lb_list.len(), self.n_params);
+        self.dp[i].get_mut(param_lb_list).unwrap()
+    }
+}
+
+fn vec_sub(v1: &[i64], v2: &[i64]) -> Vec<i64> {
+    assert_eq!(v1.len(), v2.len());
+    izip!(v1, v2).map(|(x, y)| *x - *y).collect_vec()
+}
+
+// i64の普通の値 → n進数で表現
+fn to_n_ary_number(n: i64, value: i64) -> Vec<i64> {
+    let mut digits = vec![];
+    let mut value = value;
+    while value != 0 {
+        digits.push(value % n);
+        value /= n;
+    }
+    digits.reverse();
+    digits
+}
+
+// n進数で表現した値 → i64の普通の値
+fn from_n_ary_number(n: i64, digits: &[i64]) -> i64 {
+    digits.iter().fold(0, |acc, x| acc * n + x)
+}
+
+struct Dp2 {
+    // dp[i][k]: [0,i) までを使って、パラメータを kのp+1進数表現された配列以上にする場合のコストの最小値
+    dp: Vec<Vec<ExtInt>>,
+    n_params: usize,
+    param_lb: i64,
+}
+
+impl Dp2 {
+    fn new(n_plans: usize, n_params: usize, param_lb: i64) -> Dp2 {
+        // (param_lb + 1)^n_params
+        Dp2 {
+            dp: vec![vec![Inf; usize::pow((param_lb + 1) as usize, n_params as u32)]; n_plans + 1],
+            n_params,
+            param_lb,
+        }
+    }
+
+    fn at(&self, i: usize, param_lb_list: &[i64]) -> &ExtInt {
+        assert_eq!(param_lb_list.len(), self.n_params);
+        // param_lb_list の中で負があったら0にする
+        let param_lb_list = param_lb_list.iter().map(|p| max(*p, 0)).collect_vec();
+        let param_n_ary = from_n_ary_number(self.param_lb + 1, &param_lb_list);
+        &self.dp[i][param_n_ary as usize]
+    }
+
+    fn at_mut(&mut self, i: usize, param_lb_list: &[i64]) -> &mut ExtInt {
+        assert_eq!(param_lb_list.len(), self.n_params);
+        let param_n_ary = from_n_ary_number(self.param_lb + 1, param_lb_list);
+        &mut self.dp[i][param_n_ary as usize]
+    }
 }
 
 impl Problem {
-    fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+    fn read() -> Problem {
+        input! {
+            n_plans: usize,
+            n_params: usize,
+            param_lb: i64,
+        }
+        let plan_list = (0..n_plans)
+            .map(|_| {
+                input! {
+                    cost: i64,
+                    param_inc_list: [i64; n_params],
+                }
+                Plan { cost, param_inc_list }
+            })
+            .collect_vec();
+        Problem { n_plans, n_params, param_lb, plan_list }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        // DP の型が Vec<HashMap<Vec<i64>, ExtInt>> の解法
+        let mut dp = Dp::new(self.n_plans, self.n_params, self.param_lb);
+        *dp.at_mut(0, &vec![0; self.n_params]) = Fin(0);
+        for (plan_idx, plan) in self.plan_list.iter().enumerate() {
+            for param_list in
+                repeat(0..=self.param_lb).take(self.n_params).multi_cartesian_product()
+            {
+                let choose =
+                    *dp.at(plan_idx, &vec_sub(&param_list, &plan.param_inc_list)) + Fin(plan.cost);
+                let no_choose = *dp.at(plan_idx, &param_list);
+                *dp.at_mut(plan_idx + 1, &param_list) = min(choose, no_choose);
+            }
+        }
+        let ans = dp.at(self.n_plans, &vec![self.param_lb; self.n_params]).get_fin_or(-1);
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // DP の型が VecVec<ExtInt>> の解法 (配列をn進数でエンコードする)
+        let mut dp = Dp2::new(self.n_plans, self.n_params, self.param_lb);
+        *dp.at_mut(0, &vec![0; self.n_params]) = Fin(0);
+        for (plan_idx, plan) in self.plan_list.iter().enumerate() {
+            for param_list in
+                repeat(0..=self.param_lb).take(self.n_params).multi_cartesian_product()
+            {
+                let choose =
+                    *dp.at(plan_idx, &vec_sub(&param_list, &plan.param_inc_list)) + Fin(plan.cost);
+                let no_choose = *dp.at(plan_idx, &param_list);
+                *dp.at_mut(plan_idx + 1, &param_list) = min(choose, no_choose);
+            }
+        }
+        let ans = dp.at(self.n_plans, &vec![self.param_lb; self.n_params]).get_fin_or(-1);
         Answer { ans }
     }
 }
-
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
     ans: i64,
 }
 
 impl Answer {
+    #[fastout]
     fn print(&self) {
         println!("{}", self.ans);
     }
 }
 
 fn main() {
-    Problem::read(ProconReader::new(stdin().lock())).solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
     use super::*;
 
-    #[allow(dead_code)]
-    fn check(input: &str, expected: Answer) {
-        let actual = Problem::read(ProconReader::new(input.as_bytes())).solve();
-        assert_eq!(expected, actual);
+    #[test]
+    fn test_to_n_ary_number() {
+        assert_eq!(to_n_ary_number(10, 123), vec![1, 2, 3]);
+    }
+    #[test]
+    fn test_from_n_ary_number() {
+        assert_eq!(from_n_ary_number(10, &[1, 2, 3]), 123);
     }
 
     #[test]
     fn test_problem() {
-        let _input = "
-3
-4
-        "
-        .trim();
-        // check(_input, Answer { ans: 7 });
+        assert_eq!(1 + 1, 2);
     }
 }
 
-// ====== snippet ======
+use std::{
+    cmp::{max, min},
+    collections::HashMap,
+    iter::repeat,
+};
 
+// ====== import ======
+use itertools::izip;
 #[allow(unused_imports)]
-use myio::*;
-pub mod myio {
-    use std::io::BufRead;
+use itertools::Itertools;
+#[allow(unused_imports)]
+use proconio::{
+    derive_readable, fastout, input,
+    marker::{Bytes, Usize1},
+};
 
-    pub trait IProconReader {
-        fn read_line(&mut self) -> String;
-
-        fn read_bytes(&mut self) -> Vec<u8> {
-            self.read_line().as_bytes().to_vec()
+// ====== snippet ======
+use mod_ext_int::ExtInt::{self, *};
+pub mod mod_ext_int {
+    use std::{cmp::Ordering, ops::Add};
+    use ExtInt::*;
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub enum ExtInt {
+        Inf,
+        Fin(i64),
+    }
+    impl ExtInt {
+        pub fn get_fin(self) -> i64 {
+            match self {
+                Fin(val) => val,
+                Inf => panic!("called `ExtInt::get_fin()` on a `Fin` value"),
+            }
         }
-
-        fn read_any_1<T>(&mut self) -> T
-        where
-            T: std::str::FromStr,
-            T::Err: std::fmt::Debug,
-        {
-            let buf = self.read_line();
-            buf.parse::<T>().unwrap()
+        pub fn get_fin_or(self, default: i64) -> i64 {
+            match self {
+                Fin(val) => val,
+                Inf => default,
+            }
         }
-
-        fn read_any_2<T0, T1>(&mut self) -> (T0, T1)
-        where
-            T0: std::str::FromStr,
-            T0::Err: std::fmt::Debug,
-            T1: std::str::FromStr,
-            T1::Err: std::fmt::Debug,
-        {
-            let buf = self.read_line();
-            let splitted = buf.trim().split(' ').collect::<Vec<_>>();
-            let a0 = splitted[0].parse::<T0>().unwrap();
-            let a1 = splitted[1].parse::<T1>().unwrap();
-            (a0, a1)
+        pub fn is_fin(self) -> bool {
+            matches!(self, Fin(_))
         }
-
-        fn read_any_3<T0, T1, T2>(&mut self) -> (T0, T1, T2)
-        where
-            T0: std::str::FromStr,
-            T0::Err: std::fmt::Debug,
-            T1: std::str::FromStr,
-            T1::Err: std::fmt::Debug,
-            T2: std::str::FromStr,
-            T2::Err: std::fmt::Debug,
-        {
-            let buf = self.read_line();
-            let splitted = buf.trim().split(' ').collect::<Vec<_>>();
-            let a0 = splitted[0].parse::<T0>().unwrap();
-            let a1 = splitted[1].parse::<T1>().unwrap();
-            let a2 = splitted[2].parse::<T2>().unwrap();
-            (a0, a1, a2)
+        pub fn is_inf(self) -> bool {
+            matches!(self, Inf)
         }
-
-        fn read_any_4<T0, T1, T2, T3>(&mut self) -> (T0, T1, T2, T3)
-        where
-            T0: std::str::FromStr,
-            T0::Err: std::fmt::Debug,
-            T1: std::str::FromStr,
-            T1::Err: std::fmt::Debug,
-            T2: std::str::FromStr,
-            T2::Err: std::fmt::Debug,
-            T3: std::str::FromStr,
-            T3::Err: std::fmt::Debug,
-        {
-            let buf = self.read_line();
-            let splitted = buf.trim().split(' ').collect::<Vec<_>>();
-            let a0 = splitted[0].parse::<T0>().unwrap();
-            let a1 = splitted[1].parse::<T1>().unwrap();
-            let a2 = splitted[2].parse::<T2>().unwrap();
-            let a3 = splitted[3].parse::<T3>().unwrap();
-            (a0, a1, a2, a3)
+        pub fn to_option(self) -> Option<i64> {
+            match self {
+                Inf => None,
+                Fin(a) => Some(a),
+            }
         }
-        fn read_vec_any<T>(&mut self) -> Vec<T>
-        where
-            T: std::str::FromStr,
-            T::Err: std::fmt::Debug,
-        {
-            let buf = self.read_line();
-            buf.trim().split(' ').map(|s| s.parse::<T>().unwrap()).collect::<Vec<T>>()
-        }
-
-        fn read_vec_i64(&mut self) -> Vec<i64> {
-            self.read_vec_any::<i64>()
-        }
-
-        fn read_vec_usize(&mut self) -> Vec<usize> {
-            self.read_vec_any::<usize>()
-        }
-
-        fn read_vec_str(&mut self) -> Vec<String> {
-            self.read_vec_any::<String>()
-        }
-
-        fn read_i64_1(&mut self) -> i64 {
-            self.read_any_1::<i64>()
-        }
-
-        fn read_i64_2(&mut self) -> (i64, i64) {
-            self.read_any_2::<i64, i64>()
-        }
-
-        fn read_i64_3(&mut self) -> (i64, i64, i64) {
-            self.read_any_3::<i64, i64, i64>()
-        }
-
-        fn read_i64_4(&mut self) -> (i64, i64, i64, i64) {
-            self.read_any_4::<i64, i64, i64, i64>()
-        }
-
-        fn read_usize_1(&mut self) -> usize {
-            self.read_any_1::<usize>()
-        }
-
-        fn read_usize_2(&mut self) -> (usize, usize) {
-            self.read_any_2::<usize, usize>()
-        }
-
-        fn read_usize_3(&mut self) -> (usize, usize, usize) {
-            self.read_any_3::<usize, usize, usize>()
-        }
-
-        fn read_usize_4(&mut self) -> (usize, usize, usize, usize) {
-            self.read_any_4::<usize, usize, usize, usize>()
+        pub fn from_option(opt: Option<i64>) -> ExtInt {
+            match opt {
+                Some(a) => Fin(a),
+                None => Inf,
+            }
         }
     }
-
-    pub struct ProconReader<R: BufRead> {
-        buf_read: R,
-    }
-
-    impl<R: BufRead> ProconReader<R> {
-        pub fn new(buf_read: R) -> ProconReader<R> {
-            ProconReader { buf_read }
+    impl Add for ExtInt {
+        type Output = ExtInt;
+        fn add(self, rhs: Self) -> Self::Output {
+            match (self, rhs) {
+                (Inf, Inf) => Inf,
+                (Inf, Fin(_)) => Inf,
+                (Fin(_), Inf) => Inf,
+                (Fin(a), Fin(b)) => Fin(a + b),
+            }
         }
     }
-
-    impl<R: BufRead> IProconReader for ProconReader<R> {
-        fn read_line(&mut self) -> String {
-            let mut buffer = String::new();
-            self.buf_read.read_line(&mut buffer).unwrap();
-            buffer.trim().to_string()
+    impl PartialOrd for ExtInt {
+        fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+            match (self, other) {
+                (Inf, Inf) => Some(Ordering::Equal),
+                (Inf, Fin(_)) => Some(Ordering::Greater),
+                (Fin(_), Inf) => Some(Ordering::Less),
+                (Fin(a), Fin(b)) => PartialOrd::partial_cmp(a, b),
+            }
+        }
+    }
+    impl Ord for ExtInt {
+        fn cmp(&self, other: &Self) -> Ordering {
+            self.partial_cmp(other).unwrap()
         }
     }
 }
