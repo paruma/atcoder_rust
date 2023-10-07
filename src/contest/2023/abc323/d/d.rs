@@ -1,17 +1,37 @@
-//#[derive_readable]
 struct Problem {
-    _a: i64,
+    n: usize,
+    cnt_table: HashMap<i64, i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n: usize,
+            infos: [(i64, i64);n],
         }
-        Problem { _a }
+
+        let cnt_table: HashMap<i64, i64> = infos.into_iter().collect();
+        Problem { n, cnt_table }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let Problem { n, cnt_table } = self;
+        let mut cnt_table = cnt_table.clone();
+        let mut p_queue: BinaryHeap<Reverse<i64>> = BinaryHeap::new();
+
+        for size in cnt_table.keys() {
+            p_queue.push(Reverse(*size));
+        }
+
+        while let Some(Reverse(size)) = p_queue.pop() {
+            // sizeに対応する数
+            let current_cnt = cnt_table[&size];
+            if current_cnt >= 2 {
+                *cnt_table.entry(size * 2).or_insert(0) += cnt_table[&size] / 2;
+                *cnt_table.get_mut(&size).unwrap() = cnt_table[&size] % 2;
+                p_queue.push(Reverse(size * 2));
+            }
+        }
+        let ans = cnt_table.values().sum();
         Answer { ans }
     }
 }
@@ -41,6 +61,11 @@ mod tests {
         assert_eq!(1 + 1, 2);
     }
 }
+
+use std::{
+    cmp::Reverse,
+    collections::{BinaryHeap, HashMap},
+};
 
 // ====== import ======
 #[allow(unused_imports)]

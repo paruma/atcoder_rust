@@ -1,29 +1,36 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    n: usize,
+    table: Vec<Vec<u8>>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n: usize,
+            table: [Bytes; n],
         }
-        Problem { _a }
+        Problem { n, table }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let table = &self.table;
+        let ans = (0_usize..n)
+            .sorted_by_key(|i| Reverse(table[*i].iter().filter(|ch| **ch == b'o').count()))
+            .map(|i| i + 1)
+            .collect_vec();
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<usize>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec_1line(&self.ans);
     }
 }
 
@@ -41,6 +48,8 @@ mod tests {
         assert_eq!(1 + 1, 2);
     }
 }
+
+use std::cmp::Reverse;
 
 // ====== import ======
 #[allow(unused_imports)]

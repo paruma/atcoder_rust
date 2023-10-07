@@ -1,29 +1,86 @@
-//#[derive_readable]
 struct Problem {
-    _a: i64,
+    n_players: usize,
+    n_problems: usize,
+    problem_point_list: Vec<i64>,
+    table: Vec<Vec<u8>>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n_players: usize,
+            n_problems: usize,
+            problem_point_list: [i64; n_problems],
+            table: [Bytes; n_players],
         }
-        Problem { _a }
+        Problem { n_players, n_problems, problem_point_list, table }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let Problem { n_players, n_problems, problem_point_list, table } = self;
+        // 各プレイヤーの点数を計算しておく
+        let player_point_list = (0..*n_players)
+            .map(|player_i| {
+                table[player_i]
+                    .iter()
+                    .enumerate()
+                    .filter_map(|(problem_i, ch)| {
+                        (*ch == b'o').then_some(problem_point_list[problem_i] + player_i as i64 + 1)
+                    })
+                    .sum::<i64>()
+            })
+            .collect_vec();
+
+        let problems_point_list_sorted = problem_point_list
+            .iter()
+            .copied()
+            .enumerate()
+            .sorted_by_key(|(_i, p)| Reverse(*p))
+            .collect_vec();
+
+        let ans = (0..*n_players)
+            .map(|i| {
+                // 何点必要か計算する
+                let max_point_without_me = (0..*n_players)
+                    .filter(|&j| j != i)
+                    .map(|j| player_point_list[j])
+                    .max()
+                    .unwrap();
+                let need_point = max(0, max_point_without_me - player_point_list[i] + 1);
+                if need_point <= 0 {
+                    return 0;
+                }
+
+                // 何問解けばいいですか？
+                let mut cnt = 0;
+                let mut addtional_point = 0;
+
+                for &(problem_idx, point) in &problems_point_list_sorted {
+                    if table[i][problem_idx] == b'x' {
+                        cnt += 1;
+                        addtional_point += point;
+                        if addtional_point >= need_point {
+                            return cnt;
+                        }
+                    }
+                }
+                panic!();
+
+                // return cnt;
+            })
+            .collect_vec();
+
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec(&self.ans);
     }
 }
 
@@ -41,6 +98,8 @@ mod tests {
         assert_eq!(1 + 1, 2);
     }
 }
+
+use std::cmp::{max, Reverse};
 
 // ====== import ======
 #[allow(unused_imports)]

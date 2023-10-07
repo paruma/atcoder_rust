@@ -1,29 +1,30 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    s: Vec<u8>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            s: Bytes,
         }
-        Problem { _a }
+        Problem { s }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = (0..16).filter(|i| i % 2 == 1).all(|i| self.s[i] == b'0');
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        //println!("{}", self.ans);
+        print_yesno(self.ans);
     }
 }
 
