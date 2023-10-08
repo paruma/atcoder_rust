@@ -1,29 +1,144 @@
-//#[derive_readable]
+struct TestCase {
+    n: usize,
+    xs: Vec<u8>,
+    ys: Vec<u8>,
+}
 struct Problem {
-    _a: i64,
+    n_test_case: usize,
+    test_cases: Vec<TestCase>,
+}
+
+fn count_ch(zs: &[u8], ch: u8) -> usize {
+    zs.iter().filter(|ch0| **ch0 == ch).count()
+}
+
+fn leftmost_a(zs: &[u8], default: usize) -> usize {
+    zs.iter().find_position(|ch| b"AC".contains(ch)).map(|(i, _)| i).unwrap_or(default)
+}
+
+fn rightmost_b(zs: &[u8], default: usize) -> usize {
+    zs.iter().rev().find_position(|ch| b"BC".contains(ch)).map(|(i, _)| i).unwrap_or(default)
+}
+
+fn solve_sub(xs: &[u8], ys: &[u8]) -> bool {
+    // ABCの数の整合性があっている
+    // Aの最左位置とBの最右位置の比較
+    let cnt_xa = count_ch(xs, b'A');
+    let cnt_xb = count_ch(xs, b'B');
+    let cnt_ya = count_ch(ys, b'A');
+    let cnt_yb = count_ch(ys, b'B');
+
+    if cnt_xa > cnt_ya || cnt_xb > cnt_yb {
+        return false;
+    }
+
+    // xs の方にある C を A B に変える
+    // 左側から cnt_ya - cnt_xa 個を A に変える。
+    let mut xs = xs.to_vec();
+    let mut cnt_change = 0;
+    for i in 0..xs.len() {
+        if xs[i] == b'C' {
+            if cnt_change < cnt_ya - cnt_xa {
+                xs[i] = b'A';
+            } else {
+                xs[i] = b'B';
+            }
+            cnt_change += 1;
+        }
+    }
+
+    let xs = &xs;
+
+    // 一番左にあるAを左から数える
+    let x_leftmost_a = leftmost_a(xs, 0);
+    let y_leftmost_a = leftmost_a(ys, ys.len());
+
+    // 一番右にあるBを右から数える
+    let x_rightmost_b = rightmost_b(xs, 0);
+    let y_rightmost_b = rightmost_b(ys, ys.len());
+
+    if x_leftmost_a > y_leftmost_a {
+        return false;
+    }
+
+    if x_rightmost_b > y_rightmost_b {
+        return false;
+    }
+    true
+}
+impl TestCase {
+    fn solve(&self) -> bool {
+        let n = self.n;
+        let xs = &self.xs;
+        let ys = &self.ys;
+        // まず y の C の位置に x でもCがあることを確認
+        if izip!(xs, ys).any(|(x, y)| {
+            if *y == b'C' && *x != b'C' {
+                return true;
+            }
+            false
+        }) {
+            return false;
+        }
+
+        // y の C で分離する
+        let mut begin = 0;
+        for i in 0..n {
+            if ys[i] == b'C' {
+                // [begin, end) で分離する
+                let end = i;
+                if !solve_sub(&xs[begin..end], &ys[begin..end]) {
+                    return false;
+                }
+                // 更新する
+                begin = i + 1;
+            }
+        }
+        // [begin, n) もやる
+        let end = n;
+        if !solve_sub(&xs[begin..end], &ys[begin..end]) {
+            return false;
+        }
+
+        true
+    }
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n_test_case: usize,
         }
-        Problem { _a }
+        let test_cases = (0..n_test_case)
+            .map(|_| {
+                input! {
+                    n: usize,
+                    xs: Bytes,
+                    ys: Bytes,
+                }
+                TestCase { n, xs, ys }
+            })
+            .collect_vec();
+        Problem { n_test_case, test_cases }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = self.test_cases.iter().map(|t| t.solve()).collect_vec();
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<bool>,
 }
 
 impl Answer {
+    #[fastout]
     fn print(&self) {
-        println!("{}", self.ans);
+        for &b in &self.ans {
+            let msg = if b { "Yes" } else { "No" };
+            println!("{}", msg);
+        }
     }
 }
 
@@ -38,11 +153,13 @@ mod tests {
 
     #[test]
     fn test_problem() {
-        assert_eq!(1 + 1, 2);
+        dbg!(solve_sub(&[], &[]));
     }
 }
 
+use bstr::ByteSlice;
 // ====== import ======
+use itertools::izip;
 #[allow(unused_imports)]
 use itertools::Itertools;
 #[allow(unused_imports)]
