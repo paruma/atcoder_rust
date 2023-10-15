@@ -1,29 +1,33 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    xs: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n: usize,
+            xs: [i64; n],
         }
-        Problem { _a }
+        Problem { xs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let xs = &self.xs;
+        let elem = xs[0];
+        let ans = xs.iter().all(|x| *x == elem);
+
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_yesno(self.ans);
     }
 }
 

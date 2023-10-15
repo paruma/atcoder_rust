@@ -1,29 +1,95 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    recieved: Vec<u8>,
+    cand_list: Vec<Vec<u8>>,
+}
+
+fn is_dist_leq1(str1: &[u8], str2: &[u8]) -> bool {
+    if str1 == str2 {
+        return true;
+    }
+    if usize::abs_diff(str1.len(), str2.len()) >= 2 {
+        return false;
+    }
+
+    if str1.len() == str2.len() {
+        return izip!(str1, str2).filter(|(c1, c2)| c1 != c2).count() <= 1;
+    }
+
+    if str1.len() == str2.len() + 1 {
+        // str1 のほうが1長い
+        let mut q1 = Queue::new();
+        let mut q2 = Queue::new();
+
+        for c1 in str1 {
+            q1.push(*c1);
+        }
+        for c2 in str2 {
+            q2.push(*c2);
+        }
+        let mut diff_cnt = 0;
+
+        loop {
+            if !q1.is_empty() && q1.peek() == q2.peek() {
+                q1.pop();
+                q2.pop();
+            }
+            if q1.peek() != q2.peek() {
+                q1.pop();
+                diff_cnt += 1;
+            }
+            if q1.is_empty() {
+                break;
+            }
+        }
+
+        return diff_cnt <= 1;
+        // abacbc
+        // aba bc
+
+        // abc
+        //  bc
+
+        // abc
+        // ab
+    }
+    if str1.len() + 1 == str2.len() {
+        return is_dist_leq1(str2, str1);
+    }
+
+    panic!()
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n: i64,
+            recieved: Bytes,
+            cand_list: [Bytes; n],
         }
-        Problem { _a }
+        Problem { recieved, cand_list }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = self
+            .cand_list
+            .iter()
+            .enumerate()
+            .filter(|(_i, cand)| is_dist_leq1(cand, &self.recieved))
+            .map(|(i, _cand)| i + 1) //1オリジンにする
+            .collect_vec();
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<usize>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        println!("{}", self.ans.len());
+        print_vec_1line(&self.ans);
     }
 }
 
@@ -38,11 +104,29 @@ mod tests {
 
     #[test]
     fn test_problem() {
+        // abacbc
+        // aba bc
+
+        // abc
+        //  bc
+
+        // abc
+        // ab
+        assert!(is_dist_leq1(b"abacbc", b"ababc"));
+        assert!(is_dist_leq1(b"abc", b"bc"));
+        assert!(is_dist_leq1(b"abc", b"ab"));
+        assert!(is_dist_leq1(b"ab", b"abc"));
+        assert!(is_dist_leq1(b"", b""));
+        assert!(!is_dist_leq1(b"abc", b"c"));
+        assert!(is_dist_leq1(b"abc", b"ac"));
+        assert!(!is_dist_leq1(b"abc", b"ad"));
+
         assert_eq!(1 + 1, 2);
     }
 }
 
 // ====== import ======
+use itertools::izip;
 #[allow(unused_imports)]
 use itertools::Itertools;
 #[allow(unused_imports)]
@@ -63,7 +147,6 @@ pub mod print_vec {
             println!("{:?}", a);
         }
     }
-    #[fastout]
     pub fn print_vec_1line<T: std::fmt::Debug>(arr: &[T]) {
         let msg = arr.iter().map(|x| format!("{:?}", x)).join(" ");
         println!("{}", msg);
@@ -95,3 +178,33 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use mod_queue::*;
+pub mod mod_queue {
+    use std::collections::VecDeque;
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct Queue<T> {
+        raw: VecDeque<T>,
+    }
+    impl<T> Queue<T> {
+        pub fn new() -> Self {
+            Queue { raw: VecDeque::new() }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push_front(value)
+        }
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop_back()
+        }
+        pub fn peek(&self) -> Option<&T> {
+            self.raw.back()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.raw.is_empty()
+        }
+    }
+    impl<T> Default for Queue<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+}

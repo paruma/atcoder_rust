@@ -1,17 +1,39 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    n: i64,
+    s: Vec<u8>,
+}
+
+fn is_ok(s_sorted: &[u8], sq: i64) -> bool {
+    let n = s_sorted.len();
+    let mut sq_bytes = sq.to_string().bytes().collect_vec();
+    if sq_bytes.len() > n {
+        return false;
+    }
+    for _ in (0..(n - sq_bytes.len())) {
+        sq_bytes.push(b'0');
+    }
+    sq_bytes.sort();
+    sq_bytes == s_sorted
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n: i64,
+            s: Bytes,
         }
-        Problem { _a }
+        Problem { n, s }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let s_sorted = self.s.iter().copied().sorted().collect_vec();
+        // 0のケアが必要
+        let ans = (0_i64..3_170_000) //(0..4_000_000)
+            .map(|i| i * i)
+            .filter(|&sq| is_ok(&s_sorted, sq))
+            //.filter(|sq| sq.to_string().bytes().sorted().collect_vec() == s_sorted)
+            .count() as i64;
+
         Answer { ans }
     }
 }
@@ -41,6 +63,8 @@ mod tests {
         assert_eq!(1 + 1, 2);
     }
 }
+
+use std::collections::HashSet;
 
 // ====== import ======
 #[allow(unused_imports)]

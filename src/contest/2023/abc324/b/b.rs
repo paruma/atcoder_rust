@@ -1,29 +1,51 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    n: i64,
+}
+
+pub fn prime_factorize(n: i64) -> HashMap<i64, i64> {
+    assert!(n >= 1);
+    let mut cnt_table: HashMap<i64, i64> = HashMap::new();
+    let mut n = n;
+    for i in 2..=3 {
+        if n.is_multiple_of(&i) {
+            let mut cnt = 0;
+            while n.is_multiple_of(&i) {
+                n /= i;
+                cnt += 1;
+            }
+            cnt_table.insert(i, cnt);
+        }
+    }
+    if n != 1 {
+        cnt_table.insert(n, 1);
+    }
+    cnt_table
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n: i64,
         }
-        Problem { _a }
+        Problem { n }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let pf = prime_factorize(n);
+        let ans = pf.keys().copied().all(|p| p == 2 || p == 3);
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_yesno(self.ans);
     }
 }
 
@@ -42,9 +64,12 @@ mod tests {
     }
 }
 
+use std::collections::HashMap;
+
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::Itertools;
+use num_integer::Integer;
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,
