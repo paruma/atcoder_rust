@@ -1,17 +1,36 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    n_toast: usize,
+    n_plate: usize,
+    deliciousness_list: Vec<i64>,
+}
+
+fn sq(n: i64) -> i64 {
+    n * n
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n_toast: usize,
+            n_plate: usize,
+            deliciousness_list: [i64; n_toast],
         }
-        Problem { _a }
+        Problem { n_toast, n_plate, deliciousness_list }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let deliciousness_list = self.deliciousness_list.iter().copied().sorted().collect_vec();
+        let n_double = self.n_toast - self.n_plate; // 2個乗せる皿の枚数
+
+        // 2このせ
+        let sum1: i64 = (0..n_double)
+            .map(|i| sq(deliciousness_list[i] + deliciousness_list[2 * n_double - i - 1]))
+            .sum();
+
+        // 1個のせ
+        let sum2: i64 = (n_double * 2..self.n_toast).map(|i| sq(deliciousness_list[i])).sum();
+
+        let ans = sum1 + sum2;
         Answer { ans }
     }
 }
