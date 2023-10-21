@@ -1,16 +1,19 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    s: String,
+    t: String,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            s: String,
+            t: String
         }
-        Problem { _a }
+        Problem { s, t }
     }
     fn solve(&self) -> Answer {
+        println!("{} san", self.s);
         let ans = 0;
         Answer { ans }
     }
@@ -23,7 +26,7 @@ struct Answer {
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        // println!("{}", self.ans);
     }
 }
 

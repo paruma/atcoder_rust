@@ -1,17 +1,37 @@
-//#[derive_readable]
+#[derive_readable]
+struct KyotenInfo {
+    n_employees: i64,
+    offset: i64,
+}
 struct Problem {
-    _a: i64,
+    n_kyoten: usize, //拠点
+    info: Vec<KyotenInfo>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n_kyoten: usize,
+            info: [KyotenInfo; n_kyoten],
         }
-        Problem { _a }
+        Problem { n_kyoten, info }
+    }
+    // 参加者カウント
+    // 世界標準時でt時~t+1時に参加できるか
+    fn count(&self, t: i64) -> i64 {
+        self.info
+            .iter()
+            .filter(|kyoten| {
+                // 参加可能な拠点でフィルター
+                // 世界標準時でｔ時のとき、t + kyoten.offset時になっている
+                let local_time = (t + kyoten.offset) % 24; // ローカルでの開始時刻
+                9 <= local_time && local_time <= 17
+            })
+            .map(|kyoten| kyoten.n_employees)
+            .sum()
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = (0..24).map(|t| self.count(t)).max().unwrap();
         Answer { ans }
     }
 }
