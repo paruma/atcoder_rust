@@ -5,25 +5,27 @@ struct Problem {
     len_list: Vec<i64>,
 }
 
+use ac_library::ModInt998244353 as Mint;
+
 struct Dp {
-    dp: Vec<Vec<Vec<RF>>>,
+    dp: Vec<Vec<Vec<Mint>>>,
     max_time: i64,
 }
 impl Dp {
     fn new(n: usize, x: i64) -> Dp {
-        Dp { dp: vec![vec![vec![RF::zero(); n + 1]; x as usize + 1]; 2], max_time: x }
+        Dp { dp: vec![vec![vec![Mint::new(0); n + 1]; x as usize + 1]; 2], max_time: x }
     }
 
-    fn at(&self, time: i64, music: usize, stop: bool) -> &RF {
+    fn at(&self, time: i64, music: usize, stop: bool) -> &Mint {
         let stop_idx = stop as usize;
         // 場合分け必要かも
         &self.dp[stop_idx][time as usize][music]
     }
 
-    fn set(&mut self, time: i64, music: usize, stop: bool, value: RF) {
+    fn add(&mut self, time: i64, music: usize, stop: bool, value: Mint) {
         let stop_idx = stop as usize;
         if time <= self.max_time {
-            self.dp[stop_idx][time as usize][music] = value;
+            self.dp[stop_idx][time as usize][music] += value;
         }
     }
 }
@@ -48,31 +50,30 @@ impl Problem {
         let mut visited: Vec<Vec<bool>> = vec![vec![false; *n + 1]; *x as usize + 1];
         for music_i in 0..*n {
             let music_len = len_list[music_i];
-            let prob = RF::one() / RF::new(*n as i64);
-            for t in 0..music_len - 1 {
-                dp.set(t, music_i, false, prob);
+            let prob = Mint::new(*n as i64).inv();
+            dp.add(music_len - 1, music_i, true, prob);
+            if music_len <= *x && !visited[music_len as usize][music_i] {
+                p_queue.push((Reverse(music_len), music_i));
+                visited[music_len as usize][music_i] = true;
             }
-            dp.set(music_len - 1, music_i, true, prob);
-            p_queue.push((Reverse(music_len), music_i));
         }
 
-        while let Some((Reverse(time), prev_music_i)) = p_queue.pop() {
+        for time in 1..=*x {
+            // 時刻 t-1 で止まっている確率 O(n) で求まる
+            let prob_stop: Mint = (0..*n).map(|music_i| dp.at(time - 1, music_i, true)).sum();
+
+            // 時刻t から各音楽を流す
             for music_i in 0..*n {
                 let music_len = len_list[music_i];
-                let prob = RF::one() / RF::new(*n as i64) * *dp.at(time - 1, prev_music_i, false);
-                for t in 0..music_len - 1 {
-                    dp.set(time + t, music_i, false, prob);
-                }
-                dp.set(time + music_len - 1, music_i, true, prob);
-                if time + music_len <= *x && !visited[(time + music_len) as usize][music_i] {
-                    p_queue.push((Reverse(time + music_len), music_i));
-                    visited[(time + music_len) as usize][music_i] = true;
-                }
+                let prob = Mint::new(*n as i64).inv() * prob_stop;
+                dp.add(time + music_len - 1, music_i, true, prob);
             }
         }
+        //TODO: false はいらないので消す
 
+        // 時刻がx のもの、x-1 のもの...
         let ans = *dp.at(*x, 0, false) + *dp.at(*x, 0, true);
-        let ans = ans.rep();
+        let ans = ans.val() as i64;
         Answer { ans }
     }
 }
@@ -158,59 +159,3 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
-use num::{One, Zero};
-use rf::*;
-pub mod rf {
-    pub const MOD: i64 = 998_244_353;
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-    pub struct RF {
-        rep: i64,
-    }
-    impl RF {
-        pub fn new(x: i64) -> RF {
-            RF { rep: x.rem_euclid(MOD) }
-        }
-        pub fn rep(self) -> i64 {
-            self.rep
-        }
-    }
-    impl RF {
-        pub fn inv(self) -> Self {
-            num::pow(self, (MOD - 2) as usize)
-        }
-    }
-    impl num_traits::Zero for RF {
-        fn zero() -> Self {
-            RF::new(0)
-        }
-        fn is_zero(&self) -> bool {
-            self.rep == 0
-        }
-    }
-    impl num_traits::One for RF {
-        fn one() -> Self {
-            RF::new(1)
-        }
-    }
-    macro_rules ! bi_ops_impl {($ std_ops : ident , $ fn : ident , $ op : tt ) => {impl std :: ops ::$ std_ops for RF {type Output = Self ; fn $ fn (self , rhs : Self ) -> Self :: Output {RF :: new (self . rep $ op rhs . rep ) } } } ; }
-    bi_ops_impl ! (Add , add , + );
-    bi_ops_impl ! (Sub , sub , - );
-    bi_ops_impl ! (Mul , mul , * );
-    impl std::ops::Div for RF {
-        type Output = Self;
-        fn div(self, rhs: Self) -> Self::Output {
-            std::ops::Mul::mul(self, rhs.inv())
-        }
-    }
-    macro_rules ! bi_ops_assign_impl {($ std_ops_assign : ident , $ fn_assign : ident , $ op : tt ) => {impl std :: ops ::$ std_ops_assign for RF {fn $ fn_assign (& mut self , rhs : Self ) {* self = * self $ op rhs } } } ; }
-    bi_ops_assign_impl ! (AddAssign , add_assign , + );
-    bi_ops_assign_impl ! (SubAssign , sub_assign , - );
-    bi_ops_assign_impl ! (MulAssign , mul_assign , * );
-    bi_ops_assign_impl ! (DivAssign , div_assign , / );
-    impl std::ops::Neg for RF {
-        type Output = Self;
-        fn neg(self) -> Self::Output {
-            RF::new(-self.rep)
-        }
-    }
-}
