@@ -1,5 +1,4 @@
 #![allow(clippy::let_unit_value)]
-use std::collections::VecDeque;
 
 use proconio::{input, marker::Usize1};
 
@@ -89,6 +88,7 @@ fn read() -> (usize, Vec<Edge>) {
 }
 
 // loop_cntが2重にカウントされてしまうのでだめ。
+#[allow(dead_code)]
 fn dfs_loop_cnt_wrong(
     before_idx: usize,
     current_idx: usize,
