@@ -4,39 +4,6 @@ struct Problem {
     b: i64,
 }
 
-// TODO: ここらへんはスニペット化したい。
-#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
-pub enum Mod2 {}
-
-impl Modulus for Mod2 {
-    const VALUE: u32 = 2;
-    const HINT_VALUE_IS_PRIME: bool = true;
-
-    fn butterfly_cache() -> &'static LocalKey<RefCell<Option<ButterflyCache<Self>>>> {
-        thread_local! {
-            static BUTTERFLY_CACHE: RefCell<Option<ButterflyCache<Mod2>>> = RefCell::default();
-        }
-        &BUTTERFLY_CACHE
-    }
-}
-pub type ModInt2 = StaticModInt<Mod2>;
-
-#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
-pub enum Mod2times998 {}
-
-impl Modulus for Mod2times998 {
-    const VALUE: u32 = 2 * 998244353;
-    const HINT_VALUE_IS_PRIME: bool = false;
-
-    fn butterfly_cache() -> &'static LocalKey<RefCell<Option<ButterflyCache<Self>>>> {
-        thread_local! {
-            static BUTTERFLY_CACHE: RefCell<Option<ButterflyCache<Mod2times998>>> = RefCell::default();
-        }
-        &BUTTERFLY_CACHE
-    }
-}
-pub type ModInt2times998 = StaticModInt<Mod2times998>;
-
 impl Problem {
     fn read() -> Problem {
         input! {
@@ -75,6 +42,8 @@ impl Problem {
         } else {
             (ans0 - Mint998::new(1)) / Mint998::new(2)
         };
+
+        // let ans = (ans0 - Mint998::new(ans0_mod2.val())) / Mint998::new(2);
         let ans = ans.val() as i64;
         Answer { ans }
     }
@@ -119,7 +88,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve2().print();
+    Problem::read().solve().print();
 }
 
 #[cfg(test)]
@@ -211,4 +180,37 @@ pub fn prime_factorize(n: i64) -> HashMap<i64, i64> {
         cnt_table.insert(n, 1);
     }
     cnt_table
+}
+
+use static_mod_int::*;
+pub mod static_mod_int {
+    use ac_library::{ButterflyCache, Modulus, StaticModInt};
+    use std::{cell::RefCell, thread::LocalKey};
+    #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
+    pub enum Mod2 {}
+    impl Modulus for Mod2 {
+        const VALUE: u32 = 2;
+        const HINT_VALUE_IS_PRIME: bool = true;
+        fn butterfly_cache() -> &'static LocalKey<RefCell<Option<ButterflyCache<Self>>>> {
+            thread_local! {static BUTTERFLY_CACHE : RefCell < Option < ButterflyCache < Mod2 >>> = RefCell :: default () ; }
+            &BUTTERFLY_CACHE
+        }
+    }
+    pub type ModInt2 = StaticModInt<Mod2>;
+
+    #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
+    pub enum Mod2times998 {}
+
+    impl Modulus for Mod2times998 {
+        const VALUE: u32 = 2 * 998244353;
+        const HINT_VALUE_IS_PRIME: bool = false;
+
+        fn butterfly_cache() -> &'static LocalKey<RefCell<Option<ButterflyCache<Self>>>> {
+            thread_local! {
+                static BUTTERFLY_CACHE: RefCell<Option<ButterflyCache<Mod2times998>>> = RefCell::default();
+            }
+            &BUTTERFLY_CACHE
+        }
+    }
+    pub type ModInt2times998 = StaticModInt<Mod2times998>;
 }

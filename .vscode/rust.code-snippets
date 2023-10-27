@@ -23,6 +23,14 @@
 		],
 		"description": "#[derive(Clone, Copy, Debug, PartialEq, Eq)]"
 	},
+	"modint998":{
+		"scope": "rust",
+		"prefix": "modint998",
+		"body": [
+			"use ac_library::ModInt998244353 as Mint;"
+		],
+		"description": "use ac_library::ModInt998244353 as Mint;"
+	}
 	"yesno": {
 		"scope": "rust",
 		"prefix": "yesno",
@@ -39,14 +47,5 @@
 			"println!(\"{$1}\", $2)"
 		],
 		"description": "println"
-	},
-	"cl_odo": {
-		"scope": "rust",
-		"prefix": "cl_odo",
-		"body": [
-			"|| -> Option<_> {",
-			"    $1",
-			"}();",
-		],
 	},
 }

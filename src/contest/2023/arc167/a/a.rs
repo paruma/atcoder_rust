@@ -33,6 +33,25 @@ impl Problem {
         let ans = sum1 + sum2;
         Answer { ans }
     }
+
+    fn solve2(&self) -> Answer {
+        let n_plate = self.n_plate;
+        // 美味しさ0のトーストを用意する
+
+        let deliciousness_list = {
+            let mut deliciousness_list = self.deliciousness_list.clone();
+            // 2 * n_plate になるように 0 を埋める。
+            deliciousness_list.resize(2 * n_plate, 0);
+            deliciousness_list.sort();
+            deliciousness_list
+        };
+
+        let ans: i64 = (0..self.n_plate)
+            .map(|i| sq(deliciousness_list[i] + deliciousness_list[2 * n_plate - i - 1]))
+            .sum();
+
+        Answer { ans }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -47,7 +66,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
