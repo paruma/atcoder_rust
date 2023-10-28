@@ -38,6 +38,7 @@ impl Problem {
         Problem { n, x, len_list }
     }
     fn solve(&self) -> Answer {
+        // 配るDPによるもの
         let Problem { n, x, len_list } = self;
 
         // 時刻 t で音楽 i が再生開始する確率: dp.at(t, i)
@@ -60,7 +61,7 @@ impl Problem {
                 dp.add(time, music_i, prob);
             }
         }
-        // 時刻がx のもの、x-1 のもの...
+        // 音楽 0 の開始時刻が x, x-1, ... , x - len_list[0] + 1 の場合、時刻 x で音楽 0 が流れることになる
         let time_range = *x - len_list[0] + 1..=*x;
         let ans = time_range.map(|t| dp.at(t, 0)).sum::<Mint>();
         let ans = ans.val() as i64;
