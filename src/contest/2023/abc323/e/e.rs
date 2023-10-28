@@ -8,25 +8,23 @@ struct Problem {
 use ac_library::ModInt998244353 as Mint;
 
 struct Dp {
-    dp: Vec<Vec<Vec<Mint>>>,
-    max_time: i64,
+    dp: Vec<Vec<Mint>>,
 }
 impl Dp {
     fn new(n: usize, x: i64) -> Dp {
-        Dp { dp: vec![vec![vec![Mint::new(0); n + 1]; x as usize + 1]; 2], max_time: x }
+        Dp { dp: vec![vec![Mint::new(0); n]; x as usize + 1] }
     }
 
-    fn at(&self, time: i64, music: usize, stop: bool) -> &Mint {
-        let stop_idx = stop as usize;
-        // 場合分け必要かも
-        &self.dp[stop_idx][time as usize][music]
-    }
-
-    fn add(&mut self, time: i64, music: usize, stop: bool, value: Mint) {
-        let stop_idx = stop as usize;
-        if time <= self.max_time {
-            self.dp[stop_idx][time as usize][music] += value;
+    // 時刻 time で音楽 music が再生開始する確率: dp.at(time, music)
+    fn at(&self, time: i64, music: usize) -> Mint {
+        if time < 0 {
+            return Mint::new(0);
         }
+        self.dp[time as usize][music]
+    }
+
+    fn add(&mut self, time: i64, music: usize, value: Mint) {
+        self.dp[time as usize][music] += value;
     }
 }
 
@@ -41,38 +39,30 @@ impl Problem {
     }
     fn solve(&self) -> Answer {
         let Problem { n, x, len_list } = self;
-        // 時刻 t に音楽 i が流れている確率
-        // 時刻tで止まる
-        // 時刻tで止まらない
+
+        // 時刻 t で音楽 i が再生開始する確率: dp.at(t, i)
         let mut dp = Dp::new(*n, *x);
-        // 1曲目を流す
-        let mut p_queue: BinaryHeap<(Reverse<i64>, usize)> = BinaryHeap::new();
-        let mut visited: Vec<Vec<bool>> = vec![vec![false; *n + 1]; *x as usize + 1];
+        // 時刻0に1曲目を流す
         for music_i in 0..*n {
-            let music_len = len_list[music_i];
-            let prob = Mint::new(*n as i64).inv();
-            dp.add(music_len - 1, music_i, true, prob);
-            if music_len <= *x && !visited[music_len as usize][music_i] {
-                p_queue.push((Reverse(music_len), music_i));
-                visited[music_len as usize][music_i] = true;
-            }
+            let prob = Mint::new(*n).inv(); // 1/n
+            dp.add(0, music_i, prob);
         }
 
         for time in 1..=*x {
-            // 時刻 t-1 で止まっている確率 O(n) で求まる
-            let prob_stop: Mint = (0..*n).map(|music_i| dp.at(time - 1, music_i, true)).sum();
+            // 時刻 time - 1 で音楽が止まる確率を求める
+            // 各音楽 music_i に対して、時刻 time - len_list[misic_i] で開始した確率を求めて、足し合わせる
+            let prob_stop: Mint =
+                (0..*n).map(|music_i| dp.at(time - len_list[music_i], music_i)).sum();
 
             // 時刻t から各音楽を流す
             for music_i in 0..*n {
-                let music_len = len_list[music_i];
-                let prob = Mint::new(*n as i64).inv() * prob_stop;
-                dp.add(time + music_len - 1, music_i, true, prob);
+                let prob = Mint::new(*n).inv() * prob_stop;
+                dp.add(time, music_i, prob);
             }
         }
-        //TODO: false はいらないので消す
-
         // 時刻がx のもの、x-1 のもの...
-        let ans = *dp.at(*x, 0, false) + *dp.at(*x, 0, true);
+        let time_range = *x - len_list[0] + 1..=*x;
+        let ans = time_range.map(|t| dp.at(t, 0)).sum::<Mint>();
         let ans = ans.val() as i64;
         Answer { ans }
     }
@@ -95,20 +85,23 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
+
     #[allow(unused_imports)]
     use super::*;
 
     #[test]
     fn test_problem() {
-        assert_eq!(1 + 1, 2);
+        let x: Rational64 = Rational64::new(1, 3);
+        let y: Rational64 = Rational64::new(1, 2);
+        let z: Rational64 = 3.into();
+        assert_eq!(z, Rational64::new(3, 1));
     }
 }
-
-use std::{cmp::Reverse, collections::BinaryHeap};
 
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::Itertools;
+use num_rational::Rational64;
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,
