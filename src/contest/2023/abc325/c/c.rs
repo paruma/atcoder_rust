@@ -30,37 +30,6 @@ impl Grid {
     }
 }
 
-struct Visited {
-    visited: Vec<Vec<bool>>,
-    h: usize,
-    w: usize,
-}
-
-impl Visited {
-    fn new(visited: Vec<Vec<bool>>) -> Visited {
-        let h = visited.len();
-        let w = visited[0].len();
-        Visited { visited, h, w }
-    }
-
-    fn is_within(&self, pos: Pos<i64>) -> bool {
-        let h = self.h as i64;
-        let w = self.w as i64;
-        0 <= pos.y && pos.y < h && 0 <= pos.x && pos.x < w
-    }
-
-    fn at(&self, pos: Pos<i64>) -> &bool {
-        if self.is_within(pos) {
-            self.visited.at(pos)
-        } else {
-            &false
-        }
-    }
-
-    fn at_mut(&mut self, pos: Pos<i64>) -> &mut bool {
-        self.visited.at_mut(pos)
-    }
-}
 impl Problem {
     fn read() -> Problem {
         input! {
@@ -71,20 +40,11 @@ impl Problem {
         Problem { grid: Grid { h, w, grid } }
     }
     fn solve(&self) -> Answer {
+        // 連結成分を BFS で求める解法
         let grid = &self.grid;
-        // 8方向のあれ
-        let dir_list = [
-            Pos::new(0, 1),
-            Pos::new(0, -1),
-            Pos::new(1, 1),
-            Pos::new(1, 0),
-            Pos::new(1, -1),
-            Pos::new(-1, 1),
-            Pos::new(-1, 0),
-            Pos::new(-1, -1),
-        ];
+        let dir_list = DIR8_LIST;
 
-        let mut visited = Visited::new(vec![vec![false; grid.w]; grid.h]);
+        let mut visited = vec![vec![false; grid.w]; grid.h];
 
         let mut cnt = 0; //連結成分の数
 
@@ -99,7 +59,6 @@ impl Problem {
             *visited.at_mut(init_pos) = true;
             open.push(init_pos);
             while let Some(current_pos) = open.pop() {
-                // dbg!(current_pos);
                 for &d in &dir_list {
                     let next_pos = current_pos + d;
                     if *grid.at(next_pos) == b'#' && !visited.at(next_pos) {
@@ -110,6 +69,29 @@ impl Problem {
             }
         }
         let ans = cnt;
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // 連結成分数を Union Find で求める解法
+        let grid = &self.grid;
+        let dir_list = DIR8_LIST;
+        let mut uf = UnionFind::new(grid.h * grid.w);
+        let encode = |p: Pos<i64>| grid.w * (p.y as usize) + (p.x as usize);
+
+        for (y, x) in iproduct!(0..grid.h, 0..grid.w) {
+            let pos = Pos::new(x as i64, y as i64);
+            for d in dir_list {
+                let next_pos = pos + d;
+                if *grid.at(next_pos) == b'#' {
+                    uf.unite(encode(pos), encode(next_pos));
+                }
+            }
+        }
+        let cnt_not_sensor = grid.grid.iter().flatten().filter(|ch| **ch == b'.').count();
+        // uf にはセンサーじゃない点が孤立して含まれているので、除いてカウントする。
+        let ans = uf.num_groups() - cnt_not_sensor;
+        let ans = ans as i64;
         Answer { ans }
     }
 }
@@ -194,7 +176,6 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
-
 use pos::*;
 pub mod pos {
     use std::ops::{Add, AddAssign, Mul, Neg, Sub, SubAssign};
@@ -254,7 +235,20 @@ pub mod pos {
             *self = *self - rhs
         }
     }
+    pub const DIR8_LIST: [Pos<i64>; 8] = [
+        Pos { x: 0, y: 1 },
+        Pos { x: 1, y: 1 },
+        Pos { x: 1, y: 0 },
+        Pos { x: 1, y: -1 },
+        Pos { x: 0, y: -1 },
+        Pos { x: -1, y: -1 },
+        Pos { x: -1, y: 0 },
+        Pos { x: -1, y: 1 },
+    ];
+    pub const DIR4_LIST: [Pos<i64>; 4] =
+        [Pos { x: 0, y: 1 }, Pos { x: 1, y: 0 }, Pos { x: 0, y: -1 }, Pos { x: -1, y: 0 }];
 }
+
 use vec_vec_at::*;
 pub mod vec_vec_at {
     use super::pos::*;
@@ -297,6 +291,73 @@ pub mod mod_queue {
     impl<T> Default for Queue<T> {
         fn default() -> Self {
             Self::new()
+        }
+    }
+}
+
+use union_find::*;
+pub mod union_find {
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    struct Root {
+        count: i32,
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    enum Node {
+        Root { root: Root },
+        NonRoot { parent_index: usize },
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    struct RootAndIndex {
+        root: Root,
+        index: usize,
+    }
+    #[derive(Clone, Debug)]
+    pub struct UnionFind {
+        nodes: Vec<Node>,
+    }
+    impl UnionFind {
+        pub fn new(n: usize) -> UnionFind {
+            UnionFind { nodes: vec![Node::Root { root: Root { count: 1 } }; n] }
+        }
+        fn root_node(&mut self, index: usize) -> RootAndIndex {
+            match self.nodes[index] {
+                Node::Root { root } => RootAndIndex { root, index },
+                Node::NonRoot { parent_index } => {
+                    let root_and_index = self.root_node(parent_index);
+                    self.nodes[index] = Node::NonRoot { parent_index: root_and_index.index };
+                    root_and_index
+                }
+            }
+        }
+        pub fn root(&mut self, index: usize) -> usize {
+            self.root_node(index).index
+        }
+        pub fn same_count(&mut self, index: usize) -> i32 {
+            self.root_node(index).root.count
+        }
+        pub fn same(&mut self, x: usize, y: usize) -> bool {
+            self.root(x) == self.root(y)
+        }
+        pub fn num_groups(&self) -> usize {
+            self.nodes.iter().filter(|&node| matches!(node, Node::Root { .. })).count()
+        }
+        pub fn unite(&mut self, x: usize, y: usize) {
+            if self.same(x, y) {
+                return;
+            }
+            let x_root_node = self.root_node(x);
+            let y_root_node = self.root_node(y);
+            let x_count = x_root_node.root.count;
+            let y_count = y_root_node.root.count;
+            let x_root_index = x_root_node.index;
+            let y_root_index = y_root_node.index;
+            if x_count < y_count {
+                self.nodes[x_root_index] = Node::NonRoot { parent_index: y_root_index };
+                self.nodes[y_root_index] = Node::Root { root: Root { count: x_count + y_count } }
+            } else {
+                self.nodes[y_root_index] = Node::NonRoot { parent_index: x_root_index };
+                self.nodes[x_root_index] = Node::Root { root: Root { count: x_count + y_count } }
+            }
         }
     }
 }
