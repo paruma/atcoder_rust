@@ -615,6 +615,35 @@
       "}"
     ]
   },
+  "modint_to_rational": {
+    "scope": "rust",
+    "prefix": "modint_to_rational",
+    "body": [
+      "use modint_to_rational::*;",
+      "pub mod modint_to_rational {",
+      "    use num_rational::Rational64;",
+      "    pub trait ToRational {",
+      "        fn to_rational(self) -> Option<Rational64>;",
+      "    }",
+      "    impl ToRational for ac_library::ModInt998244353 {",
+      "        fn to_rational(self) -> Option<Rational64> {",
+      "            if self.val() == 0 {",
+      "                return Some(Rational64::new(0, 1));",
+      "            }",
+      "            for denom in 1..1000 {",
+      "                let denom_inv = Self::new(denom).inv();",
+      "                for numer in -1000..1000 {",
+      "                    if self == denom_inv * Self::new(numer) {",
+      "                        return Some(Rational64::new(numer, denom));",
+      "                    }",
+      "                }",
+      "            }",
+      "            None",
+      "        }",
+      "    }",
+      "}"
+    ]
+  },
   "pos": {
     "scope": "rust",
     "prefix": "pos",

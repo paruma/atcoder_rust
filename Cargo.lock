@@ -32,6 +32,7 @@ dependencies = [
  "num",
  "num-derive",
  "num-integer",
+ "num-rational",
  "num-traits",
  "pathfinding",
  "proconio",
