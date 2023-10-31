@@ -1,17 +1,32 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    n_gift: usize,
+    len: i64,
+    gift_pos: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n_gift: usize,
+            len: i64,
+            gift_pos: [i64; n_gift],
         }
-        Problem { _a }
+        Problem { n_gift, len, gift_pos }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let len = self.len;
+        let gift_pos = self.gift_pos.iter().copied().sorted().collect_vec();
+        let ans = gift_pos
+            .iter()
+            .enumerate()
+            .map(|(i, &p)| {
+                //[p, p + len) の中に何個あるか
+                let range_right_idx = lower_bound(&gift_pos, p + len);
+                range_right_idx - i // [i, range_right_idx) の長さ
+            })
+            .max()
+            .unwrap() as i64;
         Answer { ans }
     }
 }
@@ -95,3 +110,55 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+/// 二分探索をする
+/// ```text
+/// ng ng ng ok ok ok
+///          ↑ここの引数の値を返す
+/// ```
+/// ## Arguments
+/// * ok != ng
+/// * |ok - ng| <= 2^63 - 1, |ok + ng| <= 2^63 - 1
+/// * p の定義域について
+///     * ng < ok の場合、p は区間 ng..ok で定義されている。
+///     * ok < ng の場合、p は区間 ok..ng で定義されている。
+/// * p の単調性について
+///     * ng < ok の場合、p は単調増加
+///     * ok < ng の場合、p は単調減少
+/// ## Return
+/// * ng < ok の場合: I = { i in ng..ok | p(i) == true } としたとき
+///     * I が空でなければ、min I を返す。
+///     * I が空ならば、ok を返す。
+/// * ok < ng の場合: I = { i in ok..ng | p(i) == true } としたとき
+///     * I が空でなければ、max I を返す。
+///     * I が空ならば、ok を返す。
+pub fn bin_search<F>(mut ok: i64, mut ng: i64, p: F) -> i64
+where
+    F: Fn(i64) -> bool,
+{
+    assert!(ok != ng);
+    assert!(ok.checked_sub(ng).is_some());
+    assert!(ok.checked_add(ng).is_some());
+    while num::abs(ok - ng) > 1 {
+        let mid = (ok + ng) / 2;
+        assert!(mid != ok);
+        assert!(mid != ng);
+        if p(mid) {
+            ok = mid;
+        } else {
+            ng = mid;
+        }
+    }
+    ok
+}
+/// 指定された要素以上の値が現れる最初の位置を返す。
+/// ## Arguments
+/// * xs: 単調増加
+///     * 単調増加でなくても、 `|i| xs[i] >= key` が単調ならOK
+/// ## Return
+/// `I = {i in 0..xs.len() | xs[i] >= key}` としたとき、`min I` を返す。
+/// ただし、`I` が空の場合は `xs.len()` を返す
+/// 戻り値は、区間 `0..=xs.len()` の間で返る。
+pub fn lower_bound<T: PartialOrd>(xs: &[T], key: T) -> usize {
+    let pred = |i: i64| xs[i as usize] >= key;
+    bin_search(xs.len() as i64, -1_i64, pred) as usize
+}

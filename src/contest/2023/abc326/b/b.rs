@@ -1,17 +1,26 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    n: i64,
+}
+
+fn is_like326(x: i64) -> bool {
+    let d100 = x / 100;
+    let d10 = (x % 100) / 10;
+    let d1 = x % 10;
+    d100 * d10 == d1
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n: i64,
         }
-        Problem { _a }
+        Problem { n }
     }
+
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let ans = (n..1000).filter(|x| is_like326(*x)).min().unwrap();
         Answer { ans }
     }
 }

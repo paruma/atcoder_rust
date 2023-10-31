@@ -1,29 +1,39 @@
-//#[derive_readable]
+#[derive_readable]
 struct Problem {
-    _a: i64,
+    x: i64,
+    y: i64,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            p: Problem,
         }
-        Problem { _a }
+        p
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let x = self.x;
+        let y = self.y;
+        // 階段→true
+        let ans = if x > y {
+            // 下る
+            x - y <= 3
+        } else {
+            //登る
+            y - x <= 2
+        };
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_yesno(self.ans);
     }
 }
 

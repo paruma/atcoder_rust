@@ -1,16 +1,24 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    n: usize,
+    xs: Vec<i64>,
 }
+
+use ac_library::ModInt998244353 as Mint;
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n: usize,
+            xs: [i64; n]
         }
-        Problem { _a }
+        Problem { n, xs }
     }
     fn solve(&self) -> Answer {
+        let n = self.n;
+        let xs = &self.xs;
+        let dp = vec![Mint::new(0); n];
+        
         let ans = 0;
         Answer { ans }
     }
