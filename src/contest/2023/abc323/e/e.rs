@@ -38,7 +38,7 @@ impl Problem {
         Problem { n, x, len_list }
     }
     fn solve(&self) -> Answer {
-        // 配るDPによるもの
+        // 配るDPによるもの (って思ったが、よく見ると普通にもらうDPをしている)
         let Problem { n, x, len_list } = self;
 
         // 時刻 t で音楽 i が再生開始する確率: dp.at(t, i)
