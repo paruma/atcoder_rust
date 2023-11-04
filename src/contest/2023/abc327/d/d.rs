@@ -1,29 +1,94 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    n: i64,
+    m: usize,
+    xs: Vec<usize>,
+    ys: Vec<usize>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Edge {
+    from: usize,
+    to: usize,
+}
+
+impl Edge {
+    fn new(from: usize, to: usize) -> Edge {
+        Edge { from, to }
+    }
+}
+
+fn make_adj(n_vertex: usize, edges: &[Edge]) -> Vec<Vec<Edge>> {
+    let mut adj = vec![vec![]; n_vertex];
+
+    for &e in edges {
+        adj[e.from].push(e);
+    }
+
+    adj
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n: i64,
+            m: usize,
+            xs: [Usize1; m],
+            ys: [Usize1; m],
         }
-        Problem { _a }
+        Problem { n, m, xs, ys }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let Problem { n, m, xs, ys } = self;
+        let edges = izip!(xs, ys)
+            .map(|(&x, &y)| [Edge::new(x, y), Edge::new(y, x)])
+            .flatten()
+            .collect_vec();
+        let n_vertex = *n as usize;
+        let adj = make_adj(n_vertex, &edges);
+
+        let mut visited = vec![false; n_vertex];
+        let mut odd_even_list = vec![-1; n_vertex]; // 0 or 1 を入れる
+        for init in 0..n_vertex {
+            if visited[init] {
+                continue;
+            }
+            let mut open: VecDeque<usize> = VecDeque::new();
+            open.push_front(init);
+            visited[init] = true;
+            odd_even_list[init] = 0;
+
+            while let Some(current) = open.pop_back() {
+                for &e in &adj[current] {
+                    if !visited[e.to] {
+                        visited[e.to] = true;
+                        open.push_front(e.to);
+                        odd_even_list[e.to] = (odd_even_list[e.from] + 1) % 2;
+                    } else {
+                        // 訪問済
+                        // 偶奇チェックをする
+                        if odd_even_list[e.from] == odd_even_list[e.to] {
+                            return Answer { ans: false };
+                        }
+                    }
+                }
+            }
+        }
+
+        let ans = true;
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        //println!("{}", self.ans);
+        print_yesno(self.ans);
     }
 }
 
@@ -42,7 +107,10 @@ mod tests {
     }
 }
 
+use std::collections::VecDeque;
+
 // ====== import ======
+use itertools::izip;
 #[allow(unused_imports)]
 use itertools::Itertools;
 #[allow(unused_imports)]

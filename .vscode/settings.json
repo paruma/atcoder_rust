@@ -12,6 +12,7 @@
         "powerset",
         "Procon",
         "proconio",
-        "struct"
+        "struct",
+        "yesno"
     ]
 }

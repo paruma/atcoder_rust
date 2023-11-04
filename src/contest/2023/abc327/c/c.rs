@@ -1,29 +1,62 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    grid: Vec<Vec<i64>>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            grid:[[i64; 9]; 9],
         }
-        Problem { _a }
+        Problem { grid }
+    }
+    fn is_ok(&self) -> bool {
+        let grid = &self.grid;
+        // 行
+        for y in 0..9 {
+            if !(0..9).map(|x| grid[y][x]).all_unique() {
+                return false;
+            }
+        }
+        // 列
+        for x in 0..9 {
+            if !(0..9).map(|y| grid[y][x]).all_unique() {
+                return false;
+            }
+        }
+        // 3*3
+        for bx in 0..3 {
+            for by in 0..3 {
+                if !iproduct!(0..3, 0..3)
+                    .map(|(ix, iy)| {
+                        let x = 3 * bx + ix;
+                        let y = 3 * by + iy;
+                        grid[y][x]
+                    })
+                    .all_unique()
+                {
+                    return false;
+                }
+            }
+        }
+
+        true
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = self.is_ok();
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        //println!("{}", self.ans);
+        print_yesno(self.ans);
     }
 }
 
@@ -43,6 +76,7 @@ mod tests {
 }
 
 // ====== import ======
+use itertools::iproduct;
 #[allow(unused_imports)]
 use itertools::Itertools;
 #[allow(unused_imports)]

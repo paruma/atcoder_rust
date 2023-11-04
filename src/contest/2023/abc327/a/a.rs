@@ -1,29 +1,32 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    n: usize,
+    s: Vec<u8>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n: usize,
+            s: Bytes,
         }
-        Problem { _a }
+        Problem { n, s }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = self.s.contains_str(b"ab") || self.s.contains_str(b"ba");
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        //println!("{}", self.ans);
+        print_yesno(self.ans);
     }
 }
 
@@ -42,6 +45,7 @@ mod tests {
     }
 }
 
+use bstr::ByteSlice;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::Itertools;

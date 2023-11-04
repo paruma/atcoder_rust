@@ -1,17 +1,19 @@
-//#[derive_readable]
+#[derive_readable]
 struct Problem {
-    _a: i64,
+    b: i64,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            p: Problem,
         }
-        Problem { _a }
+        p
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let b = self.b;
+        let ans = (1_i64..=15).find(|&a| a.pow(a as u32) == b).unwrap_or(-1);
+
         Answer { ans }
     }
 }
