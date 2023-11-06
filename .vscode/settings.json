@@ -9,6 +9,7 @@
         "iproduct",
         "Itertools",
         "izip",
+        "peekable",
         "powerset",
         "Procon",
         "proconio",

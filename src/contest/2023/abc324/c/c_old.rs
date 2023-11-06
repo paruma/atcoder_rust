@@ -18,23 +18,32 @@ fn is_dist_leq1(str1: &[u8], str2: &[u8]) -> bool {
 
     if str1.len() == str2.len() + 1 {
         // str1 のほうが1長い
-        let mut iter1 = str1.iter().peekable();
-        let mut iter2 = str2.iter().peekable();
+        let mut q1 = Queue::new();
+        let mut q2 = Queue::new();
 
+        for c1 in str1 {
+            q1.push(*c1);
+        }
+        for c2 in str2 {
+            q2.push(*c2);
+        }
         let mut diff_cnt = 0;
 
-        while iter1.peek().is_some() {
-            if iter1.peek() == iter2.peek() {
-                iter1.next();
-                iter2.next();
-            } else {
-                iter1.next();
+        loop {
+            if !q1.is_empty() && q1.peek() == q2.peek() {
+                q1.pop();
+                q2.pop();
+            }
+            if q1.peek() != q2.peek() {
+                q1.pop();
                 diff_cnt += 1;
+            }
+            if q1.is_empty() {
+                break;
             }
         }
 
         return diff_cnt <= 1;
-
         // abacbc
         // aba bc
 
@@ -70,17 +79,6 @@ impl Problem {
             .collect_vec();
         Answer { ans }
     }
-
-    fn solve2(&self) -> Answer {
-        // enumerate().filter(...).map(...) は positions で書ける
-        let ans = self
-            .cand_list
-            .iter()
-            .positions(|cand| is_dist_leq1(cand, &self.recieved))
-            .map(|i| i + 1) //1オリジンにする
-            .collect_vec();
-        Answer { ans }
-    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -96,7 +94,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve2().print();
+    Problem::read().solve().print();
 }
 
 #[cfg(test)]
@@ -180,3 +178,33 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use mod_queue::*;
+pub mod mod_queue {
+    use std::collections::VecDeque;
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct Queue<T> {
+        raw: VecDeque<T>,
+    }
+    impl<T> Queue<T> {
+        pub fn new() -> Self {
+            Queue { raw: VecDeque::new() }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push_front(value)
+        }
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop_back()
+        }
+        pub fn peek(&self) -> Option<&T> {
+            self.raw.back()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.raw.is_empty()
+        }
+    }
+    impl<T> Default for Queue<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+}
