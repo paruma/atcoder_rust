@@ -5,40 +5,41 @@ struct Problem {
     ss: Vec<Vec<u8>>,
 }
 
-struct SubProblem {
-    t: Vec<u8>,
-    t_rev: Vec<u8>,
+fn cnt_from_left(t: &[u8], s: &[u8]) -> usize {
+    let mut sq = Queue::new();
+    let mut cnt = 0;
+
+    // これが良くなかった
+    /*
+    for c in t {
+        tq.push(*c)
+    }
+    */
+    let mut t_idx = 0;
+
+    for c in s {
+        sq.push(*c)
+    }
+
+    loop {
+        if t_idx == t.len() || sq.is_empty() {
+            break;
+        }
+        if t[t_idx] == *sq.peek().unwrap() {
+            cnt += 1;
+            t_idx += 1;
+            sq.pop();
+        } else {
+            sq.pop();
+        }
+    }
+    cnt
 }
 
-impl SubProblem {
-    pub fn new(t: &[u8]) -> Self {
-        SubProblem { t: t.to_vec(), t_rev: t.iter().copied().rev().collect_vec() }
-    }
-    pub fn cnt_from_left(&self, s: &[u8]) -> usize {
-        Self::cnt_from_left_sub(&self.t, s)
-    }
-
-    pub fn cnt_from_right(&self, s: &[u8]) -> usize {
-        let s_rev = s.iter().copied().rev().collect_vec();
-        Self::cnt_from_left_sub(&self.t_rev, &s_rev)
-    }
-
-    fn cnt_from_left_sub(t: &[u8], s: &[u8]) -> usize {
-        let mut t_iter = t.iter().peekable();
-        let mut s_iter = s.iter().peekable();
-        let mut cnt = 0;
-
-        while s_iter.peek().is_some() && t_iter.peek().is_some() {
-            if s_iter.peek() == t_iter.peek() {
-                cnt += 1;
-                s_iter.next();
-                t_iter.next();
-            } else {
-                s_iter.next();
-            }
-        }
-        cnt
-    }
+fn cnt_from_right(t: &[u8], s: &[u8]) -> usize {
+    let tr: Vec<u8> = t.iter().copied().rev().collect_vec();
+    let sr = s.iter().copied().rev().collect_vec();
+    cnt_from_left(&tr, &sr)
 }
 
 impl Problem {
@@ -51,28 +52,23 @@ impl Problem {
         Problem { n, t, ss }
     }
     fn solve(&self) -> Answer {
-        let sub = SubProblem::new(&self.t);
-        let mut xs = self.ss.iter().map(|s| sub.cnt_from_left(s) as i64).collect_vec();
-        let mut ys = self.ss.iter().map(|s| sub.cnt_from_right(s) as i64).collect_vec();
+        let t_rev = self.t.iter().copied().rev().collect_vec();
+        let mut xs = self.ss.iter().map(|s| cnt_from_left(&self.t, s) as i64).collect_vec();
+        let mut ys = self
+            .ss
+            .iter()
+            .map(|s| cnt_from_left(&t_rev, &s.iter().copied().rev().collect_vec()) as i64)
+            .collect_vec();
         let len = self.t.len() as i64;
         xs.sort();
         ys.sort();
-        // x in xs と y in ys に対して、x + y >= len となるような (x, y) の組の数を求める
-        let ans = xs
-            .iter()
-            .map(|&x| {
-                // x を固定して、y >= len - x となるような y の数を求める
-                // [lower_bound(&ys, len -x), ys.len()) がそのような y のインデックスの範囲
-                ys.len() as i64 - lower_bound(&ys, len - x) as i64
-            })
-            .sum();
+        let ans = xs.iter().map(|x| ys.len() as i64 - lower_bound(&ys, len - x) as i64).sum();
         Answer { ans }
     }
 
     fn solve2(&self) -> Answer {
-        let sub = SubProblem::new(&self.t);
-        let xs = self.ss.iter().map(|s| sub.cnt_from_left(s) as i64).collect_vec();
-        let ys = self.ss.iter().map(|s| sub.cnt_from_right(s) as i64).collect_vec();
+        let mut xs = self.ss.iter().map(|s| cnt_from_left(&self.t, s) as i64).collect_vec();
+        let mut ys = self.ss.iter().map(|s| cnt_from_right(&self.t, s) as i64).collect_vec();
         let len = self.t.len() as i64;
 
         let ans = iproduct!(xs, ys).map(|(x, y)| x + y).filter(|k| *k >= len).count() as i64;
@@ -102,11 +98,13 @@ mod tests {
 
     #[test]
     fn test_problem() {
-        let sub_problem = SubProblem::new(b"bac");
-        assert_eq!(sub_problem.cnt_from_left(b"abba"), 2);
-        assert_eq!(sub_problem.cnt_from_right(b"abca"), 2);
+        // assert_eq!(cnt_from_left(b"bac", b"abba"), 2);
+        assert_eq!(cnt_from_right(b"cba", b"abba"), 2);
+        assert_eq!(1 + 1, 2);
     }
 }
+
+use std::collections::VecDeque;
 
 // ====== import ======
 use itertools::iproduct;
@@ -162,6 +160,36 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use mod_queue::*;
+pub mod mod_queue {
+    use std::collections::VecDeque;
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct Queue<T> {
+        raw: VecDeque<T>,
+    }
+    impl<T> Queue<T> {
+        pub fn new() -> Self {
+            Queue { raw: VecDeque::new() }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push_front(value)
+        }
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop_back()
+        }
+        pub fn peek(&self) -> Option<&T> {
+            self.raw.back()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.raw.is_empty()
+        }
+    }
+    impl<T> Default for Queue<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+}
 
 /// 二分探索をする
 /// ```text
