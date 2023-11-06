@@ -69,14 +69,10 @@ impl Problem {
 
         for (contest_i, &perf) in performance_list_rev.iter().enumerate() {
             for join_cnt in 0..=(contest_i + 1) {
-                // join_cnt が負にならないように注意
                 let no_choose = dp.at(contest_i, join_cnt);
                 let choose = if join_cnt == 0 {
                     NEG_INF
                 } else {
-                    //
-                    // dbg!(pow09_list[join_cnt - 1]);
-                    // dbg!(perf);
                     dp.at(contest_i, join_cnt - 1) + pow09_list[join_cnt - 1] * (perf as f64)
                 };
                 *dp.at_mut(contest_i + 1, join_cnt) = f64::max(no_choose, choose);

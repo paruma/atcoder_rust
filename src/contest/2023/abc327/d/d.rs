@@ -6,6 +6,7 @@ struct Problem {
     ys: Vec<usize>,
 }
 
+// TODO: スニペットにしたい
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct Edge {
     from: usize,
@@ -40,10 +41,8 @@ impl Problem {
     }
     fn solve(&self) -> Answer {
         let Problem { n, m, xs, ys } = self;
-        let edges = izip!(xs, ys)
-            .map(|(&x, &y)| [Edge::new(x, y), Edge::new(y, x)])
-            .flatten()
-            .collect_vec();
+        let edges =
+            izip!(xs, ys).flat_map(|(&x, &y)| [Edge::new(x, y), Edge::new(y, x)]).collect_vec();
         let n_vertex = *n as usize;
         let adj = make_adj(n_vertex, &edges);
 
@@ -53,6 +52,7 @@ impl Problem {
             if visited[init] {
                 continue;
             }
+            // TODO: サンプルコードで Queue を使うようにする
             let mut open: VecDeque<usize> = VecDeque::new();
             open.push_front(init);
             visited[init] = true;

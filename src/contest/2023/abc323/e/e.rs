@@ -51,7 +51,7 @@ impl Problem {
 
         for time in 1..=*x {
             // 時刻 time - 1 で音楽が止まる確率を求める
-            // 各音楽 music_i に対して、時刻 time - len_list[misic_i] で開始した確率を求めて、足し合わせる
+            // 各音楽 music_i に対して、時刻 time - len_list[music_i] で開始した確率を求めて、足し合わせる
             let prob_stop: Mint =
                 (0..*n).map(|music_i| dp.at(time - len_list[music_i], music_i)).sum();
 

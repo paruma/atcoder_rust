@@ -10,6 +10,7 @@ fn is_ok(s_sorted: &[u8], sq: i64) -> bool {
     if sq_bytes.len() > n {
         return false;
     }
+    // resize が便利かも
     for _ in (0..(n - sq_bytes.len())) {
         sq_bytes.push(b'0');
     }

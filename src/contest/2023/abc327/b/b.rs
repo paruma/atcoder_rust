@@ -12,6 +12,7 @@ impl Problem {
     }
     fn solve(&self) -> Answer {
         let b = self.b;
+        // i128 を使う選択肢もある
         let ans = (1_i64..=15).find(|&a| a.pow(a as u32) == b).unwrap_or(-1);
 
         Answer { ans }
