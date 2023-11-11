@@ -103,9 +103,8 @@ mod tests {
     }
 }
 
-use std::{cell::RefCell, collections::HashMap, thread::LocalKey};
+use std::collections::HashMap;
 
-use ac_library::{ButterflyCache, Modulus, StaticModInt};
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::Itertools;

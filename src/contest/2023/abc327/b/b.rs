@@ -12,8 +12,17 @@ impl Problem {
     }
     fn solve(&self) -> Answer {
         let b = self.b;
-        // i128 を使う選択肢もある
+
         let ans = (1_i64..=15).find(|&a| a.pow(a as u32) == b).unwrap_or(-1);
+
+        // オーバーフローがきになる場合は以下の選択肢もある
+        // * i128 を使う選択肢
+        // * checked_pow を使う選択肢
+
+        let ans2 = (1_i128..=16).find(|&a| a.pow(a as u32) == (b as i128)).unwrap_or(-1) as i64;
+        let ans3 = (1_i64..=16).find(|&a| a.checked_pow(a as u32) == Some(b)).unwrap_or(-1);
+        assert!(ans == ans2);
+        assert!(ans == ans3);
 
         Answer { ans }
     }

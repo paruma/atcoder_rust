@@ -6,27 +6,68 @@ struct Problem {
     ys: Vec<usize>,
 }
 
-// TODO: スニペットにしたい
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-struct Edge {
+pub struct Edge {
     from: usize,
     to: usize,
 }
 
 impl Edge {
-    fn new(from: usize, to: usize) -> Edge {
-        Edge { from, to }
+    pub fn new(from: usize, to: usize) -> Self {
+        Self { from, to }
     }
 }
 
-fn make_adj(n_vertex: usize, edges: &[Edge]) -> Vec<Vec<Edge>> {
+pub fn make_adj(n_vertex: usize, edges: &[Edge]) -> Vec<Vec<Edge>> {
     let mut adj = vec![vec![]; n_vertex];
-
     for &e in edges {
         adj[e.from].push(e);
     }
-
     adj
+}
+
+// これもスニペット化したい。
+
+#[allow(clippy::collapsible_else_if)]
+pub fn is_bipartite_graph(adj: &Vec<Vec<Edge>>) -> bool {
+    let n_vertex = adj.len();
+    let mut visited = vec![false; n_vertex];
+    let mut odd_even_list = vec![-1; n_vertex];
+    for init in 0..n_vertex {
+        if visited[init] {
+            continue;
+        }
+        let mut open: Queue<usize> = Queue::new();
+        open.push(init);
+        visited[init] = true;
+        odd_even_list[init] = 0;
+        while let Some(current) = open.pop() {
+            for &e in &adj[current] {
+                if !visited[e.to] {
+                    visited[e.to] = true;
+                    open.push(e.to);
+                    odd_even_list[e.to] = (odd_even_list[e.from] + 1) % 2;
+                } else {
+                    if odd_even_list[e.from] == odd_even_list[e.to] {
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+    true
+}
+
+// これもスニペット化したい。
+fn is_bipartite_graph_by_uf(n_vertex: usize, edges: &[Edge]) -> bool {
+    let mut uf = UnionFind::new(2 * n_vertex);
+    for &e in edges {
+        // (x, y + n_vertex) の辺がある: xのラベルが0なら、yのラベルは1
+        // (x + n_vertex, y) の辺がある: xのラベルが1なら、yのラベルは0
+        uf.union(e.from, e.to + n_vertex);
+        uf.union(e.from + n_vertex, e.to);
+    }
+    (0..n_vertex).all(|i| !uf.equiv(i, i + n_vertex))
 }
 
 impl Problem {
@@ -46,36 +87,24 @@ impl Problem {
         let n_vertex = *n as usize;
         let adj = make_adj(n_vertex, &edges);
 
-        let mut visited = vec![false; n_vertex];
-        let mut odd_even_list = vec![-1; n_vertex]; // 0 or 1 を入れる
-        for init in 0..n_vertex {
-            if visited[init] {
-                continue;
-            }
-            // TODO: サンプルコードで Queue を使うようにする
-            let mut open: VecDeque<usize> = VecDeque::new();
-            open.push_front(init);
-            visited[init] = true;
-            odd_even_list[init] = 0;
+        let ans = is_bipartite_graph(&adj);
+        let ans2 = is_bipartite_graph_by_uf(n_vertex, &edges);
+        assert_eq!(ans, ans2);
+        Answer { ans }
+    }
 
-            while let Some(current) = open.pop_back() {
-                for &e in &adj[current] {
-                    if !visited[e.to] {
-                        visited[e.to] = true;
-                        open.push_front(e.to);
-                        odd_even_list[e.to] = (odd_even_list[e.from] + 1) % 2;
-                    } else {
-                        // 訪問済
-                        // 偶奇チェックをする
-                        if odd_even_list[e.from] == odd_even_list[e.to] {
-                            return Answer { ans: false };
-                        }
-                    }
-                }
-            }
+    fn solve2(&self) -> Answer {
+        // UnionFind を使った二部グラフの判定 (2SATのノリ)
+        let Problem { n, m, xs, ys } = self;
+        let n_vertex = *n as usize;
+
+        let mut uf = UnionFind::new(n_vertex);
+        for (&x, &y) in izip!(xs, ys) {
+            uf.union(x, y + n_vertex);
+            uf.union(x + n_vertex, y);
         }
 
-        let ans = true;
+        let ans = false;
         Answer { ans }
     }
 }
@@ -107,12 +136,11 @@ mod tests {
     }
 }
 
-use std::collections::VecDeque;
-
 // ====== import ======
 use itertools::izip;
 #[allow(unused_imports)]
 use itertools::Itertools;
+use petgraph::unionfind::UnionFind;
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,
@@ -163,3 +191,33 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use mod_queue::*;
+pub mod mod_queue {
+    use std::collections::VecDeque;
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct Queue<T> {
+        raw: VecDeque<T>,
+    }
+    impl<T> Queue<T> {
+        pub fn new() -> Self {
+            Queue { raw: VecDeque::new() }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push_front(value)
+        }
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop_back()
+        }
+        pub fn peek(&self) -> Option<&T> {
+            self.raw.back()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.raw.is_empty()
+        }
+    }
+    impl<T> Default for Queue<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+}

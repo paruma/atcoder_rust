@@ -25,11 +25,6 @@ name = "abc327_e"
 path = "src/contest/2023/abc327/e/e.rs"
 
 [[bin]]
-name = "abc327_f"
-path = "src/contest/2023/abc327/f/f.rs"
-
-
-[[bin]]
 name = "abc326_a"
 path = "src/contest/2023/abc326/a/a.rs"
 
@@ -74,11 +69,6 @@ name = "abc325_e"
 path = "src/contest/2023/abc325/e/e.rs"
 
 [[bin]]
-name = "abc325_f"
-path = "src/contest/2023/abc325/f/f.rs"
-
-
-[[bin]]
 name = "arc167_a"
 path = "src/contest/2023/arc167/a/a.rs"
 
@@ -116,17 +106,6 @@ path = "src/contest/2023/abc324/f/f.rs"
 name = "arc166_a"
 path = "src/contest/2023/arc166/a/a.rs"
 
-[[bin]]
-name = "arc166_b"
-path = "src/contest/2023/arc166/b/b.rs"
-
-[[bin]]
-name = "arc166_c"
-path = "src/contest/2023/arc166/c/c.rs"
-
-[[bin]]
-name = "arc166_d"
-path = "src/contest/2023/arc166/d/d.rs"
 
 [[bin]]
 name = "abc323_a"
@@ -148,9 +127,6 @@ path = "src/contest/2023/abc323/d/d.rs"
 name = "abc323_e"
 path = "src/contest/2023/abc323/e/e.rs"
 
-[[bin]]
-name = "abc323_f"
-path = "src/contest/2023/abc323/f/f.rs"
 
 [[bin]]
 name = "abc322_a"
@@ -595,9 +571,6 @@ path = "src/contest/2023/abc311/b.rs"
 name = "template"
 path = "src/contest/template.rs"
 
-[[bin]]
-name = "template_test"
-path = "src/contest/template_test.rs"
 
 hoge = """
 
@@ -681,7 +654,7 @@ rand = { version = "=0.8.5", features = ["small_rng", "min_const_gen"] }
 # rand_distr = "=0.4.3"
 
 # グラフ
-# petgraph = "=0.6.3"
+petgraph = "=0.6.3"
 
 # 挿入順を保持するhash table
 # indexmap = "=2.0.0"

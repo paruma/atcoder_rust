@@ -26,8 +26,12 @@ oj_test() {
 
     if cargo build --bin "${contest}_${task}"; then
         export RUST_BACKTRACE=1
-        oj test -c "$(git rev-parse --show-toplevel)/target/debug/${contest}_${task}"
+        oj test -c "$(git rev-parse --show-toplevel)/target/debug/${contest}_${task}" -e 1e-6
     fi
+}
+
+ojt() {
+    oj_test
 }
 
 oj_test_release() {
@@ -39,7 +43,7 @@ oj_test_release() {
 
     if cargo build -r --bin "${contest}_${task}"; then
         export RUST_BACKTRACE=1
-        oj test -c "$(git rev-parse --show-toplevel)/target/release/${contest}_${task}"
+        oj test -c "$(git rev-parse --show-toplevel)/target/release/${contest}_${task}"  -e 1e-6
     fi
 }
 
@@ -47,4 +51,8 @@ oj_submit() {
     contest="$(get_contest)"
     task="$(get_task)"
     oj submit "https://atcoder.jp/contests/${contest}/tasks/${contest}_${task}" "${task}.rs" -w 1 --no-open
+}
+
+ojs() {
+    oj_submit
 }

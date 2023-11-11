@@ -16,7 +16,7 @@ fn calc_rate(qs: &[i64]) -> f64 {
     bunshi_sum / pow09_sum - 1200.0 / (qs.len() as f64).sqrt()
 }
 
-const NEG_INF: f64 = -1000000000000000000000000000000000.0;
+const NEG_INF: f64 = f64::NEG_INFINITY;
 struct Dp {
     dp: Vec<Vec<f64>>,
 }
@@ -135,6 +135,42 @@ mod tests {
             buf
         };
         print_vec(&pow09_sum_list);
+    }
+
+    #[test]
+    fn test_float_infty() {
+        assert_eq!(1.0 / 0.0, f64::INFINITY);
+        assert_eq!(f64::NEG_INFINITY + 1.0, f64::NEG_INFINITY);
+        assert_eq!(f64::NEG_INFINITY * 2.0, f64::NEG_INFINITY);
+        // assert!(f64::NAN != f64::NAN);
+        assert_eq!(f64::NEG_INFINITY, f64::NEG_INFINITY);
+        assert!((f64::NEG_INFINITY * 0.0).is_nan());
+        assert_eq!(f64::NEG_INFINITY * (-1.0), f64::INFINITY);
+        assert_eq!(f64::NEG_INFINITY / 0.0, f64::NEG_INFINITY);
+        assert!((f64::NEG_INFINITY + f64::INFINITY).is_nan());
+        assert_eq!(f64::NEG_INFINITY + f64::NEG_INFINITY, f64::NEG_INFINITY);
+        assert_eq!(f64::INFINITY.sqrt(), f64::INFINITY);
+        assert_eq!(f64::INFINITY / 3.0, f64::INFINITY);
+    }
+
+    #[test]
+    fn test_float_infty2() {
+        assert_eq!(1.0 / 0.0, f64::INFINITY);
+
+        assert_eq!(f64::INFINITY + 1.0, f64::INFINITY);
+        assert_eq!(f64::INFINITY * 2.0, f64::INFINITY);
+        assert_eq!(f64::INFINITY + f64::INFINITY, f64::INFINITY);
+        assert_eq!(f64::INFINITY / 0.0, f64::INFINITY);
+
+        assert_eq!(f64::INFINITY, f64::INFINITY);
+        // assert!(f64::NAN != f64::NAN);
+
+        assert_eq!(-f64::INFINITY, f64::NEG_INFINITY);
+        assert_eq!(f64::INFINITY * (-3.0), f64::NEG_INFINITY);
+
+        assert!((f64::INFINITY + f64::NEG_INFINITY).is_nan());
+        assert!((f64::INFINITY - f64::INFINITY).is_nan());
+        assert!((f64::INFINITY * 0.0).is_nan());
     }
 }
 

@@ -24,21 +24,56 @@ fn make_adj(n_vertex: usize, edges: &[Edge]) -> Vec<Vec<Edge>> {
 /// 計算量: O(頂点の数 + 辺の数)
 fn bfs(adj: &Vec<Vec<Edge>>, init: usize) -> Vec<bool> {
     let n_vertex = adj.len();
-    let mut open: VecDeque<usize> = VecDeque::new();
+    let mut open: Queue<usize> = Queue::new();
     let mut visited = vec![false; n_vertex];
-    open.push_front(init);
+    open.push(init);
     visited[init] = true;
 
-    while let Some(current) = open.pop_back() {
+    while let Some(current) = open.pop() {
         for &e in &adj[current] {
             if !visited[e.to] {
                 visited[e.to] = true;
-                open.push_front(e.to);
+                open.push(e.to);
             }
         }
     }
     visited.clone()
 }
+
+// === library ===
+
+use mod_queue::*;
+pub mod mod_queue {
+    use std::collections::VecDeque;
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct Queue<T> {
+        raw: VecDeque<T>,
+    }
+    impl<T> Queue<T> {
+        pub fn new() -> Self {
+            Queue { raw: VecDeque::new() }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push_front(value)
+        }
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop_back()
+        }
+        pub fn peek(&self) -> Option<&T> {
+            self.raw.back()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.raw.is_empty()
+        }
+    }
+    impl<T> Default for Queue<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+}
+
+// === test ===
 
 #[cfg(test)]
 mod tests {

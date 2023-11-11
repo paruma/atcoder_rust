@@ -10,6 +10,7 @@ impl Problem {
         }
         Problem { grid }
     }
+    #[allow(clippy::needless_range_loop)]
     fn is_ok(&self) -> bool {
         let grid = &self.grid;
         // 行

@@ -24,6 +24,12 @@ impl Problem {
         };
         Answer { ans }
     }
+    fn solve2(&self) -> Answer {
+        let x = self.x;
+        let y = self.y;
+        let ans = (-2..=3).contains(&(x - y));
+        Answer { ans }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -38,7 +44,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
