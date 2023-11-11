@@ -110,6 +110,7 @@ struct Item {
     value: i64,
 }
 
+/// 計算量: O(|items| * max_weight)
 #[allow(dead_code)]
 fn solve4(n: usize, items: &[Item], max_weight: i64) -> i64 {
     // dp[i][w] := [0,i) の items を使用したときの重さ w 以下での価値の最大値

@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 struct DfsMultiLoop {
-    // n個のものから重複を許してr個取る順列
+    // n個のものから重複を許してr個取る順列 n^r
     n: usize,
     r: usize,
     seq_list: Vec<Vec<usize>>,
@@ -15,6 +15,7 @@ impl DfsMultiLoop {
         self.exec_rec(&mut vec![]);
     }
 
+    /// 計算量: O(n^r)
     fn exec_rec(&mut self, seq: &mut Vec<usize>) {
         if seq.len() == self.r {
             // ここがforループの中のようなもの

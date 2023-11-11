@@ -7,6 +7,7 @@ pub mod math_tools {
     use num::Integer;
     use num_integer::Roots;
 
+    /// O(sqrt(n))
     pub fn divisor(n: i64) -> Vec<i64> {
         assert!(n >= 1);
         let mut retval: Vec<i64> = Vec::new();
@@ -22,6 +23,7 @@ pub mod math_tools {
         retval
     }
 
+    /// 計算量: O(sqrt(n))
     pub fn is_prime(n: i64) -> bool {
         if n <= 1 {
             return false;
@@ -34,6 +36,7 @@ pub mod math_tools {
         true
     }
 
+    /// 計算量: O(sqrt(n))
     pub fn prime_factorize(n: i64) -> HashMap<i64, i64> {
         assert!(n >= 1);
         let mut cnt_table: HashMap<i64, i64> = HashMap::new();
@@ -55,6 +58,7 @@ pub mod math_tools {
         cnt_table
     }
 
+    /// 計算量: O(sqrt(n))
     pub fn euler_phi(n: i64) -> i64 {
         // n = p[1]^{e[1]} * ... * p[k]^{e[k]} と素因数分解できるとき
         // euler_phi(n) = n * ((p[1] - 1)/p[1]) * ... * ((p[k] - 1)/p[k]) で表せる。
@@ -79,6 +83,7 @@ pub mod math_tools {
         }
     }
 
+    ///計算量: O(n)
     pub fn frac<T>(n: T) -> T
     where
         T: std::ops::Sub<Output = T> + std::ops::Mul + num::Zero + num::One + Copy,
@@ -86,6 +91,7 @@ pub mod math_tools {
         frac0(n, T::one())
     }
 
+    /// 計算量: O(n)
     pub fn permutation<T>(n: T, k: T) -> T
     where
         T: std::ops::Sub<Output = T>
@@ -99,6 +105,7 @@ pub mod math_tools {
         frac(n) / frac(n - k)
     }
 
+    /// 計算量: O(n)
     pub fn comb<T>(n: T, k: T) -> T
     where
         T: std::ops::Sub<Output = T>

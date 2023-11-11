@@ -6,7 +6,8 @@ struct Edge {
     to: usize,
 }
 #[allow(dead_code)]
-// 辺のリストから隣接リストを作る
+/// 辺のリストから隣接リストを作る
+/// 計算量: O(頂点の数 + 辺の数)
 fn make_adj(n_vertex: usize, edges: &[Edge]) -> Vec<Vec<Edge>> {
     let mut adj = vec![vec![]; n_vertex];
 
@@ -27,6 +28,7 @@ impl DfsGraph<'_> {
         // adj.len() は グラフの頂点の数
         DfsGraph { adj, visited: vec![false; adj.len()] }
     }
+    /// 計算量: O(頂点の数 + 辺の数)
     fn exec(&mut self, v: usize) {
         // 行きがけ
         self.visited[v] = true;

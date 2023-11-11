@@ -7,6 +7,7 @@ pub mod cumsum {
     }
 
     impl CumSum {
+        /// 計算量: O(|xs|)
         pub fn new(xs: &Vec<i64>) -> CumSum {
             let mut cumsum = vec![0; xs.len() + 1];
             for i in 1..xs.len() + 1 {
@@ -14,7 +15,7 @@ pub mod cumsum {
             }
             CumSum { cumsum }
         }
-
+        /// 計算量: O(1)
         pub fn get_interval_sum(&self, begin: usize, end: usize) -> i64 {
             // [begin, end) の間で総和を求める
             self.cumsum[end] - self.cumsum[begin]

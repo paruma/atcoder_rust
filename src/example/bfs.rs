@@ -8,7 +8,8 @@ struct Edge {
     to: usize,
 }
 #[allow(dead_code)]
-// 辺のリストから隣接リストを作る
+/// 辺のリストから隣接リストを作る
+/// 計算量: O(頂点の数 + 辺の数)
 fn make_adj(n_vertex: usize, edges: &[Edge]) -> Vec<Vec<Edge>> {
     let mut adj = vec![vec![]; n_vertex];
 
@@ -19,6 +20,8 @@ fn make_adj(n_vertex: usize, edges: &[Edge]) -> Vec<Vec<Edge>> {
     adj
 }
 
+/// init から行ける頂点を全探索する
+/// 計算量: O(頂点の数 + 辺の数)
 fn bfs(adj: &Vec<Vec<Edge>>, init: usize) -> Vec<bool> {
     let n_vertex = adj.len();
     let mut open: VecDeque<usize> = VecDeque::new();

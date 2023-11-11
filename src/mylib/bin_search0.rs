@@ -5,6 +5,9 @@ use cargo_snippet::snippet;
 /// ng ng ng ok ok ok
 ///          ↑ここの引数の値を返す
 /// ```
+///
+/// 計算量: O(log(|ok - ng|))
+///
 /// ## Arguments
 /// * ok != ng
 /// * |ok - ng| <= 2^63 - 1, |ok + ng| <= 2^63 - 1
@@ -44,6 +47,8 @@ where
 }
 
 /// 指定された要素以上の値が現れる最初の位置を返す。
+/// 計算量: O(log(|xs|))
+///
 /// ## Arguments
 /// * xs: 単調増加
 ///     * 単調増加でなくても、 `|i| xs[i] >= key` が単調ならOK
@@ -59,6 +64,8 @@ pub fn lower_bound<T: PartialOrd>(xs: &[T], key: T) -> usize {
 }
 
 /// 指定された要素より大きい値が現れる最初の位置を返す。
+/// 計算量: O(log(|xs|))
+///
 /// ## Arguments
 /// * xs: 単調増加
 ///     * 単調増加でなくても、 `|i| xs[i] > key` が単調ならOK
@@ -74,6 +81,8 @@ pub fn upper_bound<T: PartialOrd>(xs: &[T], key: T) -> usize {
 }
 
 /// 指定された要素以下の値が現れる最初の位置を返す。
+/// 計算量: O(log(|xs|))
+///
 /// ## Arguments
 /// * xs: 単調減少
 ///     * 単調減少でなくても、 `|i| xs[i] <= key` が単調ならOK
@@ -89,6 +98,8 @@ pub fn lower_bound_dec<T: PartialOrd>(xs: &[T], key: T) -> usize {
 }
 
 /// 指定された要素より小さい値が現れる最初の位置を返す。
+/// 計算量: O(log(|xs|))
+///
 /// ## Arguments
 /// * xs: 単勝減少
 ///     * 単調減少でなくても、 `|i| xs[i] < key` が単調ならOK

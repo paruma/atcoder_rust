@@ -35,6 +35,7 @@ pub mod modint_to_rational {
     }
 
     impl ToRational for ac_library::ModInt998244353 {
+        /// 注意: 1000 * 2000 = 2*10^6 の計算をしている
         fn to_rational(&self) -> Option<Rational64> {
             if self.val() == 0 {
                 return Some(Rational64::new(0, 1));
