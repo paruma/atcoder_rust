@@ -1,17 +1,48 @@
-//#[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Edge {
+    u: Usize1,
+    v: Usize1,
+    w: i64,
+}
 struct Problem {
-    _a: i64,
+    n_vertex: usize,
+    n_edge: usize,
+    k: i64,
+    edges: Vec<Edge>,
 }
 
+pub fn has_cycle(n_vertex: usize, edges: &[Edge]) -> bool {
+    let mut uf = UnionFind::new(n_vertex);
+    for &e in edges {
+        if uf.equiv(e.u, e.v) {
+            return true;
+        }
+        uf.union(e.u, e.v);
+    }
+    false
+}
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n_vertex: usize,
+            n_edge: usize,
+            k: i64,
+            edges: [Edge; n_edge],
         }
-        Problem { _a }
+        Problem { n_vertex, n_edge, k, edges }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let Problem { n_vertex, n_edge, k, edges } = self;
+        let ans = itertools::Itertools::combinations(edges.iter(), n_vertex - 1)
+            .filter(|sub_edges| {
+                // 閉路か判定
+                let sub_edges = sub_edges.iter().copied().copied().collect_vec();
+                !has_cycle(*n_vertex, &sub_edges)
+            })
+            .map(|sub_edges| sub_edges.iter().map(|e| e.w).sum::<i64>() % k)
+            .min()
+            .unwrap();
         Answer { ans }
     }
 }
@@ -45,6 +76,7 @@ mod tests {
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::Itertools;
+use petgraph::unionfind::UnionFind;
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,

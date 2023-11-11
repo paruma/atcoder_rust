@@ -1,17 +1,22 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    n: usize,
+    x: i64,
+    ss: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n: usize,
+            x: i64,
+            ss: [i64; n],
         }
-        Problem { _a }
+        Problem { n, x, ss }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = self.ss.iter().filter(|s| **s <= self.x).sum();
+
         Answer { ans }
     }
 }

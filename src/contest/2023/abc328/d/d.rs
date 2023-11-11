@@ -1,29 +1,47 @@
-//#[derive_readable]
+#[derive_readable]
 struct Problem {
-    _a: i64,
+    s: Bytes,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            p: Problem
         }
-        Problem { _a }
+        p
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let s = &self.s;
+        let mut stack: Vec<u8> = Vec::new();
+        for ch in s {
+            stack.push(*ch);
+
+            // 上3つがABC の場合
+            let stack_size = stack.len();
+            if stack_size >= 3
+                && stack[stack_size - 3] == b'A'
+                && stack[stack_size - 2] == b'B'
+                && stack[stack_size - 1] == b'C'
+            {
+                stack.pop();
+                stack.pop();
+                stack.pop();
+            }
+        }
+
+        let ans = stack;
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<u8>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        println!("{}", String::from_utf8(self.ans.clone()).unwrap());
     }
 }
 

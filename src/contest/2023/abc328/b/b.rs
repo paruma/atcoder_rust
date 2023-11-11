@@ -1,17 +1,28 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    n: usize,
+    ds: Vec<usize>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n: usize,
+            ds: [usize; n],
         }
-        Problem { _a }
+        Problem { n, ds }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let Problem { n, ds } = self;
+        let n = *n;
+        let ans = (1..=n)
+            .flat_map(|month| (1..=ds[month - 1]).map(move |day| (month, day)))
+            .filter(|(month, day)| {
+                //
+                let str = month.to_string() + &day.to_string();
+                str.bytes().all_equal()
+            })
+            .count() as i64;
         Answer { ans }
     }
 }

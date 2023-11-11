@@ -1,29 +1,45 @@
-//#[derive_readable]
+#[derive_readable]
+struct Range {
+    begin: Usize1,
+    end: Usize1,
+}
 struct Problem {
-    _a: i64,
+    len: usize,
+    nq: usize,
+    s: Vec<u8>,
+    qs: Vec<Range>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            len: usize,
+            nq: usize,
+            s: Bytes,
+            qs: [Range; nq],
         }
-        Problem { _a }
+        Problem { len, nq, s, qs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let Problem { len, nq, s, qs } = self;
+        let tonariau_list = (0..len - 1).map(|i| (s[i] == s[i + 1]) as i64).collect_vec();
+        let cumsum = CumSum::new(&tonariau_list); // size: len
+
+        let ans =
+            qs.iter().map(|range| cumsum.get_interval_sum(range.begin, range.end)).collect_vec();
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        //println!("{}", self.ans);
+        print_vec(&self.ans);
     }
 }
 
@@ -95,3 +111,23 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use cumsum::*;
+pub mod cumsum {
+    pub struct CumSum {
+        pub cumsum: Vec<i64>,
+    }
+    impl CumSum {
+        /// 計算量: O(|xs|)
+        pub fn new(xs: &Vec<i64>) -> CumSum {
+            let mut cumsum = vec![0; xs.len() + 1];
+            for i in 1..xs.len() + 1 {
+                cumsum[i] = cumsum[i - 1] + xs[i - 1];
+            }
+            CumSum { cumsum }
+        }
+        /// 計算量: O(1)
+        pub fn get_interval_sum(&self, begin: usize, end: usize) -> i64 {
+            self.cumsum[end] - self.cumsum[begin]
+        }
+    }
+}
