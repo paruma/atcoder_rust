@@ -16,5 +16,15 @@
         "proconio",
         "struct",
         "yesno"
-    ]
+    ],
+    "rust-analyzer.check.command": "clippy",
+    "rust-analyzer.check.extraArgs": [
+        "--",
+        "-A",
+        "clippy::needless_range_loop",
+        "-A",
+        "clippy::too_many_arguments",
+        "-A",
+        "clippy::collapsible_else_if",
+    ],
 }
