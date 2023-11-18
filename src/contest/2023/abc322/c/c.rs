@@ -74,6 +74,30 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve3_2(&self) -> Answer {
+        // O(n) 解法 (peekable を使う)
+
+        let Problem { final_day, n_fire, day_list } = self;
+
+        // next_fire_day_list[day] = day日以降で初めて花火が上がる日
+        let mut next_fire_day_list = vec![-1; *final_day as usize + 1];
+        let mut fire_day_iter = day_list.iter().copied().peekable();
+
+        for day in 1..=*final_day {
+            let next_day = {
+                if day > *fire_day_iter.peek().unwrap() {
+                    fire_day_iter.next();
+                }
+
+                *fire_day_iter.peek().unwrap()
+            };
+            next_fire_day_list[day as usize] = next_day;
+        }
+        let ans = (1..=*final_day).map(|day| next_fire_day_list[day as usize] - day).collect_vec();
+
+        Answer { ans }
+    }
+
     fn solve4(&self) -> Answer {
         // O(n) 解法 (DPぽい。後ろから見る)
         let Problem { final_day, n_fire, day_list } = self;
@@ -113,7 +137,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read(ProconReader::new(stdin().lock())).solve4().print();
+    Problem::read(ProconReader::new(stdin().lock())).solve3_2().print();
 }
 
 #[cfg(test)]
