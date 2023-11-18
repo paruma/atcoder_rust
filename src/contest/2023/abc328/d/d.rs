@@ -19,6 +19,7 @@ impl Problem {
             // 上3つがABC の場合
             let stack_size = stack.len();
             // stack.get(stack_size - 3..stack_size) == Some(b"ABC") こう書ける？
+            // stack_size >= 3 && &stack[stack_size..] == b"ABC".as_slice(); こうもかけそう。
             if stack_size >= 3
                 && stack[stack_size - 3] == b'A'
                 && stack[stack_size - 2] == b'B'

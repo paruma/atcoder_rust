@@ -15,7 +15,8 @@ impl Problem {
         Problem { n, x, ss }
     }
     fn solve(&self) -> Answer {
-        let ans = self.ss.iter().filter(|s| **s <= self.x).sum();
+        // let ans = self.ss.iter().filter(|s| **s <= self.x).sum();
+        let ans = self.ss.iter().copied().filter(|&s| s <= self.x).sum();
 
         Answer { ans }
     }
