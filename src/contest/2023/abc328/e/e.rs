@@ -34,9 +34,11 @@ impl Problem {
     }
     fn solve(&self) -> Answer {
         let Problem { n_vertex, n_edge, k, edges } = self;
-        let ans = itertools::Itertools::combinations(edges.iter(), n_vertex - 1)
+        let ans = edges
+            .iter()
+            .combinations(*n_vertex - 1)
             .filter(|sub_edges| {
-                // 閉路か判定
+                // combinations のところでcopied すればよかった
                 let sub_edges = sub_edges.iter().copied().copied().collect_vec();
                 !has_cycle(*n_vertex, &sub_edges)
             })

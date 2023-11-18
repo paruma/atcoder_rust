@@ -22,6 +22,7 @@ impl Problem {
     }
     fn solve(&self) -> Answer {
         let Problem { len, nq, s, qs } = self;
+        // tuple_windows もあり
         let tonariau_list = (0..len - 1).map(|i| (s[i] == s[i + 1]) as i64).collect_vec();
         let cumsum = CumSum::new(&tonariau_list); // size: len
 

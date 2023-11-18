@@ -4,6 +4,7 @@ use petgraph::unionfind::UnionFind;
 use super::queue0::mod_queue::Queue;
 
 // FIXME: 無向グラフと有向グラフがごっちゃになっている。いい感じに区別したい
+// TODO: from, to を Usize1 にする
 
 #[snippet(name = "edge")]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -52,6 +53,7 @@ pub fn is_bipartite_graph(adj: &Vec<Vec<Edge>>) -> bool {
                     open.push(e.to);
                     odd_even_list[e.to] = (odd_even_list[e.from] + 1) % 2; // 1 - odd_even_list[e.from] で良かった
                 } else {
+                    // 偶奇チェックをする
                     if odd_even_list[e.from] == odd_even_list[e.to] {
                         return false;
                     }

@@ -18,6 +18,7 @@ impl Problem {
 
             // 上3つがABC の場合
             let stack_size = stack.len();
+            // stack.get(stack_size - 3..stack_size) == Some(b"ABC") こう書ける？
             if stack_size >= 3
                 && stack[stack_size - 3] == b'A'
                 && stack[stack_size - 2] == b'B'
@@ -41,6 +42,7 @@ struct Answer {
 
 impl Answer {
     fn print(&self) {
+        // TODO: print_bytes で書ける
         println!("{}", String::from_utf8(self.ans.clone()).unwrap());
     }
 }

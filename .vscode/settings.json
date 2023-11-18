@@ -6,6 +6,7 @@
         "cumsum",
         "Deque",
         "fastout",
+        "fromisizee",
         "iproduct",
         "Itertools",
         "izip",

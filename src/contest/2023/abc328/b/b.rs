@@ -18,7 +18,6 @@ impl Problem {
         let ans = (1..=n)
             .flat_map(|month| (1..=ds[month - 1]).map(move |day| (month, day)))
             .filter(|(month, day)| {
-                //
                 let str = month.to_string() + &day.to_string();
                 str.bytes().all_equal()
             })
@@ -54,6 +53,7 @@ mod tests {
 }
 
 // ====== import ======
+use itertools::chain;
 #[allow(unused_imports)]
 use itertools::Itertools;
 #[allow(unused_imports)]
