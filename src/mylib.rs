@@ -5,6 +5,7 @@ pub mod cumsum0;
 pub mod debug;
 pub mod ext_int;
 pub mod graph;
+pub mod imos;
 pub mod math;
 pub mod modint_field;
 pub mod modint_field_fake;
