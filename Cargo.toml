@@ -5,51 +5,67 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [[bin]]
+name = "arc168_a"
+path = "src/contest/2023/arc168/a/a.rs"
+
+[[bin]]
+name = "arc168_b"
+path = "src/contest/2023/arc168/b/b.rs"
+
+[[bin]]
+name = "arc168_c"
+path = "src/contest/2023/arc168/c/c.rs"
+
+[[bin]]
+name = "arc168_d"
+path = "src/contest/2023/arc168/d/d.rs"
+
+
+[[bin]]
 name = "abc329_a"
 path = "src/contest/2023/abc329/a/a.rs"
-        
+
 [[bin]]
 name = "abc329_b"
 path = "src/contest/2023/abc329/b/b.rs"
-        
+
 [[bin]]
 name = "abc329_c"
 path = "src/contest/2023/abc329/c/c.rs"
-        
+
 [[bin]]
 name = "abc329_d"
 path = "src/contest/2023/abc329/d/d.rs"
-        
+
 [[bin]]
 name = "abc329_e"
 path = "src/contest/2023/abc329/e/e.rs"
-        
+
 [[bin]]
 name = "abc329_f"
 path = "src/contest/2023/abc329/f/f.rs"
-        
 
 
 [[bin]]
 name = "abc328_a"
 path = "src/contest/2023/abc328/a/a.rs"
-        
+
 [[bin]]
 name = "abc328_b"
 path = "src/contest/2023/abc328/b/b.rs"
-        
+
 [[bin]]
 name = "abc328_c"
 path = "src/contest/2023/abc328/c/c.rs"
-        
+
 [[bin]]
 name = "abc328_d"
 path = "src/contest/2023/abc328/d/d.rs"
-        
+
 [[bin]]
 name = "abc328_e"
 path = "src/contest/2023/abc328/e/e.rs"
-        
+
 [[bin]]
 name = "abc328_f"
 path = "src/contest/2023/abc328/f/f.rs"
