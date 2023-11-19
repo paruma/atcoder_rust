@@ -1,17 +1,22 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    n: usize,
+    xs: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n: usize,
+            xs: [i64; n],
         }
-        Problem { _a }
+        Problem { n, xs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let Problem { n, xs } = self;
+        let ys = xs.iter().copied().sorted().dedup().collect_vec();
+
+        let ans = ys[ys.len() - 2];
         Answer { ans }
     }
 }

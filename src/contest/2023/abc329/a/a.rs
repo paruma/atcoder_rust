@@ -1,24 +1,26 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    s: String,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            s: String,
         }
-        Problem { _a }
+        Problem { s }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        "aa".chars().join(" ");
+        let ans = self.s.chars().join(" ");
+        //let ans = self.s.chars().map(|b| b.to_string()).join(" ");
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: String,
 }
 
 impl Answer {

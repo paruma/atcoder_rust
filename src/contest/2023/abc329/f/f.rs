@@ -1,16 +1,88 @@
-//#[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Query {
+    a: Usize1,
+    b: Usize1,
+}
+
+struct Bag {
+    ball_set: HashSet<usize>,
+    box_idx: usize,
+}
+
 struct Problem {
-    _a: i64,
+    n_box: usize,
+    nq: usize,
+    colors: Vec<usize>,
+    queries: Vec<Query>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n_box: usize,
+            nq: usize,
+            colors: [Usize1; n_box],
+            queries: [Query; nq],
         }
-        Problem { _a }
+        Problem { n_box, nq, colors, queries }
     }
     fn solve(&self) -> Answer {
+        let Problem { n_box, nq, colors, queries } = self;
+        let mut bag_list_template = vec![HashSet::<usize>::new(); *n_box];
+        let mut bag_empty = HashSet::<usize>::new();
+        let mut bag_list = vec![];
+        for i in 0..*n_box {
+            bag_list.push(Some(&mut bag_list_template[i]));
+        }
+        for (box_i, color) in colors.iter().copied().enumerate() {
+            match &mut bag_list[box_i] {
+                Some(x) => {
+                    x.insert(color);
+                }
+                None => unreachable!(),
+            }
+        }
+
+        for query in queries.iter().copied() {
+            // a → b
+            match &mut bag_list[query.a] {
+                Some(x) => {
+                    //
+                    match &mut bag_list[query.b] {
+                        Some(y) => {
+                            //
+                            y.extend(x.iter());
+                        }
+                        None => {
+                            //
+                        }
+                    }
+                }
+                None => {
+                    //
+                }
+            }
+            let x = &mut bag_list[query.a];
+            let y = &mut bag_list[query.b];
+            match (x, y) {
+                (None, None) => todo!(),
+                (None, Some(_)) => todo!(),
+                (Some(_), None) => todo!(),
+                (Some(_), Some(_)) => todo!(),
+            }
+
+            // a を bに入れる
+
+            bag_list[query.a] = None;
+            //
+        }
+
+        // let mut bag_list = bag_list
+        //     .into_iter()
+        //     .enumerate()
+        //     .filter_map(|(i, x)| x.map(|x| (i, x))
+
         let ans = 0;
         Answer { ans }
     }
@@ -41,6 +113,8 @@ mod tests {
         assert_eq!(1 + 1, 2);
     }
 }
+
+use std::collections::HashSet;
 
 // ====== import ======
 #[allow(unused_imports)]

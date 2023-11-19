@@ -1,17 +1,25 @@
-//#[derive_readable]
+#[derive_readable]
 struct Problem {
-    _a: i64,
+    n: usize,
+    s: Bytes,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            p:Problem
         }
-        Problem { _a }
+        p
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let s = &self.s;
+        let run_length = s.iter().copied().dedup_with_count().collect_vec();
+        let mut cnt = vec![0; 26];
+        for &(n, c) in run_length.iter() {
+            cnt[(c - b'a') as usize] = max(n, cnt[(c - b'a') as usize]);
+        }
+
+        let ans = cnt.iter().copied().sum::<usize>() as i64;
         Answer { ans }
     }
 }
@@ -41,6 +49,8 @@ mod tests {
         assert_eq!(1 + 1, 2);
     }
 }
+
+use std::cmp::max;
 
 // ====== import ======
 #[allow(unused_imports)]

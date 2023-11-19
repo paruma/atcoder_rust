@@ -1,29 +1,55 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    n_cand: usize,
+    n_votes: usize,
+    votes: Vec<usize>, // votes[i]] = i番目の票の投票先
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n_cand: usize,
+            n_votes: usize,
+            votes: [Usize1; n_votes],// votes[i]] = i番目の票の投票先
         }
-        Problem { _a }
+        Problem { n_cand, n_votes, votes }
     }
+    #[allow(clippy::comparison_chain)]
+    #[allow(clippy::collapsible_if)]
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let Problem { n_cand, n_votes, votes } = self;
+        let mut top_cand = 0;
+        let mut top_cnt = 0;
+        let mut ans: Vec<usize> = vec![];
+        let mut cnt = vec![0; *n_cand];
+        for (_vote_i, cand_i) in votes.iter().copied().enumerate() {
+            cnt[cand_i] += 1;
+            if cnt[cand_i] > top_cnt {
+                top_cnt = cnt[cand_i];
+                top_cand = cand_i;
+            } else if cnt[cand_i] == top_cnt {
+                if cand_i < top_cand {
+                    top_cnt = cnt[cand_i];
+                    top_cand = cand_i;
+                }
+            }
+            // dbg!(top_cand);
+            // dbg!(top_cnt);
+            ans.push(top_cand);
+        }
+
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<usize>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec(&self.ans.iter().copied().map(|x| x + 1).collect_vec());
     }
 }
 
