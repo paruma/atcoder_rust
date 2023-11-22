@@ -1,18 +1,50 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    n: usize,
+    xs: Vec<i64>,
+}
+
+fn is_win(xs: &[i64], k: i64) -> bool {
+    xs.iter().copied().map(|x| x % (k + 1)).fold(0, |x, acc| x ^ acc) != 0
+}
+fn is_win_normal(xs: &[i64]) -> bool {
+    xs.iter().copied().fold(0, |x, acc| x ^ acc) != 0
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n: usize,
+            xs: [i64; n],
         }
-        Problem { _a }
+        Problem { n, xs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
-        Answer { ans }
+        let n = self.n;
+        let xs = &self.xs;
+
+        // ふつうのnimで勝つ
+        if is_win_normal(&xs) {
+            return Answer { ans: -1 }; // いくらでも大きくできる
+        }
+
+        let max = xs.iter().copied().max().unwrap();
+        // max == 1 の場合はやばい
+        if max == 1 {
+            return Answer { ans: -1 };
+        }
+        if is_win(&xs, max) {
+            return Answer { ans: -1 };
+        }
+        if is_win(&xs, max - 1) {
+            return Answer { ans: max - 1 };
+        } else {
+            //このケースで0じゃないのがありそう
+            return Answer { ans: 0 }; //0: 勝てない
+        }
+
+        //let ans = 0;
+        //Answer { ans }
     }
 }
 
@@ -35,10 +67,77 @@ fn main() {
 mod tests {
     #[allow(unused_imports)]
     use super::*;
+    #[test]
+    fn test_problem2() {
+        dbg!();
+        dbg!(is_win(&[5, 6, 7, 8], 1));
+        dbg!(is_win(&[5, 6, 7, 8], 2));
+        dbg!(is_win(&[5, 6, 7, 8], 3));
+        dbg!(is_win(&[5, 6, 7, 8], 4));
+        dbg!(is_win(&[5, 6, 7, 8], 5));
+        dbg!(is_win(&[5, 6, 7, 8], 6));
+        dbg!(is_win(&[5, 6, 7, 8], 7));
+        dbg!(is_win(&[5, 6, 7, 8], 8));
+        dbg!(is_win(&[5, 6, 7, 8], 9));
+
+        // dbg!(is_win(&[2, 2, 7, 7], 1));
+        // dbg!(is_win(&[2, 2, 7, 7], 2));
+        // dbg!(is_win(&[2, 2, 7, 7], 3));
+        // dbg!(is_win(&[2, 2, 7, 7], 4));
+        // dbg!(is_win(&[2, 2, 7, 7], 5));
+        // dbg!(is_win(&[2, 2, 7, 7], 6));
+        // dbg!(is_win(&[2, 2, 7, 7], 7));
+    }
 
     #[test]
     fn test_problem() {
         assert_eq!(1 + 1, 2);
+        assert!(is_win_normal(&[1, 2, 3, 4]));
+        assert!(!is_win_normal(&[1, 2, 3]));
+        assert!(is_win(&[1, 2, 3], 2));
+        assert!(!is_win(&[1, 2, 3], 3));
+        assert!(!is_win(&[1, 2, 3], 1));
+        assert!(is_win(&[3, 4, 7], 4));
+        dbg!(is_win(&[3, 4, 7], 1));
+        dbg!(is_win(&[3, 4, 7], 2));
+        dbg!(is_win(&[3, 4, 7], 3));
+        dbg!(is_win(&[3, 4, 7], 4));
+        dbg!(is_win(&[3, 4, 7], 5));
+        dbg!(is_win(&[3, 4, 7], 6));
+        dbg!(is_win(&[3, 4, 7], 7));
+        dbg!();
+
+        dbg!(is_win(&[2, 4, 6], 1));
+        dbg!(is_win(&[2, 4, 6], 2));
+        dbg!(is_win(&[2, 4, 6], 3));
+        dbg!(is_win(&[2, 4, 6], 4));
+        dbg!(is_win(&[2, 4, 6], 5));
+        dbg!(is_win(&[2, 4, 6], 6));
+        dbg!(is_win(&[2, 4, 6], 7));
+        dbg!();
+
+        dbg!(is_win(&[2, 5, 7], 1));
+        dbg!(is_win(&[2, 5, 7], 2));
+        dbg!(is_win(&[2, 5, 7], 3));
+        dbg!(is_win(&[2, 5, 7], 4));
+        dbg!(is_win(&[2, 5, 7], 5));
+        dbg!(is_win(&[2, 5, 7], 6));
+        dbg!(is_win(&[2, 5, 7], 7));
+        dbg!();
+        dbg!(is_win(&[1, 6, 7], 1));
+        dbg!(is_win(&[1, 6, 7], 2));
+        dbg!(is_win(&[1, 6, 7], 3));
+        dbg!(is_win(&[1, 6, 7], 4));
+        dbg!(is_win(&[1, 6, 7], 5));
+        dbg!(is_win(&[1, 6, 7], 6));
+        dbg!(is_win(&[1, 6, 7], 7));
+        dbg!(is_win(&[1, 6, 7], 8));
+        dbg!();
+        dbg!(is_win(&[2, 3, 4, 5], 1));
+        dbg!(is_win(&[2, 3, 4, 5], 2));
+        dbg!(is_win(&[2, 3, 4, 5], 3));
+        dbg!(is_win(&[2, 3, 4, 5], 4));
+        dbg!(is_win(&[2, 3, 4, 5], 5));
     }
 }
 

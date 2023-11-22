@@ -1,17 +1,22 @@
-//#[derive_readable]
+#[derive_readable]
 struct Problem {
-    _a: i64,
+    n: usize,
+    s: Bytes,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            p: Problem
         }
-        Problem { _a }
+        p
     }
+
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let s = &self.s;
+        let run_length = s.iter().copied().dedup_with_count().collect_vec();
+        let f = |x: i64| x * (x + 1) / 2;
+        let ans = run_length.iter().copied().filter(|&x| x.1 == b'>').map(|x| f(x.0 as i64)).sum();
         Answer { ans }
     }
 }
