@@ -19,43 +19,50 @@ impl Problem {
         }
         Problem { n, xs }
     }
-    fn solve(&self) -> Answer {
-        let n = self.n;
+
+    fn solve0(&self) -> Option<ExtInt> {
         let xs = &self.xs;
 
-        // ふつうのnimで勝つ
-        if is_win_normal(&xs) {
-            return Answer { ans: -1 }; // いくらでも大きくできる
+        if is_win_normal(xs) {
+            // 普通の Nim 勝てる場合は、k をいくらでも大きくできる
+            return Some(Inf);
         }
+        // 要素が奇数個ある値のmax
+        let max_opt = xs
+            .iter()
+            .copied()
+            .counts()
+            .into_iter()
+            .filter_map(|(x, c)| (c % 2 == 1).then_some(x))
+            .max();
 
-        let max = xs.iter().copied().max().unwrap();
-        // max == 1 の場合はやばい
-        if max == 1 {
-            return Answer { ans: -1 };
-        }
-        if is_win(&xs, max) {
-            return Answer { ans: -1 };
-        }
-        if is_win(&xs, max - 1) {
-            return Answer { ans: max - 1 };
-        } else {
-            //このケースで0じゃないのがありそう
-            return Answer { ans: 0 }; //0: 勝てない
-        }
-
-        //let ans = 0;
-        //Answer { ans }
+        max_opt.map(|max| Fin(max - 1))
     }
+    fn solve(&self) -> Answer {
+        Answer { ans: self.solve0() }
+    }
+}
+
+use ExtInt::*;
+#[derive(Clone, Debug, PartialEq, Eq)]
+enum ExtInt {
+    Inf,
+    Fin(i64),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Option<ExtInt>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        let msg = match self.ans {
+            Some(ExtInt::Fin(k)) => k,
+            Some(ExtInt::Inf) => -1, // 条件を満たす k の最大値が存在しない
+            None => 0,               // どの k でも勝てない
+        };
+        println!("{}", msg);
     }
 }
 
@@ -69,24 +76,43 @@ mod tests {
     use super::*;
     #[test]
     fn test_problem2() {
-        dbg!();
-        dbg!(is_win(&[5, 6, 7, 8], 1));
-        dbg!(is_win(&[5, 6, 7, 8], 2));
-        dbg!(is_win(&[5, 6, 7, 8], 3));
-        dbg!(is_win(&[5, 6, 7, 8], 4));
-        dbg!(is_win(&[5, 6, 7, 8], 5));
-        dbg!(is_win(&[5, 6, 7, 8], 6));
-        dbg!(is_win(&[5, 6, 7, 8], 7));
-        dbg!(is_win(&[5, 6, 7, 8], 8));
-        dbg!(is_win(&[5, 6, 7, 8], 9));
+        dbg!(is_win(&[1, 6, 7], 1));
+        dbg!(is_win(&[1, 6, 7], 2));
+        dbg!(is_win(&[1, 6, 7], 3));
+        dbg!(is_win(&[1, 6, 7], 4));
+        dbg!(is_win(&[1, 6, 7], 5));
+        dbg!(is_win(&[1, 6, 7], 6));
+        dbg!(is_win(&[1, 6, 7], 7));
+        dbg!(is_win(&[1, 6, 7], 8));
 
-        // dbg!(is_win(&[2, 2, 7, 7], 1));
-        // dbg!(is_win(&[2, 2, 7, 7], 2));
-        // dbg!(is_win(&[2, 2, 7, 7], 3));
-        // dbg!(is_win(&[2, 2, 7, 7], 4));
-        // dbg!(is_win(&[2, 2, 7, 7], 5));
-        // dbg!(is_win(&[2, 2, 7, 7], 6));
-        // dbg!(is_win(&[2, 2, 7, 7], 7));
+        dbg!(is_win_normal(&[1, 2, 3, 7, 7]));
+        dbg!(is_win(&[1, 2, 3, 7, 7], 1));
+        dbg!(is_win(&[1, 2, 3, 7, 7], 2));
+        dbg!(is_win(&[1, 2, 3, 7, 7], 3));
+        dbg!(is_win(&[1, 2, 3, 7, 7], 4));
+        dbg!(is_win(&[1, 2, 3, 7, 7], 5));
+        dbg!(is_win(&[1, 2, 3, 7, 7], 6));
+        dbg!(is_win(&[1, 2, 3, 7, 7], 7));
+        dbg!(is_win(&[1, 2, 3, 7, 7], 8));
+        dbg!();
+        dbg!(is_win(&[4, 5, 6, 7], 1));
+        dbg!(is_win(&[4, 5, 6, 7], 2));
+        dbg!(is_win(&[4, 5, 6, 7], 3));
+        dbg!(is_win(&[4, 5, 6, 7], 4));
+        dbg!(is_win(&[4, 5, 6, 7], 5));
+        dbg!(is_win(&[4, 5, 6, 7], 6));
+        dbg!(is_win(&[4, 5, 6, 7], 7));
+        dbg!(is_win(&[4, 5, 6, 7], 8));
+        dbg!(is_win(&[4, 5, 6, 7], 9));
+        dbg!();
+
+        dbg!(is_win(&[2, 2, 7, 7], 1));
+        dbg!(is_win(&[2, 2, 7, 7], 2));
+        dbg!(is_win(&[2, 2, 7, 7], 3));
+        dbg!(is_win(&[2, 2, 7, 7], 4));
+        dbg!(is_win(&[2, 2, 7, 7], 5));
+        dbg!(is_win(&[2, 2, 7, 7], 6));
+        dbg!(is_win(&[2, 2, 7, 7], 7));
     }
 
     #[test]
