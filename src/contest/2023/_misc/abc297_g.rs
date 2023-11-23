@@ -6,6 +6,19 @@ struct Problem {
     xs: Vec<i64>,
 }
 
+struct Nim {
+    l: i64,
+    r: i64,
+}
+impl Nim {
+    fn grundy(&self, x: i64) -> i64 {
+        let l = self.l;
+        let r = self.r;
+        let modulo = l + r;
+        (x % modulo) / l
+    }
+}
+
 impl Problem {
     fn read() -> Problem {
         input! {
@@ -16,16 +29,10 @@ impl Problem {
         }
         Problem { n, l, r, xs }
     }
-    fn grundy(&self, x: i64) -> i64 {
-        let l = self.l;
-        let r = self.r;
-        let modulo = l + r;
-        (x % modulo) / l
-    }
 
     fn solve(&self) -> Answer {
-        let Problem { n, l, r, xs } = self;
-        let ans = xs.iter().copied().map(|x| self.grundy(x)).fold(0, |acc, x| acc ^ x) != 0;
+        let nim = Nim { l: self.l, r: self.r };
+        let ans = self.xs.iter().copied().map(|x| nim.grundy(x)).fold(0, |acc, x| acc ^ x) != 0;
         Answer { ans }
     }
 }
@@ -54,7 +61,16 @@ mod tests {
 
     #[test]
     fn test_problem() {
-        assert_eq!(1 + 1, 2);
+        let nim = Nim { l: 2, r: 4 };
+        assert_eq!(nim.grundy(0), 0);
+        assert_eq!(nim.grundy(1), 0);
+        assert_eq!(nim.grundy(2), 1);
+        assert_eq!(nim.grundy(3), 1);
+        assert_eq!(nim.grundy(4), 2);
+        assert_eq!(nim.grundy(5), 2);
+        assert_eq!(nim.grundy(6), 0);
+        assert_eq!(nim.grundy(7), 0);
+        assert_eq!(nim.grundy(8), 1);
     }
 }
 
