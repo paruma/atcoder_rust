@@ -22,6 +22,21 @@ impl Problem {
         let ans = cnt.iter().copied().sum::<usize>() as i64;
         Answer { ans }
     }
+
+    fn solve2(&self) -> Answer {
+        let s = &self.s;
+        let run_length = s.iter().copied().dedup_with_count().collect_vec();
+
+        let ans = run_length
+            .iter()
+            .copied()
+            .into_group_map_by(|(_cnt, ch)| *ch)
+            .values()
+            .map(|v| v.iter().map(|(cnt, _ch)| cnt).max().unwrap())
+            .sum::<usize>() as i64;
+
+        Answer { ans }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -36,7 +51,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
