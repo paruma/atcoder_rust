@@ -16,14 +16,6 @@ path = "src/contest/2023/arc168/a/a.rs"
 name = "arc168_b"
 path = "src/contest/2023/arc168/b/b.rs"
 
-[[bin]]
-name = "arc168_c"
-path = "src/contest/2023/arc168/c/c.rs"
-
-[[bin]]
-name = "arc168_d"
-path = "src/contest/2023/arc168/d/d.rs"
-
 
 [[bin]]
 name = "abc329_a"
