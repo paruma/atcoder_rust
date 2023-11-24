@@ -11,7 +11,6 @@ impl Problem {
         Problem { s }
     }
     fn solve(&self) -> Answer {
-        "aa".chars().join(" ");
         let ans = self.s.chars().join(" ");
         //let ans = self.s.chars().map(|b| b.to_string()).join(" ");
         Answer { ans }

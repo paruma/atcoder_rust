@@ -5,11 +5,6 @@ struct Query {
     b: Usize1,
 }
 
-struct Bag {
-    ball_set: HashSet<usize>,
-    box_idx: usize,
-}
-
 struct Problem {
     n_box: usize,
     nq: usize,
@@ -29,78 +24,69 @@ impl Problem {
     }
     fn solve(&self) -> Answer {
         let Problem { n_box, nq, colors, queries } = self;
-        let mut bag_list_template = vec![HashSet::<usize>::new(); *n_box];
-        let mut bag_empty = HashSet::<usize>::new();
-        let mut bag_list = vec![];
-        for i in 0..*n_box {
-            bag_list.push(Some(&mut bag_list_template[i]));
-        }
-        for (box_i, color) in colors.iter().copied().enumerate() {
-            match &mut bag_list[box_i] {
-                Some(x) => {
-                    x.insert(color);
-                }
-                None => unreachable!(),
-            }
-        }
 
-        for query in queries.iter().copied() {
-            // a → b
-            match &mut bag_list[query.a] {
-                Some(x) => {
-                    //
-                    match &mut bag_list[query.b] {
-                        Some(y) => {
-                            //
-                            y.extend(x.iter());
-                        }
-                        None => {
-                            //
-                        }
-                    }
-                }
-                None => {
-                    //
-                }
-            }
-            let x = &mut bag_list[query.a];
-            let y = &mut bag_list[query.b];
-            match (x, y) {
-                (None, None) => todo!(),
-                (None, Some(_)) => todo!(),
-                (Some(_), None) => todo!(),
-                (Some(_), Some(_)) => todo!(),
+        // box_to_colors[box_i]: box_i 番目の箱に入っているの色の集合
+        let mut box_to_colors = colors.iter().copied().map(|c| HashSet::from([c])).collect_vec();
+        let mut ans = Vec::new();
+        for q in queries {
+            // 箱a のボールを箱 b に移す
+
+            let min_i =
+                [q.a, q.b].into_iter().min_by_key(|box_i| box_to_colors[*box_i].len()).unwrap();
+            let max_i =
+                [q.a, q.b].into_iter().max_by_key(|box_i| box_to_colors[*box_i].len()).unwrap();
+
+            // 挿入してから swap
+            for x in std::mem::take(&mut box_to_colors[min_i]) {
+                box_to_colors[max_i].insert(x);
             }
 
-            // a を bに入れる
-
-            bag_list[query.a] = None;
-            //
+            if box_to_colors[q.a].len() > box_to_colors[q.b].len() {
+                // std::mem::swap(&mut box_to_colors[q.a], &mut box_to_colors[q.b]);
+                box_to_colors.swap(q.a, q.b)
+            }
+            ans.push(box_to_colors[q.b].len());
         }
 
-        // let mut bag_list = bag_list
-        //     .into_iter()
-        //     .enumerate()
-        //     .filter_map(|(i, x)| x.map(|x| (i, x))
+        Answer { ans }
+    }
 
-        let ans = 0;
+    fn solve2(&self) -> Answer {
+        let Problem { n_box, nq, colors, queries } = self;
+
+        // box_to_colors[box_i]: box_i 番目の箱に入っているの色の集合
+        let mut box_to_colors = colors.iter().copied().map(|c| HashSet::from([c])).collect_vec();
+        let mut ans = Vec::new();
+        for q in queries {
+            // 箱a のボールを箱 b に移す
+
+            if box_to_colors[q.a].len() > box_to_colors[q.b].len() {
+                box_to_colors.swap(q.a, q.b)
+            }
+            for x in std::mem::take(&mut box_to_colors[q.a]) {
+                box_to_colors[q.b].insert(x);
+            }
+
+            ans.push(box_to_colors[q.b].len());
+        }
+
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<usize>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec(&self.ans);
     }
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -114,7 +100,10 @@ mod tests {
     }
 }
 
-use std::collections::HashSet;
+use std::{
+    cmp::{max, min},
+    collections::HashSet,
+};
 
 // ====== import ======
 #[allow(unused_imports)]

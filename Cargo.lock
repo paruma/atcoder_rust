@@ -34,6 +34,7 @@ dependencies = [
  "num-integer",
  "num-rational",
  "num-traits",
+ "omniswap",
  "pathfinding",
  "petgraph",
  "proconio",
@@ -267,6 +268,12 @@ checksum = "578ede34cf02f8924ab9447f50c28075b4d3e5b269972345e7e0372b38c6cdcd"
 dependencies = [
  "autocfg",
 ]
+
+[[package]]
+name = "omniswap"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8b73dba5f4428a4b36f77fb700ebba05e7f3c8bdbea4530f94427eb2009196f8"
 
 [[package]]
 name = "pathfinding"
