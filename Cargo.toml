@@ -5,6 +5,71 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [[bin]]
+name = "2023_12_02_midori_ika_a"
+path = "src/contest/2023/_misc/1202_midori_ika/a.rs"
+
+
+[[bin]]
+name = "2023_12_02_midori_ika_b"
+path = "src/contest/2023/_misc/1202_midori_ika/b.rs"
+
+
+[[bin]]
+name = "2023_12_02_midori_ika_c"
+path = "src/contest/2023/_misc/1202_midori_ika/c.rs"
+
+
+[[bin]]
+name = "2023_12_02_midori_ika_d"
+path = "src/contest/2023/_misc/1202_midori_ika/d.rs"
+
+
+[[bin]]
+name = "2023_12_02_midori_ika_e"
+path = "src/contest/2023/_misc/1202_midori_ika/e.rs"
+
+
+[[bin]]
+name = "2023_12_02_midori_ika_f"
+path = "src/contest/2023/_misc/1202_midori_ika/f.rs"
+
+
+[[bin]]
+name = "2023_12_02_midori_ika_g"
+path = "src/contest/2023/_misc/1202_midori_ika/g.rs"
+
+
+[[bin]]
+name = "2023_12_02_midori_ika_h"
+path = "src/contest/2023/_misc/1202_midori_ika/h.rs"
+
+
+[[bin]]
+name = "2023_12_02_midori_ika_i"
+path = "src/contest/2023/_misc/1202_midori_ika/i.rs"
+
+
+[[bin]]
+name = "2023_12_02_midori_ika_j"
+path = "src/contest/2023/_misc/1202_midori_ika/j.rs"
+
+
+[[bin]]
+name = "2023_12_02_midori_ika_k"
+path = "src/contest/2023/_misc/1202_midori_ika/k.rs"
+
+
+[[bin]]
+name = "2023_12_02_midori_ika_l"
+path = "src/contest/2023/_misc/1202_midori_ika/l.rs"
+
+
+[[bin]]
+name = "2023_12_02_midori_ika_hello"
+path = "src/contest/2023/_misc/1202_midori_ika/_hello.rs"
+
+
+[[bin]]
 name = "abc297_g"
 path = "src/contest/2023/_misc/abc297_g.rs"
 
