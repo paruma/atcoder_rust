@@ -1,25 +1,29 @@
 use std::io::stdin;
 
 struct Problem {
-    a: i64,
-    b: i64,
+    n: i64,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let n = r.read_i64_1();
+        Problem { n }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        // green, difficult 
+        let ans = if self.n< 1200{
+            "green"
+        }else{
+            "difficult"
+        };
+        let ans = ans.to_string();
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: String,
 }
 
 impl Answer {

@@ -1,31 +1,59 @@
 use std::io::stdin;
 
-struct Problem {
-    a: i64,
-    b: i64,
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Light{
+    pos: i64,
+    power: i64,
 }
+
+impl Light{
+    fn power_at(&self, x: i64)-> i64{
+        // ↓これ補完で出てくるのか
+        return i64::max(self.power - (x - self.pos).abs(), 0);
+    }
+}
+struct Problem {
+    n_light: usize,
+    width: i64,
+    lights: Vec<Light>
+}
+
+
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let (n_light, width) = r.read_i64_2();
+        let n_light = n_light as usize;
+        let lights = (0..n_light).map(|_| {
+            let (pos, power) = r.read_i64_2();
+            Light { pos, power }
+        }).collect::<Vec<_>>();
+        // collect_vecほしい
+        Problem { n_light, width, lights }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let ans = (1..=self.width).map(|x| {
+            //x
+            self.lights.iter().copied().map(|light| light.power_at(x)).max().unwrap()
+        }).collect::<Vec<_>>();
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec_1line(&self.ans);
     }
+}
+
+pub fn print_vec_1line<T: std::fmt::Debug>(arr: &[T]) {
+    let msg = arr.iter().map(|x| format!("{:?}", x)).collect::<Vec<_>>().join(" ");
+    println!("{}", msg);
 }
 
 fn main() {

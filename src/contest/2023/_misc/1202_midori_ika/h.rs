@@ -1,30 +1,111 @@
 use std::io::stdin;
 
+struct TestCase {
+    x1: i64,
+    y1: i64,
+    d1: char,
+    x2: i64,
+    y2: i64,
+    d2: char,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum CollisionTime {
+    Ever,
+    Never,
+    Time(i64),
+}
+
+// 衝突時間の2倍を返す
+fn collision_time(pos1: i64, vel1: i64, pos2: i64, vel2: i64) -> CollisionTime {
+    let pos_diff = pos1 - pos2;
+    let vel_diff = vel1 - vel2;
+    if pos_diff == 0 {
+        if vel_diff == 0 {
+            return CollisionTime::Ever;
+        }
+        return CollisionTime::Time(0);
+    }
+    if vel_diff == 0 {
+        // pos_diff != 0
+        return CollisionTime::Never;
+    }
+
+    let time = -pos_diff * 2 / vel_diff;
+    if time < 0 {
+        return CollisionTime::Never;
+    }
+    CollisionTime::Time(time)
+}
+
+fn to_x(ch: char) -> i64 {
+    match ch {
+        'R' => 1,
+        'L' => -1,
+        _ => 0,
+    }
+}
+
+fn to_y(ch: char) -> i64 {
+    match ch {
+        'U' => 1,
+        'D' => -1,
+        _ => 0,
+    }
+}
+
+impl TestCase {
+    fn solve(&self) -> bool {
+        // 衝突時刻が同じか判定する
+        let col_time_x = collision_time(self.x1, to_x(self.d1), self.x2, to_x(self.d2));
+        let col_time_y = collision_time(self.y1, to_y(self.d1), self.y2, to_y(self.d2));
+        // dbg!(col_time_x);
+        // dbg!(col_time_y);
+        match (col_time_x, col_time_y){
+            (CollisionTime::Never, _) => false,
+            (_, CollisionTime::Never) =>  false,
+            (CollisionTime::Ever, CollisionTime::Ever) => true,
+            (CollisionTime::Ever, CollisionTime::Time(_)) => true,
+            (CollisionTime::Time(_), CollisionTime::Ever) => true,
+            (CollisionTime::Time(tx), CollisionTime::Time(ty)) => tx==ty,
+        }
+    }
+}
+
 struct Problem {
-    a: i64,
-    b: i64,
+    n_cases: usize,
+    test_cases: Vec<TestCase>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let n_cases = r.read_usize_1();
+        let test_cases = (0..n_cases)
+            .map(|_| {
+                let (x1, y1, d1) = r.read_any_3::<i64, i64, char>();
+                let (x2, y2, d2) = r.read_any_3::<i64, i64, char>();
+                TestCase { x1, y1, d1, x2, y2, d2 }
+            })
+            .collect();
+        Problem { n_cases, test_cases }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let ans = self.test_cases.iter().map(|test_case| test_case.solve()).collect();
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<bool>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        for &row in &self.ans {
+            let msg = if row { "Yes" } else { "No" };
+            println!("{}", msg);
+        }
     }
 }
 

@@ -1,18 +1,89 @@
 use std::io::stdin;
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Color(usize);
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Edge {
+    u: usize,
+    v: usize,
+}
 struct Problem {
-    a: i64,
-    b: i64,
+    nv: usize,
+    ne: usize,
+    vertex_to_color: Vec<Color>,
+    edges: Vec<Edge>,
+}
+
+fn connected_component(nv: usize, edges: &[Edge]) -> i64 {
+    let mut uf = UnionFind::new(nv);
+    for &Edge { u, v } in edges {
+        uf.unite(u, v);
+    }
+    uf.num_groups() as i64
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let (nv, ne) = r.read_usize_2();
+        let vertex_to_color =
+            r.read_vec_i64().iter().copied().map(|c| Color(c as usize - 1)).collect();
+        let edges = (0..ne)
+            .map(|_| {
+                let (u, v) = r.read_usize_2();
+                let u = u - 1;
+                let v = v - 1;
+                Edge { u, v }
+            })
+            .collect();
+        Problem { nv, ne, vertex_to_color, edges }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        // itertools がほしい
+        // 頂点の番号の振り直しをする（色ごとに0から番号をふる）
+        let mut color_to_cnt = vec![0; self.nv];
+
+        // 古い番号→新しい番号
+        let mut old_vertex_to_new = vec![0; self.nv];
+        for (v, color) in self.vertex_to_color.iter().copied().enumerate() {
+            old_vertex_to_new[v] = color_to_cnt[color.0];
+            color_to_cnt[color.0] += 1;
+        }
+
+        // 辺を色で分ける。
+        // let mut color_to_vertex_list = vec![vec![]; self.nv];
+        // for (v, color) in self.vertex_to_color.iter().copied().enumerate() {
+        //     color_to_vertex_list[color.0].push(v);
+        // }
+        //色ごとにグラフを作る
+        let mut color_to_edge_list = vec![vec![]; self.nv];
+
+        for &e in &self.edges {
+            if self.vertex_to_color[e.u] == self.vertex_to_color[e.v] {
+                let new_edge = Edge {
+                    u: old_vertex_to_new[e.u],
+                    v: old_vertex_to_new[e.v],
+                };
+
+                color_to_edge_list[self.vertex_to_color[e.u].0].push(new_edge);
+            }
+        }
+
+        let ans = (0..self.nv)
+            .map(|color| {
+                // 連結成分数を求める
+                let edge_list = &color_to_edge_list[color];
+                let nv = color_to_cnt[color];
+
+                let cnt = connected_component(nv, edge_list);
+                if cnt == 0 || cnt == 1 {
+                    0
+                } else {
+                    cnt - 1
+                }
+            })
+            .sum::<i64>();
+
         Answer { ans }
     }
 }
@@ -195,6 +266,73 @@ pub mod myio {
             let mut buffer = String::new();
             self.buf_read.read_line(&mut buffer).unwrap();
             buffer.trim().to_string()
+        }
+    }
+}
+
+use union_find::*;
+pub mod union_find {
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    struct Root {
+        count: i32,
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    enum Node {
+        Root { root: Root },
+        NonRoot { parent_index: usize },
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    struct RootAndIndex {
+        root: Root,
+        index: usize,
+    }
+    #[derive(Clone, Debug)]
+    pub struct UnionFind {
+        nodes: Vec<Node>,
+    }
+    impl UnionFind {
+        pub fn new(n: usize) -> UnionFind {
+            UnionFind { nodes: vec![Node::Root { root: Root { count: 1 } }; n] }
+        }
+        fn root_node(&mut self, index: usize) -> RootAndIndex {
+            match self.nodes[index] {
+                Node::Root { root } => RootAndIndex { root, index },
+                Node::NonRoot { parent_index } => {
+                    let root_and_index = self.root_node(parent_index);
+                    self.nodes[index] = Node::NonRoot { parent_index: root_and_index.index };
+                    root_and_index
+                }
+            }
+        }
+        pub fn root(&mut self, index: usize) -> usize {
+            self.root_node(index).index
+        }
+        pub fn same_count(&mut self, index: usize) -> i32 {
+            self.root_node(index).root.count
+        }
+        pub fn same(&mut self, x: usize, y: usize) -> bool {
+            self.root(x) == self.root(y)
+        }
+        pub fn num_groups(&self) -> usize {
+            self.nodes.iter().filter(|&node| matches!(node, Node::Root { .. })).count()
+        }
+        pub fn unite(&mut self, x: usize, y: usize) {
+            if self.same(x, y) {
+                return;
+            }
+            let x_root_node = self.root_node(x);
+            let y_root_node = self.root_node(y);
+            let x_count = x_root_node.root.count;
+            let y_count = y_root_node.root.count;
+            let x_root_index = x_root_node.index;
+            let y_root_index = y_root_node.index;
+            if x_count < y_count {
+                self.nodes[x_root_index] = Node::NonRoot { parent_index: y_root_index };
+                self.nodes[y_root_index] = Node::Root { root: Root { count: x_count + y_count } }
+            } else {
+                self.nodes[y_root_index] = Node::NonRoot { parent_index: x_root_index };
+                self.nodes[x_root_index] = Node::Root { root: Root { count: x_count + y_count } }
+            }
         }
     }
 }

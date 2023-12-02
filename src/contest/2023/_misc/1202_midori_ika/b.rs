@@ -1,18 +1,19 @@
 use std::io::stdin;
 
 struct Problem {
+    p: i64,
+    q: i64,
     a: i64,
     b: i64,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let (p,q,a,b) = r.read_i64_4();
+        Problem { p,q,a, b }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let ans = (0..self.p * self.q).find(|x| x % self.p == self.a && x % self.q == self.b).unwrap();
         Answer { ans }
     }
 }

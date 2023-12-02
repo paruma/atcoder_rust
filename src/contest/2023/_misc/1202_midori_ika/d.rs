@@ -1,31 +1,69 @@
 use std::io::stdin;
 
-struct Problem {
-    a: i64,
-    b: i64,
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct TestCase{
+    n: usize,
+    x: i64,
 }
+
+impl TestCase{
+    fn solve(&self) -> Option<Vec<i64>> {
+        let n = self.n as i64;
+        let x = self.x;
+        let min_sum =  n * ( n  +1 )/2;
+        if x < min_sum{
+            None
+        }else{
+            let ret = (1..n).chain(std::iter::once(x - n * (n-1)/2)).collect();
+            Some(ret)
+        }
+    }
+}
+
+struct Problem {
+    n_case: usize,
+    test_cases: Vec<TestCase>,
+}
+
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let n_case = r.read_usize_1();
+        let test_cases = (0..n_case).map(|_| {
+            let (n, x) = r.read_i64_2();
+            let n = n as usize;
+            TestCase { n, x }
+        }).collect();
+        Problem { n_case, test_cases }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let ans = self.test_cases.iter().copied().map(|test_case| {
+            test_case.solve()
+        }).collect();
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<Option<Vec<i64>>>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        for row in &self.ans{
+            if let Some(row) = row{
+                print_vec_1line(row);   
+            }else{
+                println!("-1");
+            }
+        }
     }
+}
+
+pub fn print_vec_1line<T: std::fmt::Debug>(arr: &[T]) {
+    let msg = arr.iter().map(|x| format!("{:?}", x)).collect::<Vec<_>>().join(" ");
+    println!("{}", msg);
 }
 
 fn main() {

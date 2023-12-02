@@ -1,30 +1,56 @@
 use std::io::stdin;
 
+
+struct TestCase{
+    m: i64,
+    ds: Vec<i64>,
+}
+
+impl TestCase{
+    fn solve(&self) -> i64 {
+        let mut digits = vec![];
+        for (d, cnt) in self.ds.iter().enumerate(){
+            for _ in 0..*cnt{
+                digits.push(d as i64 + 1);
+            }
+        }
+        let num = digits.iter().copied().fold(0, |acc, x| 10 * acc + x);
+        (num * 100 / self.m + 1) * self.m
+    }
+}
 struct Problem {
-    a: i64,
-    b: i64,
+    n_cases: usize,
+    test_cases: Vec<TestCase>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let n_cases = r.read_usize_1();
+        let test_cases = (0..n_cases).map(|_| {
+            let m = r.read_i64_1();
+            let ds = r.read_vec_i64();
+            TestCase { m, ds }
+        }).collect();
+        Problem { n_cases, test_cases }
     }
     fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+        let ans = self.test_cases.iter().map(|test_case| {
+            test_case.solve()
+        }).collect();
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        for r in &self.ans{
+            println!("{}", r);
+        }
     }
 }
 

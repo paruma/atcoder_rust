@@ -1,20 +1,81 @@
 use std::io::stdin;
 
 struct Problem {
-    a: i64,
-    b: i64,
+    n: usize,
+    k: usize,
+    xs: Vec<i64>,
 }
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
-        let a = r.read_i64_1();
-        let b = r.read_i64_1();
-        Problem { a, b }
+        let (n, k) = r.read_usize_2();
+        let xs = r.read_vec_any();
+        Problem { n, k, xs }
     }
-    fn solve(&self) -> Answer {
-        let ans = self.a + self.b;
+    fn solve_old(&self) -> Answer {
+        let comb = combinations(self.n, self.k);
+        let ans = comb
+            .iter()
+            .filter(|bs| {
+                let sum = self.xs.iter().zip(bs.iter()).map(|(x, b)| x * b).sum::<i64>();
+                let sum_998244353 = sum % 998244353;
+                let sum_998 = sum % 998;
+                sum_998244353 <= sum_998
+            })
+            .count() as i64;
+        let ans = ans % 998;
         Answer { ans }
     }
+
+    fn solve(&self) -> Answer {
+        let n = self.n;
+        let k = self.k;
+        let mut seq01 = std::iter::repeat(0)
+            .take(n - k)
+            .chain(std::iter::repeat(1).take(k))
+            .collect::<Vec<_>>();
+
+        let mut cnt = 0;
+
+        while {
+            let sum = self.xs.iter().zip(seq01.iter()).map(|(x, b)| x * b).sum::<i64>();
+            let sum_998244353 = sum % 998244353;
+            let sum_998 = sum % 998;
+            if sum_998244353 <= sum_998{
+                cnt += 1;
+            }
+
+            next_permutation(&mut seq01)
+        } {}
+
+        let ans = cnt % 998;
+        Answer { ans }
+    }
+}
+
+fn combinations(n: usize, k: usize) -> Vec<Vec<i64>> {
+    let mut ret = Vec::new();
+    // 0 を n-k 個, 1をk個並べる
+    let mut seq01 =
+        std::iter::repeat(0).take(n - k).chain(std::iter::repeat(1).take(k)).collect::<Vec<_>>();
+
+    while {
+        ret.push(seq01.clone());
+        next_permutation(&mut seq01)
+    } {}
+    ret
+}
+
+// https://ngtkana.hatenablog.com/entry/2021/11/08/000209
+pub fn next_permutation<T: Ord>(a: &mut [T]) -> bool {
+    if a.is_empty() {
+        return false;
+    }
+    let Some(i) = (0..a.len() - 1).rfind(|&i| a[i] < a[i + 1]) else { return false };
+    let j = a.iter().rposition(|x| x > &a[i]).unwrap();
+    a.swap(i, j);
+    a[i + 1..].reverse();
+    true
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
