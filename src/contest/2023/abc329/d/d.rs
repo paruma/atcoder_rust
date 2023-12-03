@@ -17,6 +17,7 @@ impl Problem {
     #[allow(clippy::comparison_chain)]
     #[allow(clippy::collapsible_if)]
     fn solve(&self) -> Answer {
+        // scan で実装する方法があるかもしれない
         let Problem { n_cand, n_votes, votes } = self;
         let mut top_cand = 0;
         let mut top_cnt = 0;

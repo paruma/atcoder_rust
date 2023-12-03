@@ -30,6 +30,9 @@ impl Problem {
     fn solve(&self) -> Answer {
         let n = self.n;
         let k = self.k;
+        // 0,0,...,0,1,1,...,1
+        // ↑         ↑
+        // n-k       k
         let mut seq01 = std::iter::repeat(0)
             .take(n - k)
             .chain(std::iter::repeat(1).take(k))
@@ -41,7 +44,7 @@ impl Problem {
             let sum = self.xs.iter().zip(seq01.iter()).map(|(x, b)| x * b).sum::<i64>();
             let sum_998244353 = sum % 998244353;
             let sum_998 = sum % 998;
-            if sum_998244353 <= sum_998{
+            if sum_998244353 <= sum_998 {
                 cnt += 1;
             }
 
@@ -49,6 +52,27 @@ impl Problem {
         } {}
 
         let ans = cnt % 998;
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // itertools が使える場合
+
+        use itertools::Itertools;
+
+        let ans = self
+            .xs
+            .iter()
+            .copied()
+            .combinations(self.k)
+            .filter(|bs| {
+                let sum = bs.iter().copied().sum::<i64>();
+                let sum_998244353 = sum % 998244353;
+                let sum_998 = sum % 998;
+                sum_998244353 <= sum_998
+            })
+            .count() as i64;
+
         Answer { ans }
     }
 }

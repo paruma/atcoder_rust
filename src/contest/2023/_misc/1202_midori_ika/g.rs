@@ -23,6 +23,22 @@ fn connected_component(nv: usize, edges: &[Edge]) -> i64 {
     uf.num_groups() as i64
 }
 
+/*
+1つのUFでやるって発想はなかったなぁ（色ごとにグラフを分けちゃった）
+
+サイズ n の UF を n個作ってしまった→もちろんTLE
+
+<1> (2) (3)-(4) <5>
+
+連結成分: 合計4つ 2つだけ辺を足せばOK
+
+
+<>: 連結成分2
+(): 連結成分2
+
+
+ */
+
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
         let (nv, ne) = r.read_usize_2();

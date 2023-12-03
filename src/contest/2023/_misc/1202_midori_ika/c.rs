@@ -1,13 +1,13 @@
 use std::io::stdin;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-struct Light{
+struct Light {
     pos: i64,
     power: i64,
 }
 
-impl Light{
-    fn power_at(&self, x: i64)-> i64{
+impl Light {
+    fn power_at(&self, x: i64) -> i64 {
         // ↓これ補完で出てくるのか
         return i64::max(self.power - (x - self.pos).abs(), 0);
     }
@@ -15,27 +15,29 @@ impl Light{
 struct Problem {
     n_light: usize,
     width: i64,
-    lights: Vec<Light>
+    lights: Vec<Light>,
 }
-
-
 
 impl Problem {
     fn read<R: IProconReader>(mut r: R) -> Problem {
         let (n_light, width) = r.read_i64_2();
         let n_light = n_light as usize;
-        let lights = (0..n_light).map(|_| {
-            let (pos, power) = r.read_i64_2();
-            Light { pos, power }
-        }).collect::<Vec<_>>();
+        let lights = (0..n_light)
+            .map(|_| {
+                let (pos, power) = r.read_i64_2();
+                Light { pos, power }
+            })
+            .collect::<Vec<_>>();
         // collect_vecほしい
         Problem { n_light, width, lights }
     }
     fn solve(&self) -> Answer {
-        let ans = (1..=self.width).map(|x| {
-            //x
-            self.lights.iter().copied().map(|light| light.power_at(x)).max().unwrap()
-        }).collect::<Vec<_>>();
+        let ans = (1..=self.width)
+            .map(|x| {
+                //x
+                self.lights.iter().copied().map(|light| light.power_at(x)).max().unwrap()
+            })
+            .collect::<Vec<_>>();
         Answer { ans }
     }
 }

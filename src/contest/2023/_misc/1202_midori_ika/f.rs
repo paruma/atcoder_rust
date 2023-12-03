@@ -2,8 +2,8 @@ use std::io::stdin;
 
 
 struct TestCase{
-    m: i64,
-    ds: Vec<i64>,
+    m: i64,      
+    ds: Vec<i64>, 
 }
 
 impl TestCase{

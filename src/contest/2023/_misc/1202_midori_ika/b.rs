@@ -13,6 +13,9 @@ impl Problem {
         Problem { p,q,a, b }
     }
     fn solve(&self) -> Answer {
+        // x mod p == a
+        // x mod q == b
+        // となる最小のxを求める
         let ans = (0..self.p * self.q).find(|x| x % self.p == self.a && x % self.q == self.b).unwrap();
         Answer { ans }
     }

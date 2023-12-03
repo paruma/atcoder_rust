@@ -8,6 +8,10 @@ struct TestCase{
 
 impl TestCase{
     fn solve(&self) -> Option<Vec<i64>> {
+
+        // 0 < a[0] < a[1] < ... < a[n-1]
+        // a.sum() == x
+        // となるような a の辞書順最小を求める
         let n = self.n as i64;
         let x = self.x;
         let min_sum =  n * ( n  +1 )/2;
