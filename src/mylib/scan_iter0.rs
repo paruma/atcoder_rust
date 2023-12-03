@@ -11,17 +11,13 @@ pub mod scan_iter {
 
     impl<I, B, F> Scanl<I, B, F> {
         fn new(iter: I, init: B, f: F) -> Scanl<I, B, F> {
-            Scanl {
-                iter,
-                state: Some(init),
-                f,
-            }
+            Scanl { iter, state: Some(init), f }
         }
     }
 
     impl<I, B, F> Iterator for Scanl<I, B, F>
     where
-        B: Clone + Copy,
+        B: Copy,
         I: Iterator,
         F: FnMut(&mut B, I::Item) -> B,
     {
@@ -32,9 +28,7 @@ pub mod scan_iter {
             let retval = self.state?;
             let a_opt = self.iter.next();
 
-            self.state = self
-                .state
-                .and_then(|mut s| a_opt.map(|a| (self.f)(&mut s, a)));
+            self.state = self.state.and_then(|mut s| a_opt.map(|a| (self.f)(&mut s, a)));
 
             Some(retval)
         }

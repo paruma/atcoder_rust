@@ -1208,7 +1208,7 @@
       "    }",
       "    impl<I, B, F> Iterator for Scanl<I, B, F>",
       "    where",
-      "        B: Clone + Copy,",
+      "        B: Copy,",
       "        I: Iterator,",
       "        F: FnMut(&mut B, I::Item) -> B,",
       "    {",
