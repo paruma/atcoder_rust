@@ -4,6 +4,32 @@ version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "abc331_a"
+path = "src/contest/2023/abc331/a/a.rs"
+
+[[bin]]
+name = "abc331_b"
+path = "src/contest/2023/abc331/b/b.rs"
+
+[[bin]]
+name = "abc331_c"
+path = "src/contest/2023/abc331/c/c.rs"
+
+[[bin]]
+name = "abc331_d"
+path = "src/contest/2023/abc331/d/d.rs"
+
+[[bin]]
+name = "abc331_e"
+path = "src/contest/2023/abc331/e/e.rs"
+
+[[bin]]
+name = "abc331_f"
+path = "src/contest/2023/abc331/f/f.rs"
+
+
 [[bin]]
 name = "2023_12_02_midori_ika_a"
 path = "src/contest/2023/_misc/1202_midori_ika/a.rs"
