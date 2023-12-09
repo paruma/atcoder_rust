@@ -26,6 +26,21 @@ impl Problem {
         let next_year = self.year + year_carry;
         Answer { day: next_day, month: next_month, year: next_year }
     }
+
+    fn solve2(&self) -> Answer {
+        // 月末・年末で場合分けする
+
+        let is_year_end = self.month == self.n_month && self.day == self.n_day;
+        let is_month_end = self.day == self.n_day;
+
+        if is_year_end {
+            Answer { year: self.year + 1, month: 1, day: 1 }
+        } else if is_month_end {
+            Answer { year: self.year, month: self.month + 1, day: 1 }
+        } else {
+            Answer { year: self.year, month: self.month, day: self.day + 1 }
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -42,7 +57,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]

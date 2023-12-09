@@ -14,19 +14,22 @@ impl Problem {
         p
     }
     fn solve(&self) -> Answer {
-        let small_size = 6; // eggs_in_small とかのほうが置かった？
-        let medium_size = 8;
-        let large_size = 12;
+        let cnt_in_small = 6; // eggs_in_small とかのほうが置かった？
+        let cnt_in_medium = 8;
+        let cnt_in_large = 12;
 
         let ans = iproduct!(
-            0..=num_integer::Integer::div_ceil(&self.want_lb, &small_size),
-            0..=num_integer::Integer::div_ceil(&self.want_lb, &medium_size),
-            0..=num_integer::Integer::div_ceil(&self.want_lb, &large_size)
+            0..=num_integer::div_ceil(self.want_lb, cnt_in_small),
+            0..=num_integer::div_ceil(self.want_lb, cnt_in_medium),
+            0..=num_integer::div_ceil(self.want_lb, cnt_in_large)
         )
         .filter(|(n_small, n_medium, n_large)| {
-            n_small * small_size + n_medium * medium_size + n_large * large_size >= self.want_lb
+            let all_cnt =
+                n_small * cnt_in_small + n_medium * cnt_in_medium + n_large * cnt_in_large;
+            all_cnt >= self.want_lb
         })
         .map(|(n_small, n_medium, n_large)| {
+            // 合計金額
             n_small * self.small_price + n_medium * self.medium_price + n_large * self.large_price
         })
         .min()

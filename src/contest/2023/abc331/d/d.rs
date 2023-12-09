@@ -89,6 +89,55 @@ impl Problem {
 
         Answer { ans }
     }
+
+    fn solve2(&self) -> Answer {
+        let Problem { n, n_q, grid, qs } = self;
+        let grid = grid
+            .iter()
+            .map(|row| row.iter().copied().map(|ch| (ch == b'B') as i64).collect_vec())
+            .collect_vec();
+
+        struct QuerySolver {
+            cumsum: CumSum2D,
+            sq_size: i64,
+        }
+        impl QuerySolver {
+            fn new(grid: &Vec<Vec<i64>>, sq_size: i64) -> Self {
+                let cumsum = CumSum2D::new(grid);
+                Self { cumsum, sq_size }
+            }
+
+            fn prefix_sum(&self, y: i64, x: i64) -> i64 {
+                //  [0, x) × [0, y) で数える
+                let cnt_sq_x = x / self.sq_size;
+                let cnt_sq_y = y / self.sq_size;
+                let remain_x = (x % self.sq_size) as usize;
+                let remain_y = (y % self.sq_size) as usize;
+                let sq_size_usize = self.sq_size as usize;
+                let cnt_in_sq = self.cumsum.get_rect_sum((0, 0), (sq_size_usize, sq_size_usize));
+
+                let sum1 = cnt_sq_x * cnt_sq_y * cnt_in_sq;
+                let sum2 = self.cumsum.get_rect_sum((0, 0), (sq_size_usize, remain_y)) * cnt_sq_x;
+                let sum3 = self.cumsum.get_rect_sum((0, 0), (remain_x, sq_size_usize)) * cnt_sq_y;
+                let sum4 = self.cumsum.get_rect_sum((0, 0), (remain_x, remain_y));
+                sum1 + sum2 + sum3 + sum4
+            }
+
+            fn solve(&self, q: Query) -> i64 {
+                let Query { y1, x1, y2, x2 } = q;
+                self.prefix_sum(y2 + 1, x2 + 1)
+                    - self.prefix_sum(y1, x2 + 1)
+                    - self.prefix_sum(y2 + 1, x1)
+                    + self.prefix_sum(y1, x1)
+            }
+        }
+
+        let solver = QuerySolver::new(&grid, *n as i64);
+
+        let ans = qs.iter().copied().map(|q| solver.solve(q)).collect_vec();
+
+        Answer { ans }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -103,7 +152,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]

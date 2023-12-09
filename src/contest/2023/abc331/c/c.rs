@@ -29,6 +29,39 @@ impl Problem {
 
         Answer { ans }
     }
+
+    fn solve2(&self) -> Answer {
+        // 解説解法 O(n)
+        let xs = &self.xs;
+        /*
+        [1, 4, 1, 4, 2] から
+        {
+            4 => [1,3],
+            2 => [2,4],
+            1 => [0],
+        }
+        を得る
+        */
+        let value_to_idxes = xs
+            .iter()
+            .copied()
+            .enumerate()
+            .into_group_map_by(|(_i, x)| *x)
+            .into_iter()
+            .map(|(i, v)| (i, v.into_iter().map(|(i, _x)| i).collect_vec()))
+            .collect::<HashMap<_, _>>();
+        let mut sum = 0;
+        let mut ans = vec![0; self.n];
+
+        for (x, idxes) in value_to_idxes.into_iter().sorted_by_key(|x| Reverse(x.0)) {
+            for &i in &idxes {
+                ans[i] = sum;
+            }
+            sum += x * (idxes.len() as i64);
+        }
+
+        Answer { ans }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -43,7 +76,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -56,6 +89,8 @@ mod tests {
         assert_eq!(1 + 1, 2);
     }
 }
+
+use std::{cmp::Reverse, collections::HashMap};
 
 // ====== import ======
 #[allow(unused_imports)]

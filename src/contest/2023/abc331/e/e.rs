@@ -131,7 +131,6 @@ impl Problem {
             }
             buf
         };
-        let x = HashSet::from_iter(bad_comb.iter());
         let bad_comb: HashSet<MealIndexComb> = bad_comb.iter().copied().collect::<HashSet<_>>();
 
         let ans = top_list
@@ -143,6 +142,45 @@ impl Problem {
             .map(|comb| comb.price())
             .max()
             .unwrap();
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        let Problem { n_main, n_sub, n_bad_comb, main_prices, sub_prices, bad_comb } = self;
+
+        let bad_comb: HashSet<MealIndexComb> = bad_comb.iter().copied().collect::<HashSet<_>>();
+        // 実は main はソート不要
+        let main_list = main_prices
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(idx, price)| Meal { idx, price })
+            .sorted_by_key(|m| Reverse(m.price))
+            .collect_vec();
+
+        let sub_list = sub_prices
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(idx, price)| Meal { idx, price })
+            .sorted_by_key(|m| Reverse(m.price))
+            .collect_vec();
+
+        let ans = main_list
+            .iter()
+            .copied()
+            .flat_map(|main| {
+                // 主菜 main を固定した上で最も高い副菜を探す（ただし、食べ合わせの良いものに限る）
+                sub_list
+                    .iter()
+                    .find(|sub| !bad_comb.contains(&MealIndexComb { main: main.idx, sub: sub.idx })) // プログラム全体で O(n_bad_cmb) の計算量
+                    .map(|sub| main.price + sub.price)
+            })
+            .max()
+            .unwrap();
+
+        eprintln!("hoge");
+
         Answer { ans }
     }
 }
@@ -159,7 +197,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
