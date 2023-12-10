@@ -4,24 +4,46 @@ version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[[bin]]
+name = "abc332_a"
+path = "src/contest/2023/abc332/a/a.rs"
+
+[[bin]]
+name = "abc332_b"
+path = "src/contest/2023/abc332/b/b.rs"
+
+[[bin]]
+name = "abc332_c"
+path = "src/contest/2023/abc332/c/c.rs"
+
+[[bin]]
+name = "abc332_d"
+path = "src/contest/2023/abc332/d/d.rs"
+
+[[bin]]
+name = "abc332_e"
+path = "src/contest/2023/abc332/e/e.rs"
+
+[[bin]]
+name = "abc332_f"
+path = "src/contest/2023/abc332/f/f.rs"
 
 
 [[bin]]
 name = "arc169_a"
 path = "src/contest/2023/arc169/a/a.rs"
-        
+
 [[bin]]
 name = "arc169_b"
 path = "src/contest/2023/arc169/b/b.rs"
-        
+
 [[bin]]
 name = "arc169_c"
 path = "src/contest/2023/arc169/c/c.rs"
-        
+
 [[bin]]
 name = "arc169_d"
 path = "src/contest/2023/arc169/d/d.rs"
-        
 
 
 [[bin]]
