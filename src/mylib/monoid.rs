@@ -152,6 +152,13 @@ pub mod monoid_affine {
             self.slope * x + self.intercept
         }
 
+        pub fn identity() -> Self
+        where
+            T: From<i64>,
+        {
+            Self { slope: 1.into(), intercept: 0.into() }
+        }
+
         pub fn composite(&self, rhs: &Self) -> Self
         where
             T: Copy + Mul<Output = T> + Add<Output = T>,
@@ -170,7 +177,7 @@ pub mod monoid_affine {
     {
         type S = AffineTransform<T>;
         fn identity() -> Self::S {
-            AffineTransform { slope: 1.into(), intercept: 0.into() }
+            AffineTransform::identity()
         }
         fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
             a.composite(b)
