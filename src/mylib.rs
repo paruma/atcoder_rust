@@ -10,6 +10,7 @@ pub mod math;
 pub mod modint_field;
 pub mod modint_field_fake;
 pub mod modint_ring;
+pub mod monoid;
 pub mod neg_ext_int;
 pub mod odo;
 pub mod pos0;
