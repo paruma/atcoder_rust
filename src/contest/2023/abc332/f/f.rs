@@ -1,29 +1,84 @@
 //#[derive_readable]
-struct Problem {
-    _a: i64,
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Op {
+    begin: usize,
+    end: usize,
+    value: i64,
 }
+struct Problem {
+    len: usize,
+    n_ops: usize,
+    xs: Vec<i64>,
+    ops: Vec<Op>,
+}
+
+use ac_library::ModInt998244353 as Mint;
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            len: usize,
+            n_ops: usize,
+            xs: [i64; len],
+            ops: [(usize, usize, i64); n_ops],
         }
-        Problem { _a }
+
+        let ops = ops
+            .iter()
+            .copied()
+            .map(|(left, right, value)| Op { begin: left - 1, end: right, value })
+            .collect_vec();
+        Problem { len, n_ops, xs, ops }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let Problem { len, n_ops, xs, ops } = self;
+
+        // (index, 確率, 値, in(1)/out(0))
+        let mut pos_to_ops = vec![vec![]; len + 1];
+
+        for (i, op) in ops.iter().enumerate() {
+            let prob = (Mint::new(op.end) - Mint::new(op.begin)).inv();
+
+            pos_to_ops[op.begin].push((i, prob, op.value, 1));
+            pos_to_ops[op.end].push((i, prob, op.value, 0));
+        }
+
+        let mut imos1 = vec![Mint::new(0); len + 1];
+        let mut imos2 = vec![Mint::new(1); len + 1];
+
+        for pos in 0..*len {
+            if pos != 0 {
+                imos1[pos] = imos1[pos - 1];
+                imos2[pos] = imos1[pos - 1];
+            }
+            for (i, prob, value, kind) in pos_to_ops[pos].iter().sorted_by_key(|x| x.0) {
+                if *kind == 1 {
+                    // in
+                    imos1[pos] = prob * Mint::new(*value) + (Mint::new(1) - prob) * imos1[pos];
+                    imos2[pos] *= Mint::new(1) - prob;
+                } else {
+                    // out
+                    imos1[pos] = (imos1[pos] - prob * Mint::new(*value)) / (Mint::new(1) - prob);
+                    imos2[pos] /= Mint::new(1) - prob;
+                }
+            }
+        }
+        let ans = (0..*len).map(|i| imos1[i] + imos2[i] * xs[i]).collect_vec();
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<Mint>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        for &x in &self.ans {
+            println!("{}", x.val());
+        }
     }
 }
 

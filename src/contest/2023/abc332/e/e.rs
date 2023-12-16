@@ -1,6 +1,8 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    n_bag: usize,
+    n_goods: usize,
+    weight_list: Vec<i64>,
 }
 
 impl Problem {

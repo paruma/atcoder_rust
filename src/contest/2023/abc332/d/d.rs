@@ -1,17 +1,47 @@
 //#[derive_readable]
+
 struct Problem {
-    _a: i64,
+    h: usize,
+    w: usize,
+    grid1: Vec<Vec<i64>>,
+    grid2: Vec<Vec<i64>>,
+}
+
+fn inversion_number(permu: &[usize]) -> i64 {
+    // 0 1 2 4 3: 1個
+    // 0 1 4 5 3 : 2個
+    let mut cnt = 0;
+    for (i, &p) in permu.iter().enumerate() {
+        cnt += permu[i + 1..].iter().filter(|x| **x < p).count();
+    }
+    cnt as i64
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            h: usize,
+            w: usize,
+            grid1: [[i64; w]; h],
+            grid2: [[i64; w]; h],
         }
-        Problem { _a }
+        Problem { h, w, grid1, grid2 }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let Problem { h, w, grid1, grid2 } = self;
+        let h = *h;
+        let w = *w;
+        let ans = iproduct!((0..h).permutations(h), (0..w).permutations(w))
+            .filter_map(|(y_permu, x_permu)| {
+                let grid1_after = (0..h)
+                    .map(|y| (0..w).map(|x| grid1[y_permu[y]][x_permu[x]]).collect_vec())
+                    .collect_vec();
+
+                (grid1_after == *grid2)
+                    .then_some(inversion_number(&x_permu) + inversion_number(&y_permu))
+            })
+            .min()
+            .unwrap_or(-1);
         Answer { ans }
     }
 }
@@ -39,10 +69,12 @@ mod tests {
     #[test]
     fn test_problem() {
         assert_eq!(1 + 1, 2);
+        dbg!(inversion_number(&[0, 1, 2, 3]));
     }
 }
 
 // ====== import ======
+use itertools::iproduct;
 #[allow(unused_imports)]
 use itertools::Itertools;
 #[allow(unused_imports)]

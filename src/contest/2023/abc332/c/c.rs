@@ -1,17 +1,64 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    n_days: usize,
+    n_plain_shirts: usize,
+    plans: Vec<u8>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n_days: usize,
+            n_plain_shirts: usize,
+            plans: Bytes,
         }
-        Problem { _a }
+        Problem { n_days, n_plain_shirts, plans }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let Problem { n_days, n_plain_shirts, plans } = self;
+        // 0: 予定なし (Tシャツ洗濯)
+        // 1: 食事に行く予定 (無地 or ロゴ入りを1枚着る)
+        // 2: 競技プログラミングのイベントに行く予定 (ロゴ入りを1枚着る)
+        let mut n_logo_sharts = 0; //買う場合に増やす
+        let mut used_plain_sharts = 0;
+        let mut used_logo_sharts = 0;
+
+        for &ch in plans {
+            match ch {
+                b'0' => {
+                    used_plain_sharts = 0;
+                    used_logo_sharts = 0;
+                }
+                b'1' => {
+                    // 無地が余っている
+                    if *n_plain_shirts > used_plain_sharts {
+                        used_plain_sharts += 1;
+                    } else {
+                        if n_logo_sharts > used_logo_sharts {
+                            // ロゴシャツが余っている
+                            used_logo_sharts += 1;
+                        } else {
+                            // ロゴシャツを買う
+                            n_logo_sharts += 1;
+                            used_logo_sharts += 1;
+                        }
+                    }
+                }
+                b'2' => {
+                    if n_logo_sharts > used_logo_sharts {
+                        // ロゴシャツが余っている
+                        used_logo_sharts += 1;
+                    } else {
+                        // ロゴシャツを買う
+                        n_logo_sharts += 1;
+                        used_logo_sharts += 1;
+                    }
+                }
+                _ => panic!(),
+            }
+        }
+
+        let ans = n_logo_sharts;
         Answer { ans }
     }
 }

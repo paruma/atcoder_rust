@@ -1,29 +1,51 @@
-//#[derive_readable]
+#[derive_readable]
 struct Problem {
-    _a: i64,
+    n_times: i64,
+    glass: i64,
+    mug: i64,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            p: Problem
         }
-        Problem { _a }
+        p
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
-        Answer { ans }
+        let glass_capa = self.glass;
+        let mug_capa = self.mug;
+        let n_times = self.n_times;
+
+        let mut glass = 0;
+        let mut mug = 0;
+
+        for _ in 0..n_times {
+            if glass == glass_capa {
+                glass = 0;
+            } else if mug == 0 {
+                mug = mug_capa;
+            } else {
+                // マグカップからグラスに水を移す
+                let x = i64::min(glass_capa - glass, mug);
+                mug -= x;
+                glass += x;
+            }
+        }
+
+        Answer { glass, mug }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    glass: i64,
+    mug: i64,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        println!("{} {}", self.glass, self.mug);
     }
 }
 

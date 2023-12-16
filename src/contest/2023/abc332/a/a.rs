@@ -1,17 +1,33 @@
-//#[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Product {
+    price: i64,
+    cnt: usize,
+}
 struct Problem {
-    _a: i64,
+    n_product: usize,
+    s: i64,
+    k: i64,
+    products: Vec<Product>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n_product: usize,
+            s: i64,
+            k: i64,
+            products: [Product; n_product],
         }
-        Problem { _a }
+        Problem { n_product, s, k, products }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let Problem { n_product, s, k, products } = self;
+
+        let price_sum = products.iter().copied().map(|x| x.price * x.cnt as i64).sum::<i64>();
+        let souryo = if price_sum >= *s { 0 } else { *k };
+
+        let ans = price_sum + souryo;
         Answer { ans }
     }
 }
