@@ -1,29 +1,56 @@
 //#[derive_readable]
+
+use ac_library::ModInt998244353 as Mint;
 struct Problem {
-    _a: i64,
+    n: i64,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n: i64,
         }
-        Problem { _a }
+        Problem { n }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n as usize;
+        let mut dp = vec![vec![Mint::new(0); n + 2]; n + 2];
+
+        dp[0][0] = Mint::new(1);
+        let inv2 = Mint::new(2).inv();
+
+        for i in 1..n {
+            dp[i][0] = {
+                let mut tmp = Mint::new(0);
+                let mut inv2pow = inv2;
+                let mut pow2 = Mint::new(2);
+                for j in 0..i {
+                    tmp += dp[i - 1][j] * inv2pow;
+                    inv2pow *= inv2;
+                    pow2 *= Mint::new(2);
+                }
+
+                tmp * pow2 / (pow2 - 1)
+            };
+            for j in (1..=i).rev() {
+                let tmp = (dp[i - 1][j] + dp[i][(j + 1) % (i + 1)]) * inv2;
+                dp[i][j] += tmp;
+            }
+        }
+
+        let ans = dp[n - 1].iter().copied().rev().map(|x| x.val()).collect_vec()[2..].to_vec();
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<u32>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec_1line(&self.ans);
     }
 }
 

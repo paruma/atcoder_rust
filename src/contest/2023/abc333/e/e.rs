@@ -1,29 +1,91 @@
 //#[derive_readable]
+enum Event {
+    Find { portion_type: usize },
+    Encounter { monster_type: usize },
+}
 struct Problem {
-    _a: i64,
+    n_event: usize,
+    events: Vec<Event>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n_event: usize,
+            events: [(usize, Usize1); n_event],
         }
-        Problem { _a }
+
+        let events = events
+            .iter()
+            .copied()
+            .map(|(t, x)| match t {
+                1 => Event::Find { portion_type: x },
+                2 => Event::Encounter { monster_type: x },
+                _ => panic!(),
+            })
+            .collect_vec();
+        Problem { n_event, events }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n_event = self.n_event;
+        let events = &self.events;
+        let mut cnts = vec![0; n_event];
+        let mut movement_list_rev = vec![];
+        let mut score = 0; // ポーションの最大所持
+        let mut max_score = 0; // ポーションの最大所持
+
+        for event in events.iter().rev() {
+            match event {
+                Event::Find { portion_type } => {
+                    if cnts[*portion_type] > 0 {
+                        // 拾う
+                        cnts[*portion_type] -= 1;
+                        score -= 1;
+                        movement_list_rev.push(1);
+                    } else {
+                        // 拾わない
+                        movement_list_rev.push(0);
+                    }
+                }
+                Event::Encounter { monster_type } => {
+                    cnts[*monster_type] += 1;
+                    score += 1;
+                    max_score = max_score.max(score);
+                }
+            }
+        }
+
+        let ans = if cnts.iter().any(|&cnt| cnt > 0) {
+            None
+        } else {
+            Some(Result {
+                score: max_score,
+                movement_list: movement_list_rev.into_iter().rev().collect_vec(),
+            })
+        };
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
+struct Result {
+    score: i64,              // ポーション持ってた数の最大値
+    movement_list: Vec<i64>, // 拾ったかどうか(拾ったら1)
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Option<Result>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        if let Some(result) = &self.ans {
+            println!("{}", result.score);
+            print_vec_1line(&result.movement_list);
+        } else {
+            println!("-1");
+        }
     }
 }
 

@@ -1,29 +1,51 @@
-//#[derive_readable]
+#[derive_readable]
 struct Problem {
-    _a: i64,
+    s: Bytes,
+    t: Bytes,
+}
+
+fn len(s1: i64, s2: i64) -> i64 {
+    // メモ: mod5 で差が {1, 4} か {2, 3} かって見ると見通しが良い
+    // 隣り合ってたら1, そうでない場合は2
+    if s1 == s2 {
+        panic!()
+    }
+    // mod の引き算はちょっと書きにくい。足し算だと書きやすい。
+    if (s1 + 1) % 5 == s2 || (s2 + 1) % 5 == s1 {
+        1
+    } else {
+        2
+    }
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            p: Problem
         }
-        Problem { _a }
+        p
     }
+
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let s = self.s.iter().copied().map(|ch| (ch - b'A') as i64).collect_vec();
+        let t = self.t.iter().copied().map(|ch| (ch - b'A') as i64).collect_vec();
+
+        let len1 = len(s[0], s[1]);
+        let len2 = len(t[0], t[1]);
+
+        let ans = len1 == len2;
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_yesno(self.ans);
     }
 }
 

@@ -1,17 +1,29 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    n: usize,
+}
+
+fn repunit(n: usize) -> i64 {
+    std::iter::repeat(1).take(n).fold(0, |acc, x| 10 * acc + x)
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n: usize,
         }
-        Problem { _a }
+        Problem { n }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        // 1を13個くらい並べる
+        let n = self.n;
+
+        let ans = iproduct!(1..=13, 1..=13, 1..=13)
+            .map(|(x, y, z)| repunit(x) + repunit(y) + repunit(z))
+            .unique()
+            .sorted()
+            .nth(n - 1)
+            .unwrap();
         Answer { ans }
     }
 }
@@ -39,10 +51,12 @@ mod tests {
     #[test]
     fn test_problem() {
         assert_eq!(1 + 1, 2);
+        assert_eq!(repunit(4), 1111);
     }
 }
 
 // ====== import ======
+use itertools::iproduct;
 #[allow(unused_imports)]
 use itertools::Itertools;
 #[allow(unused_imports)]

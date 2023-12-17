@@ -1,24 +1,27 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    n: i64,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n: i64,
         }
-        Problem { _a }
+        Problem { n }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        //let ans = std::iter::repeat(n.to_string()).take(n as usize).join("");
+        // n.to_string().repeat(n as usize)
+        let ans = repeat_n(n.to_string(), n as usize).join("");
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: String,
 }
 
 impl Answer {
@@ -42,7 +45,10 @@ mod tests {
     }
 }
 
+use std::io::repeat;
+
 // ====== import ======
+use itertools::repeat_n;
 #[allow(unused_imports)]
 use itertools::Itertools;
 #[allow(unused_imports)]
