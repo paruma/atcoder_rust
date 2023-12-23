@@ -1,17 +1,54 @@
-//#[derive_readable]
+#[derive_readable]
 struct Problem {
-    _a: i64,
+    a: i64,
+    m: i64,
+    l: i64,
+    r: i64,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            p: Problem
         }
-        Problem { _a }
+        p
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let a = self.a;
+        let m = self.m;
+        let l = self.l;
+        let r = self.r;
+
+        // aからの相対位置
+        let l = l - a;
+        let r = r - a;
+
+        let f = |x: i64| {
+            if x < 0 {
+                0
+            } else {
+                x / m + 1
+            }
+        };
+
+        let ans = if l < 0 && r < 0 {
+            let cnt1 = f(-l);
+            let cnt2 = f(-r - 1);
+            cnt1 - cnt2
+        } else if l < 0 && r >= 0 {
+            let cnt1 = f(-l);
+            let cnt2 = f(r);
+            cnt1 + cnt2 - 1
+        } else {
+            // a から l-1
+            let cnt1 = f(l - 1);
+            // a(=0) から r
+            let cnt2 = f(r);
+            lg!(1);
+
+            cnt2 - cnt1
+        };
+
         Answer { ans }
     }
 }

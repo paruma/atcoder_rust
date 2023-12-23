@@ -1,24 +1,70 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    n_socks: usize,
+    n_lost_colors: usize,
+    lost_colors: Vec<usize>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n_socks: usize,
+            n_colors: usize,
+            colors: [Usize1; n_colors],
         }
-        Problem { _a }
+        Problem { n_socks, n_lost_colors: n_colors, lost_colors: colors }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n_socks = self.n_socks;
+        let n_lost_colors = self.n_lost_colors;
+        let lost_colors = &self.lost_colors;
+        let lost_colors_set = lost_colors.iter().copied().collect::<std::collections::HashSet<_>>();
+        let mut buf = vec![];
+
+        for color in 0..self.n_socks {
+            if lost_colors_set.contains(&color) {
+                buf.push(color);
+            } else {
+                buf.push(color);
+                buf.push(color);
+            }
+        }
+        lg!(&buf);
+
+        let ans = if n_lost_colors % 2 == 0 {
+            (0..(n_socks - n_lost_colors / 2)).map(|i| buf[i * 2 + 1] - buf[i * 2]).sum::<usize>()
+        } else {
+            (0..buf.len())
+                .map(|skip| {
+                    let mut cnt = 0;
+                    let mut idx = 0;
+                    for _ in 0..(n_socks - n_lost_colors / 2) {
+                        if idx == skip {
+                            idx += 1;
+                        } else if idx + 1 == skip {
+                            idx += 1;
+                        }
+                        if idx + 1 >= buf.len() {
+                            break;
+                        }
+                        let a = buf[idx];
+                        let b = buf[idx + 1];
+                        let tmp = b - a;
+                        cnt += tmp;
+                        idx += 2;
+                    }
+                    cnt
+                })
+                .min()
+                .unwrap()
+        };
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: usize,
 }
 
 impl Answer {

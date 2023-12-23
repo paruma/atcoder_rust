@@ -1,24 +1,29 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    b: i64,
+    g: i64,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            b: i64,
+            g: i64,
         }
-        Problem { _a }
+        Problem { b, g }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let b = self.b;
+        let g = self.g;
+        let ans = if b > g { "Bat" } else { "Glove " };
+        let ans = ans.to_string();
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: String,
 }
 
 impl Answer {
