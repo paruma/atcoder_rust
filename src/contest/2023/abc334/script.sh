@@ -60,9 +60,6 @@ ojs() {
 exe() {
     contest="$(get_contest)"
     task="$(get_task)"
-    if [ ! -d 'test' ]; then
-        oj_download
-    fi
 
     if cargo build --bin "${contest}_${task}"; then
         export RUST_BACKTRACE=1
