@@ -1,5 +1,81 @@
 use cargo_snippet::snippet;
 
+#[snippet(prefix = "use extend_acl_monoid::*;")]
+pub mod extend_acl_monoid {
+    use ac_library::Monoid;
+
+    pub trait MonoidExtPow: Monoid {
+        /// base^n を求める
+        fn pow(base: &Self::S, n: usize) -> Self::S {
+            let mut base = base.clone();
+            let mut ans = Self::identity();
+            let mut n = n;
+
+            while n > 0 {
+                if n & 1 == 1 {
+                    ans = Self::binary_operation(&ans, &base);
+                }
+                base = Self::binary_operation(&base, &base);
+                n >>= 1;
+            }
+            ans
+        }
+    }
+
+    impl<T> MonoidExtPow for T where T: Monoid {}
+}
+
+#[snippet(prefix = "use cum_monoid::*;")]
+pub mod cum_monoid {
+    use ac_library::Monoid;
+
+    pub struct CumMonoid<M>
+    where
+        M: Monoid,
+    {
+        prefix_prod: Vec<M::S>, // prefix_sum[i]: [0, i) の総積 (前から累積するがどこから取るか)
+        suffix_prod: Vec<M::S>, // suffix_sum[i]: [i, n) の総積 (後ろから累積するがどこまで取るか)
+    }
+
+    impl<M> CumMonoid<M>
+    where
+        M: Monoid,
+    {
+        pub fn new(xs: &[M::S]) -> CumMonoid<M> {
+            let mut prefix_prod = vec![M::identity(); xs.len() + 1];
+            let mut suffix_prod = vec![M::identity(); xs.len() + 1];
+            for i in 0..xs.len() {
+                prefix_prod[i + 1] = M::binary_operation(&prefix_prod[i], &xs[i]);
+            }
+            for i in (0..xs.len()).rev() {
+                suffix_prod[i] = M::binary_operation(&xs[i], &suffix_prod[i + 1]);
+            }
+
+            CumMonoid { prefix_prod, suffix_prod }
+        }
+
+        /// [0, i) の総積 (前から累積)
+        pub fn prefix_prod(&self, i: usize) -> M::S {
+            self.prefix_prod[i].clone()
+        }
+
+        /// [i, n) の総積 (後ろから累積)
+        pub fn suffix_prod(&self, i: usize) -> M::S {
+            self.suffix_prod[i].clone()
+        }
+
+        /// [0, i), [i + 1, n) の区間で総積を取る
+        pub fn prod_without1(&self, i: usize) -> M::S {
+            M::binary_operation(&self.prefix_prod[i], &self.suffix_prod[i + 1])
+        }
+
+        // [0, l), [r, n) の区間で総積を取る
+        pub fn prod_without_range(&self, l: usize, r: usize) -> M::S {
+            M::binary_operation(&self.prefix_prod[l], &self.suffix_prod[r])
+        }
+    }
+}
+
 #[snippet(prefix = "use monoid_bitwise::*;")]
 pub mod monoid_bitwise {
     use std::{
@@ -185,18 +261,113 @@ pub mod monoid_affine {
     }
 }
 
+#[snippet(prefix = "use dynamic_monoid::*;")]
+pub mod dynamic_monoid {
+    pub trait DynamicMonoid {
+        type S: Clone;
+        fn identity(&self) -> Self::S;
+        fn binary_operation(&self, a: &Self::S, b: &Self::S) -> Self::S;
+
+        /// base^n を求める
+        fn pow(&self, base: &Self::S, n: usize) -> Self::S {
+            let mut base = base.clone();
+            let mut ans = self.identity();
+            let mut n = n;
+
+            while n > 0 {
+                if n & 1 == 1 {
+                    ans = self.binary_operation(&ans, &base);
+                }
+                base = self.binary_operation(&base, &base);
+                n >>= 1;
+            }
+            ans
+        }
+    }
+}
+
+#[snippet(prefix = "use monoid_transform::*;", include = "dynamic_monoid")]
+pub mod monoid_transform {
+    use itertools::Itertools;
+
+    use super::dynamic_monoid::DynamicMonoid;
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub struct Transform {
+        n: usize,
+    }
+    impl Transform {
+        pub fn new(n: usize) -> Self {
+            Self { n }
+        }
+    }
+    impl DynamicMonoid for Transform {
+        type S = Vec<usize>;
+        fn identity(&self) -> Self::S {
+            (0..self.n).collect_vec()
+        }
+
+        fn binary_operation(&self, a: &Self::S, b: &Self::S) -> Self::S {
+            (0..self.n).map(|i| a[b[i]]).collect_vec()
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
 
+    use crate::mylib::monoid::cum_monoid::CumMonoid;
+    use crate::mylib::monoid::dynamic_monoid::DynamicMonoid;
+    use crate::mylib::monoid::extend_acl_monoid::MonoidExtPow;
     use crate::mylib::monoid::monoid_affine::AffineComposition;
     use crate::mylib::monoid::monoid_affine::AffineTransform;
 
     use super::monoid_bitwise::*;
     use super::monoid_gcd_lcm::*;
     use super::monoid_modint::*;
+    use super::monoid_transform::Transform;
+    use ac_library::Additive;
     use ac_library::Mod998244353;
     use ac_library::ModInt998244353;
     use ac_library::Monoid;
+    use ac_library::Multiplicative;
+
+    #[test]
+    fn test_monoid_pow() {
+        type M = Multiplicative<i64>;
+        assert_eq!(M::pow(&3, 4), 81);
+        assert_eq!(M::pow(&3, 0), 1);
+    }
+
+    #[test]
+    fn test_cum_monoid() {
+        type M = Additive<i64>;
+        // 正常系
+        {
+            let xs = [1, 2, 3, 4, 5, 6];
+            let cum = CumMonoid::<M>::new(&xs);
+            assert_eq!(cum.prefix_prod(0), 0);
+            assert_eq!(cum.prefix_prod(3), xs[0] + xs[1] + xs[2]);
+            assert_eq!(cum.prefix_prod(6), xs[0] + xs[1] + xs[2] + xs[3] + xs[4] + xs[5]);
+            assert_eq!(cum.suffix_prod(0), xs[0] + xs[1] + xs[2] + xs[3] + xs[4] + xs[5]);
+            assert_eq!(cum.suffix_prod(4), xs[4] + xs[5]);
+            assert_eq!(cum.suffix_prod(6), 0);
+
+            assert_eq!(cum.prod_without1(2), xs[0] + xs[1] + xs[3] + xs[4] + xs[5]);
+            assert_eq!(cum.prod_without_range(2, 4), xs[0] + xs[1] + xs[4] + xs[5]);
+            assert_eq!(cum.prod_without_range(0, 6), 0);
+        }
+
+        // 空列
+        {
+            let xs = [];
+            let cum = CumMonoid::<M>::new(&xs);
+            assert_eq!(cum.prefix_prod(0), 0);
+            assert_eq!(cum.suffix_prod(0), 0);
+            // cum.prod_without1(0) これはエラー
+            assert_eq!(cum.prod_without_range(0, 0), 0);
+        }
+    }
 
     #[test]
     fn test_monoid_additive() {
@@ -253,10 +424,34 @@ mod test {
         type M = AffineComposition<Mint>;
         let affine1: AffineTransform<Mint> = AffineTransform::new(3.into(), 5.into());
         let affine2: AffineTransform<Mint> = AffineTransform::new(5.into(), 2.into());
+        // 3(5x + 2) + 5 = 15x + 11
         assert_eq!(
             M::binary_operation(&affine1, &affine2),
             AffineTransform::new(15.into(), 11.into())
         );
         assert_eq!(M::binary_operation(&affine1, &M::identity()), affine1)
+    }
+
+    #[test]
+    fn test_monoid_transform() {
+        let transform = Transform::new(5);
+        let f = vec![0, 1, 3, 2, 4];
+        let g = vec![4, 3, 1, 1, 2];
+        // f . g を作る
+        // f[g[0]] = f[4] = 4
+        // f[g[1]] = f[3] = 2
+        // f[g[2]] = f[1] = 1
+        // f[g[3]] = f[1] = 1
+        // f[g[4]] = f[2] = 3
+        assert_eq!(transform.binary_operation(&f, &g), vec![4, 2, 1, 1, 3]);
+        assert_eq!(transform.binary_operation(&transform.identity(), &g), g);
+        assert_eq!(transform.binary_operation(&f, &transform.identity()), f);
+
+        assert_eq!(transform.pow(&vec![1, 2, 3, 4, 0], 0), vec![0, 1, 2, 3, 4]);
+        assert_eq!(transform.pow(&vec![1, 2, 3, 4, 0], 1), vec![1, 2, 3, 4, 0]);
+        assert_eq!(transform.pow(&vec![1, 2, 3, 4, 0], 2), vec![2, 3, 4, 0, 1]);
+        assert_eq!(transform.pow(&vec![1, 2, 3, 4, 0], 3), vec![3, 4, 0, 1, 2]);
+        assert_eq!(transform.pow(&vec![1, 2, 3, 4, 0], 4), vec![4, 0, 1, 2, 3]);
+        assert_eq!(transform.pow(&vec![1, 2, 3, 4, 0], 5), vec![0, 1, 2, 3, 4]);
     }
 }
