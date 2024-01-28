@@ -51,6 +51,22 @@ impl Problem {
 
         Answer { ans }
     }
+
+    fn solve2(&self) -> Answer {
+        let a = self.a;
+        let m = self.m;
+        let l = self.l;
+        let r = self.r;
+
+        //let ans = num_integer::div_floor(r - a, m) - num_integer::div_ceil(l - a, m) + 1;
+        // let ans = num_integer::div_floor(r - a, m) - num_integer::div_floor(l - a - 1, m);
+        // let ans = num_integer::div_ceil(r - a + 1, m) - num_integer::div_ceil(l - a, m);
+        let l = l - a;
+        let r = r - a;
+        let ans = num_integer::div_floor(r + 1, m) - num_integer::div_ceil(l, m)
+            + if (r + 1) % m == 0 { 0 } else { 1 };
+        Answer { ans }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -65,7 +81,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -82,6 +98,7 @@ mod tests {
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::Itertools;
+use num_integer::Integer;
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,
