@@ -10,6 +10,7 @@
         "iproduct",
         "Itertools",
         "izip",
+        "lazysegtree",
         "peekable",
         "powerset",
         "Procon",

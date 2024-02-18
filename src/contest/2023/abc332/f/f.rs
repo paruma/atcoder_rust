@@ -1,5 +1,83 @@
 //#[derive_readable]
 
+use std::convert::Infallible;
+use std::ops::{Add, Mul};
+
+use ac_library::lazysegtree::MapMonoid;
+use ac_library::{ModInt998244353 as Mint, Monoid};
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct AffineInput {
+    value: Mint,
+    times: usize,
+}
+struct AffineInputAdd(Infallible);
+impl Monoid for AffineInputAdd {
+    type S = AffineInput;
+    fn identity() -> Self::S {
+        AffineInput { value: 0.into(), times: 0 }
+    }
+    fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+        AffineInput { value: a.value + b.value, times: a.times + b.times }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+struct AffineTransform<T> {
+    slope: T,
+    intercept: T,
+}
+impl<T> AffineTransform<T> {
+    pub fn new(slope: T, intercept: T) -> Self {
+        Self { slope, intercept }
+    }
+
+    pub fn apply(&self, x: T) -> T
+    where
+        T: Copy + Mul<Output = T> + Add<Output = T>,
+    {
+        self.slope * x + self.intercept
+    }
+
+    pub fn identity() -> Self
+    where
+        T: From<i64>,
+    {
+        Self { slope: 1.into(), intercept: 0.into() }
+    }
+
+    pub fn composite(&self, rhs: &Self) -> Self
+    where
+        T: Copy + Mul<Output = T> + Add<Output = T>,
+    {
+        Self {
+            slope: self.slope * rhs.slope,
+            intercept: self.slope * rhs.intercept + self.intercept,
+        }
+    }
+}
+
+struct AddAffine(Infallible);
+impl MapMonoid for AddAffine {
+    type M = AffineInputAdd;
+    type F = AffineTransform<Mint>;
+
+    fn identity_map() -> AffineTransform<Mint> {
+        Self::F::identity()
+    }
+
+    fn mapping(&f: &AffineTransform<Mint>, &x: &AffineInput) -> AffineInput {
+        AffineInput { value: f.slope * x.value + f.intercept * x.times, times: x.times }
+    }
+
+    fn composition(
+        &f: &AffineTransform<Mint>,
+        &g: &AffineTransform<Mint>,
+    ) -> AffineTransform<Mint> {
+        f.composite(&g)
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct Op {
     begin: usize,
@@ -13,7 +91,7 @@ struct Problem {
     ops: Vec<Op>,
 }
 
-use ac_library::ModInt998244353 as Mint;
+use ac_library::LazySegtree;
 
 impl Problem {
     fn read() -> Problem {
@@ -32,6 +110,25 @@ impl Problem {
         Problem { len, n_ops, xs, ops }
     }
     fn solve(&self) -> Answer {
+        let Problem { len, n_ops, xs, ops } = self;
+
+        let xs =
+            xs.iter().copied().map(|x| AffineInput { value: Mint::new(x), times: 1 }).collect_vec();
+        let mut segtree = LazySegtree::<AddAffine>::from(xs);
+
+        for op in ops {
+            let prob = Mint::new(op.end - op.begin).inv();
+            let affine = AffineTransform {
+                slope: Mint::new(1) - prob,
+                intercept: prob * Mint::new(op.value),
+            };
+            segtree.apply_range(op.begin..op.end, affine);
+        }
+
+        let ans = (0..*len).map(|i| segtree.get(i).value).collect_vec();
+        Answer { ans }
+    }
+    fn solve_wrong(&self) -> Answer {
         let Problem { len, n_ops, xs, ops } = self;
 
         // (index, 確率, 値, in(1)/out(0))
@@ -76,9 +173,7 @@ struct Answer {
 
 impl Answer {
     fn print(&self) {
-        for &x in &self.ans {
-            println!("{}", x.val());
-        }
+        print_vec_1line(&self.ans.iter().copied().map(|x| x.val()).collect_vec());
     }
 }
 
