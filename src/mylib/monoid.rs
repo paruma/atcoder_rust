@@ -261,6 +261,56 @@ pub mod monoid_affine {
     }
 }
 
+#[snippet(prefix = "use monoid_rolling_hash::*;")]
+pub mod monoid_rolling_hash {
+    use std::{
+        convert::Infallible,
+        marker::PhantomData,
+        ops::{Add, Mul},
+    };
+
+    use ac_library::Monoid;
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub struct RollingHash<T> {
+        hash: T,
+        base: T,
+    }
+    impl<T> RollingHash<T> {
+        pub fn new(hash: T, base: T) -> Self {
+            Self { hash, base }
+        }
+
+        pub fn identity() -> Self
+        where
+            T: From<i64>,
+        {
+            Self { hash: 0.into(), base: 1.into() }
+        }
+
+        pub fn concat(&self, rhs: &Self) -> Self
+        where
+            T: Copy + Mul<Output = T> + Add<Output = T>,
+        {
+            Self { hash: self.hash * rhs.base + rhs.hash, base: self.base * rhs.base }
+        }
+    }
+
+    pub struct RollingHashConcat<T>(Infallible, PhantomData<fn() -> T>);
+    impl<T> Monoid for RollingHashConcat<T>
+    where
+        T: Copy + From<i64> + Add<Output = T> + Mul<Output = T>,
+    {
+        type S = RollingHash<T>;
+        fn identity() -> Self::S {
+            RollingHash::identity()
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            a.concat(b)
+        }
+    }
+}
+
 #[snippet(prefix = "use dynamic_monoid::*;")]
 pub mod dynamic_monoid {
     pub trait DynamicMonoid {
@@ -321,6 +371,8 @@ mod test {
     use crate::mylib::monoid::extend_acl_monoid::MonoidExtPow;
     use crate::mylib::monoid::monoid_affine::AffineComposition;
     use crate::mylib::monoid::monoid_affine::AffineTransform;
+    use crate::mylib::monoid::monoid_rolling_hash::RollingHash;
+    use crate::mylib::monoid::monoid_rolling_hash::RollingHashConcat;
 
     use super::monoid_bitwise::*;
     use super::monoid_gcd_lcm::*;
@@ -430,6 +482,19 @@ mod test {
             AffineTransform::new(15.into(), 11.into())
         );
         assert_eq!(M::binary_operation(&affine1, &M::identity()), affine1)
+    }
+
+    #[test]
+    fn test_monoid_rolling_hash() {
+        type Mint = ModInt998244353;
+        type M = RollingHashConcat<Mint>;
+        let rh1: RollingHash<Mint> = RollingHash::new(7.into(), 25.into()); // 1 * 5 + 2
+        let rh2: RollingHash<Mint> = RollingHash::new(3.into(), 5.into());
+        assert_eq!(
+            M::binary_operation(&rh1, &rh2),
+            RollingHash::new(38.into(), 125.into()) // 1 * 5^2 + 2 * 5 + 3
+        );
+        assert_eq!(M::binary_operation(&rh1, &M::identity()), rh1)
     }
 
     #[test]
