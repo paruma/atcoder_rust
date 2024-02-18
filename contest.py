@@ -15,7 +15,7 @@ def get_args():
     parser = argparse.ArgumentParser(description=description, epilog=epilog)
     parser.add_argument('contest_name', type=str)
     parser.add_argument('task_name_list', nargs='*')
-    parser.add_argument('--year', type=str, default='2023')
+    parser.add_argument('--year', type=str, default='2024')
     parser.add_argument('--only_toml', action='store_true')
 
     return parser.parse_args()

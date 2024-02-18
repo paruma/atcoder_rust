@@ -4,6 +4,23 @@ version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "arc172_a"
+path = "src/contest/2024/arc172/a/a.rs"
+        
+[[bin]]
+name = "arc172_b"
+path = "src/contest/2024/arc172/b/b.rs"
+        
+[[bin]]
+name = "arc172_c"
+path = "src/contest/2024/arc172/c/c.rs"
+        
+[[bin]]
+name = "arc172_d"
+path = "src/contest/2024/arc172/d/d.rs"
+        
 [[bin]]
 name = "misc_abc331_f"
 path = "src/contest/2024/_misc/abc331_f.rs"
