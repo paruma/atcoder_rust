@@ -1,29 +1,71 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    w: usize,
+    h: usize,
+    n: usize,
+    xs: Vec<usize>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            w: usize,
+            h: usize,
+            n: usize,
+            xs: [usize; n],
         }
-        Problem { _a }
+        Problem { w, h, n, xs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let w = self.w;
+        let h = self.h;
+        let mut cnt = vec![0_i64; 31];
+        for wi in 0..31 {
+            let wb = w >> wi & 1;
+            if wb == 0 {
+                continue;
+            }
+            for hi in 0..31 {
+                let hb = h >> hi & 1;
+                if hb == 0 {
+                    continue;
+                }
+
+                let min_i = wi.min(hi);
+                let max_i = wi.max(hi);
+                // 2^{min_i} サイズのチョコが何個作れるか。
+                cnt[min_i] += 1 << (max_i - min_i);
+            }
+        }
+
+        let mut current_size = 30; // 2^{current_size} のサイズを見ている
+
+        for x in self.xs.iter().copied().sorted().rev() {
+            while x < current_size {
+                // チョコレートを割る
+                cnt[current_size - 1] += cnt[current_size] * 4;
+                cnt[current_size] = 0;
+                current_size -= 1;
+            }
+            if cnt[x] == 0 {
+                return Answer { ans: false };
+            }
+            cnt[x] -= 1;
+        }
+
+        let ans = true;
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        println!("{}", if self.ans { "Yes" } else { "No" });
     }
 }
 

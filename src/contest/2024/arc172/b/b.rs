@@ -1,14 +1,16 @@
-//#[derive_readable]
+#[derive_readable]
 struct Problem {
-    _a: i64,
+    n: i64,
+    k: i64,
+    l: i64,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            p: Problem
         }
-        Problem { _a }
+        p
     }
     fn solve(&self) -> Answer {
         let ans = 0;
