@@ -4,6 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[[bin]]
+name = "misc_segment_with_maximum_sum"
+path = "src/contest/2024/_misc/segment_with_maximum_sum.rs"
+
+[[bin]]
+name = "misc_abc343_f"
+path = "src/contest/2024/_misc/abc343_f.rs"
 
 [[bin]]
 name = "arc172_a"

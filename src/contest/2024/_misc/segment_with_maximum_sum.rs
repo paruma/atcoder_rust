@@ -1,66 +1,74 @@
-//#[derive_readable]
+// 1点更新のたびに最大の区間和出力
+// 
+#[derive_readable]
+struct Query {
+    idx: usize,
+    val: i64,
+}
 struct Problem {
     n: usize,
+    nq: usize,
     xs: Vec<i64>,
+    qs: Vec<Query>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct SegtreeEntry {
+    prefix_sum_max: i64,
+    internal_sum_max: i64,
+    suffix_sum_max: i64,
+    sum: i64,
+}
+
+impl SegtreeEntry {
+    fn unit(x: i64) -> SegtreeEntry {
+        SegtreeEntry { prefix_sum_max: x, internal_sum_max: x, suffix_sum_max: x, sum: x }
+    }
+}
+
+struct Concat(Infallible);
+impl Monoid for Concat {
+    type S = SegtreeEntry;
+    fn identity() -> Self::S {
+        SegtreeEntry { prefix_sum_max: 0, internal_sum_max: 0, suffix_sum_max: 0, sum: 0 }
+    }
+
+    fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+        SegtreeEntry {
+            prefix_sum_max: i64::max(a.prefix_sum_max, a.sum + b.prefix_sum_max),
+            internal_sum_max: *[
+                a.internal_sum_max,
+                b.internal_sum_max,
+                a.suffix_sum_max + b.suffix_sum_max,
+            ]
+            .iter()
+            .max()
+            .unwrap(),
+            suffix_sum_max: i64::max(b.suffix_sum_max, b.sum + a.suffix_sum_max),
+            sum: a.sum + b.sum,
+        }
+    }
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
+            nq: usize,
             xs: [i64; n],
+            qs: [Query; nq],
         }
-        Problem { n, xs }
+        Problem { n, nq, xs, qs }
     }
     fn solve(&self) -> Answer {
-        /*
-        方針
-        mod 10^9 は mod 2^9 と mod 2^5 に分ける。
-        n^n mod 2^9 は lcm(2^9, ϕ(2^9)) = 4×2^9 周期になることを使う
-         */
-        let pow_2_9: usize = usize::pow(2, 9);
-        let pow_5_9: usize = usize::pow(5, 9);
-
-        let mut x_to_n_mod2: Vec<Vec<usize>> = vec![vec![]; pow_2_9];
-        let mut x_to_n_mod5: Vec<Vec<usize>> = vec![vec![]; pow_5_9];
-
-        for n in (0..pow_2_9).filter(|i| i % 2 != 0) {
-            let x = pow_mod(n as i64, n as i64, pow_2_9 as u32) as usize;
-            x_to_n_mod2[x].push(n);
+        let mut xs_segtree =
+            Segtree::<Concat>::from(self.xs.iter().copied().map(SegtreeEntry::unit).collect_vec());
+        let mut ans = vec![];
+        for q in &self.qs {
+            ans.push(xs_segtree.all_prod().internal_sum_max);
+            xs_segtree.set(q.idx, SegtreeEntry::unit(q.val));
         }
-
-        for n in (0..4 * pow_5_9).filter(|i| i % 5 != 0) {
-            let x = pow_mod(n as i64, n as i64, pow_5_9 as u32) as usize;
-            x_to_n_mod5[x].push(n);
-        }
-
-        let ans = self
-            .xs
-            .iter()
-            .copied()
-            .map(|x| {
-                //
-                let x = x as usize;
-                iproduct!(&x_to_n_mod2[x % pow_2_9], &x_to_n_mod5[x % pow_5_9])
-                    .filter_map(|(&n2, &n5)| {
-                        let n5 = n5 % pow_5_9;
-                        let cand0 = ac_library::crt(
-                            &[n2 as i64, n5 as i64],
-                            &[pow_2_9 as i64, pow_5_9 as i64],
-                        )
-                        .0;
-                        if ac_library::pow_mod(cand0, cand0, (pow_2_9 * pow_5_9) as u32) == x as u32
-                        {
-                            Some(cand0)
-                        } else {
-                            None
-                        }
-                    })
-                    .min()
-                    .unwrap()
-            })
-            .collect_vec();
-
+        ans.push(xs_segtree.all_prod().internal_sum_max);
         Answer { ans }
     }
 }
@@ -72,7 +80,7 @@ struct Answer {
 
 impl Answer {
     fn print(&self) {
-        print_vec(&self.ans)
+        print_vec(&self.ans);
     }
 }
 
@@ -91,8 +99,9 @@ mod tests {
     }
 }
 
-use ac_library::pow_mod;
-use itertools::iproduct;
+use std::convert::Infallible;
+
+use ac_library::{Monoid, Segtree};
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::Itertools;
