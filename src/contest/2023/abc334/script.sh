@@ -26,7 +26,7 @@ oj_test() {
 
     if cargo build --bin "${contest}_${task}"; then
         export RUST_BACKTRACE=1
-        oj test -c "$(git rev-parse --show-toplevel)/target/debug/${contest}_${task}" -e 1e-6
+        oj test -c "$(git rev-parse --show-toplevel)/target/debug/${contest}_${task}"
     fi
 }
 

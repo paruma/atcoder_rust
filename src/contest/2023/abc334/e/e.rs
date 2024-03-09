@@ -87,9 +87,9 @@ impl Problem {
 
         uf.snapshot();
 
-        let base_cnt = (uf.get_all_groups().len() - (cnt_red - 1)) as i64;
+        let base_cnt = (uf.get_all_groups().len() - cnt_red) as i64;
 
-        let mut cnt = 0; // 答えの分母
+        let mut cnt = 0; // 答えの分子
 
         for y in 0..h {
             for x in 0..w {
@@ -103,21 +103,72 @@ impl Problem {
                         }
                     }
                     // (x, y) を緑にしたときの連結成分数
-                    let cnt_sub = base_cnt - unite_cnt;
+                    let cnt_sub = base_cnt - unite_cnt + 1;
+
                     cnt += cnt_sub;
 
                     uf.rollback_snapshot()
-
-                    // lg!(unite_cnt);
-                    // for _ in 0..unite_cnt {
-                    //     uf.undo();
-                    // }
                 }
             }
         }
 
         let ans = Mint::new(cnt) / Mint::new(cnt_red as i64);
         let ans = ans.val() as i64;
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        let grid = &self.grid;
+        let w = grid.w;
+        let h = grid.h;
+        let mut uf = UnionFind::new(w * h);
+
+        for pos in iproduct!(0..h, 0..w)
+            .map(|(y, x)| Pos::new(x as i64, y as i64))
+            .filter(|pos| grid.is_green(*pos))
+        {
+            for next in DIR4_LIST
+                .iter()
+                .copied()
+                .map(|d| d + pos)
+                .filter(|&next| grid.is_green(next))
+            {
+                uf.unite(grid.encode(pos), grid.encode(next));
+            }
+        }
+
+        let cnt_red = iproduct!(0..h, 0..w)
+            .map(|(y, x)| Pos::new(x as i64, y as i64))
+            .filter(|&pos| grid.is_red(pos))
+            .count();
+
+        // 塗り替え前の緑の連結成分数
+        let base_cnt = uf.num_groups() - cnt_red;
+
+        let mut cnt = 0; // 答えの分子
+
+        for pos in iproduct!(0..h, 0..w)
+            .map(|(y, x)| Pos::new(x as i64, y as i64))
+            .filter(|&pos| grid.is_red(pos))
+        {
+            // pos の周りにある緑の連結成分数
+            let cnt_around = DIR4_LIST
+                .iter()
+                .copied()
+                .map(|d| d + pos)
+                .filter(|&next| grid.is_green(next))
+                .map(|next| uf.root(grid.encode(next)))
+                .unique()
+                .count();
+
+            // pos を赤→緑にすることで、pos の周りにあった cnt_around 個の連結成分数が1個になる
+            let cnt_sub = base_cnt - cnt_around + 1;
+            cnt += cnt_sub;
+        }
+
+        let ans = Mint::new(cnt) / Mint::new(cnt_red as i64);
+        let ans = ans.val() as i64;
+
         Answer { ans }
     }
 }
@@ -134,7 +185,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -382,7 +433,9 @@ pub mod lg {
     {
         format!(
             "[{}]",
-            iter.into_iter().map(|b| ['.', '#'][usize::from(*(b.borrow()))]).collect::<String>(),
+            iter.into_iter()
+                .map(|b| ['.', '#'][usize::from(*(b.borrow()))])
+                .collect::<String>(),
         )
     }
 }
@@ -458,8 +511,12 @@ pub mod pos {
         Pos { x: -1, y: 0 },
         Pos { x: -1, y: 1 },
     ];
-    pub const DIR4_LIST: [Pos<i64>; 4] =
-        [Pos { x: 0, y: 1 }, Pos { x: 1, y: 0 }, Pos { x: 0, y: -1 }, Pos { x: -1, y: 0 }];
+    pub const DIR4_LIST: [Pos<i64>; 4] = [
+        Pos { x: 0, y: 1 },
+        Pos { x: 1, y: 0 },
+        Pos { x: 0, y: -1 },
+        Pos { x: -1, y: 0 },
+    ];
 }
 
 use undo_uf::DisjointSetUnionRollback;
@@ -534,8 +591,10 @@ pub mod undo_uf {
             let rank_x = self.rank(rx);
             let rank_y = self.rank(ry);
             let (i, j) = if rank_x > rank_y { (rx, ry) } else { (ry, rx) };
-            self.uf[i] =
-                Node::Root(size_x + size_y, (rank_x.min(rank_y) + 1).max(rank_x.max(rank_y)));
+            self.uf[i] = Node::Root(
+                size_x + size_y,
+                (rank_x.min(rank_y) + 1).max(rank_x.max(rank_y)),
+            );
             self.uf[j] = Node::Child(i);
 
             true
@@ -659,6 +718,97 @@ pub mod undo_uf {
             dsu.rollback(0);
             assert!(!dsu.is_same(0, 1));
             assert_eq!(dsu.get_history_length(), 0);
+        }
+    }
+}
+
+use union_find::*;
+pub mod union_find {
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    struct Root {
+        count: i32,
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    enum Node {
+        Root { root: Root },
+        NonRoot { parent_index: usize },
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    struct RootAndIndex {
+        root: Root,
+        index: usize,
+    }
+    #[derive(Clone, Debug)]
+    pub struct UnionFind {
+        nodes: Vec<Node>,
+    }
+    impl UnionFind {
+        pub fn new(n: usize) -> UnionFind {
+            UnionFind {
+                nodes: vec![
+                    Node::Root {
+                        root: Root { count: 1 }
+                    };
+                    n
+                ],
+            }
+        }
+        fn root_node(&mut self, index: usize) -> RootAndIndex {
+            match self.nodes[index] {
+                Node::Root { root } => RootAndIndex { root, index },
+                Node::NonRoot { parent_index } => {
+                    let root_and_index = self.root_node(parent_index);
+                    self.nodes[index] = Node::NonRoot {
+                        parent_index: root_and_index.index,
+                    };
+                    root_and_index
+                }
+            }
+        }
+        pub fn root(&mut self, index: usize) -> usize {
+            self.root_node(index).index
+        }
+        pub fn same_count(&mut self, index: usize) -> i32 {
+            self.root_node(index).root.count
+        }
+        pub fn same(&mut self, x: usize, y: usize) -> bool {
+            self.root(x) == self.root(y)
+        }
+        pub fn num_groups(&self) -> usize {
+            self.nodes
+                .iter()
+                .filter(|&node| matches!(node, Node::Root { .. }))
+                .count()
+        }
+        pub fn unite(&mut self, x: usize, y: usize) {
+            if self.same(x, y) {
+                return;
+            }
+            let x_root_node = self.root_node(x);
+            let y_root_node = self.root_node(y);
+            let x_count = x_root_node.root.count;
+            let y_count = y_root_node.root.count;
+            let x_root_index = x_root_node.index;
+            let y_root_index = y_root_node.index;
+            if x_count < y_count {
+                self.nodes[x_root_index] = Node::NonRoot {
+                    parent_index: y_root_index,
+                };
+                self.nodes[y_root_index] = Node::Root {
+                    root: Root {
+                        count: x_count + y_count,
+                    },
+                }
+            } else {
+                self.nodes[y_root_index] = Node::NonRoot {
+                    parent_index: x_root_index,
+                };
+                self.nodes[x_root_index] = Node::Root {
+                    root: Root {
+                        count: x_count + y_count,
+                    },
+                }
+            }
         }
     }
 }
