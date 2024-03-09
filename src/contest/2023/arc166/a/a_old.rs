@@ -12,6 +12,14 @@ fn count_ch(zs: &[u8], ch: u8) -> usize {
     zs.iter().filter(|ch0| **ch0 == ch).count()
 }
 
+fn leftmost_a(zs: &[u8], default: usize) -> usize {
+    zs.iter().find_position(|ch| b"AC".contains(ch)).map(|(i, _)| i).unwrap_or(default)
+}
+
+fn rightmost_b(zs: &[u8], default: usize) -> usize {
+    zs.iter().rev().find_position(|ch| b"BC".contains(ch)).map(|(i, _)| i).unwrap_or(default)
+}
+
 fn solve_sub(xs: &[u8], ys: &[u8]) -> bool {
     // ABCの数の整合性があっている
     // Aの最左位置とBの最右位置の比較
@@ -39,9 +47,24 @@ fn solve_sub(xs: &[u8], ys: &[u8]) -> bool {
         }
     }
 
-    let xs_b_pos = xs.iter().copied().positions(|ch| ch == b'B').collect_vec();
-    let ys_b_pos = ys.iter().copied().positions(|ch| ch == b'B').collect_vec();
-    izip!(xs_b_pos, ys_b_pos).all(|(xp, yp)| xp >= yp)
+    let xs = &xs;
+
+    // 一番左にあるAを左から数える
+    let x_leftmost_a = leftmost_a(xs, 0);
+    let y_leftmost_a = leftmost_a(ys, ys.len());
+
+    // 一番右にあるBを右から数える
+    let x_rightmost_b = rightmost_b(xs, 0);
+    let y_rightmost_b = rightmost_b(ys, ys.len());
+
+    if x_leftmost_a > y_leftmost_a {
+        return false;
+    }
+
+    if x_rightmost_b > y_rightmost_b {
+        return false;
+    }
+    true
 }
 impl TestCase {
     fn solve(&self) -> bool {
