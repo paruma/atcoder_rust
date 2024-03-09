@@ -9,7 +9,10 @@ impl Edge {
         Self { from, to }
     }
     pub fn rev(&self) -> Self {
-        Self { from: self.to, to: self.from }
+        Self {
+            from: self.to,
+            to: self.from,
+        }
     }
 }
 pub fn make_adj(n_vertex: usize, edges: &[Edge]) -> Vec<Vec<Edge>> {
@@ -25,16 +28,20 @@ struct Problem {
     edges: Vec<Edge>,
 }
 
-struct DfsGraph<'a> {
+struct DfsGraph1<'a> {
     adj: &'a Vec<Vec<Edge>>,
     visited: Vec<bool>,
     dp: Vec<i64>,
 }
 
-impl DfsGraph<'_> {
-    fn new(adj: &Vec<Vec<Edge>>) -> DfsGraph<'_> {
+impl DfsGraph1<'_> {
+    fn new(adj: &Vec<Vec<Edge>>) -> DfsGraph1<'_> {
         // adj.len() は グラフの頂点の数
-        DfsGraph { adj, visited: vec![false; adj.len()], dp: vec![0_i64; adj.len()] }
+        DfsGraph1 {
+            adj,
+            visited: vec![false; adj.len()],
+            dp: vec![0_i64; adj.len()],
+        }
     }
     /// 計算量: O(頂点の数 + 辺の数)
     fn exec(&mut self, v: usize) {
@@ -47,13 +54,55 @@ impl DfsGraph<'_> {
             }
         }
         // 帰りがけ
+
+        // この場合分け不要
         if self.adj[v].len() == 1 {
             // 葉っぱ
             self.dp[v] = 1;
         } else {
-            self.dp[v] = self.adj[v].iter().copied().map(|e| self.dp[e.to]).sum::<i64>() + 1;
+            self.dp[v] = self.adj[v]
+                .iter()
+                .copied()
+                .map(|e| self.dp[e.to])
+                .sum::<i64>()
+                + 1;
         }
     }
+}
+
+fn post_order(adj: &Vec<Vec<Edge>>, init: usize) -> Vec<usize> {
+    struct DfsGraph<'a> {
+        adj: &'a Vec<Vec<Edge>>,
+        visited: Vec<bool>,
+        post_order: Vec<usize>,
+    }
+
+    impl DfsGraph<'_> {
+        fn new(adj: &Vec<Vec<Edge>>) -> DfsGraph<'_> {
+            // adj.len() は グラフの頂点の数
+            DfsGraph {
+                adj,
+                visited: vec![false; adj.len()],
+                post_order: vec![],
+            }
+        }
+        /// 計算量: O(頂点の数 + 辺の数)
+        fn exec(&mut self, v: usize) {
+            // 行きがけ
+            self.visited[v] = true;
+
+            for &edge in &self.adj[v] {
+                if !self.visited[edge.to] {
+                    self.exec(edge.to);
+                }
+            }
+            // 帰りがけ
+            self.post_order.push(v);
+        }
+    }
+    let mut dfs = DfsGraph::new(adj);
+    dfs.exec(init);
+    dfs.post_order
 }
 
 impl Problem {
@@ -68,19 +117,27 @@ impl Problem {
         let nv = self.nv;
         let edges = &self.edges;
         let adj = make_adj(nv, &edges);
-        let mut dfs = DfsGraph::new(&adj);
+        let mut dfs = DfsGraph1::new(&adj);
         dfs.exec(0);
 
-        // TODO: DFS順を調べる方針がある
-        // TODO: table! がときどき使えなかったので原因を調べる
-
-        // lg!(&dfs.dp);
-        // lg!(&adj);
-        // eprintln!("{}", table!(&adj));
-        // lg!(&dfs.dp);
-        // //eprintln!("{}", table!(&dfs.dp.clone()));
-
         let next_0_dp = adj[0].iter().copied().map(|e| dfs.dp[e.to]).collect_vec();
+
+        let ans = next_0_dp.iter().sum::<i64>() - next_0_dp.iter().copied().max().unwrap() + 1;
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // DFS 帰りがけ順を取得してからDPをする
+        let nv = self.nv;
+        let edges = &self.edges;
+        let adj = make_adj(nv, &edges);
+        let post_order = post_order(&adj, 0);
+        let mut dp = vec![0_i64; nv];
+        for v in post_order {
+            dp[v] = adj[v].iter().copied().map(|e| dp[e.to]).sum::<i64>() + 1;
+        }
+
+        let next_0_dp = adj[0].iter().copied().map(|e| dp[e.to]).collect_vec();
 
         let ans = next_0_dp.iter().sum::<i64>() - next_0_dp.iter().copied().max().unwrap() + 1;
         Answer { ans }
@@ -99,7 +156,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -346,7 +403,9 @@ pub mod lg {
     {
         format!(
             "[{}]",
-            iter.into_iter().map(|b| ['.', '#'][usize::from(*(b.borrow()))]).collect::<String>(),
+            iter.into_iter()
+                .map(|b| ['.', '#'][usize::from(*(b.borrow()))])
+                .collect::<String>(),
         )
     }
 }
