@@ -5,6 +5,31 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [[bin]]
+name = "abc344_a"
+path = "src/contest/2024/abc344/a/a.rs"
+
+[[bin]]
+name = "abc344_b"
+path = "src/contest/2024/abc344/b/b.rs"
+
+[[bin]]
+name = "abc344_c"
+path = "src/contest/2024/abc344/c/c.rs"
+
+[[bin]]
+name = "abc344_d"
+path = "src/contest/2024/abc344/d/d.rs"
+
+[[bin]]
+name = "abc344_e"
+path = "src/contest/2024/abc344/e/e.rs"
+
+[[bin]]
+name = "abc344_f"
+path = "src/contest/2024/abc344/f/f.rs"
+
+
+[[bin]]
 name = "misc_segment_with_maximum_sum"
 path = "src/contest/2024/_misc/segment_with_maximum_sum.rs"
 
