@@ -13,7 +13,13 @@ impl Problem {
         p
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let k = self.k;
+        let l = self.l;
+        use ac_library::ModInt998244353 as Mint;
+
+        let ans = (0..n).map(|i| i64::max(l - i, l - (n - k))).map(Mint::new).product::<Mint>();
+        let ans = ans.val() as i64;
         Answer { ans }
     }
 }
