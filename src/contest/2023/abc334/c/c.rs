@@ -18,53 +18,46 @@ impl Problem {
         let n_socks = self.n_socks;
         let n_lost_colors = self.n_lost_colors;
         let lost_colors = &self.lost_colors;
-        let lost_colors_set = lost_colors.iter().copied().collect::<std::collections::HashSet<_>>();
-        let mut buf = vec![];
 
-        for color in 0..self.n_socks {
-            if lost_colors_set.contains(&color) {
-                buf.push(color);
-            } else {
-                buf.push(color);
-                buf.push(color);
-            }
-        }
-        lg!(&buf);
+        // なくしていない色の靴下の組はそのままその組み合わせにする。
+        // [貪欲法と三角不等式]
+        // (1,2), (2,3) の組み合わせは (1,3), (2,2)の組み合わせにしても損をしない
 
         let ans = if n_lost_colors % 2 == 0 {
-            (0..(n_socks - n_lost_colors / 2)).map(|i| buf[i * 2 + 1] - buf[i * 2]).sum::<usize>()
+            (0..n_lost_colors / 2)
+                .map(|i| lost_colors[2 * i + 1] - lost_colors[2 * i])
+                .sum::<usize>() as i64
+        } else if n_lost_colors == 1 {
+            0
         } else {
-            (0..buf.len())
-                .map(|skip| {
-                    let mut cnt = 0;
-                    let mut idx = 0;
-                    for _ in 0..(n_socks - n_lost_colors / 2) {
-                        if idx == skip {
-                            idx += 1;
-                        } else if idx + 1 == skip {
-                            idx += 1;
-                        }
-                        if idx + 1 >= buf.len() {
-                            break;
-                        }
-                        let a = buf[idx];
-                        let b = buf[idx + 1];
-                        let tmp = b - a;
-                        cnt += tmp;
-                        idx += 2;
-                    }
-                    cnt
+            // lost_color[1] - lost_color[0], lost_color[3] - lost_color[2], ...
+            let weirdness0 = (0..n_lost_colors / 2)
+                .map(|i| (lost_colors[2 * i + 1] - lost_colors[2 * i]) as i64)
+                .collect_vec();
+            // lost_color[2] - lost_color[1], lost_color[4] - lost_color[3], ...
+            let weirdness1 = (0..n_lost_colors / 2)
+                .map(|i| (lost_colors[2 * i + 2] - lost_colors[2 * i + 1]) as i64)
+                .collect_vec();
+
+            let cumsum0 = CumSum::new(&weirdness0);
+            let cumsum1 = CumSum::new(&weirdness1);
+
+            (0..n_lost_colors / 2 + 1) // 範囲に注意
+                .map(|i| {
+                    // weirdness0[0] + ... + weirdness0[i-1] + weirdness1[i] + ...weirdness1[n_lost_colors/2-1]
+                    cumsum0.get_interval_sum(0, i) + cumsum1.get_interval_sum(i, n_lost_colors / 2)
                 })
                 .min()
                 .unwrap()
         };
+
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: usize,
+    ans: i64,
 }
 
 impl Answer {
@@ -327,3 +320,23 @@ pub mod lg {
 }
 
 // ====== snippet ======
+use cumsum::*;
+pub mod cumsum {
+    pub struct CumSum {
+        pub cumsum: Vec<i64>,
+    }
+    impl CumSum {
+        /// 計算量: O(|xs|)
+        pub fn new(xs: &[i64]) -> CumSum {
+            let mut cumsum = vec![0; xs.len() + 1];
+            for i in 1..xs.len() + 1 {
+                cumsum[i] = cumsum[i - 1] + xs[i - 1];
+            }
+            CumSum { cumsum }
+        }
+        /// 計算量: O(1)
+        pub fn get_interval_sum(&self, begin: usize, end: usize) -> i64 {
+            self.cumsum[end] - self.cumsum[begin]
+        }
+    }
+}
