@@ -1,29 +1,113 @@
+// 23:37
 //#[derive_readable]
+enum Query {
+    Add(i64, i64),
+    Remove(i64),
+}
+
 struct Problem {
-    _a: i64,
+    n: usize,
+    xs: Vec<i64>,
+    nq: usize,
+    qs: Vec<Query>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n: usize,
+            xs: [i64; n],
+            nq: usize,
         }
-        Problem { _a }
+
+        let qs = (0..nq)
+            .map(|_| {
+                input! {
+                    query_type: usize
+                }
+
+                if query_type == 1 {
+                    input! {
+                        x: i64,
+                        y: i64
+                    }
+                    Query::Add(x, y)
+                } else {
+                    input! {
+                        x: i64
+                    }
+                    Query::Remove(x)
+                }
+            })
+            .collect_vec();
+
+        Problem { n, xs, nq, qs }
     }
     fn solve(&self) -> Answer {
         let ans = 0;
+        let xs = &self.xs;
+        let mut next: HashMap<i64, i64> = HashMap::new();
+        let mut prev: HashMap<i64, i64> = HashMap::new();
+        // -1 を先頭を表すダミーとする。
+        // -2 を末尾を表すダミーとする。
+
+        next.insert(-1, xs[0]);
+        prev.insert(xs[0], -1);
+        for i in 0..xs.len() - 1 {
+            next.insert(xs[i], xs[i + 1]);
+            prev.insert(xs[i + 1], xs[i]);
+        }
+
+        next.insert(xs[xs.len() - 1], -2);
+        prev.insert(-2, xs[xs.len() - 1]);
+
+        for q in &self.qs {
+            match q {
+                Query::Add(x, y) => {
+                    let old_next_x = next[x];
+                    *prev.get_mut(&old_next_x).unwrap() = *y;
+                    *next.get_mut(x).unwrap() = *y;
+                    next.insert(*y, old_next_x);
+                    prev.insert(*y, *x);
+                }
+                Query::Remove(x) => {
+                    // lg!(*x);
+                    // lg!(&prev);
+                    // lg!(&next);
+                    let old_prev_x = prev[x];
+                    let old_next_x = next[x];
+                    prev.remove(x);
+                    next.remove(x);
+
+                    *next.get_mut(&old_prev_x).unwrap() = old_next_x;
+                    *prev.get_mut(&old_next_x).unwrap() = old_prev_x;
+                }
+            }
+        }
+
+        let mut ans = vec![];
+        let mut val = -1;
+
+        loop {
+            val = next[&val];
+            if val == -2 {
+                break;
+            }
+            ans.push(val);
+        }
+
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec_1line(&self.ans);
     }
 }
 
@@ -41,6 +125,8 @@ mod tests {
         assert_eq!(1 + 1, 2);
     }
 }
+
+use std::collections::HashMap;
 
 // ====== import ======
 #[allow(unused_imports)]
@@ -275,7 +361,9 @@ pub mod lg {
     {
         format!(
             "[{}]",
-            iter.into_iter().map(|b| ['.', '#'][usize::from(*(b.borrow()))]).collect::<String>(),
+            iter.into_iter()
+                .map(|b| ['.', '#'][usize::from(*(b.borrow()))])
+                .collect::<String>(),
         )
     }
 }

@@ -1,24 +1,36 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    s: Vec<u8>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            s: Bytes
         }
-        Problem { _a }
+        Problem { s }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let tmp = self.s.split(|x| *x == b'|').collect_vec();
+        let a = String::from_utf8(tmp[0].to_vec()).unwrap();
+        let b = String::from_utf8(tmp[2].to_vec()).unwrap();
+        let  x = [tmp[0], tmp[2]].concat();
+
+        let ans = a + &b;
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        let tmp = self.s.split(|x| *x == b'|').collect_vec();
+        let ans = chain!(tmp[0], tmp[2]).copied().collect_vec();
+        let ans = String::from_utf8(ans).unwrap();
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: String,
 }
 
 impl Answer {
@@ -28,7 +40,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -42,6 +54,9 @@ mod tests {
     }
 }
 
+use std::io::BufRead;
+
+use itertools::chain;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::Itertools;
@@ -275,7 +290,9 @@ pub mod lg {
     {
         format!(
             "[{}]",
-            iter.into_iter().map(|b| ['.', '#'][usize::from(*(b.borrow()))]).collect::<String>(),
+            iter.into_iter()
+                .map(|b| ['.', '#'][usize::from(*(b.borrow()))])
+                .collect::<String>(),
         )
     }
 }

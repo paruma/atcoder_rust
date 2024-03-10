@@ -1,17 +1,55 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    t: Vec<u8>,
+    n: usize,
+    ss: Vec<Vec<Vec<u8>>>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            t: Bytes,
+            n: usize,
         }
-        Problem { _a }
+
+        let ss = (0..n)
+            .map(|_| {
+                input! {
+                    m: usize,
+                }
+                (0..m)
+                    .map(|_| {
+                        input! {
+                            s: Bytes,
+                        }
+                        s
+                    })
+                    .collect_vec()
+            })
+            .collect_vec();
+
+        Problem { t, n, ss }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let mut dp = vec![vec![Inf; self.t.len() + 1]; self.n + 1];
+        dp[0][0] = Fin(0);
+        for bag_i in 0..self.n {
+            for str_i in 0..=self.t.len() {
+                // 袋iは使わない
+                dp[bag_i + 1][str_i] = ExtInt::min(dp[bag_i + 1][str_i], dp[bag_i][str_i]);
+
+                // 袋iを使う
+                for s in &self.ss[bag_i] {
+                    // t[str_i:] の先頭が sと一致する
+                    if self.t[str_i..].starts_with(&s) {
+                        dp[bag_i + 1][str_i + s.len()] =
+                            ExtInt::min(dp[bag_i + 1][str_i + s.len()], dp[bag_i][str_i] + Fin(1));
+                    }
+                }
+            }
+        }
+        // eprintln!("{}", table!(&dp));
+        let ans = dp[self.n][self.t.len()].get_fin_or(-1);
         Answer { ans }
     }
 }
@@ -275,9 +313,80 @@ pub mod lg {
     {
         format!(
             "[{}]",
-            iter.into_iter().map(|b| ['.', '#'][usize::from(*(b.borrow()))]).collect::<String>(),
+            iter.into_iter()
+                .map(|b| ['.', '#'][usize::from(*(b.borrow()))])
+                .collect::<String>(),
         )
     }
 }
 
 // ====== snippet ======
+
+use mod_ext_int::ExtInt::{self, *};
+pub mod mod_ext_int {
+    use std::{cmp::Ordering, ops::Add};
+    use ExtInt::*;
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub enum ExtInt {
+        Inf,
+        Fin(i64),
+    }
+    impl ExtInt {
+        pub fn get_fin(self) -> i64 {
+            match self {
+                Fin(val) => val,
+                Inf => panic!("called `ExtInt::get_fin()` on a `Fin` value"),
+            }
+        }
+        pub fn get_fin_or(self, default: i64) -> i64 {
+            match self {
+                Fin(val) => val,
+                Inf => default,
+            }
+        }
+        pub fn is_fin(self) -> bool {
+            matches!(self, Fin(_))
+        }
+        pub fn is_inf(self) -> bool {
+            matches!(self, Inf)
+        }
+        pub fn to_option(self) -> Option<i64> {
+            match self {
+                Inf => None,
+                Fin(a) => Some(a),
+            }
+        }
+        pub fn from_option(opt: Option<i64>) -> ExtInt {
+            match opt {
+                Some(a) => Fin(a),
+                None => Inf,
+            }
+        }
+    }
+    impl Add for ExtInt {
+        type Output = ExtInt;
+        fn add(self, rhs: Self) -> Self::Output {
+            match (self, rhs) {
+                (Inf, Inf) => Inf,
+                (Inf, Fin(_)) => Inf,
+                (Fin(_), Inf) => Inf,
+                (Fin(a), Fin(b)) => Fin(a + b),
+            }
+        }
+    }
+    impl PartialOrd for ExtInt {
+        fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+            match (self, other) {
+                (Inf, Inf) => Some(Ordering::Equal),
+                (Inf, Fin(_)) => Some(Ordering::Greater),
+                (Fin(_), Inf) => Some(Ordering::Less),
+                (Fin(a), Fin(b)) => PartialOrd::partial_cmp(a, b),
+            }
+        }
+    }
+    impl Ord for ExtInt {
+        fn cmp(&self, other: &Self) -> Ordering {
+            self.partial_cmp(other).unwrap()
+        }
+    }
+}

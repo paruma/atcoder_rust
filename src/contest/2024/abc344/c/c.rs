@@ -1,29 +1,63 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    na: usize,
+    a_s: Vec<i64>,
+    nb: usize,
+    b_s: Vec<i64>,
+    nc: usize,
+    c_s: Vec<i64>,
+    nx: usize,
+    x_s: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            na: usize,
+            a_s: [i64; na],
+            nb: usize,
+            b_s: [i64; nb],
+            nc: usize,
+            c_s: [i64; nc],
+            nx: usize,
+            x_s: [i64; nx],
         }
-        Problem { _a }
+        Problem {
+            na,
+            a_s,
+            nb,
+            b_s,
+            nc,
+            c_s,
+            nx,
+            x_s,
+        }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let set = iproduct!(&self.a_s, &self.b_s, &self.c_s)
+            .map(|(a, b, c)| a + b + c)
+            .collect::<HashSet<_>>();
+
+        let ans = self
+            .x_s
+            .iter()
+            .copied()
+            .map(|x| set.contains(&x))
+            .collect_vec();
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<bool>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        for &x in &self.ans {
+            print_yesno(x);
+        }
     }
 }
 
@@ -42,6 +76,9 @@ mod tests {
     }
 }
 
+use std::collections::HashSet;
+
+use itertools::iproduct;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::Itertools;
@@ -275,7 +312,9 @@ pub mod lg {
     {
         format!(
             "[{}]",
-            iter.into_iter().map(|b| ['.', '#'][usize::from(*(b.borrow()))]).collect::<String>(),
+            iter.into_iter()
+                .map(|b| ['.', '#'][usize::from(*(b.borrow()))])
+                .collect::<String>(),
         )
     }
 }

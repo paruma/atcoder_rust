@@ -1,29 +1,38 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    xs: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
-        input! {
-            _a: i64,
+        let mut xs = vec![];
+        loop {
+            input! {
+                x: i64,
+            }
+            xs.push(x);
+
+            if x == 0 {
+                break;
+            }
         }
-        Problem { _a }
+
+        Problem { xs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = self.xs.iter().copied().rev().collect_vec();
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec(&self.ans);
     }
 }
 
@@ -275,7 +284,9 @@ pub mod lg {
     {
         format!(
             "[{}]",
-            iter.into_iter().map(|b| ['.', '#'][usize::from(*(b.borrow()))]).collect::<String>(),
+            iter.into_iter()
+                .map(|b| ['.', '#'][usize::from(*(b.borrow()))])
+                .collect::<String>(),
         )
     }
 }
