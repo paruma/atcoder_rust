@@ -36,14 +36,13 @@ impl Problem {
         for bag_i in 0..self.n {
             for str_i in 0..=self.t.len() {
                 // 袋iは使わない
-                dp[bag_i + 1][str_i] = ExtInt::min(dp[bag_i + 1][str_i], dp[bag_i][str_i]);
+                chmin!(dp[bag_i + 1][str_i], dp[bag_i][str_i]);
 
                 // 袋iを使う
                 for s in &self.ss[bag_i] {
                     // t[str_i:] の先頭が sと一致する
                     if self.t[str_i..].starts_with(&s) {
-                        dp[bag_i + 1][str_i + s.len()] =
-                            ExtInt::min(dp[bag_i + 1][str_i + s.len()], dp[bag_i][str_i] + Fin(1));
+                        chmin!(dp[bag_i + 1][str_i + s.len()], dp[bag_i][str_i] + Fin(1));
                     }
                 }
             }
@@ -80,6 +79,7 @@ mod tests {
     }
 }
 
+use atcoder_rust::mylib::chminmax;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::Itertools;

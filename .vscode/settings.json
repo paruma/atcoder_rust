@@ -3,6 +3,8 @@
         "./Cargo.toml",
     ],
     "cSpell.words": [
+        "chmax",
+        "chmin",
         "cumsum",
         "Deque",
         "fastout",

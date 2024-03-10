@@ -44,7 +44,6 @@ impl Problem {
         Problem { n, xs, nq, qs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
         let xs = &self.xs;
         let mut next: HashMap<i64, i64> = HashMap::new();
         let mut prev: HashMap<i64, i64> = HashMap::new();
