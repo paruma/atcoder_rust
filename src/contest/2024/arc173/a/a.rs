@@ -1,29 +1,118 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    n_case: usize,
+    cases: Vec<TestCase>,
+}
+
+struct TestCase {
+    k: i64,
+}
+
+fn to_decimal(x: i64) -> Vec<i64> {
+    let mut res = vec![];
+    let mut x = x;
+    while x > 0 {
+        res.push(x % 10);
+        x /= 10;
+    }
+    res.reverse();
+    res
+}
+
+struct Dp {
+    dp: Vec<Vec<i64>>,
+}
+
+impl Dp {
+    fn new(n_digit: usize) -> Self {
+        Self {
+            dp: vec![vec![0; 2]; n_digit + 1],
+        }
+    }
+
+    fn at(&self, digit_i: usize, smaller: bool) -> &i64 {
+        &self.dp[digit_i][smaller as usize]
+    }
+
+    fn at_mut(&mut self, digit_i: usize, smaller: bool) -> &mut i64 {
+        &mut self.dp[digit_i][smaller as usize]
+    }
+}
+
+impl TestCase {
+    fn is_neq_num(x: i64) -> bool {
+        let k = to_decimal(x);
+        k.iter().tuple_windows().all(|(x, y)| x != y)
+    }
+
+    fn cnt_neq_num(x: i64) -> i64 {
+        // [1, x] での neq number の数を数える。
+        // k個あるとき、x が neq number なら x は k 番目の neq number である。
+        let k = to_decimal(x);
+        let mut dp = Dp::new(k.len());
+
+        *dp.at_mut(0, false) = 1;
+
+        for digit_i in 0..k.len() {
+            let dp_true = *dp.at(digit_i, true);
+            let dp_false = *dp.at(digit_i, false);
+
+            // 00..00 の場合は0から9のどれを追加してもよい(10通り)
+            // それ以外の場合は末尾の値以外の値を追加(9通り)
+            if digit_i != 0 {
+                *dp.at_mut(digit_i + 1, true) += 10 + (dp_true - 1) * 9;
+            }
+
+            *dp.at_mut(digit_i + 1, true) += if digit_i == 0 {
+                dp_false * k[digit_i]
+            } else if (0..k[digit_i]).contains(&k[digit_i - 1]) {
+                dp_false * (k[digit_i] - 1)
+            } else {
+                dp_false * k[digit_i]
+            };
+
+            if digit_i == 0 || k[digit_i - 1] != k[digit_i] {
+                *dp.at_mut(digit_i + 1, false) += dp_false;
+            }
+        }
+
+        *dp.at(k.len(), true) + dp.at(k.len(), false) - 1
+    }
+
+    fn solve(&self) -> i64 {
+        let prod = |x: i64| {
+            // 答え(k番目のneq number) 以上かどうか
+            Self::cnt_neq_num(x) >= self.k
+        };
+        // 10^17
+        bin_search(100_000_000_000_000_000, 0, prod)
+    }
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n_case: usize,
+            cases: [i64; n_case],
         }
-        Problem { _a }
+        let cases = cases.iter().copied().map(|k| TestCase { k }).collect_vec();
+        Problem { n_case, cases }
     }
+
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = self.cases.iter().map(|case| case.solve()).collect_vec();
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec(&self.ans);
     }
 }
 
@@ -275,9 +364,53 @@ pub mod lg {
     {
         format!(
             "[{}]",
-            iter.into_iter().map(|b| ['.', '#'][usize::from(*(b.borrow()))]).collect::<String>(),
+            iter.into_iter()
+                .map(|b| ['.', '#'][usize::from(*(b.borrow()))])
+                .collect::<String>(),
         )
     }
 }
 
 // ====== snippet ======
+
+/// 二分探索をする
+/// ```text
+/// ng ng ng ok ok ok
+///          ↑ここの引数の値を返す
+/// ```
+/// 計算量: O(log(|ok - ng|))
+/// ## Arguments
+/// * ok != ng
+/// * |ok - ng| <= 2^63 - 1, |ok + ng| <= 2^63 - 1
+/// * p の定義域について
+///     * ng < ok の場合、p は区間 ng..ok で定義されている。
+///     * ok < ng の場合、p は区間 ok..ng で定義されている。
+/// * p の単調性について
+///     * ng < ok の場合、p は単調増加
+///     * ok < ng の場合、p は単調減少
+/// ## Return
+/// * ng < ok の場合: I = { i in ng..ok | p(i) == true } としたとき
+///     * I が空でなければ、min I を返す。
+///     * I が空ならば、ok を返す。
+/// * ok < ng の場合: I = { i in ok..ng | p(i) == true } としたとき
+///     * I が空でなければ、max I を返す。
+///     * I が空ならば、ok を返す。
+pub fn bin_search<F>(mut ok: i64, mut ng: i64, p: F) -> i64
+where
+    F: Fn(i64) -> bool,
+{
+    assert!(ok != ng);
+    assert!(ok.checked_sub(ng).is_some());
+    assert!(ok.checked_add(ng).is_some());
+    while num::abs(ok - ng) > 1 {
+        let mid = (ok + ng) / 2;
+        assert!(mid != ok);
+        assert!(mid != ng);
+        if p(mid) {
+            ok = mid;
+        } else {
+            ng = mid;
+        }
+    }
+    ok
+}

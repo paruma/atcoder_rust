@@ -1,17 +1,53 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    n: i64,
+    ps: Vec<Pos<i64>>,
+}
+
+fn same_line(p1: Pos<i64>, p2: Pos<i64>, p3: Pos<i64>) -> bool {
+    let d1 = p2 - p1;
+    let d2 = p3 - p1;
+    d1.x * d2.y - d1.y * d2.x == 0
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n: i64,
+            ps: [(i64, i64); n],
         }
-        Problem { _a }
+        let ps = ps
+            .iter()
+            .copied()
+            .map(|(x, y)| Pos::new(x, y))
+            .collect_vec();
+        Problem { n, ps }
+    }
+
+    fn cnt_max_on_1line(&self) -> i64 {
+        self.ps
+            .iter()
+            .copied()
+            .tuple_combinations()
+            .map(|(p1, p2)| {
+                self.ps
+                    .iter()
+                    .copied()
+                    .filter(|p3| same_line(p1, p2, *p3))
+                    .count()
+            })
+            .max()
+            .unwrap() as i64
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let cnt_max_on_line = self.cnt_max_on_1line();
+        let cnt_other = self.n - cnt_max_on_line;
+
+        let ans = if cnt_max_on_line > cnt_other * 2 {
+            cnt_other
+        } else {
+            self.n / 3
+        };
         Answer { ans }
     }
 }
@@ -275,9 +311,72 @@ pub mod lg {
     {
         format!(
             "[{}]",
-            iter.into_iter().map(|b| ['.', '#'][usize::from(*(b.borrow()))]).collect::<String>(),
+            iter.into_iter()
+                .map(|b| ['.', '#'][usize::from(*(b.borrow()))])
+                .collect::<String>(),
         )
     }
 }
 
 // ====== snippet ======
+use pos::*;
+pub mod pos {
+    use std::ops::{Add, AddAssign, Mul, Neg, Sub, SubAssign};
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub struct Pos<T> {
+        pub x: T,
+        pub y: T,
+    }
+    impl<T> Pos<T> {
+        pub fn new(x: T, y: T) -> Pos<T> {
+            Pos { x, y }
+        }
+    }
+    impl<T: Mul<Output = T> + Copy> Pos<T> {
+        pub fn scala_mul(self, rhs: T) -> Pos<T> {
+            Pos::new(self.x * rhs, self.y * rhs)
+        }
+    }
+    impl<T: Add<Output = T> + Mul<Output = T> + Copy> Pos<T> {
+        pub fn norm_square(self) -> T {
+            self.x * self.x + self.y * self.y
+        }
+    }
+    impl<T: Add<Output = T> + Copy> Add for Pos<T> {
+        type Output = Pos<T>;
+        fn add(self, rhs: Self) -> Self::Output {
+            Pos::new(self.x + rhs.x, self.y + rhs.y)
+        }
+    }
+    impl<T: Sub<Output = T> + Copy> Sub for Pos<T> {
+        type Output = Pos<T>;
+        fn sub(self, rhs: Self) -> Self::Output {
+            Pos::new(self.x - rhs.x, self.y - rhs.y)
+        }
+    }
+    impl<T: Neg<Output = T>> Neg for Pos<T> {
+        type Output = Self;
+        fn neg(self) -> Self::Output {
+            Pos::new(-self.x, -self.y)
+        }
+    }
+    impl<T: num_traits::Zero + Copy> num_traits::Zero for Pos<T> {
+        fn zero() -> Self {
+            Pos::new(T::zero(), T::zero())
+        }
+        fn is_zero(&self) -> bool {
+            self.x.is_zero() && self.y.is_zero()
+        }
+    }
+    impl<T: Add<Output = T> + Copy> AddAssign for Pos<T> {
+        fn add_assign(&mut self, rhs: Self) {
+            *self = *self + rhs
+        }
+    }
+    impl<T: Sub<Output = T> + Copy> SubAssign for Pos<T> {
+        fn sub_assign(&mut self, rhs: Self) {
+            *self = *self - rhs
+        }
+    }
+}
