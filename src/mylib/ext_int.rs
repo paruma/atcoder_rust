@@ -2,7 +2,11 @@ use cargo_snippet::snippet;
 
 #[snippet(prefix = "use mod_ext_int::ExtInt::{self, *};")]
 pub mod mod_ext_int {
-    use std::{cmp::Ordering, ops::Add};
+    use std::{
+        cmp::Ordering,
+        iter::Sum,
+        ops::{Add, AddAssign},
+    };
     use ExtInt::*;
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -62,6 +66,25 @@ pub mod mod_ext_int {
         }
     }
 
+    impl AddAssign for ExtInt {
+        fn add_assign(&mut self, rhs: Self) {
+            *self = *self + rhs;
+        }
+    }
+
+    impl Sum for ExtInt {
+        fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+            let mut s = 0;
+            for x in iter {
+                match x {
+                    Inf => return Inf,
+                    Fin(x) => s += x,
+                }
+            }
+            Fin(s)
+        }
+    }
+
     impl PartialOrd for ExtInt {
         fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
             match (self, other) {
@@ -112,6 +135,26 @@ mod tests {
         assert_eq!(Inf + Fin(3), Inf);
         assert_eq!(Fin(3) + Inf, Inf);
         assert_eq!(Fin(3) + Fin(4), Fin(7));
+    }
+    #[test]
+    fn test_ext_int_add_assign() {
+        let mut x = Fin(3);
+        x += Fin(4);
+        assert_eq!(x, Fin(7));
+        x += Inf;
+        assert_eq!(x, Inf);
+    }
+
+    #[test]
+    fn test_ext_int_sum() {
+        let test = |xs: &[ExtInt], expected: ExtInt| {
+            assert_eq!(xs.iter().copied().sum::<ExtInt>(), expected);
+        };
+        test(&[Fin(3), Fin(4), Fin(5)], Fin(12));
+        test(&[Fin(3), Inf, Fin(5)], Inf);
+        test(&[Fin(3)], Fin(3));
+        test(&[Inf], Inf);
+        test(&[], Fin(0));
     }
 
     #[test]

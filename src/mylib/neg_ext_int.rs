@@ -2,7 +2,10 @@ use cargo_snippet::snippet;
 
 #[snippet(prefix = "use mod_neg_ext_int::NegExtInt::{self, *};")]
 pub mod mod_neg_ext_int {
-    use std::{cmp::Ordering, ops::Add};
+    use std::{
+        cmp::Ordering,
+        ops::{Add, AddAssign},
+    };
     use NegExtInt::*;
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -62,6 +65,25 @@ pub mod mod_neg_ext_int {
         }
     }
 
+    impl AddAssign for NegExtInt {
+        fn add_assign(&mut self, rhs: Self) {
+            *self = *self + rhs;
+        }
+    }
+
+    impl std::iter::Sum for NegExtInt {
+        fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+            let mut s = 0;
+            for x in iter {
+                match x {
+                    NegInf => return NegInf,
+                    Fin(x) => s += x,
+                }
+            }
+            Fin(s)
+        }
+    }
+
     impl PartialOrd for NegExtInt {
         fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
             match (self, other) {
@@ -114,6 +136,27 @@ mod tests {
         assert_eq!(NegInf + Fin(3), NegInf);
         assert_eq!(Fin(3) + NegInf, NegInf);
         assert_eq!(Fin(3) + Fin(4), Fin(7));
+    }
+
+    #[test]
+    fn test_neg_ext_int_add_assign() {
+        let mut x = Fin(3);
+        x += Fin(4);
+        assert_eq!(x, Fin(7));
+        x += NegInf;
+        assert_eq!(x, NegInf);
+    }
+
+    #[test]
+    fn test_neg_ext_int_sum() {
+        let test = |xs: &[NegExtInt], expected: NegExtInt| {
+            assert_eq!(xs.iter().copied().sum::<NegExtInt>(), expected);
+        };
+        test(&[Fin(3), Fin(4), Fin(5)], Fin(12));
+        test(&[Fin(3), NegInf, Fin(5)], NegInf);
+        test(&[Fin(3)], Fin(3));
+        test(&[NegInf], NegInf);
+        test(&[], Fin(0));
     }
 
     #[test]
