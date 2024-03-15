@@ -8,7 +8,7 @@ pub mod math_tools {
     use num_integer::Roots;
 
     /// O(sqrt(n))
-    pub fn divisor(n: i64) -> Vec<i64> {
+    pub fn divisors(n: i64) -> Vec<i64> {
         assert!(n >= 1);
         let mut retval: Vec<i64> = Vec::new();
         for i in 1..=n.sqrt() {
@@ -72,6 +72,72 @@ pub mod math_tools {
         res
     }
 
+    pub struct Eratosthenes {
+        is_prime_list: Vec<bool>,
+        min_factor_list: Vec<Option<usize>>,
+    }
+
+    impl Eratosthenes {
+        pub fn new(n: usize) -> Self {
+            let mut is_prime_list = vec![true; n + 1];
+            let mut min_factor_list = vec![None; n + 1];
+            is_prime_list[0] = false;
+            is_prime_list[1] = false;
+            for p in 2..=n {
+                if !is_prime_list[p] {
+                    continue;
+                }
+                min_factor_list[p] = Some(p);
+                for q in (p * 2..=n).step_by(p) {
+                    is_prime_list[q] = false;
+                    if min_factor_list[q].is_none() {
+                        min_factor_list[q] = Some(p);
+                    }
+                }
+            }
+            Self {
+                is_prime_list,
+                min_factor_list,
+            }
+        }
+
+        pub fn is_prime(&self, n: usize) -> bool {
+            self.is_prime_list[n]
+        }
+
+        pub fn prime_factorize(&self, n: usize) -> HashMap<usize, usize> {
+            let mut n = n;
+            let mut cnt_table: HashMap<usize, usize> = HashMap::new();
+            while n > 1 {
+                let p = self.min_factor_list[n].unwrap(); // n > 2 なら unwrap できる
+                let mut exp = 0;
+                while self.min_factor_list[n] == Some(p) {
+                    n /= p;
+                    exp += 1;
+                }
+                cnt_table.insert(p, exp);
+            }
+
+            cnt_table
+        }
+
+        pub fn divisors(&self, n: usize) -> Vec<usize> {
+            let mut res = vec![1];
+            let pf = self.prime_factorize(n);
+            for (p, e) in pf {
+                for i in 0..res.len() {
+                    let mut tmp = 1;
+                    for _ in 0..e {
+                        tmp *= p;
+                        res.push(res[i] * tmp);
+                    }
+                }
+            }
+
+            res
+        }
+    }
+
     fn frac0<T>(n: T, acc: T) -> T
     where
         T: std::ops::Sub<Output = T> + std::ops::Mul + num::Zero + num::One + Copy,
@@ -124,6 +190,7 @@ pub mod math_tools {
 mod tests {
     use std::collections::HashMap;
 
+    use itertools::Itertools;
     use maplit::hashmap;
 
     use super::math_tools::*;
@@ -131,7 +198,7 @@ mod tests {
     #[test]
     fn test_divisor() {
         let test = |n: i64, ans: &[i64]| {
-            let mut divisor = divisor(n);
+            let mut divisor = divisors(n);
             divisor.sort_unstable();
             assert_eq!(divisor, ans);
         };
@@ -162,7 +229,10 @@ mod tests {
             (100, false),
             (101, true),
         ]
-        .map(|(n, expected_is_prime)| TestCase { n, expected_is_prime });
+        .map(|(n, expected_is_prime)| TestCase {
+            n,
+            expected_is_prime,
+        });
 
         for test_case in test_case_list {
             test_case.check();
@@ -194,7 +264,10 @@ mod tests {
             test_case.check();
         }
 
-        prime_factorize(12).values().map(|cnt| cnt + 1).product::<i64>();
+        prime_factorize(12)
+            .values()
+            .map(|cnt| cnt + 1)
+            .product::<i64>();
     }
 
     #[test]
@@ -215,8 +288,59 @@ mod tests {
             test_case.check();
         }
 
-        prime_factorize(12).values().map(|cnt| cnt + 1).product::<i64>();
+        prime_factorize(12)
+            .values()
+            .map(|cnt| cnt + 1)
+            .product::<i64>();
     }
+
+    #[test]
+    fn test_eratosthenes_is_prime() {
+        let er = Eratosthenes::new(12);
+        assert!(!er.is_prime(0));
+        assert!(!er.is_prime(1));
+        assert!(er.is_prime(2));
+        assert!(er.is_prime(3));
+        assert!(!er.is_prime(4));
+        assert!(er.is_prime(5));
+        assert!(!er.is_prime(6));
+        assert!(er.is_prime(7));
+        assert!(!er.is_prime(8));
+        assert!(!er.is_prime(9));
+        assert!(!er.is_prime(10));
+        assert!(er.is_prime(11));
+        assert!(!er.is_prime(12));
+    }
+
+    #[test]
+    fn test_eratosthenes_prime_factorize() {
+        let er = Eratosthenes::new(100);
+        assert_eq!(er.prime_factorize(1), HashMap::new());
+        assert_eq!(er.prime_factorize(2), hashmap! {2 => 1});
+        assert_eq!(er.prime_factorize(3), hashmap! {3 => 1});
+        assert_eq!(er.prime_factorize(4), hashmap! {2 => 2});
+        assert_eq!(er.prime_factorize(12), hashmap! {2 => 2, 3 => 1});
+        assert_eq!(er.prime_factorize(84), hashmap! {2 => 2, 3 => 1, 7 => 1});
+        assert_eq!(er.prime_factorize(97), hashmap! {97 => 1});
+    }
+    #[test]
+    fn test_eratosthenes_divisors() {
+        let er = Eratosthenes::new(100);
+        let sort = |xs: Vec<usize>| xs.iter().copied().sorted().collect_vec();
+        assert_eq!(sort(er.divisors(1)), vec![1]);
+        assert_eq!(sort(er.divisors(2)), vec![1, 2]);
+        assert_eq!(sort(er.divisors(3)), vec![1, 3]);
+        assert_eq!(sort(er.divisors(4)), vec![1, 2, 4]);
+        assert_eq!(sort(er.divisors(12)), vec![1, 2, 3, 4, 6, 12]);
+        assert_eq!(sort(er.divisors(27)), vec![1, 3, 9, 27]);
+        assert_eq!(
+            sort(er.divisors(72)),
+            vec![1, 2, 3, 4, 6, 8, 9, 12, 18, 24, 36, 72]
+        );
+
+        assert_eq!(sort(er.divisors(97)), vec![1, 97]);
+    }
+
     #[test]
     fn test_frac() {
         use crate::mylib::modint_field::rf::*;

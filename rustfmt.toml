@@ -1,1 +1,2 @@
 use_small_heuristics = "Default"
+# empty_item_single_line = false # Nightly Rust 限定
