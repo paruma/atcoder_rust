@@ -7,13 +7,6 @@ struct Problem {
     dist_table: Vec<Vec<i64>>, // D
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
-enum PosTransportation {
-    Car(usize),
-    Train(usize),
-}
-
-use PosTransportation::*;
 impl Problem {
     fn read() -> Problem {
         input! {
@@ -39,69 +32,75 @@ impl Problem {
         self.dist_table[src][dst] * self.car_speed
     }
 
-    fn encode(&self, pt: PosTransportation) -> usize {
-        match pt {
-            Car(i) => i,
-            Train(i) => self.n_cities + i,
-        }
-    }
-
-    fn decode(&self, i: usize) -> PosTransportation {
-        if i < self.n_cities {
-            Car(i)
-        } else {
-            Train(i - self.n_cities)
-        }
-    }
-
-    //頂点倍化した世界のグラフの重み
-    fn edge_weight(&self, src: usize, dst: usize) -> ExtInt {
-        let src_pt = self.decode(src);
-        let dst_pt = self.decode(dst);
-        match (src_pt, dst_pt) {
-            (Car(s), Car(d)) => Fin(self.time_len_car(s, d)),
-            (Car(s), Train(d)) => {
-                if s == d {
-                    Fin(0)
-                } else {
-                    Inf
-                }
-            }
-            (Train(_), Car(_)) => Inf,
-            (Train(s), Train(d)) => Fin(self.time_len_train(s, d)),
-        }
-    }
-
     fn solve(&self) -> Answer {
-        // ダイクストラ法 頂点倍化解法
         let n_cities = self.n_cities;
+        // 3つめ電車を使ったかどうか
+        let mut p_queue: BinaryHeap<(Reverse<ExtInt>, usize, bool)> = BinaryHeap::new();
+        // 社用車のみ
+        // 電車あり（電車を使ったら電車しか使えない）
+        let mut dp_car: Vec<ExtInt> = vec![Inf; n_cities];
+        let mut finished_car: Vec<bool> = vec![false; n_cities];
+        let mut dp_train: Vec<ExtInt> = vec![Inf; n_cities];
+        let mut finished_train: Vec<bool> = vec![false; n_cities];
+        p_queue.push((Reverse(Fin(0)), 0, false));
+        dp_car[0] = Fin(0);
+        dp_train[0] = Fin(0);
 
-        // 頂点0 からのコスト
-        let dp: Vec<ExtInt> = {
-            let mut pq: BinaryHeap<(Reverse<ExtInt>, usize)> = BinaryHeap::new();
-            let init_pos = self.encode(Car(0)); // 0
-            let mut dp: Vec<ExtInt> = vec![Inf; n_cities * 2]; // init_pos からの距離
-            pq.push((Reverse(Fin(0)), init_pos));
-            dp[init_pos] = Fin(0);
-
-            while let Some((Reverse(d), current)) = pq.pop() {
-                if d > dp[current] {
+        while let Some((Reverse(d), current, used_train)) = p_queue.pop() {
+            // current から次の点を計算
+            if used_train {
+                if finished_train[current] {
                     continue;
                 }
-                for next in 0..n_cities * 2 {
-                    let w = self.edge_weight(current, next);
-                    if d + w < dp[next] {
-                        dp[next] = d + w;
-                        pq.push((Reverse(dp[next]), next));
+                finished_train[current] = true;
+            } else {
+                if finished_car[current] {
+                    continue;
+                }
+                finished_car[current] = true;
+            }
+            for next in 0..n_cities {
+                if used_train {
+                    // 電車しか使えない
+                    if dp_train[next] > dp_train[current] + Fin(self.time_len_train(current, next))
+                    {
+                        dp_train[next] =
+                            dp_train[current] + Fin(self.time_len_train(current, next));
+                        p_queue.push((Reverse(dp_train[next]), next, true));
+                    }
+                } else {
+                    // 電車も車も使える
+                    // 車の方が早ければ車だけ使う
+                    #[allow(clippy::collapsible_if)]
+                    if self.time_len_car(current, next) <= self.time_len_train(current, next) {
+                        if dp_car[next] > dp_car[current] + Fin(self.time_len_car(current, next)) {
+                            dp_car[next] = dp_car[current] + Fin(self.time_len_car(current, next));
+                            dp_train[next] = min(
+                                dp_train[next],
+                                dp_car[current] + Fin(self.time_len_car(current, next)),
+                            );
+                            p_queue.push((Reverse(dp_car[next]), next, false));
+                        }
+                    } else {
+                        // 車を使う方と電車を使う方の両方を考える
+                        if dp_car[next] > dp_car[current] + Fin(self.time_len_car(current, next)) {
+                            dp_car[next] = dp_car[current] + Fin(self.time_len_car(current, next));
+                            p_queue.push((Reverse(dp_car[next]), next, false));
+                        }
+
+                        if dp_train[next]
+                            > dp_car[current] + Fin(self.time_len_train(current, next))
+                        {
+                            dp_train[next] =
+                                dp_car[current] + Fin(self.time_len_train(current, next));
+                            p_queue.push((Reverse(dp_train[next]), next, true));
+                        }
                     }
                 }
             }
-            dp
-        };
+        }
 
-        let dp_last_car = dp[self.encode(Car(n_cities - 1))];
-        let dp_last_train = dp[self.encode(Train(n_cities - 1))];
-        let ans = min(dp_last_car, dp_last_train).get_fin();
+        let ans = min(dp_car[n_cities - 1], dp_train[n_cities - 1]).get_fin();
         Answer { ans }
     }
 }
@@ -140,7 +139,6 @@ use std::{
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::Itertools;
-use pathfinding::matrix::directions::S;
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,

@@ -23,21 +23,13 @@
 		],
 		"description": "#[derive(Clone, Copy, Debug, PartialEq, Eq)]"
 	},
-	"modint998":{
+	"modint998": {
 		"scope": "rust",
 		"prefix": "modint998",
 		"body": [
 			"use ac_library::ModInt998244353 as Mint;"
 		],
 		"description": "use ac_library::ModInt998244353 as Mint;"
-	}
-	"yesno": {
-		"scope": "rust",
-		"prefix": "yesno",
-		"body": [
-			"if $1 { \"Yes\" } else { \"No\" }"
-		],
-		"description": "if $1 { \"Yes\" } else { \"No\" }"
 	},
 	// cf: dbg!
 	"println": {

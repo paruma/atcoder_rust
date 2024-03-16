@@ -1,7 +1,5 @@
 #![allow(dead_code)]
 
-use std::collections::VecDeque;
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct Edge {
     from: usize,
@@ -51,7 +49,9 @@ pub mod mod_queue {
     }
     impl<T> Queue<T> {
         pub fn new() -> Self {
-            Queue { raw: VecDeque::new() }
+            Queue {
+                raw: VecDeque::new(),
+            }
         }
         pub fn push(&mut self, value: T) {
             self.raw.push_front(value)

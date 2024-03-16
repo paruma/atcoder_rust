@@ -46,6 +46,40 @@
       "}"
     ]
   },
+  "chminmax": {
+    "scope": "rust",
+    "prefix": "chminmax",
+    "body": [
+      "#[allow(clippy::module_inception)]",
+      "#[macro_use]",
+      "pub mod chminmax {",
+      "    #[allow(unused_macros)]",
+      "    #[macro_export]",
+      "    macro_rules! chmin {",
+      "        (\\$ a : expr , \\$ b : expr ) => {",
+      "            if \\$a > \\$b {",
+      "                \\$a = \\$b;",
+      "                true",
+      "            } else {",
+      "                false",
+      "            }",
+      "        };",
+      "    }",
+      "    #[allow(unused_macros)]",
+      "    #[macro_export]",
+      "    macro_rules! chmax {",
+      "        (\\$ a : expr , \\$ b : expr ) => {",
+      "            if \\$a < \\$b {",
+      "                \\$a = \\$b;",
+      "                true",
+      "            } else {",
+      "                false",
+      "            }",
+      "        };",
+      "    }",
+      "}"
+    ]
+  },
   "coordinate_compression": {
     "scope": "rust",
     "prefix": "coordinate_compression",

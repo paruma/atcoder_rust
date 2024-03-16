@@ -1,32 +1,39 @@
-#[allow(unused_macros)]
-macro_rules! chmin {
-    ($a: expr, $b: expr) => {
-        if $a > $b {
-            $a = $b;
-            true
-        } else {
-            false
-        }
-    };
-}
+use cargo_snippet::snippet;
 
-#[allow(unused_macros)]
-macro_rules! chmax {
-    ($a: expr, $b: expr) => {
-        if $a < $b {
-            $a = $b;
-            true
-        } else {
-            false
-        }
-    };
+#[allow(clippy::module_inception)]
+#[macro_use]
+#[snippet]
+pub mod chminmax {
+    #[allow(unused_macros)]
+    #[macro_export]
+    macro_rules! chmin {
+        ($a: expr, $b: expr) => {
+            if $a > $b {
+                $a = $b;
+                true
+            } else {
+                false
+            }
+        };
+    }
+
+    #[allow(unused_macros)]
+    #[macro_export]
+    macro_rules! chmax {
+        ($a: expr, $b: expr) => {
+            if $a < $b {
+                $a = $b;
+                true
+            } else {
+                false
+            }
+        };
+    }
 }
 
 // test
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn test_chmin() {
         {
