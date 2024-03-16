@@ -1,47 +1,38 @@
 // インタラクティブ問題
 // ABC299 D - Find by Query
 //https://atcoder.jp/contests/abc299/tasks/abc299_d
-//#[derive_readable]
-struct InteractiveIO<'a> {
-    source: LineSource<StdinLock<'a>>,
+
+trait IInteractive {
+    fn ask(&self, i: usize) -> i64;
 }
 
-impl<'a> InteractiveIO<'a> {
-    fn new() -> Self {
-        InteractiveIO {
-            source: LineSource::new(stdin().lock()),
-        }
-    }
-
-    fn read_init(&mut self) -> usize {
-        input! {
-            from &mut self.source,
-            s: usize
-        }
-        s
-    }
-
-    fn ask(&mut self, i: usize) -> i64 {
-        println!("? {}", i + 1);
-        stdout().flush().unwrap();
-        input! {
-            from &mut self.source,
+struct StdinInteractive;
+impl IInteractive for StdinInteractive {
+    fn ask(&self, i: usize) -> i64 {
+        println_flush!("? {}", i + 1);
+        input_interactive! {
             s: i64
         }
         s
     }
 }
 
-fn main() {
-    let mut io = InteractiveIO::new();
-    let n = io.read_init();
+struct TestInteractive {
+    xs: Vec<i64>,
+}
+impl IInteractive for TestInteractive {
+    fn ask(&self, i: usize) -> i64 {
+        self.xs[i]
+    }
+}
 
+fn solve<T: IInteractive>(asker: T, n: usize) -> usize {
     let mut i0 = 0; // s[i0] = 0
     let mut i1 = n - 1; // s[i1] = 1
 
     while i1 - i0 > 1 {
         let mid = (i0 + i1) / 2;
-        let s_mid = io.ask(mid);
+        let s_mid = asker.ask(mid);
         if s_mid == 0 {
             i0 = mid;
         } else {
@@ -50,8 +41,15 @@ fn main() {
         }
     }
 
-    let ans = i0 + 1;
-    println!("! {}", ans);
+    i0 + 1
+}
+
+fn main() {
+    input_interactive! {
+        n: usize,
+    }
+    let ans = solve(StdinInteractive, n);
+    println_flush!("! {}", ans);
 }
 
 #[cfg(test)]
@@ -61,16 +59,20 @@ mod tests {
 
     #[test]
     fn test_problem() {
-        assert_eq!(1 + 1, 2);
+        let xs = vec![0, 0, 1, 0, 0, 1, 1];
+        let n = xs.len();
+        let asker = TestInteractive { xs: xs.clone() };
+        let ans = solve(asker, n);
+        assert!(xs[ans - 1] != xs[ans]);
     }
 }
 
-use std::io::{stdin, stdout, StdinLock, Write};
+use std::io::{stdout, Write};
 
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::Itertools;
-use proconio::source::line::LineSource;
+use proconio::input_interactive;
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,
@@ -121,3 +123,15 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+
+#[macro_export]
+macro_rules! println_flush {
+    () => {
+        println!();
+        stdout().flush().unwrap();
+    };
+    ($($arg:tt)*) => {{
+        println!($($arg)*);
+        stdout().flush().unwrap();
+    }};
+}
