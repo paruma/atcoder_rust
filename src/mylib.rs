@@ -1,4 +1,3 @@
-pub mod acl_modint;
 pub mod bin_search0;
 pub mod chminmax;
 pub mod coordinate_compression0;
@@ -8,9 +7,6 @@ pub mod ext_int;
 pub mod graph;
 pub mod imos;
 pub mod math;
-pub mod modint_field;
-pub mod modint_field_fake;
-pub mod modint_ring;
 pub mod monoid;
 pub mod neg_ext_int;
 pub mod odo;
