@@ -2,69 +2,66 @@ use cargo_snippet::snippet;
 
 #[snippet(prefix = "use mod_combinatorics::*;")]
 pub mod mod_combinatorics {
-    fn frac0<T>(n: T, acc: T) -> T
-    where
-        T: std::ops::Sub<Output = T> + std::ops::Mul + num::Zero + num::One + Copy,
-    {
-        if n.is_zero() {
-            acc
-        } else {
-            frac0(n - T::one(), n * acc)
+    use ac_library::ModInt998244353 as Mint;
+
+    pub struct Comb {
+        fac: Vec<Mint>,
+        invfac: Vec<Mint>,
+    }
+
+    impl Comb {
+        pub fn new(max_val: usize) -> Self {
+            let mut inv = vec![Mint::new(0); max_val + 1];
+            let mut fac = vec![Mint::new(0); max_val + 1];
+            let mut invfac = vec![Mint::new(0); max_val + 1];
+
+            fac[0] = 1.into();
+            fac[1] = 1.into();
+
+            invfac[0] = 1.into();
+            invfac[1] = 1.into();
+
+            inv[1] = 1.into();
+
+            let modulus = Mint::modulus() as usize;
+
+            for i in 2..=max_val {
+                inv[i] = -inv[modulus % i] * Mint::new(modulus / i);
+                fac[i] = fac[i - 1] * Mint::new(i);
+                invfac[i] = invfac[i - 1] * inv[i];
+            }
+
+            Self { fac, invfac }
         }
-    }
 
-    ///計算量: O(n)
-    pub fn frac<T>(n: T) -> T
-    where
-        T: std::ops::Sub<Output = T> + std::ops::Mul + num::Zero + num::One + Copy,
-    {
-        frac0(n, T::one())
-    }
-
-    /// 計算量: O(n)
-    pub fn permutation<T>(n: T, k: T) -> T
-    where
-        T: std::ops::Sub<Output = T>
-            + std::ops::Mul
-            + std::ops::Div<Output = T>
-            + num::Zero
-            + num::One
-            + Copy,
-    {
-        // n!/(n-k)!
-        frac(n) / frac(n - k)
-    }
-
-    /// 計算量: O(n)
-    pub fn comb<T>(n: T, k: T) -> T
-    where
-        T: std::ops::Sub<Output = T>
-            + std::ops::Mul
-            + std::ops::Div<Output = T>
-            + num::Zero
-            + num::One
-            + Copy,
-    {
-        // n!/(k!(n-k)!)
-        frac(n) / frac(n - k) / frac(k)
+        pub fn comb(&self, n: usize, k: usize) -> Mint {
+            if n < k {
+                0.into()
+            } else {
+                self.fac[n] * self.invfac[k] * self.invfac[n - k]
+            }
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
+
     use super::mod_combinatorics::*;
 
     #[test]
-    fn test_frac() {
-        use crate::mylib::math::modint_field::rf::*;
-        assert_eq!(frac(5), 120);
-        assert_eq!(frac(RF::new(5)), RF::new(120));
-    }
-
-    #[test]
-    fn test_permutation() {
-        use crate::mylib::math::modint_field::rf::*;
-        assert_eq!(permutation(5, 3), 60); //5*4*3=60
-        assert_eq!(permutation(RF::new(5), RF::new(3)), RF::new(60));
+    fn test_comb() {
+        {
+            let comb = Comb::new(10);
+            assert_eq!(comb.comb(5, 3), 10.into());
+            assert_eq!(comb.comb(5, 0), 1.into());
+            assert_eq!(comb.comb(5, 5), 1.into());
+            assert_eq!(comb.comb(10, 5), 252.into());
+            assert_eq!(comb.comb(10, 500), 0.into());
+        }
+        {
+            let comb = Comb::new(10000);
+            assert_eq!(comb.comb(10000, 5000), 156178480.into());
+        }
     }
 }
