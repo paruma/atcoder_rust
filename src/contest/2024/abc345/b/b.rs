@@ -1,17 +1,17 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    x: i64,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            x: i64,
         }
-        Problem { _a }
+        Problem { x }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = self.x.div_ceil(&10);
         Answer { ans }
     }
 }
@@ -45,6 +45,7 @@ mod tests {
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::Itertools;
+use num::Integer;
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,

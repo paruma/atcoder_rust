@@ -1,29 +1,31 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    s: Vec<u8>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            s: Bytes
         }
-        Problem { _a }
+        Problem { s }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        use regex::Regex;
+        let re = Regex::new(r"^<=+>$").unwrap();
+        let ans = re.is_match(&String::from_utf8(self.s.clone()).unwrap());
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_yesno(self.ans);
     }
 }
 

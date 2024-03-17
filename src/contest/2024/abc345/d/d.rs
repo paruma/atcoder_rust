@@ -1,16 +1,49 @@
-//#[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Rect {
+    width: usize,
+    height: usize,
+}
+
+impl Rect {
+    fn rev(&self) -> Rect {
+        Rect {
+            width: self.height,
+            height: self.width,
+        }
+    }
+}
 struct Problem {
-    _a: i64,
+    n_tiles: usize,
+    field: Rect,
+    tiles: Vec<Rect>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n_tiles: usize,
+            field: Rect,
+            tiles: [Rect; n_tiles],
         }
-        Problem { _a }
+        Problem {
+            n_tiles,
+            field,
+            tiles,
+        }
     }
     fn solve(&self) -> Answer {
+        let n_tiles = self.n_tiles;
+        let field = self.field;
+        let tiles = &self.tiles;
+
+        // タイル90度回転
+        // let tiles = tiles
+        //     .iter()
+        //     .copied()
+        //     .flat_map(|r| [r, r.rev()])
+        //     .collect_vec();
+
         let ans = 0;
         Answer { ans }
     }

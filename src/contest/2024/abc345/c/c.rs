@@ -1,17 +1,54 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    s: Vec<u8>,
+}
+
+fn nc2(n: i64) -> i64 {
+    n * (n - 1) / 2
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            s: Bytes
         }
-        Problem { _a }
+        Problem { s }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.s.len();
+
+        if self.s.iter().all_unique() {
+            let ans = nc2(n as i64);
+            return Answer { ans };
+        }
+        let tmp = self.s.iter().copied().into_group_map_by(|x| *x);
+        let cnt_list = tmp
+            .iter()
+            .map(|(ch, xs)| (*ch, xs.len()))
+            .collect::<HashSet<_>>();
+        let ans = nc2(n as i64)
+            - cnt_list
+                .iter()
+                .map(|(_, cnt)| if *cnt == 1 { 0 } else { nc2(*cnt as i64) })
+                .sum::<i64>()
+            + 1;
+        Answer { ans }
+    }
+
+    fn solve0(&self) -> Answer {
+        let n = self.s.len();
+        let ans = (0..n)
+            .tuple_combinations()
+            .map(|(i, j)| {
+                let mut tmp = self.s.clone();
+                tmp.swap(i, j);
+                tmp
+            })
+            .unique()
+            .inspect(|x| {
+                dbg!(String::from_utf8(x.clone()).unwrap());
+            })
+            .count() as i64;
         Answer { ans }
     }
 }
@@ -28,6 +65,7 @@ impl Answer {
 }
 
 fn main() {
+    // Problem::read().solve0().print();
     Problem::read().solve().print();
 }
 
@@ -36,11 +74,23 @@ mod tests {
     #[allow(unused_imports)]
     use super::*;
 
+    fn sub(s: &[u8]) {
+        let p = Problem { s: s.to_vec() };
+        dbg!(p.solve().ans);
+        assert_eq!(p.solve().ans, p.solve0().ans);
+    }
+
     #[test]
     fn test_problem() {
-        assert_eq!(1 + 1, 2);
+        sub(b"a");
+        sub(b"ab");
+        sub(b"abdefg");
+        sub(b"aaabbb");
+        sub(b"aaabbbffff");
     }
 }
+
+use std::collections::HashSet;
 
 // ====== import ======
 #[allow(unused_imports)]
