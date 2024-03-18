@@ -1,29 +1,77 @@
-//#[derive_readable]
+struct TestCase {
+    xs: Vec<i64>,
+    ps: Vec<i64>,
+}
 struct Problem {
-    _a: i64,
+    test_cases: Vec<TestCase>,
+}
+
+impl TestCase {
+    fn solve(&self) -> i64 {
+        let n_review = self.xs.iter().sum::<i64>();
+        let rating_sum = self
+            .xs
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(i, x)| x * (i as i64 + 1))
+            .sum::<i64>();
+
+        // 賄賂不要なケース
+        if rating_sum >= n_review * 3 {
+            // rating_sum / n_review が平均評価
+            return 0;
+        }
+
+        let x4 = self.xs[3];
+        let x5 = self.xs[4];
+
+        let p4 = self.ps[3];
+        let p5 = self.ps[4];
+
+        // 4を買う
+        let cnt4 = 3 * n_review - rating_sum;
+        let price4 = p4 * cnt4;
+
+        // 5を買う
+        let cnt5 = (3 * n_review - rating_sum).div_ceil(&2);
+        let price5 = p5 * cnt5;
+
+        i64::min(price4, price5)
+    }
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n_cases: usize,
         }
-        Problem { _a }
+        let test_cases = (0..n_cases)
+            .map(|_| {
+                input! {
+                    xs: [i64; 5],
+                    ps: [i64; 5],
+                }
+                TestCase { xs, ps }
+            })
+            .collect_vec();
+        Problem { test_cases }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = self.test_cases.iter().map(|t| t.solve()).collect_vec();
+
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec(&self.ans);
     }
 }
 
@@ -45,6 +93,7 @@ mod tests {
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::Itertools;
+use num::Integer;
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,
