@@ -11,6 +11,12 @@ struct AffineInput {
     value: Mint,
     times: usize,
 }
+
+impl AffineInput {
+    fn unit(x: Mint) -> Self {
+        Self { value: x, times: 1 }
+    }
+}
 struct AffineInputAdd(Infallible);
 impl Monoid for AffineInputAdd {
     type S = AffineInput;
@@ -66,8 +72,8 @@ impl<T> AffineTransform<T> {
     }
 }
 
-struct AddAffine(Infallible);
-impl MapMonoid for AddAffine {
+struct AffineSum(Infallible);
+impl MapMonoid for AffineSum {
     type M = AffineInputAdd;
     type F = AffineTransform<Mint>;
 
@@ -141,12 +147,9 @@ impl Problem {
         let xs = xs
             .iter()
             .copied()
-            .map(|x| AffineInput {
-                value: Mint::new(x),
-                times: 1,
-            })
+            .map(|x| AffineInput::unit(x.into()))
             .collect_vec();
-        let mut segtree = LazySegtree::<AddAffine>::from(xs);
+        let mut segtree = LazySegtree::<AffineSum>::from(xs);
 
         for op in ops {
             let prob = Mint::new(op.end - op.begin).inv();

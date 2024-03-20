@@ -6,6 +6,7 @@ pub mod debug;
 pub mod ext_int;
 pub mod graph;
 pub mod imos;
+pub mod lazy_segtree;
 pub mod math;
 pub mod monoid;
 pub mod neg_ext_int;

@@ -51,7 +51,10 @@ pub mod cum_monoid {
                 suffix_prod[i] = M::binary_operation(&xs[i], &suffix_prod[i + 1]);
             }
 
-            CumMonoid { prefix_prod, suffix_prod }
+            CumMonoid {
+                prefix_prod,
+                suffix_prod,
+            }
         }
 
         /// [0, i) の総積 (前から累積)
@@ -232,7 +235,10 @@ pub mod monoid_affine {
         where
             T: From<i64>,
         {
-            Self { slope: 1.into(), intercept: 0.into() }
+            Self {
+                slope: 1.into(),
+                intercept: 0.into(),
+            }
         }
 
         pub fn composite(&self, rhs: &Self) -> Self
@@ -285,14 +291,20 @@ pub mod monoid_rolling_hash {
         where
             T: From<i64>,
         {
-            Self { hash: 0.into(), base: 1.into() }
+            Self {
+                hash: 0.into(),
+                base: 1.into(),
+            }
         }
 
         pub fn concat(&self, rhs: &Self) -> Self
         where
             T: Copy + Mul<Output = T> + Add<Output = T>,
         {
-            Self { hash: self.hash * rhs.base + rhs.hash, base: self.base * rhs.base }
+            Self {
+                hash: self.hash * rhs.base + rhs.hash,
+                base: self.base * rhs.base,
+            }
         }
     }
 
@@ -400,8 +412,14 @@ mod test {
             let cum = CumMonoid::<M>::new(&xs);
             assert_eq!(cum.prefix_prod(0), 0);
             assert_eq!(cum.prefix_prod(3), xs[0] + xs[1] + xs[2]);
-            assert_eq!(cum.prefix_prod(6), xs[0] + xs[1] + xs[2] + xs[3] + xs[4] + xs[5]);
-            assert_eq!(cum.suffix_prod(0), xs[0] + xs[1] + xs[2] + xs[3] + xs[4] + xs[5]);
+            assert_eq!(
+                cum.prefix_prod(6),
+                xs[0] + xs[1] + xs[2] + xs[3] + xs[4] + xs[5]
+            );
+            assert_eq!(
+                cum.suffix_prod(0),
+                xs[0] + xs[1] + xs[2] + xs[3] + xs[4] + xs[5]
+            );
             assert_eq!(cum.suffix_prod(4), xs[4] + xs[5]);
             assert_eq!(cum.suffix_prod(6), 0);
 
@@ -422,19 +440,31 @@ mod test {
     }
 
     #[test]
-    fn test_monoid_additive() {
+    fn test_monoid_mint_additive() {
         type Mint = ModInt998244353;
         type M = MintAdditive<Mod998244353>;
-        assert_eq!(M::binary_operation(&Mint::new(3), &Mint::new(4)), Mint::new(7));
-        assert_eq!(M::binary_operation(&Mint::new(3), &M::identity()), Mint::new(3));
+        assert_eq!(
+            M::binary_operation(&Mint::new(3), &Mint::new(4)),
+            Mint::new(7)
+        );
+        assert_eq!(
+            M::binary_operation(&Mint::new(3), &M::identity()),
+            Mint::new(3)
+        );
     }
 
     #[test]
     fn test_monoid_multiplicative() {
         type Mint = ModInt998244353;
         type M = MintMultiplicative<Mod998244353>;
-        assert_eq!(M::binary_operation(&Mint::new(3), &Mint::new(4)), Mint::new(12));
-        assert_eq!(M::binary_operation(&Mint::new(3), &M::identity()), Mint::new(3));
+        assert_eq!(
+            M::binary_operation(&Mint::new(3), &Mint::new(4)),
+            Mint::new(12)
+        );
+        assert_eq!(
+            M::binary_operation(&Mint::new(3), &M::identity()),
+            Mint::new(3)
+        );
     }
 
     #[test]
