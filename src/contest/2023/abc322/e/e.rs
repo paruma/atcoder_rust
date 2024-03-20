@@ -132,7 +132,7 @@ impl Problem {
     }
 
     fn solve2(&self) -> Answer {
-        // DP の型が VecVec<ExtInt>> の解法 (配列をn進数でエンコードする)
+        // DP の型が Vec<Vec<ExtInt>> の解法 (配列をn進数でエンコードする)
         let mut dp = Dp2::new(self.n_plans, self.n_params, self.param_lb);
         *dp.at_mut(0, &vec![0; self.n_params]) = Fin(0);
         for (plan_idx, plan) in self.plan_list.iter().enumerate() {

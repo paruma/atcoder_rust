@@ -46,14 +46,16 @@ impl Monoid for Concat {
     fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
         SegtreeEntry {
             prefix_sum_max: i64::max(a.prefix_sum_max, a.sum + b.prefix_sum_max),
-            internal_sum_max: *[
-                a.internal_sum_max,
-                b.internal_sum_max,
-                a.suffix_sum_max + b.suffix_sum_max,
-            ]
-            .iter()
-            .max()
-            .unwrap(),
+            internal_sum_max: {
+                *[
+                    a.internal_sum_max,
+                    b.internal_sum_max,
+                    a.suffix_sum_max + b.prefix_sum_max,
+                ]
+                .iter()
+                .max()
+                .unwrap()
+            },
             suffix_sum_max: i64::max(b.suffix_sum_max, b.sum + a.suffix_sum_max),
             sum: a.sum + b.sum,
         }

@@ -5,6 +5,89 @@ struct Problem {
     xs: Vec<i64>,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct RangeSumMinMax {
+    prefix_sum_max: i64,
+    internal_sum_max: i64,
+    suffix_sum_max: i64,
+    prefix_sum_min: i64,
+    internal_sum_min: i64,
+    suffix_sum_min: i64,
+    sum: i64,
+}
+
+impl RangeSumMinMax {
+    fn unit(x: i64) -> RangeSumMinMax {
+        RangeSumMinMax {
+            prefix_sum_max: x,
+            internal_sum_max: x,
+            suffix_sum_max: x,
+            prefix_sum_min: x,
+            internal_sum_min: x,
+            suffix_sum_min: x,
+            sum: x,
+        }
+    }
+
+    fn range_sum_max(&self) -> i64 {
+        self.internal_sum_max
+    }
+
+    fn range_sum_min(&self) -> i64 {
+        self.internal_sum_min
+    }
+
+    fn range_sum(&self) -> i64 {
+        self.sum
+    }
+}
+
+struct Concat(Infallible);
+impl Monoid for Concat {
+    type S = RangeSumMinMax;
+    fn identity() -> Self::S {
+        RangeSumMinMax {
+            prefix_sum_max: 0,
+            internal_sum_max: 0,
+            suffix_sum_max: 0,
+            prefix_sum_min: 0,
+            internal_sum_min: 0,
+            suffix_sum_min: 0,
+            sum: 0,
+        }
+    }
+
+    fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+        RangeSumMinMax {
+            prefix_sum_max: i64::max(a.prefix_sum_max, a.sum + b.prefix_sum_max),
+            internal_sum_max: {
+                *[
+                    a.internal_sum_max,
+                    b.internal_sum_max,
+                    a.suffix_sum_max + b.prefix_sum_max,
+                ]
+                .iter()
+                .max()
+                .unwrap()
+            },
+            suffix_sum_max: i64::max(b.suffix_sum_max, b.sum + a.suffix_sum_max),
+            prefix_sum_min: i64::min(a.prefix_sum_min, a.sum + b.prefix_sum_min),
+            internal_sum_min: {
+                *[
+                    a.internal_sum_min,
+                    b.internal_sum_min,
+                    a.suffix_sum_min + b.prefix_sum_min,
+                ]
+                .iter()
+                .min()
+                .unwrap()
+            },
+            suffix_sum_min: i64::min(b.suffix_sum_min, b.sum + a.suffix_sum_min),
+            sum: a.sum + b.sum,
+        }
+    }
+}
+
 impl Problem {
     fn read() -> Problem {
         input! {
@@ -16,8 +99,8 @@ impl Problem {
     }
 
     fn range_max(&self) -> i64 {
-        let mut dp_left = vec![0; self.n + 1]; // [0, i) での区間和最大値
-        let mut dp_right = vec![0; self.n + 1]; // i を右端に持つ区間和最大値
+        let mut dp_left = vec![0; self.n + 1]; // dp_left[i] = [0, i - 1) での区間和最大値
+        let mut dp_right = vec![0; self.n + 1]; // dp_right[i] = [0, i) での suffix_sum 最大値
 
         dp_left[0] = 0;
         dp_right[0] = 0;
@@ -44,12 +127,162 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
+        // DP による解法
         let sum = self.xs.iter().sum::<i64>();
         let c = self.c;
         let ans = if c >= 1 {
             sum + self.range_max() * (c - 1)
         } else {
             sum + self.range_min() * (c - 1)
+        };
+
+        Answer { ans }
+    }
+}
+
+impl Problem {
+    // solve2
+    fn solve2(&self) -> Answer {
+        // モノイドによる解法
+        let xs_info = self
+            .xs
+            .iter()
+            .copied()
+            .map(RangeSumMinMax::unit)
+            .fold(Concat::identity(), |acc, x| {
+                Concat::binary_operation(&acc, &x)
+            });
+        let c = self.c;
+        let ans = if c >= 1 {
+            xs_info.range_sum() + xs_info.range_sum_max() * (c - 1)
+        } else {
+            xs_info.range_sum() + xs_info.range_sum_min() * (c - 1)
+        };
+
+        Answer { ans }
+    }
+}
+
+impl Problem {
+    // solve3
+    fn range_max3(&self) -> i64 {
+        let mut dp_internal_sum = vec![0; self.n + 1]; // dp_internal_sum[i] = [0, i) での区間和最大値
+        let mut dp_suffix_sum = vec![0; self.n + 1]; // dp_suffix_sum[i] = [0, i) での suffix_sum 最大値
+
+        dp_internal_sum[0] = 0;
+        dp_suffix_sum[0] = 0;
+
+        for i in 0..self.n {
+            dp_internal_sum[i + 1] = i64::max(dp_internal_sum[i], dp_suffix_sum[i] + self.xs[i]);
+            dp_suffix_sum[i + 1] = i64::max(self.xs[i], dp_suffix_sum[i] + self.xs[i]);
+        }
+        dp_internal_sum[self.n]
+    }
+
+    fn range_min3(&self) -> i64 {
+        let mut dp_internal_sum = vec![0; self.n + 1];
+        let mut dp_suffix_sum = vec![0; self.n + 1];
+
+        dp_internal_sum[0] = 0;
+        dp_suffix_sum[0] = 0;
+
+        for i in 0..self.n {
+            dp_internal_sum[i + 1] = i64::min(dp_internal_sum[i], dp_suffix_sum[i] + self.xs[i]);
+            dp_suffix_sum[i + 1] = i64::min(self.xs[i], dp_suffix_sum[i] + self.xs[i]);
+        }
+        dp_internal_sum[self.n]
+    }
+
+    fn solve3(&self) -> Answer {
+        // DP による解法2
+        let sum = self.xs.iter().sum::<i64>();
+        let c = self.c;
+        let ans = if c >= 1 {
+            sum + self.range_max3() * (c - 1)
+        } else {
+            sum + self.range_min3() * (c - 1)
+        };
+
+        Answer { ans }
+    }
+}
+impl Problem {
+    fn range_max4(&self) -> i64 {
+        let cumsum = CumSum::new(&self.xs).cumsum;
+        // 区間和は cumsum[end] - cumsum[begin] (begin <= end) の形で求まる
+        // つまり、max{cumsum[end] - cumsum[begin] | begin <= end} を求めれば良い
+        // そのために、end を固定して、min{cumsum[begin] | begin <= end} を求める
+        // ABC331 E の主菜全探索と同じ考え方 (end 全探索)
+
+        let cumsum_cummin = CumMonoid::<Min<i64>>::new(&cumsum);
+
+        (0..=self.n) // end の範囲なので、n を含める
+            .map(|end| {
+                // cumsum[end] - min {cumsum[begin] | begin <= end}
+                cumsum[end] - cumsum_cummin.prefix_prod(end + 1)
+            })
+            .max()
+            .unwrap()
+    }
+
+    fn range_min4(&self) -> i64 {
+        let cumsum = CumSum::new(&self.xs).cumsum;
+
+        let cumsum_cummax = CumMonoid::<Max<i64>>::new(&cumsum);
+
+        (0..=self.n)
+            .map(|end| cumsum[end] - cumsum_cummax.prefix_prod(end + 1))
+            .min()
+            .unwrap()
+    }
+    fn solve4(&self) -> Answer {
+        // 累積和から求める
+
+        let sum = self.xs.iter().sum::<i64>();
+        let c = self.c;
+        let ans = if c >= 1 {
+            sum + self.range_max4() * (c - 1)
+        } else {
+            sum + self.range_min4() * (c - 1)
+        };
+
+        Answer { ans }
+    }
+}
+
+impl Problem {
+    fn range_max5(&self) -> i64 {
+        let xs = &self.xs;
+        let n = self.xs.len();
+        let mut dp = vec![0; n + 1];
+        dp[0] = 0;
+
+        for end in 0..n {
+            dp[end + 1] = i64::max(dp[end] + xs[end], xs[end]);
+        }
+        *dp.iter().max().unwrap()
+    }
+
+    fn range_min5(&self) -> i64 {
+        let xs = &self.xs;
+        let n = self.xs.len();
+        let mut dp = vec![0; n + 1];
+        dp[0] = 0;
+
+        for end in 0..n {
+            dp[end + 1] = i64::min(dp[end] + xs[end], xs[end]);
+        }
+        *dp.iter().min().unwrap()
+    }
+    fn solve5(&self) -> Answer {
+        // 累積和から求める
+
+        let sum = self.xs.iter().sum::<i64>();
+        let c = self.c;
+        let ans = if c >= 1 {
+            sum + self.range_max5() * (c - 1)
+        } else {
+            sum + self.range_min5() * (c - 1)
         };
 
         Answer { ans }
@@ -68,7 +301,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve5().print();
 }
 
 #[cfg(test)]
@@ -82,6 +315,9 @@ mod tests {
     }
 }
 
+use std::convert::Infallible;
+
+use ac_library::{Max, Min, Monoid};
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::Itertools;
@@ -135,287 +371,69 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
-use lg::*;
-pub mod lg {
-    use std::borrow::Borrow;
-    use std::fmt;
-    use std::iter::once;
-    /// Print the values with the line number.
-    /// # Examples
-    /// ```rust
-    /// # use lg::*;
-    /// let x = 42;
-    /// let y = 43;
-    /// lg!(x);
-    /// lg!(x, y);
-    /// lg!(42, x, 43, y);
-    /// ```
-    #[macro_export]
-    macro_rules ! lg {(@ contents $ head : expr $ (, $ tail : expr ) * ) => {{$ crate :: __lg_internal ! ($ head ) ; $ (eprint ! ("," ) ; $ crate :: __lg_internal ! ($ tail ) ; ) * eprintln ! () ; } } ; ($ ($ expr : expr ) ,* $ (, ) ? ) => {{eprint ! ("{}\u{276f}" , line ! () ) ; $ crate :: lg ! (@ contents $ ($ expr ) ,* ) } } ; }
-    #[doc(hidden)]
-    #[macro_export]
-    macro_rules! __lg_internal {
-        ($ value : expr ) => {{
-            match $value {
-                head => {
-                    eprint!(
-                        " {} = {}",
-                        stringify!($value),
-                        $crate::__quiet(format!("{:?}", &head))
-                    );
-                }
+use cumsum::*;
+pub mod cumsum {
+    pub struct CumSum {
+        pub cumsum: Vec<i64>,
+    }
+    impl CumSum {
+        /// 計算量: O(|xs|)
+        pub fn new(xs: &[i64]) -> CumSum {
+            let mut cumsum = vec![0; xs.len() + 1];
+            for i in 1..xs.len() + 1 {
+                cumsum[i] = cumsum[i - 1] + xs[i - 1];
             }
-        }};
-    }
-    /// Print many 1D arrays side-by-side with the line number.
-    /// # Examples
-    /// ```rust
-    /// # use lg::*;
-    /// let a = [1, 2, 3];
-    /// let b = [4, 5, 6];
-    /// let c = [7, 8, 9];
-    /// rows! {
-    ///   "id", // the name of the index
-    ///   @"a" => a,
-    ///   b,
-    ///   @"c" => c,
-    /// }
-    /// ```
-    #[macro_export]
-    macro_rules ! rows {{$ index_label : literal , $ (@ offset $ offset : expr , ) ? $ (@ verticalbar $ verticalbar : expr , ) * $ ($ (@$ label : literal => ) ? $ values : expr ) ,* $ (, ) ? } => {{#! [allow (unused_assignments ) ] let mut rows = $ crate :: Rows :: default () ; rows . line_number (line ! () ) ; $ (rows . offset ($ offset ) ; ) ? $ (rows . verticalbar ($ verticalbar ) ; ) * rows . index_label ($ index_label ) ; $ ({let mut label = stringify ! ($ values ) . to_string () ; if label . starts_with ("&" ) {label = label [1 .. ] . to_string () ; } $ ({let label_ : &'static str = $ label ; label = label_ . to_string () ; } ) ? rows . row (label , $ values ) ; } ) * eprintln ! ("{}" , rows . to_string_table () ) ; } } ; }
-    /// Print the 2D array with the line number.
-    /// # Examples
-    /// ```rust
-    /// # use lg::*;
-    /// let a = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
-    /// table! {
-    ///    @"a" => a,
-    /// }
-    /// table! {
-    ///   a,
-    /// }
-    /// ```
-    #[macro_export]
-    macro_rules ! table {{$ (@$ name : literal => ) ? $ values : expr $ (, ) ? } => {{#! [allow (unused_assignments ) ] let mut name = stringify ! ($ values ) . to_string () ; if name . starts_with ("&" ) {name = name [1 .. ] . to_string () ; } $ ({let name_ : &'static str = $ name ; name = name_ . to_string () ; } ) ? let mut rows = $ crate :: Rows :: default () ; rows . line_number (line ! () ) ; rows . table_name (name ) ; # [allow (array_into_iter ) ] for (i , row ) in $ values . into_iter () . enumerate () {rows . row (i . to_string () , row ) ; } eprintln ! ("{}" , rows . to_string_table () ) ; } } ; }
-    #[doc(hidden)]
-    pub fn __quiet(s: impl AsRef<str>) -> String {
-        s.as_ref()
-            .replace("340282366920938463463374607431768211455", "*")
-            .replace("170141183460469231731687303715884105727", "*")
-            .replace("18446744073709551615", "*")
-            .replace("9223372036854775807", "*")
-            .replace("-9223372036854775808", "*")
-            .replace("4294967295", "*")
-            .replace("2147483647", "*")
-            .replace("-2147483648", "*")
-            .replace("None", "*")
-            .replace("Some", "")
-            .replace("true", "#")
-            .replace("false", ".")
-            .replace(['"', '\''], "")
-    }
-    #[doc(hidden)]
-    #[derive(Default)]
-    pub struct Rows {
-        line_number: String,
-        index_label: String,
-        offset: usize,
-        verticalbars: Vec<usize>,
-        table_name: String,
-        rows: Vec<Row>,
-    }
-    impl Rows {
-        pub fn line_number(&mut self, line_number: u32) -> &mut Self {
-            self.line_number = format!("{}", line_number);
-            self
+            CumSum { cumsum }
         }
-        pub fn index_label(&mut self, index_label: impl Into<String>) -> &mut Self {
-            self.index_label = index_label.into();
-            self
-        }
-        pub fn offset(&mut self, offset: usize) -> &mut Self {
-            self.offset = offset;
-            self
-        }
-        pub fn verticalbar(&mut self, verticalbar: impl IntoIterator<Item = usize>) -> &mut Self {
-            self.verticalbars.extend(verticalbar);
-            self
-        }
-        pub fn table_name(&mut self, table_name: impl Into<String>) -> &mut Self {
-            self.table_name = table_name.into();
-            self
-        }
-        pub fn row(
-            &mut self,
-            label: impl Into<String>,
-            values: impl IntoIterator<Item = impl fmt::Debug>,
-        ) -> &mut Self {
-            self.rows.push(Row {
-                label: label.into(),
-                values: values
-                    .into_iter()
-                    .map(|value| __quiet(format!("{:?}", value)))
-                    .collect(),
-            });
-            self
-        }
-        pub fn to_string_table(self) -> StringTable {
-            let Self {
-                line_number,
-                index_label,
-                offset,
-                verticalbars,
-                table_name,
-                rows,
-            } = self;
-            let w = rows
-                .iter()
-                .map(|row| row.values.len())
-                .max()
-                .unwrap_or_default();
-            let mut verticalbar_count = vec![0; w + 1];
-            for &v in &verticalbars {
-                if (offset..=offset + w).contains(&v) {
-                    verticalbar_count[v - offset] += 1;
-                }
-            }
-            StringTable {
-                head: StringRow {
-                    label: format!(
-                        "{line_number}❯ {table_name}{index_label}",
-                        index_label = if index_label.is_empty() {
-                            String::new()
-                        } else {
-                            format!("[{}]", index_label)
-                        }
-                    ),
-                    values: (offset..offset + w)
-                        .map(|index| index.to_string())
-                        .collect(),
-                },
-                body: rows
-                    .iter()
-                    .map(|row| StringRow {
-                        label: row.label.clone(),
-                        values: row.values.clone(),
-                    })
-                    .collect(),
-                verticalbar_count,
-            }
+        /// 計算量: O(1)
+        pub fn get_interval_sum(&self, begin: usize, end: usize) -> i64 {
+            self.cumsum[end] - self.cumsum[begin]
         }
     }
-    struct Row {
-        label: String,
-        values: Vec<String>,
-    }
-    #[doc(hidden)]
-    pub struct StringTable {
-        head: StringRow,
-        body: Vec<StringRow>,
-        verticalbar_count: Vec<usize>,
-    }
-    impl fmt::Display for StringTable {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            let Self {
-                head,
-                body,
-                verticalbar_count,
-            } = self;
-            let w = body
-                .iter()
-                .map(|row| row.values.len())
-                .max()
-                .unwrap_or_default();
-            let label_width = once(head.label.chars().count())
-                .chain(body.iter().map(|row| row.label.chars().count()))
-                .max()
-                .unwrap();
-            let value_width = (0..w)
-                .map(|j| {
-                    once(j.to_string().len())
-                        .chain(
-                            body.iter()
-                                .map(|row| row.values.get(j).map_or(0, |s| s.chars().count())),
-                        )
-                        .max()
-                        .unwrap()
-                })
-                .collect::<Vec<_>>();
-            gray(f)?;
-            write!(
-                f,
-                "{}",
-                head.to_string(label_width, &value_width, verticalbar_count, true)
-            )?;
-            resetln(f)?;
-            for row in body {
-                write!(
-                    f,
-                    "{}",
-                    row.to_string(label_width, &value_width, verticalbar_count, false)
-                )?;
-                writeln!(f)?;
-            }
-            Ok(())
-        }
-    }
-    struct StringRow {
-        label: String,
-        values: Vec<String>,
-    }
-    impl StringRow {
-        fn to_string(
-            &self,
-            label_width: usize,
-            value_width: &[usize],
-            varticalbars_count: &[usize],
-            label_align_left: bool,
-        ) -> String {
-            let Self { label, values } = self;
-            let w = value_width.len();
-            let mut s = String::new();
-            s.push_str(&if label_align_left {
-                format!("{label:<label_width$} |")
-            } else {
-                format!("{label:^label_width$} |")
-            });
-            for j in 0..w {
-                let value_width = value_width[j];
-                s.push_str("|".repeat(varticalbars_count[j]).as_str());
-                if varticalbars_count[j] == 0 && j != 0 && value_width <= 1 {
-                    s.push(' ');
-                }
-                match values.get(j) {
-                    Some(value) => {
-                        s.push_str(&format!(" {value:>value_width$}",));
-                    }
-                    None => {
-                        s.push_str(" ".repeat(value_width + 1).as_str());
-                    }
-                }
-            }
-            s
-        }
-    }
-    const GRAY: &str = "\x1b[48;2;127;127;127;37m";
-    const RESET: &str = "\x1b[0m";
-    fn gray(f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{GRAY}")
-    }
-    fn resetln(f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "{RESET}")
-    }
-    /// Format a iterator of [`bool`]s.
-    pub fn bools<B, I>(iter: I) -> String
+}
+
+use cum_monoid::*;
+pub mod cum_monoid {
+    use ac_library::Monoid;
+    pub struct CumMonoid<M>
     where
-        B: Borrow<bool>,
-        I: IntoIterator<Item = B>,
+        M: Monoid,
     {
-        format!(
-            "[{}]",
-            iter.into_iter()
-                .map(|b| ['.', '#'][usize::from(*(b.borrow()))])
-                .collect::<String>(),
-        )
+        prefix_prod: Vec<M::S>,
+        suffix_prod: Vec<M::S>,
+    }
+    impl<M> CumMonoid<M>
+    where
+        M: Monoid,
+    {
+        pub fn new(xs: &[M::S]) -> CumMonoid<M> {
+            let mut prefix_prod = vec![M::identity(); xs.len() + 1];
+            let mut suffix_prod = vec![M::identity(); xs.len() + 1];
+            for i in 0..xs.len() {
+                prefix_prod[i + 1] = M::binary_operation(&prefix_prod[i], &xs[i]);
+            }
+            for i in (0..xs.len()).rev() {
+                suffix_prod[i] = M::binary_operation(&xs[i], &suffix_prod[i + 1]);
+            }
+            CumMonoid {
+                prefix_prod,
+                suffix_prod,
+            }
+        }
+        /// [0, i) の総積 (前から累積)
+        pub fn prefix_prod(&self, i: usize) -> M::S {
+            self.prefix_prod[i].clone()
+        }
+        /// [i, n) の総積 (後ろから累積)
+        pub fn suffix_prod(&self, i: usize) -> M::S {
+            self.suffix_prod[i].clone()
+        }
+        /// [0, i), [i + 1, n) の区間で総積を取る
+        pub fn prod_without1(&self, i: usize) -> M::S {
+            M::binary_operation(&self.prefix_prod[i], &self.suffix_prod[i + 1])
+        }
+        pub fn prod_without_range(&self, l: usize, r: usize) -> M::S {
+            M::binary_operation(&self.prefix_prod[l], &self.suffix_prod[r])
+        }
     }
 }
