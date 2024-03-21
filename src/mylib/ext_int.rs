@@ -2,8 +2,10 @@ use cargo_snippet::snippet;
 
 #[snippet(prefix = "use mod_ext_int::ExtInt::{self, *};")]
 pub mod mod_ext_int {
+    use ac_library::Monoid;
     use std::{
         cmp::Ordering,
+        convert::Infallible,
         iter::Sum,
         ops::{Add, AddAssign},
     };
@@ -101,11 +103,40 @@ pub mod mod_ext_int {
             self.partial_cmp(other).unwrap()
         }
     }
+
+    pub struct ExtIntAdditive(Infallible);
+    impl Monoid for ExtIntAdditive {
+        type S = ExtInt;
+
+        fn identity() -> Self::S {
+            Fin(0)
+        }
+
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            *a + *b
+        }
+    }
+
+    pub struct ExtIntMin(Infallible);
+    impl Monoid for ExtIntMin {
+        type S = ExtInt;
+
+        fn identity() -> Self::S {
+            Inf
+        }
+
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            *a.min(b)
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    use ac_library::Monoid;
+
     use super::mod_ext_int::ExtInt::{self, *};
+    use super::mod_ext_int::{ExtIntAdditive, ExtIntMin};
 
     #[allow(clippy::eq_op)]
     #[test]
@@ -181,5 +212,25 @@ mod tests {
 
         assert_eq!(ExtInt::from_option(Some(3)), Fin(3));
         assert_eq!(ExtInt::from_option(None), Inf);
+    }
+
+    #[test]
+    fn test_ext_int_additive() {
+        type M = ExtIntAdditive;
+        assert_eq!(M::binary_operation(&Fin(3), &Fin(4)), Fin(7));
+        assert_eq!(M::binary_operation(&Fin(3), &Inf), Inf);
+        assert_eq!(M::identity(), Fin(0));
+        assert_eq!(M::binary_operation(&M::identity(), &Fin(5)), Fin(5));
+        assert_eq!(M::binary_operation(&M::identity(), &Inf), Inf);
+    }
+
+    #[test]
+    fn test_ext_int_min() {
+        type M = ExtIntMin;
+        assert_eq!(M::binary_operation(&Fin(3), &Fin(4)), Fin(3));
+        assert_eq!(M::binary_operation(&Fin(3), &Inf), Fin(3));
+        assert_eq!(M::identity(), Inf);
+        assert_eq!(M::binary_operation(&M::identity(), &Fin(5)), Fin(5));
+        assert_eq!(M::binary_operation(&M::identity(), &Inf), Inf);
     }
 }

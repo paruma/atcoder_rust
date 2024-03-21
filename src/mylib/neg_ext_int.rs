@@ -2,12 +2,13 @@ use cargo_snippet::snippet;
 
 #[snippet(prefix = "use mod_neg_ext_int::NegExtInt::{self, *};")]
 pub mod mod_neg_ext_int {
+    use ac_library::Monoid;
     use std::{
         cmp::Ordering,
+        convert::Infallible,
         ops::{Add, AddAssign},
     };
     use NegExtInt::*;
-
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
     pub enum NegExtInt {
         NegInf,
@@ -100,11 +101,41 @@ pub mod mod_neg_ext_int {
             self.partial_cmp(other).unwrap()
         }
     }
+
+    pub struct NegExtIntAdditive(Infallible);
+    impl Monoid for NegExtIntAdditive {
+        type S = NegExtInt;
+
+        fn identity() -> Self::S {
+            Fin(0)
+        }
+
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            *a + *b
+        }
+    }
+
+    pub struct NegExtIntMax(Infallible);
+    impl Monoid for NegExtIntMax {
+        type S = NegExtInt;
+
+        fn identity() -> Self::S {
+            NegInf
+        }
+
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            *a.max(b)
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
+
+    use ac_library::Monoid;
+
     use super::mod_neg_ext_int::NegExtInt::{self, *};
+    use super::mod_neg_ext_int::{NegExtIntAdditive, NegExtIntMax};
 
     #[allow(clippy::eq_op)]
     #[test]
@@ -183,5 +214,25 @@ mod tests {
 
         assert_eq!(NegExtInt::from_option(Some(3)), Fin(3));
         assert_eq!(NegExtInt::from_option(None), NegInf);
+    }
+
+    #[test]
+    fn test_ext_int_additive() {
+        type M = NegExtIntAdditive;
+        assert_eq!(M::binary_operation(&Fin(3), &Fin(4)), Fin(7));
+        assert_eq!(M::binary_operation(&Fin(3), &NegInf), NegInf);
+        assert_eq!(M::identity(), Fin(0));
+        assert_eq!(M::binary_operation(&M::identity(), &Fin(5)), Fin(5));
+        assert_eq!(M::binary_operation(&M::identity(), &NegInf), NegInf);
+    }
+
+    #[test]
+    fn test_ext_int_min() {
+        type M = NegExtIntMax;
+        assert_eq!(M::binary_operation(&Fin(3), &Fin(4)), Fin(4));
+        assert_eq!(M::binary_operation(&Fin(3), &NegInf), Fin(3));
+        assert_eq!(M::identity(), NegInf);
+        assert_eq!(M::binary_operation(&M::identity(), &Fin(5)), Fin(5));
+        assert_eq!(M::binary_operation(&M::identity(), &NegInf), NegInf);
     }
 }
