@@ -1,29 +1,36 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    xs: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n: usize,
+            xs: [i64; n]
         }
-        Problem { _a }
+        Problem { xs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = self
+            .xs
+            .iter()
+            .copied()
+            .tuple_windows()
+            .map(|(x, y)| x * y)
+            .collect_vec();
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec_1line(&self.ans);
     }
 }
 

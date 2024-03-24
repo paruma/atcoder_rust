@@ -1,29 +1,58 @@
-//#[derive_readable]
+#[derive_readable]
 struct Problem {
-    _a: i64,
+    w: usize,
+    b: usize,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            p: Problem
         }
-        Problem { _a }
+        p
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let w = self.w;
+        let b = self.b;
+        let piano = b"wbwbwwbwbwbw";
+        let piano_loop = std::iter::repeat(piano)
+            .take(100)
+            .flatten()
+            .copied()
+            .collect_vec();
+
+        let ans = (0..piano_loop.len() - (w + b)).any(|start| {
+            // let xs = piano_loop[start..start + w + b].to_vec();
+            let xs = &piano_loop[start..start + w + b];
+            let count_w = xs.iter().copied().filter(|x| *x == b'w').count();
+            let count_b = xs.iter().copied().filter(|x| *x == b'b').count();
+            count_w == w && count_b == b
+        });
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        let w = self.w;
+        let b = self.b;
+        let piano_loop = b"wbwbwwbwbwbw".repeat(100);
+        let ans = piano_loop.windows(w + b).any(|xs| {
+            let count_w = xs.iter().copied().filter(|x| *x == b'w').count();
+            let count_b = xs.iter().copied().filter(|x| *x == b'b').count();
+            count_w == w && count_b == b
+        });
+
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_yesno(self.ans);
     }
 }
 

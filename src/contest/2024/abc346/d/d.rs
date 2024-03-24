@@ -1,17 +1,50 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    n: usize,
+    s: Vec<usize>,
+    cs: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n: usize,
+            s: Bytes,
+            cs: [i64; n],
         }
-        Problem { _a }
+        let s = s.iter().copied().map(|x| (x - b'0') as usize).collect_vec();
+        Problem { n, s, cs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let s = &self.s;
+
+        let mut dp = vec![vec![vec![i64::MAX; 2]; 2]; n + 1];
+
+
+        let mut dp = vec![vec![vec![0; 2]; 2]; n + 1];
+
+
+        dp[0][0][0] = 0;
+        dp[0][0][1] = 0;
+
+        for i in 0..n {
+            // 00, 11 がないパターンdp[i+1][0][-]
+            for last in [0_usize, 1] {
+                let cost = if s[i] == last { 0 } else { self.cs[i] };
+                dp[i + 1][0][last] = dp[i][0][1 - last] + cost;
+            }
+
+            if i == 0 {
+                continue;
+            }
+            // 00, 11 があるパターン dp[i+1][1][-]
+            for last in [0_usize, 1] {
+                let cost = if s[i] == last { 0 } else { self.cs[i] };
+                dp[i + 1][1][last] = i64::min(dp[i][0][last], dp[i][1][1 - last]) + cost;
+            }
+        }
+        let ans = i64::min(dp[n][1][0], dp[n][1][1]);
         Answer { ans }
     }
 }

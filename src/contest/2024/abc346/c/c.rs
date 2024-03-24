@@ -1,17 +1,31 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    n: usize,
+    k: i64,
+    xs: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n: usize,
+            k: i64,
+            xs: [i64; n],
         }
-        Problem { _a }
+        Problem { n, k, xs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let k = self.k;
+        let all_sum = k * (k + 1) / 2;
+        let xs_sum = self
+            .xs
+            .iter()
+            .copied()
+            .unique()
+            .filter(|x| *x <= k)
+            .sum::<i64>();
+
+        let ans = all_sum - xs_sum;
         Answer { ans }
     }
 }
