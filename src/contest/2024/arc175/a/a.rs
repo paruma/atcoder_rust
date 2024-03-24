@@ -1,18 +1,119 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    n: usize,
+    ps: Vec<usize>,
+    lr_list: Vec<u8>,
 }
+
+use ac_library::ModInt998244353 as Mint;
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n: usize,
+            ps: [Usize1; n],
+            lr_list: Bytes,
         }
-        Problem { _a }
+        Problem { n, ps, lr_list }
     }
+
     fn solve(&self) -> Answer {
-        let ans = 0;
-        Answer { ans }
+        let n = self.n;
+        let ps = &self.ps;
+        let lr_list = &self.lr_list;
+
+        let modn = |x: i64| {
+            if x >= 0 {
+                x % n as i64
+            } else {
+                (x % n as i64 + n as i64) % n as i64
+            }
+        };
+
+        // 左: -1, 右: +1
+        let ans = [1, -1]
+            .iter()
+            .map(|&p0_lr| {
+                match lr_list[ps[0]] {
+                    b'L' => {
+                        if p0_lr == 1 {
+                            // +1 は右を表す
+                            return Mint::new(0);
+                        }
+                    }
+                    b'R' => {
+                        if p0_lr == -1 {
+                            // -1 は左を表す
+                            return Mint::new(0);
+                        }
+                    }
+                    b'?' => {}
+                    _ => unreachable!(),
+                };
+
+                let mut visited = vec![false; n];
+                visited[ps[0]] = true;
+
+                let mut cnts = vec![];
+
+                for i in 1..n {
+                    let current = ps[i];
+                    // next はcurrent の右隣 or 左隣 (0番目の人が選択していない左右)
+                    // next の方にあるスプーンを取らない
+                    let next = modn(-p0_lr + (current as i64)) as usize;
+                    let cnt = if visited[next] {
+                        match lr_list[current] {
+                            // b'L' => {
+                            //     if p0_lr == -1 {
+                            //         1
+                            //     } else {
+                            //         0
+                            //     }
+                            // }
+                            // b'R' => {
+                            //     if p0_lr == 1 {
+                            //         1
+                            //     } else {
+                            //         0
+                            //     }
+                            // }
+                            b'L' => 1,
+                            b'R' => 1,
+                            b'?' => 2,
+                            _ => unreachable!(),
+                        }
+                    } else {
+                        match lr_list[current] {
+                            // current の利き手は 0番目に取った人の利き手でないといけない。
+                            b'L' => {
+                                if p0_lr == -1 {
+                                    1
+                                } else {
+                                    0
+                                }
+                            }
+                            b'R' => {
+                                if p0_lr == 1 {
+                                    1
+                                } else {
+                                    0
+                                }
+                            }
+                            b'?' => 1,
+                            _ => unreachable!(),
+                        }
+                    };
+
+                    cnts.push(Mint::new(cnt));
+                    visited[current] = true;
+                }
+
+                //dbg!(cnts.iter().product::<i64>());
+                cnts.iter().product::<Mint>()
+            })
+            .sum::<Mint>()
+            .val();
+        Answer { ans: ans as i64 }
     }
 }
 
@@ -42,6 +143,7 @@ mod tests {
     }
 }
 
+use ac_library::ModInt998244353;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::Itertools;
