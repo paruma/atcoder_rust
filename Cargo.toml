@@ -5,54 +5,58 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [[bin]]
+name = "lpc_lazy_segtree"
+path = "src/contest/2024/_misc/lazy_segtree.rs"
+
+
+[[bin]]
 name = "arc175_a"
 path = "src/contest/2024/arc175/a/a.rs"
-        
+
 [[bin]]
 name = "arc175_b"
 path = "src/contest/2024/arc175/b/b.rs"
-        
+
 [[bin]]
 name = "arc175_c"
 path = "src/contest/2024/arc175/c/c.rs"
-        
+
 [[bin]]
 name = "arc175_d"
 path = "src/contest/2024/arc175/d/d.rs"
-        
+
 [[bin]]
 name = "arc175_e"
 path = "src/contest/2024/arc175/e/e.rs"
-        
+
 
 [[bin]]
 name = "abc346_a"
 path = "src/contest/2024/abc346/a/a.rs"
-        
+
 [[bin]]
 name = "abc346_b"
 path = "src/contest/2024/abc346/b/b.rs"
-        
+
 [[bin]]
 name = "abc346_c"
 path = "src/contest/2024/abc346/c/c.rs"
-        
+
 [[bin]]
 name = "abc346_d"
 path = "src/contest/2024/abc346/d/d.rs"
-        
+
 [[bin]]
 name = "abc346_e"
 path = "src/contest/2024/abc346/e/e.rs"
-        
+
 [[bin]]
 name = "abc346_f"
 path = "src/contest/2024/abc346/f/f.rs"
-        
+
 [[bin]]
 name = "abc346_g"
 path = "src/contest/2024/abc346/g/g.rs"
-        
 
 
 [[bin]]
