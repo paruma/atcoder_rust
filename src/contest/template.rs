@@ -1,4 +1,5 @@
-//#[derive_readable]
+// #[derive_readable]
+#[derive(Debug)]
 struct Problem {
     _a: i64,
 }
@@ -11,6 +12,12 @@ impl Problem {
         Problem { _a }
     }
     fn solve(&self) -> Answer {
+        let ans = 0;
+        Answer { ans }
+    }
+
+    #[allow(dead_code)]
+    fn solve_naive(&self) -> Answer {
         let ans = 0;
         Answer { ans }
     }
@@ -35,10 +42,27 @@ fn main() {
 mod tests {
     #[allow(unused_imports)]
     use super::*;
+    #[allow(unused_imports)]
+    use rand::{rngs::SmallRng, seq::SliceRandom, *};
 
     #[test]
     fn test_problem() {
         assert_eq!(1 + 1, 2);
+    }
+
+    fn test_random() {
+        // let mut rng = SmallRng::from_entropy();
+        // let n = rng.gen_range(1..=10);
+        // let p = Problem { _a: n };
+        // dbg!(&p);
+        // assert_eq!(p.solve(), p.solve_naive());
+    }
+
+    #[test]
+    fn test_random_all() {
+        for _ in 0..100 {
+            test_random();
+        }
     }
 }
 

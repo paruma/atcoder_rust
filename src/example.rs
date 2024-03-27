@@ -4,3 +4,4 @@ mod dfs_multi_loop;
 mod digit_dp;
 mod integer;
 mod knapsack;
+mod random;
