@@ -1,6 +1,9 @@
+#![allow(dead_code)]
+
 // https://atcoder.jp/contests/tdpc/tasks/tdpc_number
 
 use ac_library::ModInt1000000007 as Mint;
+
 struct Problem {
     d: i64,
     k: Vec<i64>,

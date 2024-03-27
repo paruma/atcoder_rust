@@ -63,20 +63,6 @@ impl Problem {
                     let next = modn(-p0_lr + (current as i64)) as usize;
                     let cnt = if visited[next] {
                         match lr_list[current] {
-                            // b'L' => {
-                            //     if p0_lr == -1 {
-                            //         1
-                            //     } else {
-                            //         0
-                            //     }
-                            // }
-                            // b'R' => {
-                            //     if p0_lr == 1 {
-                            //         1
-                            //     } else {
-                            //         0
-                            //     }
-                            // }
                             b'L' => 1,
                             b'R' => 1,
                             b'?' => 2,
@@ -140,10 +126,10 @@ mod tests {
     #[test]
     fn test_problem() {
         assert_eq!(1 + 1, 2);
+        let x = vec![2, 3];
     }
 }
 
-use ac_library::ModInt998244353;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::Itertools;
