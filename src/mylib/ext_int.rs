@@ -74,6 +74,23 @@ pub mod mod_ext_int {
         }
     }
 
+    impl Add<i64> for ExtInt {
+        type Output = ExtInt;
+
+        fn add(self, rhs: i64) -> Self::Output {
+            match self {
+                Inf => Inf,
+                Fin(a) => Fin(a + rhs),
+            }
+        }
+    }
+
+    impl AddAssign<i64> for ExtInt {
+        fn add_assign(&mut self, rhs: i64) {
+            *self = *self + rhs;
+        }
+    }
+
     impl Sum for ExtInt {
         fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
             let mut s = 0;
@@ -174,6 +191,23 @@ mod tests {
         assert_eq!(x, Fin(7));
         x += Inf;
         assert_eq!(x, Inf);
+    }
+
+    #[test]
+    fn test_ext_int_add_i64() {
+        assert_eq!(Inf + 4, Inf);
+        assert_eq!(Fin(3) + 4, Fin(7));
+    }
+
+    #[test]
+    fn test_ext_int_add_assign_i64() {
+        let mut x = Fin(3);
+        x += 4;
+        assert_eq!(x, Fin(7));
+
+        let mut y = Inf;
+        y += 4;
+        assert_eq!(y, Inf);
     }
 
     #[test]

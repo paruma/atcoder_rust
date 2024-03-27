@@ -72,6 +72,23 @@ pub mod mod_neg_ext_int {
         }
     }
 
+    impl Add<i64> for NegExtInt {
+        type Output = NegExtInt;
+
+        fn add(self, rhs: i64) -> Self::Output {
+            match self {
+                NegInf => NegInf,
+                Fin(a) => Fin(a + rhs),
+            }
+        }
+    }
+
+    impl AddAssign<i64> for NegExtInt {
+        fn add_assign(&mut self, rhs: i64) {
+            *self = *self + rhs;
+        }
+    }
+
     impl std::iter::Sum for NegExtInt {
         fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
             let mut s = 0;
@@ -176,6 +193,23 @@ mod tests {
         assert_eq!(x, Fin(7));
         x += NegInf;
         assert_eq!(x, NegInf);
+    }
+
+    #[test]
+    fn test_ext_int_add_i64() {
+        assert_eq!(NegInf + 4, NegInf);
+        assert_eq!(Fin(3) + 4, Fin(7));
+    }
+
+    #[test]
+    fn test_ext_int_add_assign_i64() {
+        let mut x = Fin(3);
+        x += 4;
+        assert_eq!(x, Fin(7));
+
+        let mut y = NegInf;
+        y += 4;
+        assert_eq!(y, NegInf);
     }
 
     #[test]
