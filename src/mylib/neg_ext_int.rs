@@ -51,6 +51,17 @@ pub mod mod_neg_ext_int {
                 None => NegInf,
             }
         }
+
+        pub fn times(self, t: i64) -> Self {
+            match t.cmp(&0) {
+                Ordering::Less => panic!("t must be non-negative."),
+                Ordering::Equal => Fin(0),
+                Ordering::Greater => match self {
+                    NegInf => NegInf,
+                    Fin(a) => Fin(a * t),
+                },
+            }
+        }
     }
 
     impl Add for NegExtInt {
@@ -248,6 +259,18 @@ mod tests {
 
         assert_eq!(NegExtInt::from_option(Some(3)), Fin(3));
         assert_eq!(NegExtInt::from_option(None), NegInf);
+    }
+
+    #[test]
+    fn test_extint_times() {
+        assert_eq!(Fin(3).times(0), Fin(0));
+        assert_eq!(Fin(3).times(10), Fin(30));
+        assert_eq!(Fin(0).times(0), Fin(0));
+        assert_eq!(Fin(0).times(10), Fin(0));
+        assert_eq!(Fin(-3).times(0), Fin(0));
+        assert_eq!(Fin(-3).times(10), Fin(-30));
+        assert_eq!(NegInf.times(0), Fin(0)); // Inf を 0 回足した場合と考え、足し算の単位元 Fin(0) 扱い
+        assert_eq!(NegInf.times(10), NegInf);
     }
 
     #[test]

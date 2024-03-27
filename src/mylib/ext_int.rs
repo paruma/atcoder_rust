@@ -53,6 +53,17 @@ pub mod mod_ext_int {
                 None => Inf,
             }
         }
+
+        pub fn times(self, t: i64) -> Self {
+            match t.cmp(&0) {
+                Ordering::Less => panic!("t must be non-negative."),
+                Ordering::Equal => Fin(0),
+                Ordering::Greater => match self {
+                    Inf => Inf,
+                    Fin(a) => Fin(a * t),
+                },
+            }
+        }
     }
 
     impl Add for ExtInt {
@@ -184,6 +195,7 @@ mod tests {
         assert_eq!(Fin(3) + Inf, Inf);
         assert_eq!(Fin(3) + Fin(4), Fin(7));
     }
+
     #[test]
     fn test_ext_int_add_assign() {
         let mut x = Fin(3);
@@ -246,6 +258,18 @@ mod tests {
 
         assert_eq!(ExtInt::from_option(Some(3)), Fin(3));
         assert_eq!(ExtInt::from_option(None), Inf);
+    }
+
+    #[test]
+    fn test_extint_times() {
+        assert_eq!(Fin(3).times(0), Fin(0));
+        assert_eq!(Fin(3).times(10), Fin(30));
+        assert_eq!(Fin(0).times(0), Fin(0));
+        assert_eq!(Fin(0).times(10), Fin(0));
+        assert_eq!(Fin(-3).times(0), Fin(0));
+        assert_eq!(Fin(-3).times(10), Fin(-30));
+        assert_eq!(Inf.times(0), Fin(0)); // Inf を 0 回足した場合と考え、足し算の単位元 Fin(0) 扱い
+        assert_eq!(Inf.times(10), Inf);
     }
 
     #[test]
