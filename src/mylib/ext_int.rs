@@ -261,7 +261,7 @@ mod tests {
     }
 
     #[test]
-    fn test_extint_times() {
+    fn test_ext_int_times() {
         assert_eq!(Fin(3).times(0), Fin(0));
         assert_eq!(Fin(3).times(10), Fin(30));
         assert_eq!(Fin(0).times(0), Fin(0));

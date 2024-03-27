@@ -207,13 +207,13 @@ mod tests {
     }
 
     #[test]
-    fn test_ext_int_add_i64() {
+    fn test_neg_ext_int_add_i64() {
         assert_eq!(NegInf + 4, NegInf);
         assert_eq!(Fin(3) + 4, Fin(7));
     }
 
     #[test]
-    fn test_ext_int_add_assign_i64() {
+    fn test_neg_ext_int_add_assign_i64() {
         let mut x = Fin(3);
         x += 4;
         assert_eq!(x, Fin(7));
@@ -262,7 +262,7 @@ mod tests {
     }
 
     #[test]
-    fn test_extint_times() {
+    fn test_neg_ext_int_times() {
         assert_eq!(Fin(3).times(0), Fin(0));
         assert_eq!(Fin(3).times(10), Fin(30));
         assert_eq!(Fin(0).times(0), Fin(0));
@@ -274,7 +274,7 @@ mod tests {
     }
 
     #[test]
-    fn test_ext_int_additive() {
+    fn test_neg_ext_int_additive() {
         type M = NegExtIntAdditive;
         assert_eq!(M::binary_operation(&Fin(3), &Fin(4)), Fin(7));
         assert_eq!(M::binary_operation(&Fin(3), &NegInf), NegInf);
@@ -284,7 +284,7 @@ mod tests {
     }
 
     #[test]
-    fn test_ext_int_min() {
+    fn test_neg_ext_int_min() {
         type M = NegExtIntMax;
         assert_eq!(M::binary_operation(&Fin(3), &Fin(4)), Fin(4));
         assert_eq!(M::binary_operation(&Fin(3), &NegInf), Fin(3));
