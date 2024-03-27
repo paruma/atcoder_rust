@@ -5,10 +5,14 @@ struct Problem {
 }
 
 fn is_win(xs: &[i64], k: i64) -> bool {
-    xs.iter().copied().map(|x| x % (k + 1)).fold(0, |x, acc| x ^ acc) != 0
+    xs.iter()
+        .copied()
+        .map(|x| x % (k + 1))
+        .fold(0, |acc, x| acc ^ x)
+        != 0
 }
 fn is_win_normal(xs: &[i64]) -> bool {
-    xs.iter().copied().fold(0, |x, acc| x ^ acc) != 0
+    xs.iter().copied().fold(0, |acc, x| acc ^ x) != 0
 }
 
 impl Problem {

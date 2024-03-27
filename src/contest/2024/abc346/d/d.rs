@@ -21,10 +21,6 @@ impl Problem {
 
         let mut dp = vec![vec![vec![i64::MAX; 2]; 2]; n + 1];
 
-
-        let mut dp = vec![vec![vec![0; 2]; 2]; n + 1];
-
-
         dp[0][0][0] = 0;
         dp[0][0][1] = 0;
 

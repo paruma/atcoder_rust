@@ -125,22 +125,24 @@ pub fn topo_sort(adj: &Vec<Vec<Edge>>) -> Vec<usize> {
 }
 
 mod tests {
+    #[allow(unused_imports)]
     use itertools::Itertools;
 
     use super::*;
 
+    #[allow(dead_code)]
     fn edge1() -> (usize, Vec<Edge>) {
         // 0
         // ↓  ↘
         // 1 → 2
         (3, vec![Edge::new(0, 1), Edge::new(0, 2), Edge::new(1, 2)])
     }
-
+    #[allow(dead_code)]
     fn edge2() -> (usize, Vec<Edge>) {
         // 0 → 1 → 2
         (3, vec![Edge::new(0, 1), Edge::new(1, 2)])
     }
-
+    #[allow(dead_code)]
     fn edge3() -> (usize, Vec<Edge>) {
         // 0 → 1
         // ↓   ↓
