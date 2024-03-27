@@ -18,8 +18,9 @@ impl Problem {
 
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
-        let ans = 0;
-        Answer { ans }
+        todo!();
+        // let ans = 0;
+        // Answer { ans }
     }
 }
 

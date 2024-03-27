@@ -1,7 +1,10 @@
+#[derive(Debug)]
+
 struct TestCase {
     xs: Vec<i64>,
     ps: Vec<i64>,
 }
+#[derive(Debug)]
 struct Problem {
     test_cases: Vec<TestCase>,
 }
@@ -39,6 +42,45 @@ impl TestCase {
 
         i64::min(price4, price5)
     }
+
+    fn solve_naive(&self) -> i64 {
+        let n_review = self.xs.iter().sum::<i64>();
+        let rating_sum = self
+            .xs
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(i, x)| x * (i as i64 + 1))
+            .sum::<i64>();
+
+        // 賄賂不要なケース
+        if rating_sum >= n_review * 3 {
+            // rating_sum / n_review が平均評価
+            return 0;
+        }
+
+        let p4 = self.ps[3];
+        let p5 = self.ps[4];
+
+        // 4を買う
+        // rating_sum + 4 * cnt4 >= (n_review + cnt4) * 3 となる最小の cnt4
+        let max_cnt4 = 3 * n_review - rating_sum;
+
+        // 5を買う
+        // rating_sum + ５ * cnt4 >= (n_review + cnt4) * 3 となる最小の cnt4
+        let max_cnt5 = (3 * n_review - rating_sum).div_ceil(&2);
+
+        iproduct!(0..=max_cnt4, 0..=max_cnt5)
+            .filter_map(|(cnt4, cnt5)| {
+                if rating_sum + 4 * cnt4 + 5 * cnt5 < (n_review + cnt4 + cnt5) * 3 {
+                    None
+                } else {
+                    Some(p4 * cnt4 + p5 * cnt5)
+                }
+            })
+            .min()
+            .unwrap()
+    }
 }
 
 impl Problem {
@@ -59,6 +101,17 @@ impl Problem {
     }
     fn solve(&self) -> Answer {
         let ans = self.test_cases.iter().map(|t| t.solve()).collect_vec();
+
+        Answer { ans }
+    }
+
+    #[allow(dead_code)]
+    fn solve_naive(&self) -> Answer {
+        let ans = self
+            .test_cases
+            .iter()
+            .map(|t| t.solve_naive())
+            .collect_vec();
 
         Answer { ans }
     }
@@ -83,13 +136,34 @@ fn main() {
 mod tests {
     #[allow(unused_imports)]
     use super::*;
+    #[allow(unused_imports)]
+    use rand::{rngs::SmallRng, seq::SliceRandom, *};
 
     #[test]
     fn test_problem() {
         assert_eq!(1 + 1, 2);
     }
+
+    fn test_random() {
+        let mut rng = SmallRng::from_entropy();
+        let xs = (0..5).map(|_| rng.gen_range(0..4)).collect_vec();
+        let ps = (0..5).map(|_| rng.gen_range(0..4)).collect_vec();
+        let p = Problem {
+            test_cases: vec![TestCase { xs, ps }],
+        };
+        dbg!(&p);
+        assert_eq!(p.solve(), p.solve_naive());
+    }
+
+    #[test]
+    fn test_random_all() {
+        for _ in 0..1000 {
+            test_random();
+        }
+    }
 }
 
+use itertools::iproduct;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::Itertools;
