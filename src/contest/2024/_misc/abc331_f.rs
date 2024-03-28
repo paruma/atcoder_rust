@@ -52,71 +52,10 @@ impl Problem {
             qs,
         }
     }
-    fn solve(&self) -> Answer {
-        use ac_library::segtree::Segtree;
-        use ac_library::ModInt998244353 as Mint;
-        let Problem {
-            str_len,
-            nq,
-            str,
-            qs,
-        } = self;
 
-        let ctoi = |c: u8| c - b'a';
-
-        let base_list: [i64; 3] = [100_000_001, 321_432_543, 987_654_321];
-        let make_rh = |ch: u8, base: i64| RollingHash::new(Mint::new(ctoi(ch)), Mint::new(base));
-
-        let rev_i = |i: usize| str_len - 1 - i;
-
-        // 文字列の正順と逆順
-        let normal_rh = base_list.map(|base| {
-            str.iter()
-                .copied()
-                .map(|ch| make_rh(ch, base))
-                .collect_vec()
-        });
-        let reverse_rh = base_list.map(|base| {
-            str.iter()
-                .copied()
-                .rev()
-                .map(|ch| make_rh(ch, base))
-                .collect_vec()
-        });
-        let mut normal_seg_trees = normal_rh.map(Segtree::<RollingHashConcat<Mint>>::from);
-        let mut reverse_seg_trees = reverse_rh.map(Segtree::<RollingHashConcat<Mint>>::from);
-
-        let mut ans = vec![];
-        for q in qs {
-            match q {
-                Query::Update { x, c } => {
-                    for (seg_tree, base) in izip!(&mut normal_seg_trees, base_list) {
-                        seg_tree.set(*x, make_rh(*c, base));
-                    }
-                    for (seg_tree, base) in izip!(&mut reverse_seg_trees, base_list) {
-                        seg_tree.set(rev_i(*x), make_rh(*c, base));
-                    }
-                }
-                Query::Find { l, r } => {
-                    let is_palindrome = izip!(&normal_seg_trees, &reverse_seg_trees).all(
-                        |(normal_seg_tree, reverse_seg_tree)| {
-                            let rev_l = rev_i(*l);
-                            let rev_r = rev_i(*r);
-                            normal_seg_tree.prod(l..=r) == reverse_seg_tree.prod(rev_r..=rev_l)
-                        },
-                    );
-                    ans.push(is_palindrome);
-                }
-            }
-        }
-
-        Answer { ans }
-    }
-
-    fn solve2(&self) -> Answer {
+    fn solve3(&self) -> Answer {
         // ロリハの直積
         use ac_library::segtree::Segtree;
-        use ac_library::ModInt998244353 as Mint;
         let Problem {
             str_len,
             nq,
@@ -124,32 +63,28 @@ impl Problem {
             qs,
         } = self;
 
-        let ctoi = |c: u8| c - b'a';
-
-        let base_list: [i64; 3] = [100_000_001, 321_432_543, 987_654_321];
-        let make_rh =
-            |ch: u8| base_list.map(|base| RollingHash::new(Mint::new(ctoi(ch)), Mint::new(base)));
+        let ctoi = |c: u8| (c - b'a') as i64;
 
         let rev_i = |i: usize| str_len - 1 - i;
+        let normal_xs = str.iter().copied().map(ctoi).collect_vec();
+
+        let reverse_xs = normal_xs.iter().copied().rev().collect_vec();
+
+        let unit = RollingHash::unit(100);
 
         // 文字列の正順と逆順
-        let normal_rh = str.iter().copied().map(|ch| make_rh(ch)).collect_vec();
-        let reverse_rh = str
-            .iter()
-            .copied()
-            .rev()
-            .map(|ch| make_rh(ch))
-            .collect_vec();
+        let normal_rh = normal_xs.iter().copied().map(&unit).collect_vec();
+        let reverse_rh = reverse_xs.iter().copied().map(&unit).collect_vec();
 
-        let mut normal_seg_tree = Segtree::<RollingHash3Concat<Mint>>::from(normal_rh);
-        let mut reverse_seg_tree = Segtree::<RollingHash3Concat<Mint>>::from(reverse_rh);
+        let mut normal_seg_tree = Segtree::<RollingHashConcat>::from(normal_rh);
+        let mut reverse_seg_tree = Segtree::<RollingHashConcat>::from(reverse_rh);
 
         let mut ans = vec![];
         for q in qs {
             match q {
                 Query::Update { x, c } => {
-                    normal_seg_tree.set(*x, make_rh(*c));
-                    reverse_seg_tree.set(rev_i(*x), make_rh(*c));
+                    normal_seg_tree.set(*x, unit(ctoi(*c)));
+                    reverse_seg_tree.set(rev_i(*x), unit(ctoi(*c)));
                 }
                 Query::Find { l, r } => {
                     let rev_l = rev_i(*l);
@@ -179,7 +114,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve2().print();
+    Problem::read().solve3().print();
 }
 
 #[cfg(test)]
@@ -193,7 +128,6 @@ mod tests {
     }
 }
 
-use ac_library::segtree;
 use itertools::izip;
 // ====== import ======
 #[allow(unused_imports)]
@@ -250,65 +184,88 @@ fn print_yesno(ans: bool) {
 // ====== snippet ======
 use monoid_rolling_hash::*;
 pub mod monoid_rolling_hash {
-    use ac_library::Monoid;
-    use std::{
-        convert::Infallible,
-        marker::PhantomData,
-        ops::{Add, Mul},
-    };
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-    pub struct RollingHash<T> {
-        hash: T,
-        base: T,
+    use std::convert::Infallible;
+
+    const MOD: i128 = (1 << 61) - 1; // 2^61 -1
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    struct ModIntPow261M1 {
+        val: i128,
     }
-    impl<T> RollingHash<T> {
-        pub fn new(hash: T, base: T) -> Self {
-            Self { hash, base }
-        }
-        pub fn identity() -> Self
-        where
-            T: From<i64>,
-        {
+
+    impl ModIntPow261M1 {
+        #[inline]
+        pub fn new(val: i128) -> Self {
+            // シフト演算を使った高速化もあるがしていない
+            // val は -MOD = x < MOD を想定している。
+            let val = (val + MOD) % MOD;
             Self {
-                hash: 0.into(),
-                base: 1.into(),
+                val: val.rem_euclid(MOD),
             }
-        }
-        pub fn concat(&self, rhs: &Self) -> Self
-        where
-            T: Copy + Mul<Output = T> + Add<Output = T>,
-        {
-            Self {
-                hash: self.hash * rhs.base + rhs.hash,
-                base: self.base * rhs.base,
-            }
-        }
-    }
-    pub struct RollingHashConcat<T>(Infallible, PhantomData<fn() -> T>);
-    impl<T> Monoid for RollingHashConcat<T>
-    where
-        T: Copy + From<i64> + Add<Output = T> + Mul<Output = T>,
-    {
-        type S = RollingHash<T>;
-        fn identity() -> Self::S {
-            RollingHash::identity()
-        }
-        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
-            a.concat(b)
         }
     }
 
-    pub struct RollingHash3Concat<T>(Infallible, PhantomData<fn() -> T>);
-    impl<T> Monoid for RollingHash3Concat<T>
-    where
-        T: Copy + From<i64> + Add<Output = T> + Mul<Output = T>,
-    {
-        type S = [RollingHash<T>; 3];
+    impl std::ops::Add for ModIntPow261M1 {
+        type Output = Self;
+
+        #[inline]
+        fn add(self, rhs: Self) -> Self::Output {
+            Self::new(self.val + rhs.val)
+        }
+    }
+
+    impl std::ops::Sub for ModIntPow261M1 {
+        type Output = Self;
+
+        #[inline]
+        fn sub(self, rhs: Self) -> Self::Output {
+            Self::new(self.val - rhs.val)
+        }
+    }
+
+    impl std::ops::Mul for ModIntPow261M1 {
+        type Output = Self;
+
+        #[inline]
+        fn mul(self, rhs: Self) -> Self::Output {
+            Self::new(self.val * rhs.val)
+        }
+    }
+
+    use ac_library::Monoid;
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub struct RollingHash {
+        hash: ModIntPow261M1,
+        base: ModIntPow261M1,
+    }
+    impl RollingHash {
+        pub fn get_hash(&self) -> i64 {
+            self.hash.val as i64
+        }
+
+        pub fn unit(base: i64) -> impl (Fn(i64) -> RollingHash) {
+            move |x| RollingHash {
+                hash: ModIntPow261M1::new(x as i128),
+                base: ModIntPow261M1::new(base as i128),
+            }
+        }
+    }
+
+    pub struct RollingHashConcat(Infallible);
+    impl Monoid for RollingHashConcat {
+        type S = RollingHash;
         fn identity() -> Self::S {
-            [RollingHash::identity(); 3]
+            RollingHash {
+                hash: ModIntPow261M1::new(0),
+                base: ModIntPow261M1::new(1),
+            }
         }
         fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
-            [0, 1, 2].map(|i| a[i].concat(&b[i]))
+            RollingHash {
+                hash: a.hash * b.base + b.hash,
+                base: a.base * b.base,
+            }
         }
     }
 }

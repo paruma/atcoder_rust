@@ -269,6 +269,93 @@ pub mod monoid_affine {
 
 #[snippet(prefix = "use monoid_rolling_hash::*;")]
 pub mod monoid_rolling_hash {
+    use std::convert::Infallible;
+
+    const MOD: i128 = (1 << 61) - 1; // 2^61 -1
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    struct ModIntPow261M1 {
+        val: i128,
+    }
+
+    impl ModIntPow261M1 {
+        #[inline]
+        pub fn new(val: i128) -> Self {
+            // シフト演算を使った高速化もあるがしていない
+            // val は -MOD = x < MOD を想定している。
+            let val = (val + MOD) % MOD;
+            Self {
+                val: val.rem_euclid(MOD),
+            }
+        }
+    }
+
+    impl std::ops::Add for ModIntPow261M1 {
+        type Output = Self;
+
+        #[inline]
+        fn add(self, rhs: Self) -> Self::Output {
+            Self::new(self.val + rhs.val)
+        }
+    }
+
+    impl std::ops::Sub for ModIntPow261M1 {
+        type Output = Self;
+
+        #[inline]
+        fn sub(self, rhs: Self) -> Self::Output {
+            Self::new(self.val - rhs.val)
+        }
+    }
+
+    impl std::ops::Mul for ModIntPow261M1 {
+        type Output = Self;
+
+        #[inline]
+        fn mul(self, rhs: Self) -> Self::Output {
+            Self::new(self.val * rhs.val)
+        }
+    }
+
+    use ac_library::Monoid;
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub struct RollingHash {
+        hash: ModIntPow261M1,
+        base: ModIntPow261M1,
+    }
+    impl RollingHash {
+        pub fn get_hash(&self) -> i64 {
+            self.hash.val as i64
+        }
+
+        pub fn unit(base: i64) -> impl (Fn(i64) -> RollingHash) {
+            move |x| RollingHash {
+                hash: ModIntPow261M1::new(x as i128),
+                base: ModIntPow261M1::new(base as i128),
+            }
+        }
+    }
+
+    pub struct RollingHashConcat(Infallible);
+    impl Monoid for RollingHashConcat {
+        type S = RollingHash;
+        fn identity() -> Self::S {
+            RollingHash {
+                hash: ModIntPow261M1::new(0),
+                base: ModIntPow261M1::new(1),
+            }
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            RollingHash {
+                hash: a.hash * b.base + b.hash,
+                base: a.base * b.base,
+            }
+        }
+    }
+}
+#[snippet(prefix = "use monoid_rolling_hash_old::*;")]
+pub mod monoid_rolling_hash_old {
     use std::{
         convert::Infallible,
         marker::PhantomData,
@@ -383,8 +470,8 @@ mod test {
     use crate::mylib::monoid::extend_acl_monoid::MonoidExtPow;
     use crate::mylib::monoid::monoid_affine::AffineComposition;
     use crate::mylib::monoid::monoid_affine::AffineTransform;
-    use crate::mylib::monoid::monoid_rolling_hash::RollingHash;
-    use crate::mylib::monoid::monoid_rolling_hash::RollingHashConcat;
+    use crate::mylib::monoid::monoid_rolling_hash_old::RollingHash;
+    use crate::mylib::monoid::monoid_rolling_hash_old::RollingHashConcat;
 
     use super::monoid_bitwise::*;
     use super::monoid_gcd_lcm::*;
