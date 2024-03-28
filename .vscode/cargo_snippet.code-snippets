@@ -453,6 +453,28 @@
       "}"
     ]
   },
+  "inversion_number": {
+    "scope": "rust",
+    "prefix": "inversion_number",
+    "body": [
+      "/// 転倒数 #{(i, j) | i < j and xs[i] > xs[j]} を求める",
+      "/// 計算量: O(n log n)",
+      "pub fn inversion_number(xs: &[usize]) -> i64 {",
+      "    use ac_library::{Additive, Segtree};",
+      "    if xs.is_empty() {",
+      "        return 0;",
+      "    }",
+      "    let max_val = xs.iter().copied().max().unwrap();",
+      "    let mut segtree = Segtree::<Additive<i64>>::new(max_val + 1);",
+      "    let mut cnt = 0;",
+      "    for &x in xs {",
+      "        cnt += segtree.prod(x + 1..);",
+      "        segtree.set(x, segtree.get(x) + 1)",
+      "    }",
+      "    cnt",
+      "}"
+    ]
+  },
   "is_bipartite_graph": {
     "scope": "rust",
     "prefix": "is_bipartite_graph",

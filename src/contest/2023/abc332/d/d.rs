@@ -17,6 +17,24 @@ fn inversion_number(permu: &[usize]) -> i64 {
     cnt as i64
 }
 
+pub fn inversion_number2(xs: &[usize]) -> i64 {
+    use ac_library::{Additive, Segtree};
+    if xs.is_empty() {
+        return 0;
+    }
+    let max_val = xs.iter().copied().max().unwrap();
+
+    // 各値が今までに現れた回数を記録する
+    let mut segtree = Segtree::<Additive<i64>>::new(max_val + 1);
+    let mut cnt = 0;
+    for &x in xs {
+        cnt += segtree.prod(x + 1..); // 今までに見たxより大きい値の数
+        segtree.set(x, segtree.get(x) + 1)
+    }
+
+    cnt
+}
+
 impl Problem {
     fn read() -> Problem {
         input! {
@@ -38,7 +56,7 @@ impl Problem {
                     .collect_vec();
 
                 (grid1_after == *grid2)
-                    .then_some(inversion_number(&x_permu) + inversion_number(&y_permu))
+                    .then_some(inversion_number2(&x_permu) + inversion_number2(&y_permu))
             })
             .min()
             .unwrap_or(-1);
