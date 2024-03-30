@@ -1,13 +1,13 @@
 // #[derive_readable]
 #[derive(Debug)]
 struct Problem {
-    _a: i64,
+    _a: usize,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            _a: usize,
         }
         Problem { _a }
     }
@@ -51,18 +51,25 @@ mod tests {
         assert_eq!(1 + 1, 2);
     }
 
-    fn test_random() {
+    fn check(p: &Problem) {
+        assert_eq!(p.solve(), p.solve_naive());
+    }
+
+    fn make_random_problem() -> Problem {
+        todo!()
         // let mut rng = SmallRng::from_entropy();
         // let n = rng.gen_range(1..=10);
         // let p = Problem { _a: n };
         // dbg!(&p);
-        // assert_eq!(p.solve(), p.solve_naive());
+        // p
     }
 
     #[test]
-    fn test_random_all() {
+    fn test_with_naive() {
+        // 手動でテストを作るのもOK
         for _ in 0..100 {
-            test_random();
+            let p = make_random_problem();
+            check(&p);
         }
     }
 }
