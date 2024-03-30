@@ -5,3 +5,4 @@ mod digit_dp;
 mod integer;
 mod knapsack;
 mod random;
+mod shakutori;
