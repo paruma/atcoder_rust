@@ -60,9 +60,25 @@ oj_test_release() {
     fi
 }
 
+check_mod() {
+    contest="$(get_contest)"
+    task="$(get_task)"
+    
+    if curl -s "https://atcoder.jp/contests/${contest}/tasks/${contest}_${task}" | grep -q -e "998244353" -e "10^9+7" -e "10^{9}+7" -e "10^9 + 7" -e "10^{9} + 7" -e "で割ったあまりを求めてください" -e "で割った余りを求めてください"; then
+        if ! grep -q -e "998244353" -e "1000000007" "${task}.rs"; then
+            return 1
+        fi
+    fi
+}
+
+
 oj_submit() {
     contest="$(get_contest)"
     task="$(get_task)"
+    if ! check_mod; then
+        echo "問題文には mod があるけど、ソースコードには mod がない"
+        return 1
+    fi
     oj submit "https://atcoder.jp/contests/${contest}/tasks/${contest}_${task}" "${task}.rs" -w 1 --no-open
 }
 
@@ -79,3 +95,4 @@ exe() {
         "$(git rev-parse --show-toplevel)/target/debug/${contest}_${task}"
     fi
 }
+
