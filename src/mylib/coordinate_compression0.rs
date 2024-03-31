@@ -29,6 +29,10 @@ pub mod coordinate_compression {
         pub fn decompress(&self, i: usize) -> i64 {
             self.space[i]
         }
+
+        pub fn space_size(&self) -> usize {
+            self.space.len()
+        }
     }
 }
 
@@ -46,6 +50,7 @@ mod test {
         let cc = CoordinateCompression::new(&chain!(xs1, xs2).collect_vec());
         let compressed_xs1 = cc.compress_vec(&xs1);
         assert_eq!(compressed_xs1, [0, 3, 1, 6, 7, 2, 3]);
-        assert_eq!(cc.decompress(3), 10)
+        assert_eq!(cc.decompress(3), 10);
+        assert_eq!(cc.space_size(), 8);
     }
 }
