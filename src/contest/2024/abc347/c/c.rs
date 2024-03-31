@@ -29,20 +29,19 @@ impl Problem {
 
         let ds_mod_loop_compress = cc.compress_vec(&ds_mod_loop);
 
-        let max_coard = cc.max_coard();
-        let mut cnts = vec![0_i64; max_coard + 1];
+        let max_coord = cc.max_coord();
+        let mut cnts = vec![0_i64; max_coord + 1];
 
         for &x in &ds_mod_loop_compress {
             cnts[x] += 1;
         }
         let cnts_cumsum = CumSum::new(&cnts);
 
-        let ans = (0..=max_coard / 2)
+        let ans = (0..=max_coord / 2)
             .map(|begin| {
                 // cnts[begin..end] >= n となるような最小の end を求める
 
-                // todo: +2 かも知れない
-                let end = bin_search((max_coard + 1) as i64, -1, |end| {
+                let end = bin_search((max_coord + 1) as i64, -1, |end| {
                     cnts_cumsum.get_interval_sum(begin, end as usize) >= (n as i64)
                 });
 
@@ -243,7 +242,7 @@ pub mod coordinate_compression {
             self.space[i]
         }
 
-        pub fn max_coard(&self) -> usize {
+        pub fn max_coord(&self) -> usize {
             self.space.len() - 1
         }
     }
