@@ -20,6 +20,14 @@ pub mod cumsum {
             // [begin, end) の間で総和を求める
             self.cumsum[end] - self.cumsum[begin]
         }
+
+        pub fn prefix_sum(&self, end: usize) -> i64 {
+            self.cumsum[end]
+        }
+
+        pub fn suffix_sum(&self, begin: usize) -> i64 {
+            self.cumsum[self.cumsum.len() - 1] - self.cumsum[begin]
+        }
     }
 }
 
@@ -32,7 +40,9 @@ pub mod cumsum_2d {
     impl CumSum2D {
         pub fn new(xss: &[Vec<i64>]) -> CumSum2D {
             if xss.is_empty() {
-                return CumSum2D { cumsum: vec![vec![0]] };
+                return CumSum2D {
+                    cumsum: vec![vec![0]],
+                };
             }
 
             let height = xss.len();
@@ -68,6 +78,8 @@ mod test {
         assert_eq!(cumsum.get_interval_sum(1, 3), xs[1] + xs[2]);
         assert_eq!(cumsum.get_interval_sum(2, 4), xs[2] + xs[3]);
         assert_eq!(cumsum.get_interval_sum(2, 2), 0);
+        assert_eq!(cumsum.prefix_sum(3), 6);
+        assert_eq!(cumsum.suffix_sum(1), 9);
     }
 
     #[test]
@@ -84,7 +96,10 @@ mod test {
         // [4 5]
         let xss = vec![vec![1, 2], vec![4, 5]];
         let cumsum = CumSum2D::new(&xss);
-        assert_eq!(cumsum.cumsum, vec![vec![0, 0, 0], vec![0, 1, 3], vec![0, 5, 12]]);
+        assert_eq!(
+            cumsum.cumsum,
+            vec![vec![0, 0, 0], vec![0, 1, 3], vec![0, 5, 12]]
+        );
         assert_eq!(cumsum.get_rect_sum((0, 0), (1, 2)), xss[0][0] + xss[1][0]);
         assert_eq!(
             cumsum.get_rect_sum((0, 0), (2, 2)),

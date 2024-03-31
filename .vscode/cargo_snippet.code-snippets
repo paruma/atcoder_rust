@@ -188,6 +188,12 @@
       "        pub fn get_interval_sum(&self, begin: usize, end: usize) -> i64 {",
       "            self.cumsum[end] - self.cumsum[begin]",
       "        }",
+      "        pub fn prefix_sum(&self, end: usize) -> i64 {",
+      "            self.cumsum[end]",
+      "        }",
+      "        pub fn suffix_sum(&self, begin: usize) -> i64 {",
+      "            self.cumsum[self.cumsum.len() - 1] - self.cumsum[begin]",
+      "        }",
       "    }",
       "}"
     ]
