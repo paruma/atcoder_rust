@@ -1,18 +1,28 @@
 // #[derive_readable]
 #[derive(Debug)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    k: i64,
+    xs: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            k: i64,
+            xs: [i64; n],
         }
-        Problem { _a }
+        Problem { n, k, xs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = self
+            .xs
+            .iter()
+            .copied()
+            .filter(|x| x % self.k == 0)
+            .map(|x| x / self.k)
+            .collect_vec();
         Answer { ans }
     }
 
@@ -26,12 +36,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec_1line(&self.ans);
     }
 }
 
@@ -43,11 +53,19 @@ fn main() {
 mod tests {
     #[allow(unused_imports)]
     use super::*;
+    use itertools::iproduct;
     #[allow(unused_imports)]
     use rand::{rngs::SmallRng, seq::SliceRandom, *};
 
     #[test]
     fn test_problem() {
+        let x: Vec<i64> = vec![1];
+        let x = &x[2..2];
+        let n: usize = 3;
+        dbg!((0..=n).combinations_with_replacement(2).collect_vec());
+        dbg!(iproduct!(0..=n, 0..=n)
+            .filter(|(begin, end)| begin <= end)
+            .collect_vec());
         assert_eq!(1 + 1, 2);
     }
 

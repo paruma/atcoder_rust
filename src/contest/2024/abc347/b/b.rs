@@ -1,18 +1,27 @@
-// #[derive_readable]
+#[derive_readable]
 #[derive(Debug)]
 struct Problem {
-    _a: usize,
+    s: Bytes,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            p: Problem
         }
-        Problem { _a }
+        p
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let s = &self.s;
+        let n = s.len();
+        let ans = (0..=n)
+            .tuple_combinations()
+            .map(|(begin, end)| s[begin..end].to_vec())
+            .unique()
+            .count() as i64;
+        let x = (0..n)
+            .flat_map(|begin| (begin + 1..=n).map(move |end| (begin, end)))
+            .collect_vec();
         Answer { ans }
     }
 

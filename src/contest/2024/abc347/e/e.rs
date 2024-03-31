@@ -1,18 +1,74 @@
 // #[derive_readable]
 #[derive(Debug)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    nq: usize,
+    xs: Vec<usize>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            nq: usize,
+            xs: [Usize1; nq],
         }
-        Problem { _a }
+        Problem { n, nq, xs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let nq = self.nq;
+        let xs = &self.xs;
+        let mut s_size_list = vec![0; self.nq];
+        let mut set = vec![false; self.n];
+        // 各 x in 0..n がどの区間で合われたり消えたりするかを調べる。
+        let mut appear_list: Vec<Vec<usize>> = vec![vec![]; self.n];
+
+        for (i, x) in xs.iter().enumerate() {
+            if set[*x] {
+                s_size_list[i] = s_size_list[i - 1] - 1;
+                set[*x] = false;
+            } else {
+                if i == 0 {
+                    s_size_list[i] = 1;
+                } else {
+                    s_size_list[i] = s_size_list[i - 1] + 1;
+                }
+                set[*x] = true;
+            }
+
+            appear_list[*x].push(i);
+        }
+
+        //s_size_list の累積和をとる
+
+        let s_size_list_cumsum = CumSum::new(&s_size_list);
+
+        let ans = appear_list
+            .iter()
+            .map(|appear_info| {
+                if appear_info.len() % 2 == 0 {
+                    (0..appear_info.len() / 2)
+                        .map(|i| {
+                            let begin = appear_info[i * 2];
+                            let end = appear_info[i * 2 + 1];
+                            s_size_list_cumsum.get_interval_sum(begin, end)
+                        })
+                        .sum::<i64>()
+                } else {
+                    let x1 = (0..appear_info.len() / 2)
+                        .map(|i| {
+                            let begin = appear_info[i * 2];
+                            let end = appear_info[i * 2 + 1];
+                            s_size_list_cumsum.get_interval_sum(begin, end)
+                        })
+                        .sum::<i64>();
+                    let x2 = s_size_list_cumsum
+                        .get_interval_sum(*appear_info.last().unwrap(), s_size_list.len());
+                    x1 + x2
+                }
+            })
+            .collect_vec();
+
         Answer { ans }
     }
 
@@ -26,12 +82,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec_1line(&self.ans);
     }
 }
 
@@ -73,6 +129,8 @@ mod tests {
         }
     }
 }
+
+use std::collections::HashSet;
 
 // ====== import ======
 #[allow(unused_imports)]
@@ -127,3 +185,24 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+
+use cumsum::*;
+pub mod cumsum {
+    pub struct CumSum {
+        pub cumsum: Vec<i64>,
+    }
+    impl CumSum {
+        /// 計算量: O(|xs|)
+        pub fn new(xs: &[i64]) -> CumSum {
+            let mut cumsum = vec![0; xs.len() + 1];
+            for i in 1..xs.len() + 1 {
+                cumsum[i] = cumsum[i - 1] + xs[i - 1];
+            }
+            CumSum { cumsum }
+        }
+        /// 計算量: O(1)
+        pub fn get_interval_sum(&self, begin: usize, end: usize) -> i64 {
+            self.cumsum[end] - self.cumsum[begin]
+        }
+    }
+}
