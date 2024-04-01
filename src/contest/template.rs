@@ -60,7 +60,7 @@ mod tests {
         // let mut rng = SmallRng::from_entropy();
         // let n = rng.gen_range(1..=10);
         // let p = Problem { _a: n };
-        // dbg!(&p);
+        // println!("{:?}", &p);
         // p
     }
 

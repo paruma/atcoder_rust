@@ -28,6 +28,8 @@ oj_test() {
         export RUST_BACKTRACE=1
         oj test -c "$(git rev-parse --show-toplevel)/target/debug/${contest}_${task}"
     fi
+
+    on_after_test
 }
 
 oj_test_f() {
@@ -41,6 +43,8 @@ oj_test_f() {
         export RUST_BACKTRACE=1
         oj test -c "$(git rev-parse --show-toplevel)/target/debug/${contest}_${task}" -e 1e-6
     fi
+
+    on_after_test
 }
 
 ojt() {
@@ -58,6 +62,20 @@ oj_test_release() {
         export RUST_BACKTRACE=1
         oj test -c "$(git rev-parse --show-toplevel)/target/release/${contest}_${task}"
     fi
+
+    on_after_test
+}
+
+on_after_test() {
+    if ! check_mod; then
+        echo 
+        printf '\033[33m%s\033[m\n' 'WARNING: 問題文には mod があるけど、ソースコードには mod がない'
+    fi
+
+    if ! check_dbg_output; then
+        echo 
+        printf '\033[33m%s\033[m\n' 'WARNING: デバッグ出力が残ってる'
+    fi
 }
 
 check_mod() {
@@ -68,6 +86,13 @@ check_mod() {
         if ! grep -q -e "998244353" -e "1000000007" "${task}.rs"; then
             return 1
         fi
+    fi
+}
+
+check_dbg_output() {
+    task="$(get_task)"
+    if grep -Pq '^(?!.*//.*(dbg|lg)!).*(dbg|lg)!' "${task}.rs"; then
+        return 1
     fi
 }
 
