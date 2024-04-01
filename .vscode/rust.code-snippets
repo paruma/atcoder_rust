@@ -31,13 +31,14 @@
 		],
 		"description": "use ac_library::ModInt998244353 as Mint;"
 	},
-	// cf: dbg!
-	"println": {
+	"cfg_debug": {
 		"scope": "rust",
-		"prefix": "vprint",
+		"prefix": "cfg_debug",
 		"body": [
-			"println!(\"{$1}\", $2)"
+			"if cfg!(debug_assertions){",
+			"    $1",
+			"}"
 		],
-		"description": "println"
-	},
+		"description": "if cfg!(debug_assertions)"
+	}
 }
