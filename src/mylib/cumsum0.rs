@@ -16,7 +16,7 @@ pub mod cumsum {
             CumSum { cumsum }
         }
         /// 計算量: O(1)
-        pub fn get_interval_sum(&self, begin: usize, end: usize) -> i64 {
+        pub fn range_sum(&self, begin: usize, end: usize) -> i64 {
             // [begin, end) の間で総和を求める
             self.cumsum[end] - self.cumsum[begin]
         }
@@ -57,7 +57,7 @@ pub mod cumsum_2d {
             CumSum2D { cumsum }
         }
 
-        pub fn get_rect_sum(&self, (x1, y1): (usize, usize), (x2, y2): (usize, usize)) -> i64 {
+        pub fn rect_sum(&self, (x1, y1): (usize, usize), (x2, y2): (usize, usize)) -> i64 {
             // [x1, x2) × [y1, y2) の範囲で総和を求める
             self.cumsum[y2][x2] - self.cumsum[y2][x1] - self.cumsum[y1][x2] + self.cumsum[y1][x1]
         }
@@ -75,9 +75,9 @@ mod test {
         let xs = vec![1, 2, 3, 4];
         let cumsum = CumSum::new(&xs);
         assert_eq!(cumsum.cumsum, vec![0, 1, 3, 6, 10]);
-        assert_eq!(cumsum.get_interval_sum(1, 3), xs[1] + xs[2]);
-        assert_eq!(cumsum.get_interval_sum(2, 4), xs[2] + xs[3]);
-        assert_eq!(cumsum.get_interval_sum(2, 2), 0);
+        assert_eq!(cumsum.range_sum(1, 3), xs[1] + xs[2]);
+        assert_eq!(cumsum.range_sum(2, 4), xs[2] + xs[3]);
+        assert_eq!(cumsum.range_sum(2, 2), 0);
         assert_eq!(cumsum.prefix_sum(3), 6);
         assert_eq!(cumsum.suffix_sum(1), 9);
     }
@@ -87,7 +87,7 @@ mod test {
         let xs = vec![];
         let cumsum = CumSum::new(&xs);
         assert_eq!(cumsum.cumsum, vec![0]);
-        assert_eq!(cumsum.get_interval_sum(0, 0), 0)
+        assert_eq!(cumsum.range_sum(0, 0), 0)
     }
 
     #[test]
@@ -100,12 +100,12 @@ mod test {
             cumsum.cumsum,
             vec![vec![0, 0, 0], vec![0, 1, 3], vec![0, 5, 12]]
         );
-        assert_eq!(cumsum.get_rect_sum((0, 0), (1, 2)), xss[0][0] + xss[1][0]);
+        assert_eq!(cumsum.rect_sum((0, 0), (1, 2)), xss[0][0] + xss[1][0]);
         assert_eq!(
-            cumsum.get_rect_sum((0, 0), (2, 2)),
+            cumsum.rect_sum((0, 0), (2, 2)),
             xss[0][0] + xss[0][1] + xss[1][0] + xss[1][1]
         );
-        assert_eq!(cumsum.get_rect_sum((1, 1), (1, 1)), 0);
+        assert_eq!(cumsum.rect_sum((1, 1), (1, 1)), 0);
     }
 
     #[test]
@@ -113,6 +113,6 @@ mod test {
         let xss = vec![];
         let cumsum = CumSum2D::new(&xss);
         assert_eq!(cumsum.cumsum, vec![vec![0]]);
-        assert_eq!(cumsum.get_rect_sum((0, 0), (0, 0)), 0);
+        assert_eq!(cumsum.rect_sum((0, 0), (0, 0)), 0);
     }
 }
