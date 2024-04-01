@@ -18,6 +18,7 @@ impl Problem {
         Problem { n, a, b, ds }
     }
     fn solve(&self) -> Answer {
+        // 座標圧縮を使用したもの
         let a = self.a;
         let b = self.b;
         let n = self.n;
@@ -47,48 +48,25 @@ impl Problem {
 
                 let begin_decom = cc.decompress(begin);
                 let end_decom = cc.decompress(end as usize - 1); // 閉区間にする
-                dbg!(end_decom);
                 end_decom - begin_decom + 1
             })
             .any(|x| x <= a);
         Answer { ans }
     }
-    fn solve_old(&self) -> Answer {
+
+    fn solve2(&self) -> Answer {
+        // ソートによる解法
         let a = self.a;
         let b = self.b;
         let n = self.n;
         let ds = &self.ds;
+        // 各予定の曜日(今日を0とする)のリスト
         let ds_mod = ds.iter().copied().map(|x| x % (a + b)).collect_vec();
-        let ds_mod2 = ds_mod.repeat(2);
-        let cc = CoordinateCompression::new(&ds_mod2);
-
-        let ds_mod2_compressed = cc.compress_vec(&ds_mod2);
-        let max_coard = ds_mod2_compressed.iter().copied().max().unwrap();
-        let mut cnts = vec![0_i64; max_coard + 1];
-        for &x in &ds_mod2_compressed {
-            cnts[x] += 1;
-        }
-        let cnts_cumsum = CumSum::new(&cnts);
-
-        let ans = (0..=max_coard)
-            .map(|begin| {
-                // cnts[begin..end] >= n となるような最小の end を求める
-
-                let end = bin_search((max_coard + 3) as i64, -1, |end| {
-                    cnts_cumsum.get_interval_sum(begin, end as usize) >= (n as i64)
-                });
-
-                let begin_decom = cc.decompress(begin);
-                let end_decom = cc.decompress(end as usize - 1); // 閉区間にする
-                dbg!(begin);
-                dbg!(end);
-                dbg!(begin_decom);
-                dbg!(end_decom);
-                end_decom - begin_decom + 1
-            })
-            .inspect(|x| {
-                dbg!(x);
-            })
+        let ds_mod_plus_apb = ds_mod.iter().copied().map(|x| x + (a + b)).collect_vec();
+        let ds_mod_loop = chain!(ds_mod, ds_mod_plus_apb).sorted().collect_vec();
+        let ans = (0..n)
+            // iから始まるn個の予定の曜日を含む曜日区間の長さの最小値
+            .map(|i| ds_mod_loop[n + i - 1] - ds_mod_loop[i] + 1) // i..i+n での区間の最大-最小 + 1
             .any(|x| x <= a);
         Answer { ans }
     }
@@ -120,7 +98,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]

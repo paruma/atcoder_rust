@@ -16,12 +16,9 @@ impl Problem {
         let n = s.len();
         let ans = (0..=n)
             .tuple_combinations()
-            .map(|(begin, end)| s[begin..end].to_vec())
+            .map(|(begin, end)| &s[begin..end])
             .unique()
             .count() as i64;
-        let x = (0..n)
-            .flat_map(|begin| (begin + 1..=n).map(move |end| (begin, end)))
-            .collect_vec();
         Answer { ans }
     }
 
