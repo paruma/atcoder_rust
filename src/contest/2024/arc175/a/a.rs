@@ -22,6 +22,7 @@ impl Problem {
         let ps = &self.ps;
         let lr_list = &self.lr_list;
 
+        // x.rem_euclid(n as i64) でよかった
         let modn = |x: i64| {
             if x >= 0 {
                 x % n as i64
@@ -56,6 +57,7 @@ impl Problem {
 
                 let mut cnts = vec![];
 
+                // ここは for current in ps.iter().dropping(1) って書ける。
                 for i in 1..n {
                     let current = ps[i];
                     // next はcurrent の右隣 or 左隣 (0番目の人が選択していない左右)

@@ -71,6 +71,31 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve3(&self) -> Answer {
+        // circular_tuple_windows を使ったもの
+        let a = self.a;
+        let b = self.b;
+        let ds = &self.ds;
+
+        let ds_mod = ds
+            .iter()
+            .copied()
+            .map(|x| x % (a + b))
+            .sorted()
+            .dedup()
+            .collect_vec();
+        // let ans = (0..n)
+        //     .map(|i| (ds_mod[(n + i - 1).rem_euclid(n)] - ds_mod[i]).rem_euclid(a + b) + 1)
+        //     .any(|x| x <= a);
+        let ans = ds_mod
+            .iter()
+            .copied()
+            .circular_tuple_windows()
+            .map(|(end_inclusive, begin)| (end_inclusive - begin).rem_euclid(a + b) + 1)
+            .any(|x| x <= a);
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         let a = self.a;
@@ -98,7 +123,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve2().print();
+    Problem::read().solve3().print();
 }
 
 #[cfg(test)]
@@ -114,22 +139,25 @@ mod tests {
     }
 
     fn check(p: &Problem) {
-        assert_eq!(p.solve(), p.solve_naive());
+        assert_eq!(p.solve3(), p.solve_naive());
     }
 
     fn make_random_problem() -> Problem {
-        todo!()
-        // let mut rng = SmallRng::from_entropy();
-        // let n = rng.gen_range(1..=10);
-        // let p = Problem { _a: n };
-        // dbg!(&p);
-        // p
+        let n = 4;
+        let mut rng = SmallRng::from_entropy();
+
+        let a = rng.gen_range(1..=4);
+        let b = rng.gen_range(1..=4);
+        let ds = (0..n).map(|_| rng.gen_range(1..=10)).collect_vec();
+        let p = Problem { n, a, b, ds };
+        dbg!(&p);
+        p
     }
 
     #[test]
     fn test_with_naive() {
         // 手動でテストを作るのもOK
-        for _ in 0..100 {
+        for _ in 0..10000 {
             let p = make_random_problem();
             check(&p);
         }

@@ -21,6 +21,8 @@ impl Problem {
             let ans = nc2(n as i64);
             return Answer { ans };
         }
+        // counts でよい
+
         let tmp = self.s.iter().copied().into_group_map_by(|x| *x);
         let cnt_list = tmp
             .iter()
