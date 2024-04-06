@@ -6,6 +6,35 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [[bin]]
+name = "abc348_a"
+path = "src/contest/2024/abc348/a/a.rs"
+
+[[bin]]
+name = "abc348_b"
+path = "src/contest/2024/abc348/b/b.rs"
+
+[[bin]]
+name = "abc348_c"
+path = "src/contest/2024/abc348/c/c.rs"
+
+[[bin]]
+name = "abc348_d"
+path = "src/contest/2024/abc348/d/d.rs"
+
+[[bin]]
+name = "abc348_e"
+path = "src/contest/2024/abc348/e/e.rs"
+
+[[bin]]
+name = "abc348_f"
+path = "src/contest/2024/abc348/f/f.rs"
+
+[[bin]]
+name = "abc348_g"
+path = "src/contest/2024/abc348/g/g.rs"
+
+
+[[bin]]
 name = "abc347_a"
 path = "src/contest/2024/abc347/a/a.rs"
 
@@ -447,101 +476,101 @@ name = "abc329_f"
 path = "src/contest/2023/abc329/f/f.rs"
 
 
-[[bin]]
-name = "abc328_a"
-path = "src/contest/2023/abc328/a/a.rs"
+# [[bin]]
+# name = "abc328_a"
+# path = "src/contest/2023/abc328/a/a.rs"
 
-[[bin]]
-name = "abc328_b"
-path = "src/contest/2023/abc328/b/b.rs"
+# [[bin]]
+# name = "abc328_b"
+# path = "src/contest/2023/abc328/b/b.rs"
 
-[[bin]]
-name = "abc328_c"
-path = "src/contest/2023/abc328/c/c.rs"
+# [[bin]]
+# name = "abc328_c"
+# path = "src/contest/2023/abc328/c/c.rs"
 
-[[bin]]
-name = "abc328_d"
-path = "src/contest/2023/abc328/d/d.rs"
+# [[bin]]
+# name = "abc328_d"
+# path = "src/contest/2023/abc328/d/d.rs"
 
-[[bin]]
-name = "abc328_e"
-path = "src/contest/2023/abc328/e/e.rs"
+# [[bin]]
+# name = "abc328_e"
+# path = "src/contest/2023/abc328/e/e.rs"
 
-[[bin]]
-name = "abc328_f"
-path = "src/contest/2023/abc328/f/f.rs"
+# [[bin]]
+# name = "abc328_f"
+# path = "src/contest/2023/abc328/f/f.rs"
 
-[[bin]]
-name = "abc327_a"
-path = "src/contest/2023/abc327/a/a.rs"
+# [[bin]]
+# name = "abc327_a"
+# path = "src/contest/2023/abc327/a/a.rs"
 
-[[bin]]
-name = "abc327_b"
-path = "src/contest/2023/abc327/b/b.rs"
+# [[bin]]
+# name = "abc327_b"
+# path = "src/contest/2023/abc327/b/b.rs"
 
-[[bin]]
-name = "abc327_c"
-path = "src/contest/2023/abc327/c/c.rs"
+# [[bin]]
+# name = "abc327_c"
+# path = "src/contest/2023/abc327/c/c.rs"
 
-[[bin]]
-name = "abc327_d"
-path = "src/contest/2023/abc327/d/d.rs"
+# [[bin]]
+# name = "abc327_d"
+# path = "src/contest/2023/abc327/d/d.rs"
 
-[[bin]]
-name = "abc327_e"
-path = "src/contest/2023/abc327/e/e.rs"
+# [[bin]]
+# name = "abc327_e"
+# path = "src/contest/2023/abc327/e/e.rs"
 
-[[bin]]
-name = "abc326_a"
-path = "src/contest/2023/abc326/a/a.rs"
+# [[bin]]
+# name = "abc326_a"
+# path = "src/contest/2023/abc326/a/a.rs"
 
-[[bin]]
-name = "abc326_b"
-path = "src/contest/2023/abc326/b/b.rs"
+# [[bin]]
+# name = "abc326_b"
+# path = "src/contest/2023/abc326/b/b.rs"
 
-[[bin]]
-name = "abc326_c"
-path = "src/contest/2023/abc326/c/c.rs"
+# [[bin]]
+# name = "abc326_c"
+# path = "src/contest/2023/abc326/c/c.rs"
 
-[[bin]]
-name = "abc326_d"
-path = "src/contest/2023/abc326/d/d.rs"
+# [[bin]]
+# name = "abc326_d"
+# path = "src/contest/2023/abc326/d/d.rs"
 
-[[bin]]
-name = "abc326_e"
-path = "src/contest/2023/abc326/e/e.rs"
+# [[bin]]
+# name = "abc326_e"
+# path = "src/contest/2023/abc326/e/e.rs"
 
-[[bin]]
-name = "abc326_f"
-path = "src/contest/2023/abc326/f/f.rs"
+# [[bin]]
+# name = "abc326_f"
+# path = "src/contest/2023/abc326/f/f.rs"
 
-[[bin]]
-name = "abc325_a"
-path = "src/contest/2023/abc325/a/a.rs"
+# [[bin]]
+# name = "abc325_a"
+# path = "src/contest/2023/abc325/a/a.rs"
 
-[[bin]]
-name = "abc325_b"
-path = "src/contest/2023/abc325/b/b.rs"
+# [[bin]]
+# name = "abc325_b"
+# path = "src/contest/2023/abc325/b/b.rs"
 
-[[bin]]
-name = "abc325_c"
-path = "src/contest/2023/abc325/c/c.rs"
+# [[bin]]
+# name = "abc325_c"
+# path = "src/contest/2023/abc325/c/c.rs"
 
-[[bin]]
-name = "abc325_d"
-path = "src/contest/2023/abc325/d/d.rs"
+# [[bin]]
+# name = "abc325_d"
+# path = "src/contest/2023/abc325/d/d.rs"
 
-[[bin]]
-name = "abc325_e"
-path = "src/contest/2023/abc325/e/e.rs"
+# [[bin]]
+# name = "abc325_e"
+# path = "src/contest/2023/abc325/e/e.rs"
 
-[[bin]]
-name = "arc167_a"
-path = "src/contest/2023/arc167/a/a.rs"
+# [[bin]]
+# name = "arc167_a"
+# path = "src/contest/2023/arc167/a/a.rs"
 
-[[bin]]
-name = "arc167_b"
-path = "src/contest/2023/arc167/b/b.rs"
+# [[bin]]
+# name = "arc167_b"
+# path = "src/contest/2023/arc167/b/b.rs"
 
 
 # [[bin]]
