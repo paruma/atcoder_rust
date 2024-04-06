@@ -375,6 +375,33 @@
       "}"
     ]
   },
+  "i64_combinatorics": {
+    "scope": "rust",
+    "prefix": "i64_combinatorics",
+    "body": [
+      "use mod_combinatorics::*;",
+      "pub mod i64_combinatorics {",
+      "    pub fn comb(n: i64, k: i64) -> i64 {",
+      "        if n < 0 || k < 0 || n < k {",
+      "            return 0;",
+      "        }",
+      "        (1..=k).fold(1, |acc, i| acc * (n - i + 1) / i)",
+      "    }",
+      "    pub fn perm(n: i64, k: i64) -> i64 {",
+      "        if n < 0 || k < 0 || n < k {",
+      "            return 0;",
+      "        }",
+      "        (n - k + 1..=n).product::<i64>()",
+      "    }",
+      "    pub fn factorial(n: i64) -> i64 {",
+      "        if n < 0 {",
+      "            return 0;",
+      "        }",
+      "        (1..=n).product::<i64>()",
+      "    }",
+      "}"
+    ]
+  },
   "imos_1d": {
     "scope": "rust",
     "prefix": "imos_1d",
@@ -1042,6 +1069,16 @@
       "            } else {",
       "                self.fac[n] * self.invfac[k] * self.invfac[n - k]",
       "            }",
+      "        }",
+      "        pub fn perm(&self, n: usize, k: usize) -> Mint {",
+      "            if n < k {",
+      "                0.into()",
+      "            } else {",
+      "                self.fac[n] * self.invfac[n - k]",
+      "            }",
+      "        }",
+      "        pub fn factorial(&self, n: usize) -> Mint {",
+      "            self.fac[n]",
       "        }",
       "    }",
       "}"
