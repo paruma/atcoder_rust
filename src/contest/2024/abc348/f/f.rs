@@ -1,15 +1,20 @@
 // #[derive_readable]
 #[derive(Debug)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    m: usize,
+    xss: Vec<Vec<i32>>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            m: usize,
+            xss: [[i32; m]; n],
+
         }
-        Problem { _a }
+        Problem { n, m, xss }
     }
     fn solve(&self) -> Answer {
         let ans = 0;
@@ -18,15 +23,36 @@ impl Problem {
 
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
-        todo!();
-        // let ans = 0;
-        // Answer { ans }
+        // self.xss.tuple_combinations() でよかった
+        let ans = (0..self.n)
+            .tuple_combinations()
+            .filter(|(i, j)| {
+                izip!(&self.xss[*i], &self.xss[*j])
+                    .filter(|(x, y)| x == y)
+                    .count()
+                    % 2
+                    == 1
+            })
+            .count();
+        Answer { ans }
+    }
+
+    fn solve_naive2(&self) -> Answer {
+        let ans = (0..self.n)
+            .tuple_combinations()
+            .filter(|(i, j)| {
+                let xs1 = &self.xss[*i];
+                let xs2 = &self.xss[*j];
+                (0..self.m).filter(|k| xs1[*k] == xs2[*k]).count() % 2 == 1
+            })
+            .count();
+        Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: usize,
 }
 
 impl Answer {
@@ -36,7 +62,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve_naive2().print();
 }
 
 #[cfg(test)]
@@ -74,6 +100,7 @@ mod tests {
     }
 }
 
+use itertools::izip;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::Itertools;
