@@ -1,5 +1,8 @@
 #!/bin/bash
 
+PYTHONSTARTUP="$(git rev-parse --show-toplevel)/calc.py"
+export PYTHONSTARTUP
+
 get_task(){
     basename "$(pwd)"
 }

@@ -1,12 +1,11 @@
 # 電卓
-from math import * # をしても良いかもしれない
+from math import prod, gcd, lcm, comb, perm, factorial
+import functools
 
 # === 総和・総積 ===
 prod([1,2,3,4]) == 24
 sum([1,2,3,4]) == 10
 
-# === 組合せ系 ===
-from math import comb, perm, factorial
 
 # === modint ===
 # 2^{-1}
@@ -23,13 +22,19 @@ def f(x: int) -> int:
         denom_inv = pow(denom, -1, mod)
         for numer in range(-1000, 1000): # 分母
             if x == numer * denom_inv % mod:
-                return f"{numer}/{denom}"
+                if denom_inv == 1:
+                    return f"{numer}"
+                else:
+                    return f"{numer}/{denom}"
+    return 'Not Found'
 
 
 # === gcd/ lcm ===
-from math import gcd, lcm
 
 # gcd, lcm は複数引数に対応している
 lcm(*range(1,10)) == 2520 # lcm(1, 2,..., 9)
 
 
+# === reduce の使い方 === 
+
+functools.reduce(lambda x, y : x + y, [1, 2, 3, 4]) == 10
