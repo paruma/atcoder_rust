@@ -123,4 +123,3 @@ exe() {
         "$(git rev-parse --show-toplevel)/target/debug/${contest}_${task}"
     fi
 }
-

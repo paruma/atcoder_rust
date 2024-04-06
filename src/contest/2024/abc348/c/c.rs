@@ -1,18 +1,36 @@
-// #[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Beans {
+    oishisa: i64,
+    color: i64,
+}
 #[derive(Debug)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    beans_list: Vec<Beans>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            beans_list: [Beans; n],
         }
-        Problem { _a }
+        Problem { n, beans_list }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        // 色ごとにビーンズを分ける
+        let beans_by_color: HashMap<i64, Vec<Beans>> = self
+            .beans_list
+            .iter()
+            .copied()
+            .into_group_map_by(|x| x.color);
+
+        let ans = beans_by_color
+            .values()
+            .map(|beans_lst| beans_lst.iter().map(|x| x.oishisa).min().unwrap())
+            .max()
+            .unwrap();
         Answer { ans }
     }
 
@@ -73,6 +91,8 @@ mod tests {
         }
     }
 }
+
+use std::collections::HashMap;
 
 // ====== import ======
 #[allow(unused_imports)]
