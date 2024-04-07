@@ -1,3 +1,4 @@
+#[derive_readable]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct Medicine {
     pos: Pos<i64>,
@@ -114,14 +115,17 @@ impl Problem {
             w: usize,
             grid: [Bytes; h],
             n_medicines: usize,
-            medicines: [(i64, i64, i64); n_medicines],
+            medicines: [Medicine; n_medicines],
         }
         let medicines = medicines
             .iter()
             .copied()
-            .map(|(y, x, e)| {
-                let pos = Pos::new(x - 1, y - 1);
-                Medicine { pos, energy: e }
+            .map(|medicine| Medicine {
+                pos: Pos {
+                    x: medicine.pos.x - 1,
+                    y: medicine.pos.y - 1,
+                },
+                energy: medicine.energy,
             })
             .collect_vec();
         Problem {
@@ -296,7 +300,11 @@ fn print_yesno(ans: bool) {
 // ====== snippet ======
 use pos::*;
 pub mod pos {
-    use std::ops::{Add, AddAssign, Mul, Neg, Sub, SubAssign};
+    use proconio::source::{Readable, Source};
+    use std::{
+        io::BufRead,
+        ops::{Add, AddAssign, Mul, Neg, Sub, SubAssign},
+    };
     #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
     pub struct Pos<T> {
         pub x: T,
@@ -351,6 +359,15 @@ pub mod pos {
     impl<T: Sub<Output = T> + Copy> SubAssign for Pos<T> {
         fn sub_assign(&mut self, rhs: Self) {
             *self = *self - rhs
+        }
+    }
+    impl<T: Readable<Output = T>> Readable for Pos<T> {
+        type Output = Self;
+        fn read<R: BufRead, S: Source<R>>(source: &mut S) -> Self::Output {
+            Pos {
+                x: T::read(source),
+                y: T::read(source),
+            }
         }
     }
     pub const DIR8_LIST: [Pos<i64>; 8] = [

@@ -1,4 +1,3 @@
-// #[derive_readable]
 #[derive(Debug)]
 struct Problem {
     n: usize,
@@ -9,13 +8,8 @@ impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            ps: [(i64, i64); n],
+            ps: [Pos<i64>; n],
         }
-        let ps = ps
-            .iter()
-            .copied()
-            .map(|(x, y)| Pos::new(x, y))
-            .collect_vec();
         Problem { n, ps }
     }
     fn solve(&self) -> Answer {
@@ -175,7 +169,11 @@ fn print_yesno(ans: bool) {
 // ====== snippet ======
 use pos::*;
 pub mod pos {
-    use std::ops::{Add, AddAssign, Mul, Neg, Sub, SubAssign};
+    use proconio::source::{Readable, Source};
+    use std::{
+        io::BufRead,
+        ops::{Add, AddAssign, Mul, Neg, Sub, SubAssign},
+    };
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
     pub struct Pos<T> {
         pub x: T,
@@ -230,6 +228,15 @@ pub mod pos {
     impl<T: Sub<Output = T> + Copy> SubAssign for Pos<T> {
         fn sub_assign(&mut self, rhs: Self) {
             *self = *self - rhs
+        }
+    }
+    impl<T: Readable<Output = T>> Readable for Pos<T> {
+        type Output = Self;
+        fn read<R: BufRead, S: Source<R>>(source: &mut S) -> Self::Output {
+            Pos {
+                x: T::read(source),
+                y: T::read(source),
+            }
         }
     }
     pub const DIR8_LIST: [Pos<i64>; 8] = [

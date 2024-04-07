@@ -2,7 +2,12 @@ use cargo_snippet::snippet;
 
 #[snippet(prefix = "use pos::*;")]
 pub mod pos {
-    use std::ops::{Add, AddAssign, Mul, Neg, Sub, SubAssign};
+    use std::{
+        io::BufRead,
+        ops::{Add, AddAssign, Mul, Neg, Sub, SubAssign},
+    };
+
+    use proconio::source::{Readable, Source};
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
     pub struct Pos<T> {
@@ -74,6 +79,16 @@ pub mod pos {
         }
     }
 
+    impl<T: Readable<Output = T>> Readable for Pos<T> {
+        type Output = Self;
+        fn read<R: BufRead, S: Source<R>>(source: &mut S) -> Self::Output {
+            Pos {
+                x: T::read(source),
+                y: T::read(source),
+            }
+        }
+    }
+
     pub const DIR8_LIST: [Pos<i64>; 8] = [
         Pos { x: 0, y: 1 },
         Pos { x: 1, y: 1 },
@@ -85,8 +100,12 @@ pub mod pos {
         Pos { x: -1, y: 1 },
     ];
 
-    pub const DIR4_LIST: [Pos<i64>; 4] =
-        [Pos { x: 0, y: 1 }, Pos { x: 1, y: 0 }, Pos { x: 0, y: -1 }, Pos { x: -1, y: 0 }];
+    pub const DIR4_LIST: [Pos<i64>; 4] = [
+        Pos { x: 0, y: 1 },
+        Pos { x: 1, y: 0 },
+        Pos { x: 0, y: -1 },
+        Pos { x: -1, y: 0 },
+    ];
 }
 
 #[snippet(prefix = "use vec_vec_at::*;")]
