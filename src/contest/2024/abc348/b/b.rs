@@ -31,9 +31,30 @@ impl Problem {
                     .iter()
                     .copied()
                     .enumerate()
-                    .filter(|(dst_i, dst)| src_i != *dst_i)
+                    .filter(|(dst_i, dst)| src_i != *dst_i) // これ不要だった
                     .max_set_by_key(|(dst_i, dst)| (*dst - src).norm_square());
                 max_dist_pos_list[0].0 + 1
+            })
+            .collect_vec();
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // 添字最小を求める部分で、添え字を Reverse にした max_by_key を使う
+        let ps = &self.ps;
+
+        let ans = ps
+            .iter()
+            .copied()
+            .map(|src| {
+                // ps の中で一番遠い点を求める
+                ps.iter()
+                    .copied()
+                    .enumerate()
+                    .max_by_key(|(dst_i, dst)| ((*dst - src).norm_square(), Reverse(*dst_i)))
+                    .unwrap()
+                    .0
+                    + 1
             })
             .collect_vec();
         Answer { ans }
@@ -59,7 +80,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -96,6 +117,8 @@ mod tests {
         }
     }
 }
+
+use std::cmp::Reverse;
 
 // ====== import ======
 #[allow(unused_imports)]

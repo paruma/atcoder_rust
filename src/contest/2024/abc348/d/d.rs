@@ -140,6 +140,7 @@ impl Problem {
         let mut dp = Dp::new(grid.h, grid.w);
         let medicine_map = MedicineMap::new(&self.medicines, grid.h, grid.w);
 
+        // ここは NegExtInt::Fin(0) が正しい（いろいろ噛み合ってこれでも通るが）
         pq.push((NegExtInt::NegInf, start_pos));
         *dp.at_mut(start_pos) = NegExtInt::NegInf;
 

@@ -23,6 +23,15 @@ impl Problem {
 
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
+        // u16 だと 1068ms
+        // i16 だと 1222ms
+        // u32 だと  973ms
+        // i32 だと 1006ms
+        // u64 だと 1261ms
+        // i64 だと 1489ms
+        // 16bit や 64 bit より 32 bit のほうが速そう
+        // signed より unsigned のほうが速そう
+
         // self.xss.tuple_combinations() でよかった
         let ans = (0..self.n)
             .tuple_combinations()
@@ -38,6 +47,7 @@ impl Problem {
     }
 
     fn solve_naive2(&self) -> Answer {
+        // 添え字アクセスするとTLEする
         let ans = (0..self.n)
             .tuple_combinations()
             .filter(|(i, j)| {
@@ -62,7 +72,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve_naive2().print();
+    Problem::read().solve_naive().print();
 }
 
 #[cfg(test)]
