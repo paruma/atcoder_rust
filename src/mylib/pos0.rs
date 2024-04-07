@@ -9,7 +9,7 @@ pub mod pos {
 
     use proconio::source::{Readable, Source};
 
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
     pub struct Pos<T> {
         pub x: T,
         pub y: T,
