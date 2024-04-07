@@ -76,17 +76,20 @@ mod tests {
 
 // ====== import ======
 #[allow(unused_imports)]
-use itertools::Itertools;
+use itertools::{chain, iproduct, izip, Itertools};
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,
     marker::{Bytes, Usize1},
 };
+#[allow(unused_imports)]
+use std::collections::{BinaryHeap, HashMap, HashSet};
 
 // ====== output func ======
 #[allow(unused_imports)]
 use print_vec::*;
 pub mod print_vec {
+
     use itertools::Itertools;
     use proconio::fastout;
     #[fastout]
