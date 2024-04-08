@@ -22,12 +22,11 @@ impl Problem {
             return Answer { ans };
         }
         // counts でよい
-
         let tmp = self.s.iter().copied().into_group_map_by(|x| *x);
         let cnt_list = tmp
             .iter()
             .map(|(ch, xs)| (*ch, xs.len()))
-            .collect::<HashSet<_>>();
+            .collect::<HashSet<_>>(); // ここ HashMap と間違えている
         let ans = nc2(n as i64)
             - cnt_list
                 .iter()
@@ -37,7 +36,26 @@ impl Problem {
         Answer { ans }
     }
 
-    fn solve0(&self) -> Answer {
+    fn solve2(&self) -> Answer {
+        // counts を使った実装
+        let n = self.s.len();
+
+        let ans = if self.s.iter().all_unique() {
+            nc2(n as i64)
+        } else {
+            let cnt_list = self.s.iter().copied().counts();
+            nc2(n as i64)
+                - cnt_list
+                    .values()
+                    .copied()
+                    .map(|cnt| if cnt == 1 { 0 } else { nc2(cnt as i64) })
+                    .sum::<i64>()
+                + 1
+        };
+        Answer { ans }
+    }
+
+    fn solve_naive(&self) -> Answer {
         let n = self.s.len();
         let ans = (0..n)
             .tuple_combinations()
@@ -68,7 +86,7 @@ impl Answer {
 
 fn main() {
     // Problem::read().solve0().print();
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -79,7 +97,7 @@ mod tests {
     fn sub(s: &[u8]) {
         let p = Problem { s: s.to_vec() };
         dbg!(p.solve().ans);
-        assert_eq!(p.solve().ans, p.solve0().ans);
+        assert_eq!(p.solve().ans, p.solve_naive().ans);
     }
 
     #[test]
