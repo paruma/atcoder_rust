@@ -23,6 +23,18 @@ impl Problem {
             .chain(*right + 1..n)
             .map(|i| s[i])
             .collect_vec();
+
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        let left = self.left;
+        let right = self.right;
+        let s = &self.s;
+        let n = s.len();
+        let ans = chain!(0..left, (left..right + 1).rev(), right + 1..n)
+            .map(|i| s[i])
+            .collect_vec();
         Answer { ans }
     }
 }
@@ -40,7 +52,9 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read(ProconReader::new(stdin().lock())).solve().print();
+    Problem::read(ProconReader::new(stdin().lock()))
+        .solve2()
+        .print();
 }
 
 #[cfg(test)]
@@ -66,7 +80,7 @@ mod tests {
 
 // ====== snippet ======
 
-use itertools::Itertools;
+use itertools::{chain, Itertools};
 #[allow(unused_imports)]
 use myio::*;
 pub mod myio {
@@ -124,7 +138,10 @@ pub mod myio {
             T::Err: std::fmt::Debug,
         {
             let buf = self.read_line();
-            buf.trim().split(' ').map(|s| s.parse::<T>().unwrap()).collect::<Vec<T>>()
+            buf.trim()
+                .split(' ')
+                .map(|s| s.parse::<T>().unwrap())
+                .collect::<Vec<T>>()
         }
 
         fn read_vec_i64(&mut self) -> Vec<i64> {
