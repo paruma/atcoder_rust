@@ -23,7 +23,12 @@ impl Problem {
         let Problem { h, w, grid } = self;
         let h = *h;
         let w = *w;
-        let dir = [Pos::new(1, 0), Pos::new(-1, 0), Pos::new(0, 1), Pos::new(0, -1)];
+        let dir = [
+            Pos::new(1, 0),
+            Pos::new(-1, 0),
+            Pos::new(0, 1),
+            Pos::new(0, -1),
+        ];
         let mut grid = grid.clone();
         // 視線の処理
         for (y, x) in iproduct!(0..h, 0..w) {
@@ -57,7 +62,9 @@ impl Problem {
         // BFS
         let mut open: VecDeque<Pos<i64>> = VecDeque::new();
 
-        let init_pos = iproduct!(0..h, 0..w).find(|(y, x)| grid[*y][*x] == b'S').unwrap();
+        let init_pos = iproduct!(0..h, 0..w)
+            .find(|(y, x)| grid[*y][*x] == b'S')
+            .unwrap();
         let init_pos = Pos::new(init_pos.1 as i64, init_pos.0 as i64);
         open.push_front(init_pos);
 
@@ -82,7 +89,9 @@ impl Problem {
             }
         }
 
-        let goal_pos = iproduct!(0..h, 0..w).find(|(y, x)| grid[*y][*x] == b'G').unwrap();
+        let goal_pos = iproduct!(0..h, 0..w)
+            .find(|(y, x)| grid[*y][*x] == b'G')
+            .unwrap();
         let goal_pos = Pos::new(goal_pos.1, goal_pos.0);
         let ans = cnt[goal_pos.y][goal_pos.x];
         let ans = if ans >= 12_000_000_000_i64 { -1 } else { ans };
@@ -99,7 +108,12 @@ impl Problem {
         let Problem { h, w, grid } = self;
         let h = *h;
         let w = *w;
-        let dir = [Pos::new(1, 0), Pos::new(-1, 0), Pos::new(0, 1), Pos::new(0, -1)];
+        let dir = [
+            Pos::new(1, 0),
+            Pos::new(-1, 0),
+            Pos::new(0, 1),
+            Pos::new(0, -1),
+        ];
         let mut grid = grid.clone();
         // 視線の処理
         for (y, x) in iproduct!(0..h, 0..w) {
@@ -167,7 +181,12 @@ impl Problem {
         let Problem { h, w, grid } = self;
         let h = *h;
         let w = *w;
-        let dir = [Pos::new(1, 0), Pos::new(-1, 0), Pos::new(0, 1), Pos::new(0, -1)];
+        let dir = [
+            Pos::new(1, 0),
+            Pos::new(-1, 0),
+            Pos::new(0, 1),
+            Pos::new(0, -1),
+        ];
 
         struct Grid {
             grid: Vec<Vec<u8>>,
@@ -205,7 +224,14 @@ impl Problem {
             }
 
             fn player_can_move(&self, pos: Pos<i64>) -> bool {
+                // 実行スピードが必要な場合は前計算をしておく
                 b".SG".contains(self.at(pos))
+            }
+
+            fn find_pos_of(&self, ch: u8) -> Option<Pos<i64>> {
+                iproduct!(0..self.h, 0..self.w)
+                    .map(|(y, x)| Pos::new(x as i64, y as i64))
+                    .find(|pos| self.at(*pos) == &ch)
             }
         }
 
@@ -235,16 +261,10 @@ impl Problem {
         }
         let grid = grid;
 
-        let search_pos = |ch: u8| -> Option<Pos<i64>> {
-            iproduct!(0..h, 0..w)
-                .map(|(y, x)| Pos::new(x as i64, y as i64))
-                .find(|pos| *grid.at(*pos) == ch)
-        };
-
         // BFS
         let mut open: VecDeque<Pos<i64>> = VecDeque::new();
 
-        let init_pos = search_pos(b'S').unwrap();
+        let init_pos = grid.find_pos_of(b'S').unwrap();
         open.push_front(init_pos);
 
         let mut visited = vec![vec![false; w]; h];
@@ -264,7 +284,7 @@ impl Problem {
             }
         }
 
-        let goal_pos = search_pos(b'G').unwrap();
+        let goal_pos = grid.find_pos_of(b'G').unwrap();
         let ans = cnt.at(goal_pos).get_fin_or(-1);
 
         Answer { ans }
@@ -274,7 +294,12 @@ impl Problem {
         let Problem { h, w, grid } = self;
         let h = *h;
         let w = *w;
-        let dir = [Pos::new(1, 0), Pos::new(-1, 0), Pos::new(0, 1), Pos::new(0, -1)];
+        let dir = [
+            Pos::new(1, 0),
+            Pos::new(-1, 0),
+            Pos::new(0, 1),
+            Pos::new(0, -1),
+        ];
 
         struct Grid {
             grid: Vec<Vec<u8>>,
@@ -390,7 +415,9 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read(ProconReader::new(stdin().lock())).solve4().print();
+    Problem::read(ProconReader::new(stdin().lock()))
+        .solve4()
+        .print();
 }
 
 #[cfg(test)]
@@ -425,7 +452,9 @@ pub mod mod_queue {
     }
     impl<T> Queue<T> {
         pub fn new() -> Self {
-            Queue { raw: VecDeque::new() }
+            Queue {
+                raw: VecDeque::new(),
+            }
         }
         pub fn push(&mut self, value: T) {
             self.raw.push_front(value)
@@ -666,7 +695,10 @@ pub mod myio {
             T::Err: std::fmt::Debug,
         {
             let buf = self.read_line();
-            buf.trim().split(' ').map(|s| s.parse::<T>().unwrap()).collect::<Vec<T>>()
+            buf.trim()
+                .split(' ')
+                .map(|s| s.parse::<T>().unwrap())
+                .collect::<Vec<T>>()
         }
 
         fn read_vec_i64(&mut self) -> Vec<i64> {
