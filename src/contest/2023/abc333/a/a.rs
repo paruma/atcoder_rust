@@ -15,6 +15,7 @@ impl Problem {
         //let ans = std::iter::repeat(n.to_string()).take(n as usize).join("");
         // n.to_string().repeat(n as usize)
         let ans = repeat_n(n.to_string(), n as usize).join("");
+        let ans = n.to_string().repeat(n as usize);
         Answer { ans }
     }
 }

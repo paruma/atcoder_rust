@@ -14,6 +14,7 @@ impl Problem {
     fn solve(&self) -> Answer {
         let xs = &self.xs;
         let elem = xs[0];
+        // all_equal
         let ans = xs.iter().all(|x| *x == elem);
 
         Answer { ans }

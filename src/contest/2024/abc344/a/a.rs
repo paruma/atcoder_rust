@@ -14,16 +14,26 @@ impl Problem {
         let tmp = self.s.split(|x| *x == b'|').collect_vec();
         let a = String::from_utf8(tmp[0].to_vec()).unwrap();
         let b = String::from_utf8(tmp[2].to_vec()).unwrap();
-        let  x = [tmp[0], tmp[2]].concat();
+        let x = [tmp[0], tmp[2]].concat();
 
         let ans = a + &b;
         Answer { ans }
     }
 
     fn solve2(&self) -> Answer {
-        let tmp = self.s.split(|x| *x == b'|').collect_vec();
+        use bstr::ByteSlice;
+        //let tmp = self.s.split(|x| *x == b'|').collect_vec();
+        let tmp = self.s.split_str(b"|").collect_vec();
         let ans = chain!(tmp[0], tmp[2]).copied().collect_vec();
         let ans = String::from_utf8(ans).unwrap();
+        Answer { ans }
+    }
+
+    fn solve3(&self) -> Answer {
+        use regex::Regex;
+        let re = Regex::new(r"\|.*\|").unwrap();
+        let s = String::from_utf8(self.s.to_vec()).unwrap();
+        let ans = re.replace(&s, "").to_string();
         Answer { ans }
     }
 }
@@ -40,7 +50,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve2().print();
+    Problem::read().solve3().print();
 }
 
 #[cfg(test)]
