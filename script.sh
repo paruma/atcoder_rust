@@ -94,7 +94,7 @@ check_mod() {
 
 check_dbg_output() {
     task="$(get_task)"
-    if grep -Pq '^(?!.*//.*(dbg|lg)!).*(dbg|lg)!' "${task}.rs"; then
+    if grep -Pq '^(?!.*//.*(dbg|lg)!).*(dbg|[^:]lg)!' "${task}.rs"; then
         return 1
     fi
 }
