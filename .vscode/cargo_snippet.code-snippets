@@ -2072,6 +2072,29 @@
       "}"
     ]
   },
+  "positional_notation": {
+    "scope": "rust",
+    "prefix": "positional_notation",
+    "body": [
+      "use positional_notation::*;",
+      "#[allow(clippy::module_inception)]",
+      "pub mod positional_notation {",
+      "    pub fn eval_base_n_value(xs: &[i64], base: i64) -> i64 {",
+      "        xs.iter().fold(0, |acc, &x| acc * base + x)",
+      "    }",
+      "    pub fn to_base_n_value(x: i64, base: i64) -> Vec<i64> {",
+      "        let mut ret = vec![];",
+      "        let mut x = x;",
+      "        while x > 0 {",
+      "            ret.push(x % base);",
+      "            x /= base;",
+      "        }",
+      "        ret.reverse();",
+      "        ret",
+      "    }",
+      "}"
+    ]
+  },
   "print_arr": {
     "scope": "rust",
     "prefix": "print_arr",
