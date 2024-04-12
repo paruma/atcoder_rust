@@ -86,7 +86,6 @@ pub fn has_cycle_undirected(n_vertex: usize, edges: &[Edge]) -> bool {
     false
 }
 
-#[snippet]
 #[snippet(include = "topo_sort")]
 pub fn has_cycle_directed(adj: &Vec<Vec<Edge>>) -> bool {
     let topo_sorted = topo_sort(adj); // 戻り値にループの部分は入ってこない。

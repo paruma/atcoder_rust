@@ -184,6 +184,115 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        // bfs をする解法
+
+        let grid = Grid::new(self.grid.clone());
+        let start_pos = grid.start_pos();
+        let goal_pos = grid.goal_pos();
+
+        // スタートに薬がない場合はゴールに到達不可能
+        if !self.medicines.iter().any(|x| x.pos == start_pos) {
+            return Answer { ans: false };
+        }
+
+        // ゴールに薬がなければ、ダミーの薬を追加する
+        let medicines = {
+            let mut medicines = self.medicines.clone();
+
+            if !medicines.iter().any(|x| x.pos == goal_pos) {
+                medicines.push(Medicine {
+                    pos: goal_pos,
+                    energy: 0,
+                });
+            }
+            medicines
+        };
+
+        // 各薬から到達可能な薬のリストを得る。(隣接リスト)
+        let adj_medicines: Vec<Vec<usize>> = {
+            medicines
+                .iter()
+                .copied()
+                .map(|medicine| {
+                    // medicines.pos から medicine.energy の手数で各点が到達可能か調べる
+                    let can_reach: Vec<Vec<bool>> = {
+                        let mut visited = vec![vec![false; grid.w]; grid.h];
+                        struct State {
+                            pos: Pos<i64>,
+                            energy: i64,
+                        }
+                        let mut queue: Queue<State> = Queue::new();
+
+                        *visited.at_mut(medicine.pos) = true;
+                        queue.push(State {
+                            pos: medicine.pos,
+                            energy: medicine.energy,
+                        });
+
+                        while let Some(State {
+                            pos: current_pos,
+                            energy: current_energy,
+                        }) = queue.pop()
+                        {
+                            if current_energy <= 0 {
+                                continue;
+                            }
+
+                            for next_pos in DIR4_LIST
+                                .iter()
+                                .copied()
+                                .map(|dir| dir + current_pos)
+                                .filter(|pos| grid.player_can_move(*pos))
+                            {
+                                if *visited.at(next_pos) {
+                                    continue;
+                                }
+                                *visited.at_mut(next_pos) = true;
+                                queue.push(State {
+                                    pos: next_pos,
+                                    energy: current_energy - 1,
+                                });
+                            }
+                        }
+                        visited
+                    };
+
+                    // 到達可能な薬を調べる
+                    medicines
+                        .iter()
+                        .copied()
+                        .positions(|other_medicine| *can_reach.at(other_medicine.pos))
+                        .collect_vec()
+                })
+                .collect_vec()
+        };
+
+        // スタートの薬からゴールの薬に到達可能か調べる
+        let start_medicine_idx = medicines.iter().position(|x| x.pos == start_pos).unwrap();
+        let goal_medicine_idx = medicines.iter().position(|x| x.pos == goal_pos).unwrap();
+
+        let ans = {
+            let mut visited: Vec<bool> = vec![false; medicines.len()];
+            let mut queue: Queue<usize> = Queue::new();
+            visited[start_medicine_idx] = true;
+            queue.push(start_medicine_idx);
+
+            while let Some(current_medicine_idx) = queue.pop() {
+                for &next_medicine_idx in &adj_medicines[current_medicine_idx] {
+                    if visited[next_medicine_idx] {
+                        continue;
+                    }
+                    visited[next_medicine_idx] = true;
+                    queue.push(next_medicine_idx);
+                }
+            }
+            visited[goal_medicine_idx]
+        };
+
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -204,7 +313,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -364,10 +473,9 @@ pub mod pos {
     impl<T: Readable<Output = T>> Readable for Pos<T> {
         type Output = Self;
         fn read<R: BufRead, S: Source<R>>(source: &mut S) -> Self::Output {
-            Pos {
-                x: T::read(source),
-                y: T::read(source),
-            }
+            let y = T::read(source);
+            let x = T::read(source);
+            Pos { x, y }
         }
     }
     pub const DIR8_LIST: [Pos<i64>; 8] = [
@@ -533,6 +641,39 @@ pub mod mod_neg_ext_int {
         }
         fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
             *a.max(b)
+        }
+    }
+}
+
+use mod_queue::*;
+pub mod mod_queue {
+    use std::collections::VecDeque;
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct Queue<T> {
+        raw: VecDeque<T>,
+    }
+    impl<T> Queue<T> {
+        pub fn new() -> Self {
+            Queue {
+                raw: VecDeque::new(),
+            }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push_front(value)
+        }
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop_back()
+        }
+        pub fn peek(&self) -> Option<&T> {
+            self.raw.back()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.raw.is_empty()
+        }
+    }
+    impl<T> Default for Queue<T> {
+        fn default() -> Self {
+            Self::new()
         }
     }
 }
