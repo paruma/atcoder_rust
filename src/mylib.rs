@@ -13,6 +13,7 @@ pub mod neg_ext_int;
 pub mod odo;
 pub mod pos0;
 pub mod queue0;
+pub mod random;
 pub mod rolling_hash0;
 pub mod scan_iter0;
 pub mod scan_vec0;
