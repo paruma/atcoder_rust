@@ -1,3 +1,4 @@
+pub mod array_2d_transformation;
 pub mod bin_search0;
 pub mod chminmax;
 pub mod coordinate_compression0;
