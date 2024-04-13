@@ -96,7 +96,6 @@ mod tests {
                 (0..n_vertices).map(|v| uf.leader(v)).all_equal()
             };
             assert!(is_connected);
-            dbg!(&edges);
         }
     }
 }
