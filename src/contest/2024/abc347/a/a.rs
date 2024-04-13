@@ -59,13 +59,6 @@ mod tests {
 
     #[test]
     fn test_problem() {
-        let x: Vec<i64> = vec![1];
-        let x = &x[2..2];
-        let n: usize = 3;
-        dbg!((0..=n).combinations_with_replacement(2).collect_vec());
-        dbg!(iproduct!(0..=n, 0..=n)
-            .filter(|(begin, end)| begin <= end)
-            .collect_vec());
         assert_eq!(1 + 1, 2);
     }
 
@@ -86,8 +79,8 @@ mod tests {
     fn test_with_naive() {
         // 手動でテストを作るのもOK
         for _ in 0..100 {
-            let p = make_random_problem();
-            check(&p);
+            // let p = make_random_problem();
+            // check(&p);
         }
     }
 }

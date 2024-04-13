@@ -156,7 +156,6 @@ mod tests {
         // 手動でテストを作るのもOK
         for _ in 0..100 {
             let p = make_random_problem();
-            // check(&p);
             p.solve();
         }
     }
