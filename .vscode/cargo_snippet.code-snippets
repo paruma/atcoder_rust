@@ -1983,11 +1983,7 @@
     "body": [
       "use pos::*;",
       "pub mod pos {",
-      "    use proconio::source::{Readable, Source};",
-      "    use std::{",
-      "        io::BufRead,",
-      "        ops::{Add, AddAssign, Mul, Neg, Sub, SubAssign},",
-      "    };",
+      "    use std::ops::{Add, AddAssign, Mul, Neg, Sub, SubAssign};",
       "    #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]",
       "    pub struct Pos<T> {",
       "        pub x: T,",

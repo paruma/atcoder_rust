@@ -2,12 +2,7 @@ use cargo_snippet::snippet;
 
 #[snippet(prefix = "use pos::*;")]
 pub mod pos {
-    use std::{
-        io::BufRead,
-        ops::{Add, AddAssign, Mul, Neg, Sub, SubAssign},
-    };
-
-    use proconio::source::{Readable, Source};
+    use std::ops::{Add, AddAssign, Mul, Neg, Sub, SubAssign};
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
     pub struct Pos<T> {
