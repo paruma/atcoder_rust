@@ -1,18 +1,46 @@
-//#[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Range {
+    l: i64,
+    r: i64,
+}
+
+#[derive_readable]
 #[derive(Debug)]
 struct Problem {
-    _a: usize,
+    range: Range,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            p: Problem
         }
-        Problem { _a }
+        p
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let range = self.range;
+        let mut ans = vec![];
+        let mut current = range.l;
+        loop {
+            let mut changes = false;
+            for i in (0..u32::min(current.trailing_zeros(), 61) + 1).rev() {
+                // 2^i を足す
+                let next = current + 2_i64.pow(i);
+                if next <= range.r {
+                    changes = true;
+                    ans.push(Range {
+                        l: current,
+                        r: next,
+                    });
+                    current = next;
+                    break;
+                }
+            }
+            if !changes {
+                break;
+            }
+        }
         Answer { ans }
     }
 
@@ -26,12 +54,15 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<Range>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        println!("{}", self.ans.len());
+        for range in &self.ans {
+            println!("{} {}", range.l, range.r);
+        }
     }
 }
 
@@ -77,6 +108,7 @@ mod tests {
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
+use num::PrimInt;
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,

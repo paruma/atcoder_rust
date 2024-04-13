@@ -1,18 +1,21 @@
 //#[derive_readable]
 #[derive(Debug)]
 struct Problem {
-    _a: usize,
+    s: Vec<u8>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            s: Bytes
         }
-        Problem { _a }
+        Problem { s }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let s = &self.s;
+        let cnts = s.iter().copied().counts();
+        let g = cnts.values().copied().counts();
+        let ans = g.values().all(|cnt| *cnt == 0 || *cnt == 2);
         Answer { ans }
     }
 
@@ -26,12 +29,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_yesno(self.ans);
     }
 }
 

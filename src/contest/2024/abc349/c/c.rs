@@ -1,37 +1,117 @@
-//#[derive_readable]
+#[derive_readable]
 #[derive(Debug)]
 struct Problem {
-    _a: usize,
+    s: Bytes,
+    t: Bytes,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            p: Problem
         }
-        Problem { _a }
+        p
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let s = &self.s;
+        let t = &self.t; // 長さ3
+
+        let pos_t0 = s
+            .iter()
+            .copied()
+            .position(|ch| ch == t[0].to_ascii_lowercase());
+        if pos_t0.is_none() {
+            return Answer { ans: false };
+        }
+        let pos_t0 = pos_t0.unwrap();
+        if pos_t0 + 1 >= s.len() {
+            return Answer { ans: false };
+        }
+        let pos_t1 = s[pos_t0 + 1..]
+            .iter()
+            .copied()
+            .position(|ch| ch == t[1].to_ascii_lowercase())
+            .map(|x| x + pos_t0 + 1);
+        if pos_t1.is_none() {
+            return Answer { ans: false };
+        }
+        let pos_t1 = pos_t1.unwrap();
+        if t[2] == b'X' {
+            return Answer { ans: true };
+        }
+        if pos_t1 + 1 >= s.len() {
+            return Answer { ans: false };
+        }
+        let pos_t2 = s[pos_t1 + 1..]
+            .iter()
+            .copied()
+            .position(|ch| ch == t[2].to_ascii_lowercase());
+
+        let ans = pos_t2.is_some();
+
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        let s = String::from_utf8(self.s.clone()).unwrap();
+        let t = &self
+            .t
+            .iter()
+            .copied()
+            .map(|x| x.to_ascii_lowercase() as char)
+            .collect_vec();
+
+        let ans = if t[2] == 'x' {
+            let pattern = format!("^.*{}.*{}.*$", t[0], t[1]);
+            let re = Regex::new(&pattern).unwrap();
+            re.is_match(&s)
+        } else {
+            let pattern = format!("^.*{}.*{}.*{}.*$", t[0], t[1], t[2]);
+            let re = Regex::new(&pattern).unwrap();
+            re.is_match(&s)
+        };
+
         Answer { ans }
     }
 
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
-        todo!();
-        // let ans = 0;
-        // Answer { ans }
+        let s = &self.s;
+        let t = &self
+            .t
+            .iter()
+            .copied()
+            .map(|x| x.to_ascii_lowercase())
+            .collect_vec(); // 長さ3
+
+        //空港コードのリスト
+        let set = {
+            let list1 = s.iter().copied().combinations(3).collect_vec();
+            let list2 = s
+                .iter()
+                .copied()
+                .combinations(2)
+                .map(|mut xs| {
+                    xs.push(b'x');
+                    xs
+                })
+                .collect_vec();
+
+            chain!(list1, list2).collect::<HashSet<_>>()
+        };
+        let ans = set.contains(t);
+        Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_yesno(self.ans);
     }
 }
 
@@ -52,24 +132,25 @@ mod tests {
     }
 
     fn check(p: &Problem) {
-        assert_eq!(p.solve(), p.solve_naive());
+        assert_eq!(p.solve2(), p.solve_naive());
     }
 
     fn make_random_problem() -> Problem {
-        todo!()
-        // let mut rng = SmallRng::from_entropy();
-        // let n = rng.gen_range(1..=10);
-        // let p = Problem { _a: n };
-        // println!("{:?}", &p);
-        // p
+        let mut rng = SmallRng::from_entropy();
+        let s = (0..10).map(|_| rng.gen_range(b'a'..=b'z')).collect_vec();
+        let t = (0..3).map(|_| rng.gen_range(b'A'..=b'A')).collect_vec();
+        println!("{:?}", String::from_utf8(s.clone()).unwrap());
+        println!("{:?}", String::from_utf8(t.clone()).unwrap());
+        let p = Problem { s, t };
+        p
     }
 
     #[test]
     fn test_with_naive() {
         // 手動でテストを作るのもOK
-        for _ in 0..100 {
-            // let p = make_random_problem();
-            // check(&p);
+        for _ in 0..10000 {
+            let p = make_random_problem();
+            check(&p);
         }
     }
 }
@@ -82,8 +163,10 @@ use proconio::{
     derive_readable, fastout, input,
     marker::{Bytes, Usize1},
 };
+use regex::Regex;
 #[allow(unused_imports)]
 use std::collections::{BinaryHeap, HashMap, HashSet};
+use std::fmt::format;
 
 // ====== output func ======
 #[allow(unused_imports)]

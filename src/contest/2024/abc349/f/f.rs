@@ -1,26 +1,53 @@
 //#[derive_readable]
 #[derive(Debug)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    m: i64,
+    xs: Vec<i64>,
+}
+
+fn multi_lcm(xs: &[i64]) -> Option<i64> {
+    let mut ans = 1;
+    for x in xs.iter() {
+        let gcd = gcd(ans, *x);
+        let tmp = (ans / gcd).checked_mul(*x);
+        if tmp.is_none() {
+            return None;
+        }
+        ans = tmp.unwrap();
+    }
+    Some(ans)
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            m: i64,
+            xs: [i64; n],
         }
-        Problem { _a }
+        Problem { n, m, xs }
     }
     fn solve(&self) -> Answer {
+        // 998
         let ans = 0;
         Answer { ans }
     }
 
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
-        todo!();
-        // let ans = 0;
-        // Answer { ans }
+        let ans = self
+            .xs
+            .iter()
+            .copied()
+            .powerset()
+            .filter(|xs_sub| !xs_sub.is_empty())
+            .map(|xs_sub| multi_lcm(&xs_sub))
+            .filter(|x| *x == Some(self.m))
+            .count()
+            % 998244353;
+        let ans = ans as i64;
+        Answer { ans }
     }
 }
 
@@ -36,7 +63,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve_naive().print();
 }
 
 #[cfg(test)]
@@ -77,6 +104,7 @@ mod tests {
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
+use num_integer::{gcd, lcm};
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,
@@ -130,3 +158,5 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+
+
