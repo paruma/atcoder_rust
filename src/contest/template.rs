@@ -1,4 +1,4 @@
-// #[derive_readable]
+//#[derive_readable]
 #[derive(Debug)]
 struct Problem {
     _a: usize,
