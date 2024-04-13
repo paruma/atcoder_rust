@@ -2065,6 +2065,37 @@
       "}"
     ]
   },
+  "monoid_template": {
+    "scope": "rust",
+    "prefix": "monoid_template",
+    "body": [
+      "use monoid_template::*;",
+      "#[allow(unused_variables)]",
+      "pub mod monoid_template {",
+      "    use ac_library::segtree::Monoid;",
+      "    use std::convert::Infallible;",
+      "    #[derive(Clone, Copy, Debug, PartialEq, Eq)]",
+      "    pub struct RangeXxx {",
+      "        pub len: usize,",
+      "    }",
+      "    impl RangeXxx {",
+      "        pub fn unit(x: i64) -> Self {",
+      "            Self { len: 1 }",
+      "        }",
+      "    }",
+      "    pub struct RangeXxxMonoid(Infallible);",
+      "    impl Monoid for RangeXxxMonoid {",
+      "        type S = RangeXxx;",
+      "        fn identity() -> Self::S {",
+      "            RangeXxx { len: 0 }",
+      "        }",
+      "        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {",
+      "            RangeXxx { len: a.len + b.len }",
+      "        }",
+      "    }",
+      "}"
+    ]
+  },
   "monoid_transform": {
     "scope": "rust",
     "prefix": "monoid_transform",
