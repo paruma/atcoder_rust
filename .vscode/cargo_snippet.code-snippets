@@ -3008,6 +3008,26 @@
       "}"
     ]
   },
+  "vec_at": {
+    "scope": "rust",
+    "prefix": "vec_at",
+    "body": [
+      "use vec_at::*;",
+      "#[allow(clippy::module_inception)]",
+      "pub mod vec_at {",
+      "    use easy_ext::ext;",
+      "    #[ext]",
+      "    impl<T> Vec<T> {",
+      "        pub fn at(&self, index: i64) -> &T {",
+      "            &self[index as usize]",
+      "        }",
+      "        pub fn at_mut(&mut self, index: i64) -> &mut T {",
+      "            &mut self[index as usize]",
+      "        }",
+      "    }",
+      "}"
+    ]
+  },
   "vec_vec_at": {
     "scope": "rust",
     "prefix": "vec_vec_at",

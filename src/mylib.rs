@@ -20,3 +20,4 @@ pub mod scan_vec0;
 pub mod stack0;
 pub mod sumprod;
 pub mod union_find0;
+pub mod vec_at;
