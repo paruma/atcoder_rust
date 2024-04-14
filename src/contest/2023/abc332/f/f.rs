@@ -1,116 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//#[derive_readable]
-
-use std::convert::Infallible;
-use std::ops::{Add, Mul};
-
-use ac_library::lazysegtree::MapMonoid;
-use ac_library::{ModInt998244353 as Mint, Monoid};
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-struct AffineInput {
-    value: Mint,
-    times: usize,
-}
-
-impl AffineInput {
-    fn unit(x: Mint) -> Self {
-        Self { value: x, times: 1 }
-    }
-}
-struct AffineInputAdd(Infallible);
-impl Monoid for AffineInputAdd {
-    type S = AffineInput;
-    fn identity() -> Self::S {
-        AffineInput {
-            value: 0.into(),
-            times: 0,
-        }
-    }
-    fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
-        AffineInput {
-            value: a.value + b.value,
-            times: a.times + b.times,
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-struct AffineTransform<T> {
-    slope: T,
-    intercept: T,
-}
-impl<T> AffineTransform<T> {
-    pub fn new(slope: T, intercept: T) -> Self {
-        Self { slope, intercept }
-    }
-
-    pub fn apply(&self, x: T) -> T
-    where
-        T: Copy + Mul<Output = T> + Add<Output = T>,
-    {
-        self.slope * x + self.intercept
-    }
-
-    pub fn identity() -> Self
-    where
-        T: From<i64>,
-    {
-        Self {
-            slope: 1.into(),
-            intercept: 0.into(),
-        }
-    }
-
-    pub fn composite(&self, rhs: &Self) -> Self
-    where
-        T: Copy + Mul<Output = T> + Add<Output = T>,
-    {
-        Self {
-            slope: self.slope * rhs.slope,
-            intercept: self.slope * rhs.intercept + self.intercept,
-        }
-    }
-}
-
-struct AffineSum(Infallible);
-impl MapMonoid for AffineSum {
-    type M = AffineInputAdd;
-    type F = AffineTransform<Mint>;
-
-    fn identity_map() -> AffineTransform<Mint> {
-        Self::F::identity()
-    }
-
-    fn mapping(&f: &AffineTransform<Mint>, &x: &AffineInput) -> AffineInput {
-        AffineInput {
-            value: f.slope * x.value + f.intercept * x.times,
-            times: x.times,
-        }
-    }
-
-    fn composition(
-        &f: &AffineTransform<Mint>,
-        &g: &AffineTransform<Mint>,
-    ) -> AffineTransform<Mint> {
-        f.composite(&g)
-    }
-}
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct Op {
     begin: usize,
@@ -124,7 +11,7 @@ struct Problem {
     ops: Vec<Op>,
 }
 
-use ac_library::LazySegtree;
+use ac_library::ModInt998244353 as Mint;
 
 impl Problem {
     fn read() -> Problem {
@@ -162,20 +49,20 @@ impl Problem {
         let xs = xs
             .iter()
             .copied()
-            .map(|x| AffineInput::unit(x.into()))
+            .map(|x| RangeSum::unit(x.into()))
             .collect_vec();
-        let mut segtree = LazySegtree::<AffineSum>::from(xs);
+        let mut segtree = LazySegtree::<RangeAffineRangeSum<Mint>>::from(xs);
 
         for op in ops {
             let prob = Mint::new(op.end - op.begin).inv();
-            let affine = AffineTransform {
+            let affine = Affine {
                 slope: Mint::new(1) - prob,
                 intercept: prob * Mint::new(op.value),
             };
             segtree.apply_range(op.begin..op.end, affine);
         }
 
-        let ans = (0..*len).map(|i| segtree.get(i).value).collect_vec();
+        let ans = (0..*len).map(|i| segtree.get(i).sum).collect_vec();
         Answer { ans }
     }
     fn solve_wrong(&self) -> Answer {
@@ -247,6 +134,7 @@ mod tests {
     }
 }
 
+use ac_library::LazySegtree;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::Itertools;
@@ -300,3 +188,90 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+
+use range_affine_range_sum::*;
+pub mod range_affine_range_sum {
+    use ac_library::{MapMonoid, Monoid};
+    use std::convert::Infallible;
+    use std::marker::PhantomData;
+    use std::ops::{Add, Mul};
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub struct RangeSum<T> {
+        pub sum: T,
+        pub len: i64,
+    }
+    impl<T> RangeSum<T> {
+        pub fn unit(x: T) -> RangeSum<T> {
+            RangeSum { sum: x, len: 1 }
+        }
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub struct Affine<T> {
+        pub slope: T,
+        pub intercept: T,
+    }
+    impl<T> Affine<T>
+    where
+        T: From<i64>,
+    {
+        /// 区間変更用（定数関数）
+        pub fn constant_func(x: T) -> Affine<T> {
+            Affine {
+                slope: 0.into(),
+                intercept: x,
+            }
+        }
+        /// 区間加算用
+        pub fn addition_func(x: T) -> Affine<T> {
+            Affine {
+                slope: 1.into(),
+                intercept: x,
+            }
+        }
+    }
+    pub struct ValueLenSum<T>(Infallible, PhantomData<fn() -> T>);
+    impl<T> Monoid for ValueLenSum<T>
+    where
+        T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
+    {
+        type S = RangeSum<T>;
+        fn identity() -> RangeSum<T> {
+            RangeSum {
+                sum: 0.into(),
+                len: 0,
+            }
+        }
+        fn binary_operation(a: &RangeSum<T>, b: &RangeSum<T>) -> RangeSum<T> {
+            RangeSum {
+                sum: a.sum + b.sum,
+                len: a.len + b.len,
+            }
+        }
+    }
+    pub struct RangeAffineRangeSum<T>(Infallible, PhantomData<fn() -> T>);
+    impl<T> MapMonoid for RangeAffineRangeSum<T>
+    where
+        T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
+    {
+        type M = ValueLenSum<T>;
+        type F = Affine<T>;
+        fn identity_map() -> Affine<T> {
+            Affine {
+                slope: 1.into(),
+                intercept: 0.into(),
+            }
+        }
+        fn composition(a: &Affine<T>, b: &Affine<T>) -> Affine<T> {
+            Affine {
+                slope: a.slope * b.slope,
+                intercept: a.slope * b.intercept + a.intercept,
+            }
+        }
+        fn mapping(f: &Affine<T>, x: &RangeSum<T>) -> RangeSum<T> {
+            RangeSum {
+                sum: f.slope * x.sum + f.intercept * x.len.into(),
+                len: x.len,
+            }
+        }
+    }
+}

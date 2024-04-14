@@ -8,13 +8,13 @@ pub mod range_affine_range_sum {
     use std::ops::{Add, Mul};
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-    pub struct ValueLen<T> {
-        pub value: T,
+    pub struct RangeSum<T> {
+        pub sum: T,
         pub len: i64,
     }
-    impl<T> ValueLen<T> {
-        pub fn unit(x: T) -> ValueLen<T> {
-            ValueLen { value: x, len: 1 }
+    impl<T> RangeSum<T> {
+        pub fn unit(x: T) -> RangeSum<T> {
+            RangeSum { sum: x, len: 1 }
         }
     }
 
@@ -50,23 +50,23 @@ pub mod range_affine_range_sum {
     where
         T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
     {
-        type S = ValueLen<T>;
-        fn identity() -> ValueLen<T> {
-            ValueLen {
-                value: 0.into(),
+        type S = RangeSum<T>;
+        fn identity() -> RangeSum<T> {
+            RangeSum {
+                sum: 0.into(),
                 len: 0,
             }
         }
-        fn binary_operation(a: &ValueLen<T>, b: &ValueLen<T>) -> ValueLen<T> {
-            ValueLen {
-                value: a.value + b.value,
+        fn binary_operation(a: &RangeSum<T>, b: &RangeSum<T>) -> RangeSum<T> {
+            RangeSum {
+                sum: a.sum + b.sum,
                 len: a.len + b.len,
             }
         }
     }
 
-    pub struct AffineSum<T>(Infallible, PhantomData<fn() -> T>);
-    impl<T> MapMonoid for AffineSum<T>
+    pub struct RangeAffineRangeSum<T>(Infallible, PhantomData<fn() -> T>);
+    impl<T> MapMonoid for RangeAffineRangeSum<T>
     where
         T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
     {
@@ -86,9 +86,9 @@ pub mod range_affine_range_sum {
             }
         }
 
-        fn mapping(f: &Affine<T>, x: &ValueLen<T>) -> ValueLen<T> {
-            ValueLen {
-                value: f.slope * x.value + f.intercept * x.len.into(),
+        fn mapping(f: &Affine<T>, x: &RangeSum<T>) -> RangeSum<T> {
+            RangeSum {
+                sum: f.slope * x.sum + f.intercept * x.len.into(),
                 len: x.len,
             }
         }
@@ -102,14 +102,14 @@ pub mod range_affine_range_minmax {
     use ac_library::{MapMonoid, Monoid};
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-    pub struct MinMaxLen {
+    pub struct RangeMinMax {
         pub min: i64,
         pub max: i64,
         pub len: i64,
     }
-    impl MinMaxLen {
-        pub fn unit(x: i64) -> MinMaxLen {
-            MinMaxLen {
+    impl RangeMinMax {
+        pub fn unit(x: i64) -> RangeMinMax {
+            RangeMinMax {
                 min: x,
                 max: x,
                 len: 1,
@@ -140,19 +140,19 @@ pub mod range_affine_range_minmax {
         }
     }
 
-    pub struct MinMaxLenMonoid(Infallible);
-    impl Monoid for MinMaxLenMonoid {
-        type S = MinMaxLen;
-        fn identity() -> MinMaxLen {
-            MinMaxLen {
+    pub struct RangeMinMaxMonoid(Infallible);
+    impl Monoid for RangeMinMaxMonoid {
+        type S = RangeMinMax;
+        fn identity() -> RangeMinMax {
+            RangeMinMax {
                 // INF, -INF は len == 0のときだけ使う。
                 min: INF,
                 max: -INF,
                 len: 0,
             }
         }
-        fn binary_operation(a: &MinMaxLen, b: &MinMaxLen) -> MinMaxLen {
-            MinMaxLen {
+        fn binary_operation(a: &RangeMinMax, b: &RangeMinMax) -> RangeMinMax {
+            RangeMinMax {
                 min: Ord::min(a.min, b.min),
                 max: Ord::max(a.max, b.max),
                 len: a.len + b.len,
@@ -162,9 +162,9 @@ pub mod range_affine_range_minmax {
 
     const INF: i64 = i64::MAX;
 
-    pub struct AffineMinMax(Infallible);
-    impl MapMonoid for AffineMinMax {
-        type M = MinMaxLenMonoid;
+    pub struct RangeAffineRangeMinMax(Infallible);
+    impl MapMonoid for RangeAffineRangeMinMax {
+        type M = RangeMinMaxMonoid;
         type F = Affine;
 
         fn identity_map() -> Affine {
@@ -180,23 +180,23 @@ pub mod range_affine_range_minmax {
             }
         }
 
-        fn mapping(f: &Affine, x: &MinMaxLen) -> MinMaxLen {
+        fn mapping(f: &Affine, x: &RangeMinMax) -> RangeMinMax {
             if x.len == 0 {
-                return MinMaxLenMonoid::identity();
+                return RangeMinMaxMonoid::identity();
             }
 
             match f.slope.cmp(&0) {
-                Ordering::Equal => MinMaxLen {
+                Ordering::Equal => RangeMinMax {
                     min: f.intercept,
                     max: f.intercept,
                     len: x.len,
                 },
-                Ordering::Greater => MinMaxLen {
+                Ordering::Greater => RangeMinMax {
                     min: f.intercept + f.slope * x.min,
                     max: f.intercept + f.slope * x.max,
                     len: x.len,
                 },
-                Ordering::Less => MinMaxLen {
+                Ordering::Less => RangeMinMax {
                     min: f.intercept + f.slope * x.max,
                     max: f.intercept + f.slope * x.min,
                     len: x.len,
@@ -264,17 +264,17 @@ mod test_range_affine_range_sum {
 
     type Mint = ModInt998244353;
     type DataM = ValueLenSum<Mint>;
-    type ActionM = AffineSum<Mint>;
+    type ActionM = RangeAffineRangeSum<Mint>;
 
     #[test]
     fn test_value_len_sum() {
-        let x1 = ValueLen::unit(5.into());
-        let x2 = ValueLen::unit(9.into());
+        let x1 = RangeSum::unit(5.into());
+        let x2 = RangeSum::unit(9.into());
 
         assert_eq!(
             DataM::binary_operation(&x1, &x2),
-            ValueLen {
-                value: 14.into(),
+            RangeSum {
+                sum: 14.into(),
                 len: 2,
             }
         );
@@ -288,20 +288,20 @@ mod test_range_affine_range_sum {
         let f = Affine::constant_func(5.into());
 
         // 例えば [1, 2] に対する区間和とその長さ
-        let x1 = ValueLen {
-            value: 3.into(),
+        let x1 = RangeSum {
+            sum: 3.into(),
             len: 2,
         };
-        let empty = ValueLen {
-            value: 0.into(),
+        let empty = RangeSum {
+            sum: 0.into(),
             len: 0,
         };
 
         assert_eq!(
             // [1, 2] を [5, 5] に変換したときの区間和とその長さ
             ActionM::mapping(&f, &x1),
-            ValueLen {
-                value: 10.into(),
+            RangeSum {
+                sum: 10.into(),
                 len: 2
             }
         );
@@ -317,20 +317,20 @@ mod test_range_affine_range_sum {
         let f = Affine::addition_func(5.into());
 
         // 例えば [1, 2] に対する区間和とその長さ
-        let x1 = ValueLen {
-            value: 3.into(),
+        let x1 = RangeSum {
+            sum: 3.into(),
             len: 2,
         };
-        let empty = ValueLen {
-            value: 0.into(),
+        let empty = RangeSum {
+            sum: 0.into(),
             len: 0,
         };
 
         assert_eq!(
             // [1, 2] を [6, 7] に変換したときの区間和とその長さ
             ActionM::mapping(&f, &x1),
-            ValueLen {
-                value: 13.into(),
+            RangeSum {
+                sum: 13.into(),
                 len: 2
             }
         );
@@ -391,13 +391,13 @@ mod test_range_affine_range_sum {
         let x1 = [1, 2, 3]
             .iter()
             .copied()
-            .map(|x| ValueLen::unit(Mint::new(x)))
+            .map(|x| RangeSum::unit(Mint::new(x)))
             .fold(DataM::identity(), |acc, x| {
                 DataM::binary_operation(&acc, &x)
             });
 
-        let x2 = ValueLen {
-            value: 0.into(),
+        let x2 = RangeSum {
+            sum: 0.into(),
             len: 0,
         };
 
@@ -414,8 +414,8 @@ mod test_range_affine_range_sum {
         assert_eq!(
             // sum {3x + 5 | x in [1, 2, 3]}
             ActionM::mapping(&f1, &x1),
-            ValueLen {
-                value: 33.into(), // 8 + 11 + 14 = 33
+            RangeSum {
+                sum: 33.into(), // 8 + 11 + 14 = 33
                 len: 3,
             }
         );
@@ -423,8 +423,8 @@ mod test_range_affine_range_sum {
         assert_eq!(
             // sum {3x + 5 | x in []}
             ActionM::mapping(&f1, &x2),
-            ValueLen {
-                value: 0.into(),
+            RangeSum {
+                sum: 0.into(),
                 len: 0,
             }
         );
@@ -432,8 +432,8 @@ mod test_range_affine_range_sum {
         assert_eq!(
             // sum {0x + 10 | x in [1, 2, 3]}
             ActionM::mapping(&f2, &x1),
-            ValueLen {
-                value: 30.into(), // 10 + 10 + 10
+            RangeSum {
+                sum: 30.into(), // 10 + 10 + 10
                 len: 3,
             }
         );
@@ -441,12 +441,12 @@ mod test_range_affine_range_sum {
 
     #[test]
     fn test_monoid_map_axiom() {
-        let axiom_of_id = |x: ValueLen<Mint>| {
+        let axiom_of_id = |x: RangeSum<Mint>| {
             // id(x) = x
             assert_eq!(ActionM::mapping(&ActionM::identity_map(), &x), x);
         };
 
-        let axiom_of_prod_act = |f1: Affine<Mint>, f2: Affine<Mint>, x: ValueLen<Mint>| {
+        let axiom_of_prod_act = |f1: Affine<Mint>, f2: Affine<Mint>, x: RangeSum<Mint>| {
             // (f1*f2)(x) = f1(f2(x))
             assert_eq!(
                 ActionM::mapping(&ActionM::composition(&f1, &f2), &x),
@@ -463,7 +463,7 @@ mod test_range_affine_range_sum {
             );
         };
 
-        let axiom_of_keeping_prod = |f: Affine<Mint>, x1: ValueLen<Mint>, x2: ValueLen<Mint>| {
+        let axiom_of_keeping_prod = |f: Affine<Mint>, x1: RangeSum<Mint>, x2: RangeSum<Mint>| {
             // f(x1*x2) = f(x1)*f(x2)
             assert_eq!(
                 ActionM::mapping(&f, &DataM::binary_operation(&x1, &x2)),
@@ -471,17 +471,17 @@ mod test_range_affine_range_sum {
             );
         };
 
-        let x1 = ValueLen {
-            value: 6.into(),
+        let x1 = RangeSum {
+            sum: 6.into(),
             len: 2,
         };
-        let x2 = ValueLen {
-            value: 10.into(),
+        let x2 = RangeSum {
+            sum: 10.into(),
             len: 3,
         };
 
-        let empty = ValueLen {
-            value: 0.into(),
+        let empty = RangeSum {
+            sum: 0.into(),
             len: 0,
         };
 
@@ -524,9 +524,9 @@ mod test_range_affine_range_sum {
     #[test]
     fn test_sample_of_lazy_segtree() {
         // range affine range sum の遅延セグ木の使用例
-        let xs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(ValueLen::unit).to_vec();
+        let xs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(RangeSum::unit).to_vec();
 
-        let mut segtree: LazySegtree<AffineSum<i64>> = LazySegtree::from(xs);
+        let mut segtree: LazySegtree<RangeAffineRangeSum<i64>> = LazySegtree::from(xs);
 
         let f1 = Affine::constant_func(5.into());
         let f2 = Affine::addition_func(3.into());
@@ -539,7 +539,7 @@ mod test_range_affine_range_sum {
         segtree.apply_range(0..2, f2); // [3, 4, 2, 5, 5, 5, 6, 7, 8, 9]
         segtree.apply_range(8..10, f3); // [3, 4, 2, 5, 5, 5, 6, 7, 23, 25]
 
-        assert_eq!(segtree.all_prod().value, 85);
+        assert_eq!(segtree.all_prod().sum, 85);
     }
 }
 
@@ -549,17 +549,17 @@ mod test_range_affine_range_minmax {
 
     use super::range_affine_range_minmax::*;
 
-    type DataM = MinMaxLenMonoid;
-    type ActionM = AffineMinMax;
+    type DataM = RangeMinMaxMonoid;
+    type ActionM = RangeAffineRangeMinMax;
 
     #[test]
     fn test_minmax_len_monoid() {
-        let x1 = MinMaxLen::unit(5.into());
-        let x2 = MinMaxLen::unit(9.into());
+        let x1 = RangeMinMax::unit(5.into());
+        let x2 = RangeMinMax::unit(9.into());
 
         assert_eq!(
             DataM::binary_operation(&x1, &x2),
-            MinMaxLen {
+            RangeMinMax {
                 min: 5,
                 max: 9,
                 len: 2,
@@ -575,17 +575,17 @@ mod test_range_affine_range_minmax {
         let f = Affine::constant_func(5.into());
 
         // 例えば [1, 2] に対する区間和とその長さ
-        let x1 = MinMaxLen {
+        let x1 = RangeMinMax {
             min: 1,
             max: 2,
             len: 2,
         };
-        let empty = MinMaxLenMonoid::identity();
+        let empty = RangeMinMaxMonoid::identity();
 
         assert_eq!(
             // [1, 2] を [5, 5] に変換したときの区間和とその長さ
             ActionM::mapping(&f, &x1),
-            MinMaxLen {
+            RangeMinMax {
                 min: 5.into(),
                 max: 5.into(),
                 len: 2
@@ -603,17 +603,17 @@ mod test_range_affine_range_minmax {
         let f = Affine::addition_func(5.into());
 
         // 例えば [1, 2] に対する区間和とその長さ
-        let x1 = MinMaxLen {
+        let x1 = RangeMinMax {
             min: 1,
             max: 2,
             len: 2,
         };
-        let empty = MinMaxLenMonoid::identity();
+        let empty = RangeMinMaxMonoid::identity();
 
         assert_eq!(
             // [1, 2] を [6, 7] に変換したときの区間和とその長さ
             ActionM::mapping(&f, &x1),
-            MinMaxLen {
+            RangeMinMax {
                 min: 6,
                 max: 7,
                 len: 2
@@ -675,12 +675,12 @@ mod test_range_affine_range_minmax {
         let x1 = [1, 2, 3]
             .iter()
             .copied()
-            .map(MinMaxLen::unit)
+            .map(RangeMinMax::unit)
             .fold(DataM::identity(), |acc, x| {
                 DataM::binary_operation(&acc, &x)
             });
 
-        let x2 = MinMaxLenMonoid::identity();
+        let x2 = RangeMinMaxMonoid::identity();
 
         let f1 = Affine {
             slope: 3,
@@ -700,7 +700,7 @@ mod test_range_affine_range_minmax {
         assert_eq!(
             // [3x + 5 | x in [1, 2, 3]] = [8, 11, 14]
             ActionM::mapping(&f1, &x1),
-            MinMaxLen {
+            RangeMinMax {
                 min: 8,
                 max: 14,
                 len: 3,
@@ -710,13 +710,13 @@ mod test_range_affine_range_minmax {
         assert_eq!(
             // [3x + 5 | x in []] = []
             ActionM::mapping(&f1, &x2),
-            MinMaxLenMonoid::identity()
+            RangeMinMaxMonoid::identity()
         );
 
         assert_eq!(
             // [0x + 10 | x in [1, 2, 3]] = [10, 10, 10]
             ActionM::mapping(&f2, &x1),
-            MinMaxLen {
+            RangeMinMax {
                 min: 10,
                 max: 10,
                 len: 3,
@@ -726,7 +726,7 @@ mod test_range_affine_range_minmax {
         assert_eq!(
             // [-3x - 5 | x in [1, 2, 3]] = [-8, -11, -14]
             ActionM::mapping(&f3, &x1),
-            MinMaxLen {
+            RangeMinMax {
                 min: -14,
                 max: -8,
                 len: 3,
@@ -736,12 +736,12 @@ mod test_range_affine_range_minmax {
 
     #[test]
     fn test_monoid_map_axiom() {
-        let axiom_of_id = |x: MinMaxLen| {
+        let axiom_of_id = |x: RangeMinMax| {
             // id(x) = x
             assert_eq!(ActionM::mapping(&ActionM::identity_map(), &x), x);
         };
 
-        let axiom_of_prod_act = |f1: Affine, f2: Affine, x: MinMaxLen| {
+        let axiom_of_prod_act = |f1: Affine, f2: Affine, x: RangeMinMax| {
             // (f1*f2)(x) = f1(f2(x))
             assert_eq!(
                 ActionM::mapping(&ActionM::composition(&f1, &f2), &x),
@@ -758,7 +758,7 @@ mod test_range_affine_range_minmax {
             );
         };
 
-        let axiom_of_keeping_prod = |f: Affine, x1: MinMaxLen, x2: MinMaxLen| {
+        let axiom_of_keeping_prod = |f: Affine, x1: RangeMinMax, x2: RangeMinMax| {
             // f(x1*x2) = f(x1)*f(x2)
             assert_eq!(
                 ActionM::mapping(&f, &DataM::binary_operation(&x1, &x2)),
@@ -766,18 +766,18 @@ mod test_range_affine_range_minmax {
             );
         };
 
-        let x1 = MinMaxLen {
+        let x1 = RangeMinMax {
             min: 3,
             max: 6,
             len: 2,
         };
-        let x2 = MinMaxLen {
+        let x2 = RangeMinMax {
             min: -3,
             max: 9,
             len: 3,
         };
 
-        let empty = MinMaxLenMonoid::identity();
+        let empty = RangeMinMaxMonoid::identity();
 
         let f1 = Affine {
             slope: 3,
@@ -823,9 +823,9 @@ mod test_range_affine_range_minmax {
     #[test]
     fn test_sample_of_lazy_segtree() {
         // range affine range min/max の遅延セグ木の使用例
-        let xs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(MinMaxLen::unit).to_vec();
+        let xs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(RangeMinMax::unit).to_vec();
 
-        let mut segtree: LazySegtree<AffineMinMax> = LazySegtree::from(xs);
+        let mut segtree: LazySegtree<RangeAffineRangeMinMax> = LazySegtree::from(xs);
 
         let f1 = Affine::constant_func(5);
         let f2 = Affine::addition_func(3);

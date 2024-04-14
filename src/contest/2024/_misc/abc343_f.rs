@@ -180,9 +180,7 @@ mod tests {
     }
 }
 
-use std::{
-    borrow::Borrow, cmp::Reverse, collections::HashMap, convert::Infallible, marker::PhantomData,
-};
+use std::convert::Infallible;
 
 use ac_library::{Monoid, Segtree};
 // ====== import ======
