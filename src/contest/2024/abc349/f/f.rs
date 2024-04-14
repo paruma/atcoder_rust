@@ -6,6 +6,7 @@ struct Problem {
     xs: Vec<i64>,
 }
 
+#[allow(clippy::question_mark)]
 fn multi_lcm(xs: &[i64]) -> Option<i64> {
     let mut ans = 1;
     for x in xs.iter() {
@@ -28,9 +29,130 @@ impl Problem {
         }
         Problem { n, m, xs }
     }
+    fn solve_pre_opt(&self) -> Answer {
+        use ac_library::ModInt998244353 as Mint;
+        let m = self.m;
+        let xs = &self.xs;
+        struct Info {
+            p: i64,
+            e: u32,
+            v: i64, // p^e
+        }
+        impl Info {
+            fn new(p: i64, e: u32) -> Self {
+                let v = p.pow(e);
+                Self { p, e, v }
+            }
+        }
+        // 素因数分解の情報
+        let m_fact = prime_factorize(m)
+            .into_iter()
+            .sorted_by_key(|(p, _e)| *p)
+            .map(|(p, e)| Info::new(p, e as u32))
+            .collect_vec();
+
+        // xs のうち絶対に選択しないものは除外する
+        let xs = xs.iter().copied().filter(|x| m % x == 0).collect_vec();
+        let xs_bit = xs
+            .iter()
+            .copied()
+            .map(|x| {
+                m_fact
+                    .iter()
+                    .map(|f| if x % f.v == 0 { 1 } else { 0 })
+                    .fold(0, |acc, x| acc << 1 | x)
+            })
+            .collect_vec();
+        let n = xs.len();
+
+        if m == 1 {
+            let ans = Mint::new(2).pow(xs.len() as u64) - 1;
+            return Answer {
+                ans: ans.val() as i64,
+            };
+        }
+
+        // dp[k][b]: xs[0..k] で、揃った素因数が b というビット列で表現される場合の数
+
+        let mut dp = vec![vec![Mint::new(0); 1 << m_fact.len()]; n + 1];
+        dp[0][0] = if xs.is_empty() { 0.into() } else { 1.into() };
+
+        // 配る
+        for k in 0..n {
+            for b in 0..1 << m_fact.len() {
+                let addition = dp[k][b];
+                // 選択しない
+                dp[k + 1][b] += addition;
+
+                // 選択する
+                dp[k + 1][b | xs_bit[k]] += addition;
+            }
+        }
+        let ans = dp[n][(1 << m_fact.len()) - 1].val() as i64;
+        Answer { ans }
+    }
     fn solve(&self) -> Answer {
-        // 998
-        let ans = 0;
+        // 最適化前
+        use ac_library::ModInt998244353 as Mint;
+        let m = self.m;
+        let xs = &self.xs;
+        struct Info {
+            p: i64,
+            e: u32,
+            v: i64, // p^e
+        }
+        impl Info {
+            fn new(p: i64, e: u32) -> Self {
+                let v = p.pow(e);
+                Self { p, e, v }
+            }
+        }
+        // 素因数分解の情報
+        let m_fact = prime_factorize(m)
+            .into_iter()
+            .sorted_by_key(|(p, _e)| *p)
+            .map(|(p, e)| Info::new(p, e as u32))
+            .collect_vec();
+
+        // xs のうち絶対に選択しないものは除外する
+        let xs = xs.iter().copied().filter(|x| m % x == 0).collect_vec();
+        let xs_bit = xs
+            .iter()
+            .copied()
+            .map(|x| {
+                m_fact
+                    .iter()
+                    .map(|f| if x % f.v == 0 { 1 } else { 0 })
+                    .fold(0, |acc, x| acc << 1 | x)
+            })
+            .collect_vec();
+        let n = xs.len();
+
+        if m == 1 {
+            let ans = Mint::new(2).pow(xs.len() as u64) - 1;
+            return Answer {
+                ans: ans.val() as i64,
+            };
+        }
+
+        // dp[b]: 揃った素因数が b というビット列で表現される場合の数
+
+        let mut dp = vec![Mint::new(0); 1 << m_fact.len()];
+        dp[0] = if xs.is_empty() { 0.into() } else { 1.into() };
+
+        for k in 0..n {
+            let mut ndp = dp.clone();
+            let xs_bit_k = xs_bit[k];
+            for (b, cnt) in dp.iter().enumerate() {
+                // ndp[b | xs_bit[k]] += dp[b]; の最適化
+                unsafe {
+                    *ndp.get_unchecked_mut(b | xs_bit_k) += cnt;
+                }
+            }
+            dp = ndp;
+        }
+
+        let ans = dp[(1 << m_fact.len()) - 1].val() as i64;
         Answer { ans }
     }
 
@@ -63,7 +185,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve_naive().print();
+    Problem::read().solve().print();
 }
 
 #[cfg(test)]
@@ -83,20 +205,22 @@ mod tests {
     }
 
     fn make_random_problem() -> Problem {
-        todo!()
-        // let mut rng = SmallRng::from_entropy();
-        // let n = rng.gen_range(1..=10);
-        // let p = Problem { _a: n };
-        // println!("{:?}", &p);
-        // p
+        let mut rng = SmallRng::from_entropy();
+        let n = 10;
+        let m = rng.gen_range(1..=20); // 30とかでもテストすると良いかも
+        let xs = (0..n).map(|_| rng.gen_range(1..=20)).collect_vec();
+
+        let p = Problem { n, m, xs };
+        println!("{:?}", &p);
+        p
     }
 
     #[test]
     fn test_with_naive() {
         // 手動でテストを作るのもOK
-        for _ in 0..100 {
-            // let p = make_random_problem();
-            // check(&p);
+        for _ in 0..10000 {
+            let p = make_random_problem();
+            check(&p);
         }
     }
 }
@@ -104,7 +228,7 @@ mod tests {
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
-use num_integer::{gcd, lcm};
+use num_integer::gcd;
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,
@@ -159,4 +283,124 @@ fn print_yesno(ans: bool) {
 
 // ====== snippet ======
 
-
+use mod_number_thm::*;
+pub mod mod_number_thm {
+    use num::Integer;
+    use num_integer::Roots;
+    use std::collections::HashMap;
+    /// O(sqrt(n))
+    pub fn divisors(n: i64) -> Vec<i64> {
+        assert!(n >= 1);
+        let mut retval: Vec<i64> = Vec::new();
+        for i in 1..=n.sqrt() {
+            if n.is_multiple_of(&i) {
+                retval.push(i);
+                if i * i != n {
+                    retval.push(n / i);
+                }
+            }
+        }
+        retval
+    }
+    /// 計算量: O(sqrt(n))
+    pub fn is_prime(n: i64) -> bool {
+        if n <= 1 {
+            return false;
+        }
+        for i in 2..=n.sqrt() {
+            if n.is_multiple_of(&i) {
+                return false;
+            }
+        }
+        true
+    }
+    /// 計算量: O(sqrt(n))
+    pub fn prime_factorize(n: i64) -> HashMap<i64, i64> {
+        assert!(n >= 1);
+        let mut cnt_table: HashMap<i64, i64> = HashMap::new();
+        let mut n = n;
+        for i in 2..=n.sqrt() {
+            if n.is_multiple_of(&i) {
+                let mut cnt = 0;
+                while n.is_multiple_of(&i) {
+                    n /= i;
+                    cnt += 1;
+                }
+                cnt_table.insert(i, cnt);
+            }
+        }
+        if n != 1 {
+            cnt_table.insert(n, 1);
+        }
+        cnt_table
+    }
+    /// 計算量: O(sqrt(n))
+    pub fn euler_phi(n: i64) -> i64 {
+        assert!(n >= 1);
+        let pf = prime_factorize(n);
+        let mut res = n;
+        for p in pf.keys() {
+            res = res / p * (p - 1);
+        }
+        res
+    }
+    pub struct Eratosthenes {
+        is_prime_list: Vec<bool>,
+        min_factor_list: Vec<Option<usize>>,
+    }
+    impl Eratosthenes {
+        pub fn new(n: usize) -> Self {
+            let mut is_prime_list = vec![true; n + 1];
+            let mut min_factor_list = vec![None; n + 1];
+            is_prime_list[0] = false;
+            is_prime_list[1] = false;
+            for p in 2..=n {
+                if !is_prime_list[p] {
+                    continue;
+                }
+                min_factor_list[p] = Some(p);
+                for q in (p * 2..=n).step_by(p) {
+                    is_prime_list[q] = false;
+                    if min_factor_list[q].is_none() {
+                        min_factor_list[q] = Some(p);
+                    }
+                }
+            }
+            Self {
+                is_prime_list,
+                min_factor_list,
+            }
+        }
+        pub fn is_prime(&self, n: usize) -> bool {
+            self.is_prime_list[n]
+        }
+        pub fn prime_factorize(&self, n: usize) -> HashMap<usize, usize> {
+            let mut n = n;
+            let mut cnt_table: HashMap<usize, usize> = HashMap::new();
+            while n > 1 {
+                let p = self.min_factor_list[n].unwrap();
+                let mut exp = 0;
+                while self.min_factor_list[n] == Some(p) {
+                    n /= p;
+                    exp += 1;
+                }
+                cnt_table.insert(p, exp);
+            }
+            cnt_table
+        }
+        pub fn divisors(&self, n: usize) -> Vec<usize> {
+            let mut res = vec![1];
+            let pf = self.prime_factorize(n);
+            for (p, e) in pf {
+                for i in 0..res.len() {
+                    let mut tmp = 1;
+                    for _ in 0..e {
+                        tmp *= p;
+                        res.push(res[i] * tmp);
+                    }
+                }
+            }
+            res
+        }
+    }
+}
