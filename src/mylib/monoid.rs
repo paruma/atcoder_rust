@@ -335,6 +335,13 @@ pub mod monoid_rolling_hash {
                 base: ModIntPow261M1::new(base as i128),
             }
         }
+
+        pub fn new(hash: i64, base: i64) -> Self {
+            Self {
+                hash: ModIntPow261M1::new(hash as i128),
+                base: ModIntPow261M1::new(base as i128),
+            }
+        }
     }
 
     pub struct RollingHashConcat(Infallible);
@@ -495,25 +502,10 @@ pub mod monoid_template {
 }
 
 #[cfg(test)]
-mod test {
-
-    use crate::mylib::monoid::cum_monoid::CumMonoid;
-    use crate::mylib::monoid::dynamic_monoid::DynamicMonoid;
-    use crate::mylib::monoid::extend_acl_monoid::MonoidExtPow;
-    use crate::mylib::monoid::monoid_affine::AffineComposition;
-    use crate::mylib::monoid::monoid_affine::AffineTransform;
-    use crate::mylib::monoid::monoid_rolling_hash_old::RollingHash;
-    use crate::mylib::monoid::monoid_rolling_hash_old::RollingHashConcat;
-
-    use super::monoid_bitwise::*;
-    use super::monoid_gcd_lcm::*;
-    use super::monoid_modint::*;
-    use super::monoid_transform::Transform;
-    use ac_library::Additive;
-    use ac_library::Mod998244353;
-    use ac_library::ModInt998244353;
-    use ac_library::Monoid;
+mod test_extend_acl_monoid {
     use ac_library::Multiplicative;
+
+    use super::extend_acl_monoid::*;
 
     #[test]
     fn test_monoid_pow() {
@@ -521,6 +513,12 @@ mod test {
         assert_eq!(M::pow(&3, 4), 81);
         assert_eq!(M::pow(&3, 0), 1);
     }
+}
+#[cfg(test)]
+mod test_cum_monoid {
+    use ac_library::Additive;
+
+    use super::cum_monoid::*;
 
     #[test]
     fn test_cum_monoid() {
@@ -557,6 +555,57 @@ mod test {
             assert_eq!(cum.prod_without_range(0, 0), 0);
         }
     }
+}
+#[cfg(test)]
+mod test_monoid_bitwise {
+    use ac_library::Monoid;
+
+    use super::monoid_bitwise::*;
+
+    #[test]
+    fn test_monoid_bitwise_or() {
+        type M = BitwiseOr<i64>;
+        assert_eq!(M::binary_operation(&0b0110, &0b0011), 0b0111);
+        assert_eq!(M::binary_operation(&0b0110, &M::identity()), 0b0110);
+    }
+    #[test]
+    fn test_monoid_bitwise_and() {
+        type M = BitwiseAnd<i64>;
+        assert_eq!(M::binary_operation(&0b0110, &0b0011), 0b0010);
+        assert_eq!(M::binary_operation(&0b0110, &M::identity()), 0b0110);
+    }
+    #[test]
+    fn test_monoid_bitwise_xor() {
+        type M = BitwiseXor<i64>;
+        assert_eq!(M::binary_operation(&0b0110, &0b0011), 0b0101);
+        assert_eq!(M::binary_operation(&0b0110, &M::identity()), 0b0110);
+    }
+}
+#[cfg(test)]
+mod test_monoid_gcd_lcm {
+    use ac_library::Monoid;
+
+    use super::monoid_gcd_lcm::*;
+
+    #[test]
+    fn test_monoid_gcd() {
+        type M = Gcd<i64>;
+        assert_eq!(M::binary_operation(&12, &8), 4);
+        assert_eq!(M::binary_operation(&12, &M::identity()), 12);
+    }
+
+    #[test]
+    fn test_monoid_lcm() {
+        type M = Lcm<i64>;
+        assert_eq!(M::binary_operation(&12, &8), 24);
+        assert_eq!(M::binary_operation(&12, &M::identity()), 12);
+    }
+}
+#[cfg(test)]
+mod test_monoid_modint {
+    use ac_library::{Mod998244353, ModInt998244353, Monoid};
+
+    use super::monoid_modint::*;
 
     #[test]
     fn test_monoid_mint_additive() {
@@ -585,40 +634,11 @@ mod test {
             Mint::new(3)
         );
     }
-
-    #[test]
-    fn test_monoid_bitwise_or() {
-        type M = BitwiseOr<i64>;
-        assert_eq!(M::binary_operation(&0b0110, &0b0011), 0b0111);
-        assert_eq!(M::binary_operation(&0b0110, &M::identity()), 0b0110);
-    }
-    #[test]
-    fn test_monoid_bitwise_and() {
-        type M = BitwiseAnd<i64>;
-        assert_eq!(M::binary_operation(&0b0110, &0b0011), 0b0010);
-        assert_eq!(M::binary_operation(&0b0110, &M::identity()), 0b0110);
-    }
-    #[test]
-    fn test_monoid_bitwise_xor() {
-        type M = BitwiseXor<i64>;
-        assert_eq!(M::binary_operation(&0b0110, &0b0011), 0b0101);
-        assert_eq!(M::binary_operation(&0b0110, &M::identity()), 0b0110);
-    }
-
-    #[test]
-    fn test_monoid_gcd() {
-        type M = Gcd<i64>;
-        assert_eq!(M::binary_operation(&12, &8), 4);
-        assert_eq!(M::binary_operation(&12, &M::identity()), 12);
-    }
-
-    #[test]
-    fn test_monoid_lcm() {
-        type M = Lcm<i64>;
-        assert_eq!(M::binary_operation(&12, &8), 24);
-        assert_eq!(M::binary_operation(&12, &M::identity()), 12);
-    }
-
+}
+#[cfg(test)]
+mod test_monoid_affine {
+    use super::monoid_affine::*;
+    use ac_library::{ModInt998244353, Monoid};
     #[test]
     fn test_monoid_affine() {
         type Mint = ModInt998244353;
@@ -632,6 +652,28 @@ mod test {
         );
         assert_eq!(M::binary_operation(&affine1, &M::identity()), affine1)
     }
+}
+#[cfg(test)]
+mod test_monoid_rolling_hash {
+    use super::monoid_rolling_hash::*;
+    use ac_library::Monoid;
+
+    #[test]
+    fn test_monoid_rolling_hash() {
+        type M = RollingHashConcat;
+        let rh1: RollingHash = RollingHash::new(7.into(), 25.into()); // 1 * 5 + 2
+        let rh2: RollingHash = RollingHash::new(3.into(), 5.into());
+        assert_eq!(
+            M::binary_operation(&rh1, &rh2),
+            RollingHash::new(38, 125) // 1 * 5^2 + 2 * 5 + 3
+        );
+        assert_eq!(M::binary_operation(&rh1, &M::identity()), rh1)
+    }
+}
+#[cfg(test)]
+mod test_monoid_rolling_hash_old {
+    use super::monoid_rolling_hash_old::*;
+    use ac_library::{ModInt998244353, Monoid};
 
     #[test]
     fn test_monoid_rolling_hash() {
@@ -645,6 +687,13 @@ mod test {
         );
         assert_eq!(M::binary_operation(&rh1, &M::identity()), rh1)
     }
+}
+#[cfg(test)]
+mod test_monoid_transform {
+
+    use super::dynamic_monoid::DynamicMonoid;
+
+    use super::monoid_transform::Transform;
 
     #[test]
     fn test_monoid_transform() {
@@ -669,10 +718,8 @@ mod test {
         assert_eq!(transform.pow(&vec![1, 2, 3, 4, 0], 5), vec![0, 1, 2, 3, 4]);
     }
 }
-
 #[cfg(test)]
-pub mod test_monoid_template {
-
+mod test_monoid_template {
     use ac_library::Monoid;
 
     use super::monoid_template::*;
