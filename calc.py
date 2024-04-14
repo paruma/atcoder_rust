@@ -1,5 +1,5 @@
 # 電卓
-from math import prod, gcd, lcm, comb, perm, factorial
+from math import prod, gcd, lcm, comb, perm, factorial, log10, log2
 import functools
 
 # === 総和・総積 ===
