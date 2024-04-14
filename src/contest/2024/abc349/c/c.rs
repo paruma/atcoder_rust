@@ -13,6 +13,7 @@ impl Problem {
         p
     }
     fn solve(&self) -> Answer {
+        // コンテスト中に書いた実装。t[0], t[1], t[2] が現れる場所を調べる。
         let s = &self.s;
         let t = &self.t; // 長さ3
 
@@ -53,6 +54,27 @@ impl Problem {
     }
 
     fn solve2(&self) -> Answer {
+        // solve のリファクタリング
+        let s = &self.s;
+        let t = &self.t.to_ascii_lowercase(); // 長さ3
+
+        // 末尾が x の場合は x を除いた状態で考える
+        let t_len = if t[2] == b'x' { 2 } else { 3 };
+        let mut current_s = s.as_slice(); // 見た分は消していく。
+        for i in 0..t_len {
+            let pos = current_s.iter().copied().position(|ch| ch == t[i]);
+            if pos.is_none() {
+                return Answer { ans: false };
+            }
+            let pos = pos.unwrap();
+            current_s = &current_s[pos + 1..];
+        }
+
+        Answer { ans: true }
+    }
+
+    fn solve3(&self) -> Answer {
+        // 正規表現を使ったもの
         let s = String::from_utf8(self.s.clone()).unwrap();
         let t = &self
             .t
@@ -118,7 +140,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -140,7 +162,7 @@ mod tests {
     fn make_random_problem() -> Problem {
         let mut rng = SmallRng::from_entropy();
         let s = (0..10).map(|_| rng.gen_range(b'a'..=b'z')).collect_vec();
-        let t = (0..3).map(|_| rng.gen_range(b'A'..=b'A')).collect_vec();
+        let t = (0..3).map(|_| rng.gen_range(b'A'..=b'Z')).collect_vec();
         println!("{:?}", String::from_utf8(s.clone()).unwrap());
         println!("{:?}", String::from_utf8(t.clone()).unwrap());
         let p = Problem { s, t };
