@@ -14,8 +14,9 @@ impl Problem {
     fn solve(&self) -> Answer {
         let s = &self.s;
         let cnts = s.iter().copied().counts();
-        let g = cnts.values().copied().counts();
-        let ans = g.values().all(|cnt| *cnt == 0 || *cnt == 2);
+        let cnts_cnts = cnts.values().copied().counts();
+        // *cnt == 0 は不要なはず
+        let ans = cnts_cnts.values().all(|cnt| *cnt == 0 || *cnt == 2);
         Answer { ans }
     }
 

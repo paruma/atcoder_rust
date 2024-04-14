@@ -84,6 +84,8 @@ impl Problem {
             .map(|x| x.to_ascii_lowercase())
             .collect_vec(); // 長さ3
 
+        // t.to_ascii_lowercase(); がある
+
         //空港コードのリスト
         let set = {
             let list1 = s.iter().copied().combinations(3).collect_vec();
