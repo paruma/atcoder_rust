@@ -39,3 +39,12 @@ lcm(*range(1,10)) == 2520 # lcm(1, 2,..., 9)
 # === reduce の使い方 === 
 
 functools.reduce(lambda x, y : x + y, [1, 2, 3, 4]) == 10
+
+# === 素数/素因数分解 ===
+
+# 素因数分解は linux の factor コマンドでもできる
+from sympy import factorint, primerange, primepi, prime
+factorint(24) == {2: 3, 3: 1}
+list(primerange(7, 18)) == [7, 11, 13, 17]
+prime(3) == 5 # 3番目の素数
+primepi(12) == 5 # 12以下の素数の数 (2, 3, 5, 7, 11)
