@@ -5,6 +5,8 @@ pub mod random_test {
     use std::{collections::HashSet, hash::Hash};
 
     use itertools::Itertools;
+    use num::Integer;
+    use num_integer::Roots;
     use petgraph::unionfind::UnionFind;
     use rand::Rng;
 
@@ -49,6 +51,25 @@ pub mod random_test {
             }
         }
         edges
+    }
+    fn is_prime(n: i64) -> bool {
+        if n <= 1 {
+            return false;
+        }
+        for i in 2..=n.sqrt() {
+            if n.is_multiple_of(&i) {
+                return false;
+            }
+        }
+        true
+    }
+
+    pub fn generate_random_prime<R>(rng: &mut R, begin: i64, end: i64) -> i64
+    where
+        R: Rng,
+    {
+        let gen = || rng.gen_range(begin..end);
+        generate_random_while(gen, |x| is_prime(*x))
     }
 }
 
@@ -96,6 +117,17 @@ mod tests {
                 (0..n_vertices).map(|v| uf.leader(v)).all_equal()
             };
             assert!(is_connected);
+        }
+    }
+
+    #[test]
+    fn test_generate_random_prime() {
+        use rand::{rngs::SmallRng, *};
+        let mut rng = SmallRng::from_entropy();
+        for _ in 0..10 {
+            let x = generate_random_prime(&mut rng, 0, 12);
+            assert!((0..12).contains(&x));
+            assert!(matches!(x, 2 | 3 | 5 | 7 | 11));
         }
     }
 }
