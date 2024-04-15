@@ -30,6 +30,7 @@ impl Problem {
         Problem { n, m, xs }
     }
     fn solve_pre_opt(&self) -> Answer {
+        // 最適化前
         use ac_library::ModInt998244353 as Mint;
         let m = self.m;
         let xs = &self.xs;
@@ -52,7 +53,16 @@ impl Problem {
             .collect_vec();
 
         // xs のうち絶対に選択しないものは除外する
+        // m が x の倍数でない場合は x を lcm に含めると必ず m にならないので除外する。
         let xs = xs.iter().copied().filter(|x| m % x == 0).collect_vec();
+
+        // m = {p_1}^{e_1} * {p_2}^{e_2} * ... * {p_k_^{e_k} とする。
+        // lcm を取るというのは素因数分解したときの各指数に max を取るという操作に対応する。
+        // lcm を取って m にするというのは各iに対して、p_i の指数を e_i にするということに対応する。
+        // p_i の指数 が e_i になっているかどうかを状態として持つことを考える。
+        // x in xs に対して、x の素因数分解に p_i^{e_i} (指数がちょうど e_i) を含んでいるときに 1、そうでないときに0を立てたビット列を作る
+        // 2つの値の lcm を取るというのは、このビット列の or に対応する。
+        // 最終的に lcm を取って全ビット1にできたら、lcm が m になる。
         let xs_bit = xs
             .iter()
             .copied()
@@ -65,6 +75,7 @@ impl Problem {
             .collect_vec();
         let n = xs.len();
 
+        // 空列はカウントに含めないことになっているので、いい感じに場合分けする
         if m == 1 {
             let ans = Mint::new(2).pow(xs.len() as u64) - 1;
             return Answer {
@@ -92,7 +103,7 @@ impl Problem {
         Answer { ans }
     }
     fn solve(&self) -> Answer {
-        // 最適化前
+        // 最適化後
         use ac_library::ModInt998244353 as Mint;
         let m = self.m;
         let xs = &self.xs;
