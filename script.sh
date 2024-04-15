@@ -23,6 +23,8 @@ oj_download() {
 oj_test() {
     contest="$(get_contest)"
     task="$(get_task)"
+    echo $contest
+    echo $task
     if [ ! -d 'test' ]; then
         oj_download
     fi

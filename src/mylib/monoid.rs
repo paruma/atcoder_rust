@@ -271,58 +271,68 @@ pub mod monoid_affine {
 pub mod monoid_rolling_hash {
     use std::convert::Infallible;
 
-    const MOD: i128 = (1 << 61) - 1; // 2^61 -1
+    const MOD: i64 = (1 << 61) - 1; // 2^61 -1
+    const MOD_I128: i128 = (1 << 61) - 1; // 2^61 -1
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-    struct ModIntPow261M1 {
-        val: i128,
+    struct ModInt261M1 {
+        val: i64,
     }
 
-    impl ModIntPow261M1 {
+    impl ModInt261M1 {
         #[inline]
-        pub fn new(val: i128) -> Self {
-            // シフト演算を使った高速化もあるがしていない
-            // val は -MOD = x < MOD を想定している。
-            let val = (val + MOD) % MOD;
-            Self {
-                val: val.rem_euclid(MOD),
-            }
+        pub fn new(val: i64) -> Self {
+            // require: 0 <= val < 2^61
+            Self { val }
         }
     }
 
-    impl std::ops::Add for ModIntPow261M1 {
+    impl std::ops::Add for ModInt261M1 {
         type Output = Self;
 
         #[inline]
         fn add(self, rhs: Self) -> Self::Output {
-            Self::new(self.val + rhs.val)
+            let mut x = self.val + rhs.val;
+            if x >= MOD {
+                x -= MOD;
+            }
+            Self::new(x)
         }
     }
 
-    impl std::ops::Sub for ModIntPow261M1 {
+    impl std::ops::Sub for ModInt261M1 {
         type Output = Self;
 
         #[inline]
         fn sub(self, rhs: Self) -> Self::Output {
-            Self::new(self.val - rhs.val)
+            let mut x = MOD + self.val - rhs.val;
+            if x >= MOD {
+                x -= MOD;
+            }
+            Self::new(x)
         }
     }
 
-    impl std::ops::Mul for ModIntPow261M1 {
+    impl std::ops::Mul for ModInt261M1 {
         type Output = Self;
 
         #[inline]
         fn mul(self, rhs: Self) -> Self::Output {
-            Self::new(self.val * rhs.val)
+            let x = (self.val as i128) * (rhs.val as i128);
+            let mut x = ((x >> 61) + (x & MOD_I128)) as i64;
+
+            if x >= MOD {
+                x -= MOD;
+            }
+            Self::new(x)
         }
     }
-
     use ac_library::Monoid;
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
     pub struct RollingHash {
-        hash: ModIntPow261M1,
-        base: ModIntPow261M1,
+        hash: ModInt261M1,
+        base: ModInt261M1,
     }
     impl RollingHash {
         pub fn get_hash(&self) -> i64 {
@@ -331,15 +341,15 @@ pub mod monoid_rolling_hash {
 
         pub fn unit(base: i64) -> impl (Fn(i64) -> RollingHash) {
             move |x| RollingHash {
-                hash: ModIntPow261M1::new(x as i128),
-                base: ModIntPow261M1::new(base as i128),
+                hash: ModInt261M1::new(x),
+                base: ModInt261M1::new(base),
             }
         }
 
         pub fn new(hash: i64, base: i64) -> Self {
             Self {
-                hash: ModIntPow261M1::new(hash as i128),
-                base: ModIntPow261M1::new(base as i128),
+                hash: ModInt261M1::new(hash),
+                base: ModInt261M1::new(base),
             }
         }
     }
@@ -349,8 +359,8 @@ pub mod monoid_rolling_hash {
         type S = RollingHash;
         fn identity() -> Self::S {
             RollingHash {
-                hash: ModIntPow261M1::new(0),
-                base: ModIntPow261M1::new(1),
+                hash: ModInt261M1::new(0),
+                base: ModInt261M1::new(1),
             }
         }
         fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {

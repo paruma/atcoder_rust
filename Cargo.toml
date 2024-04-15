@@ -280,10 +280,6 @@ path = "src/contest/2024/arc172/d/d.rs"
 name = "arc172_e"
 path = "src/contest/2024/arc172/e/e.rs"
 
-[[bin]]
-name = "misc_abc331_f"
-path = "src/contest/2024/_misc/abc331_f.rs"
-
 
 [[bin]]
 name = "abc334_a"
