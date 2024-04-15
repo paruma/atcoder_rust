@@ -43,8 +43,10 @@ functools.reduce(lambda x, y : x + y, [1, 2, 3, 4]) == 10
 # === 素数/素因数分解 ===
 
 # 素因数分解は linux の factor コマンドでもできる
-from sympy import factorint, primerange, primepi, prime
+from sympy import factorint, primerange, primepi, prime, primorial, totient
 factorint(24) == {2: 3, 3: 1}
 list(primerange(7, 18)) == [7, 11, 13, 17]
 prime(3) == 5 # 3番目の素数
 primepi(12) == 5 # 12以下の素数の数 (2, 3, 5, 7, 11)
+primorial(3) == 30 # 2 * 3 * 5 =30 (素数階乗)
+totient(6) == 2 # オイラーのトーシェント関数。[0, 6) のうち 6 と互いに素な数は2つ
