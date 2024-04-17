@@ -14,6 +14,7 @@ impl Problem {
         Problem { n }
     }
     fn solve(&self) -> Answer {
+        // 解法1: 上から確率DP。確率を使って各階層で期待値を求めて足す
         let n = self.n;
         let mut dp = vec![vec![Mint::new(0); 2]; n + 1];
         dp[0][0] = 1.into();
@@ -58,6 +59,47 @@ impl Problem {
             ans_gote,
         }
     }
+
+    fn solve2(&self) -> Answer {
+        // 後ろから期待値DP
+        let n = self.n;
+        let mut dp = vec![Mint::new(0); n + 2];
+        dp[n] = 0.into();
+        dp[n + 1] = 0.into();
+
+        let n_inv = Mint::new(n).inv();
+
+        for i in (0..n).rev() {
+            // i段階目で今までに出てきてない数字が出る確率
+            let p = Mint::new(n - i) * n_inv;
+            let q = Mint::new(n - i - 1) * n_inv; // i + 1 段階目での
+            let denom = -(-p + 1) * (-p + 1) + 1; //分母
+            dp[i] = {
+                // 自分と相手の成功・失敗で場合分け
+                let numer1 = p * q * dp[i + 2];
+                let numer2 = (-p + 1) * p * (dp[i + 1] + 1);
+                let numer3 = if i == n - 1 {
+                    0.into()
+                } else {
+                    p * (-q + 1) * dp[i + 1]
+                };
+                let numer4 = (-p + 1) * (-p + 1);
+
+                let numer = numer1 + numer2 + numer3 + numer4;
+                numer / denom
+            };
+        }
+
+        let ans_sente = dp[0];
+        let ans_gote = dp[1];
+        let ans_sente = ans_sente.val();
+        let ans_gote = ans_gote.val();
+
+        Answer {
+            ans_sente,
+            ans_gote,
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -73,7 +115,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
