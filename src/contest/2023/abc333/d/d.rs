@@ -105,6 +105,39 @@ fn post_order(adj: &Vec<Vec<Edge>>, init: usize) -> Vec<usize> {
     dfs.post_order
 }
 
+fn post_order2(adj: &Vec<Vec<Edge>>, init: usize) -> Vec<usize> {
+    enum State {
+        Pre(usize),
+        Post(usize),
+    }
+    let nv = adj.len();
+
+    let mut post_order: Vec<usize> = Vec::new();
+    let mut open: Stack<State> = Stack::new();
+    let mut visited = vec![false; nv];
+    open.push(State::Post(init));
+    open.push(State::Pre(init));
+
+    while let Some(state) = open.pop() {
+        match state {
+            State::Pre(v) => {
+                visited[v] = true;
+                for &edge in &adj[v] {
+                    if !visited[edge.to] {
+                        open.push(State::Post(edge.to));
+                        open.push(State::Pre(edge.to));
+                    }
+                }
+            }
+            State::Post(v) => {
+                // 帰りがけ
+                post_order.push(v);
+            }
+        }
+    }
+    post_order
+}
+
 impl Problem {
     fn read() -> Problem {
         input! {
@@ -142,6 +175,23 @@ impl Problem {
         let ans = next_0_dp.iter().sum::<i64>() - next_0_dp.iter().copied().max().unwrap() + 1;
         Answer { ans }
     }
+
+    fn solve3(&self) -> Answer {
+        // DFS スタックを使う
+        let nv = self.nv;
+        let edges = &self.edges;
+        let adj = make_adj(nv, edges);
+        let post_order = post_order2(&adj, 0);
+        let mut dp = vec![0_i64; nv];
+        for v in post_order {
+            dp[v] = adj[v].iter().copied().map(|e| dp[e.to]).sum::<i64>() + 1;
+        }
+
+        let next_0_dp = adj[0].iter().copied().map(|e| dp[e.to]).collect_vec();
+
+        let ans = next_0_dp.iter().sum::<i64>() - next_0_dp.iter().copied().max().unwrap() + 1;
+        Answer { ans }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -156,7 +206,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve2().print();
+    Problem::read().solve3().print();
 }
 
 #[cfg(test)]
@@ -411,3 +461,33 @@ pub mod lg {
 }
 
 // ====== snippet ======
+use mod_stack::*;
+pub mod mod_stack {
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct Stack<T> {
+        raw: Vec<T>,
+    }
+    impl<T> Stack<T> {
+        pub fn new() -> Self {
+            Stack { raw: Vec::new() }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push(value)
+        }
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop()
+        }
+        pub fn peek(&self) -> Option<&T> {
+            self.raw.last()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.raw.is_empty()
+        }
+    }
+    impl<T> Default for Stack<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+}
+
