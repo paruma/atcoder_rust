@@ -1,10 +1,6 @@
 use cargo_snippet::snippet;
-use petgraph::unionfind::UnionFind;
 
 use super::queue0::mod_queue::Queue;
-
-// FIXME: 無向グラフと有向グラフがごっちゃになっている。いい感じに区別したい
-// TODO: from, to を Usize1 にする
 
 #[snippet(name = "edge")]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -21,18 +17,18 @@ impl Edge {
 }
 
 #[snippet(name = "edge")]
-pub fn make_adj(n_vertex: usize, edges: &[Edge]) -> Vec<Vec<Edge>> {
+pub fn make_adj(n_vertex: usize, edges: &[Edge]) -> Vec<Vec<usize>> {
     let mut adj = vec![vec![]; n_vertex];
 
     for &e in edges {
-        adj[e.from].push(e);
+        adj[e.from].push(e.to);
     }
 
     adj
 }
-#[snippet]
+#[snippet(include = "mod_queue")]
 #[allow(clippy::collapsible_else_if)]
-pub fn is_bipartite_graph(adj: &Vec<Vec<Edge>>) -> bool {
+pub fn is_bipartite_graph(adj: &[Vec<usize>]) -> bool {
     // 無向グラフに使うことを想定している。
     let n_vertex = adj.len();
     let mut visited = vec![false; n_vertex];
@@ -47,14 +43,14 @@ pub fn is_bipartite_graph(adj: &Vec<Vec<Edge>>) -> bool {
         odd_even_list[init] = 0;
 
         while let Some(current) = open.pop() {
-            for &e in &adj[current] {
-                if !visited[e.to] {
-                    visited[e.to] = true;
-                    open.push(e.to);
-                    odd_even_list[e.to] = (odd_even_list[e.from] + 1) % 2; // 1 - odd_even_list[e.from] で良かった
+            for &next in &adj[current] {
+                if !visited[next] {
+                    visited[next] = true;
+                    open.push(next);
+                    odd_even_list[next] = 1 - odd_even_list[current];
                 } else {
                     // 偶奇チェックをする
-                    if odd_even_list[e.from] == odd_even_list[e.to] {
+                    if odd_even_list[current] == odd_even_list[next] {
                         return false;
                     }
                 }
@@ -66,6 +62,7 @@ pub fn is_bipartite_graph(adj: &Vec<Vec<Edge>>) -> bool {
 
 #[snippet]
 pub fn is_bipartite_graph_by_uf(n_vertex: usize, edges: &[Edge]) -> bool {
+    use petgraph::unionfind::UnionFind;
     let mut uf = UnionFind::new(2 * n_vertex);
     for &e in edges {
         uf.union(e.from, e.to + n_vertex);
@@ -76,6 +73,7 @@ pub fn is_bipartite_graph_by_uf(n_vertex: usize, edges: &[Edge]) -> bool {
 
 #[snippet]
 pub fn has_cycle_undirected(n_vertex: usize, edges: &[Edge]) -> bool {
+    use petgraph::unionfind::UnionFind;
     let mut uf = UnionFind::new(n_vertex);
     for &e in edges {
         if uf.equiv(e.from, e.to) {
@@ -87,18 +85,18 @@ pub fn has_cycle_undirected(n_vertex: usize, edges: &[Edge]) -> bool {
 }
 
 #[snippet(include = "topo_sort")]
-pub fn has_cycle_directed(adj: &Vec<Vec<Edge>>) -> bool {
+pub fn has_cycle_directed(adj: &Vec<Vec<usize>>) -> bool {
     let topo_sorted = topo_sort(adj); // 戻り値にループの部分は入ってこない。
     topo_sorted.len() != adj.len()
 }
 
-#[snippet]
-pub fn topo_sort(adj: &Vec<Vec<Edge>>) -> Vec<usize> {
+#[snippet(include = "mod_queue")]
+pub fn topo_sort(adj: &Vec<Vec<usize>>) -> Vec<usize> {
     let n_vertex = adj.len();
     let mut in_deg = vec![0; n_vertex];
-    for v in 0..n_vertex {
-        for &e in &adj[v] {
-            in_deg[e.to] += 1;
+    for current in 0..n_vertex {
+        for &next in &adj[current] {
+            in_deg[next] += 1;
         }
     }
 
@@ -113,10 +111,10 @@ pub fn topo_sort(adj: &Vec<Vec<Edge>>) -> Vec<usize> {
 
     while let Some(current) = open.pop() {
         ans.push(current);
-        for &e in &adj[current] {
-            in_deg[e.to] -= 1;
-            if in_deg[e.to] == 0 {
-                open.push(e.to);
+        for &next in &adj[current] {
+            in_deg[next] -= 1;
+            if in_deg[next] == 0 {
+                open.push(next);
             }
         }
     }
@@ -162,11 +160,7 @@ mod tests {
         {
             let (n_vertex, edges) = edge1();
             let adj = make_adj(n_vertex, &edges);
-            let expected = vec![
-                vec![Edge::new(0, 1), Edge::new(0, 2)],
-                vec![Edge::new(1, 2)],
-                vec![],
-            ];
+            let expected = vec![vec![1, 2], vec![2], vec![]];
             assert_eq!(adj, expected);
         }
         {
@@ -180,7 +174,7 @@ mod tests {
             let n_vertex = 0;
             let edges = [];
             let adj = make_adj(n_vertex, &edges);
-            let expected: Vec<Vec<Edge>> = vec![];
+            let expected: Vec<Vec<usize>> = vec![];
             assert_eq!(adj, expected);
         }
     }
