@@ -1,6 +1,7 @@
 use cargo_snippet::snippet;
 
 use super::queue0::mod_queue::Queue;
+use super::stack0::mod_stack::Stack;
 
 #[snippet(name = "edge")]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -26,6 +27,92 @@ pub fn make_adj(n_vertex: usize, edges: &[Edge]) -> Vec<Vec<usize>> {
 
     adj
 }
+
+#[snippet(include = "mod_queue")]
+pub fn bfs_order(adj: &[Vec<usize>], init: usize) -> Vec<usize> {
+    let nv = adj.len();
+    let mut order = vec![];
+    let mut visited = vec![false; nv];
+    let mut open = Queue::new();
+    open.push(init);
+    order.push(init);
+    visited[init] = true;
+    while let Some(current) = open.pop() {
+        for &next in &adj[current] {
+            if !visited[next] {
+                order.push(next);
+                visited[next] = true;
+                open.push(next);
+            }
+        }
+    }
+    order
+}
+
+#[snippet(include = "mod_stack")]
+pub fn dfs_pre_order(adj: &[Vec<usize>], init: usize) -> Vec<usize> {
+    enum State {
+        Pre(usize),
+        Post(usize),
+    }
+
+    let nv = adj.len();
+    let mut order = vec![];
+    let mut visited = vec![false; nv];
+    let mut open = Stack::new();
+    open.push(State::Post(init));
+    open.push(State::Pre(init));
+    while let Some(current) = open.pop() {
+        match current {
+            State::Pre(v) => {
+                order.push(v);
+                visited[v] = true;
+                for &edge in &adj[v] {
+                    if !visited[edge] {
+                        open.push(State::Post(edge));
+                        open.push(State::Pre(edge));
+                    }
+                }
+            }
+            State::Post(_v) => {}
+        }
+    }
+    order
+}
+
+#[snippet(include = "mod_stack")]
+pub fn dfs_post_order(adj: &[Vec<usize>], init: usize) -> Vec<usize> {
+    enum State {
+        Pre(usize),
+        Post(usize),
+    }
+
+    let nv = adj.len();
+    let mut order = vec![];
+    let mut visited = vec![false; nv];
+    let mut open = Stack::new();
+    open.push(State::Post(init));
+    open.push(State::Pre(init));
+    while let Some(current) = open.pop() {
+        match current {
+            State::Pre(v) => {
+                visited[v] = true;
+                for &edge in &adj[v] {
+                    if !visited[edge] {
+                        open.push(State::Post(edge));
+                        open.push(State::Pre(edge));
+                    }
+                }
+            }
+            State::Post(v) => {
+                // 帰りがけ
+                order.push(v);
+            }
+        }
+    }
+    order
+}
+
 #[snippet(include = "mod_queue")]
 #[allow(clippy::collapsible_else_if)]
 pub fn is_bipartite_graph(adj: &[Vec<usize>]) -> bool {
@@ -177,6 +264,55 @@ mod tests {
             let expected: Vec<Vec<usize>> = vec![];
             assert_eq!(adj, expected);
         }
+    }
+
+    #[test]
+    fn test_bfs_order() {
+        // グラフでテストしているが、グラフでなくても良い（余裕があったら一般のグラフでテストする）
+        // 0 → 1
+        // ↓
+        // 2 → 3 → 4
+        // ↓   ↓
+        // 5   6 → 7
+
+        let n_vertex = 8;
+        let edges = [(0, 1), (0, 2), (2, 3), (2, 5), (3, 4), (3, 6), (6, 7)]
+            .map(|(from, to)| Edge::new(from, to));
+        let adj = make_adj(n_vertex, &edges);
+        let order = bfs_order(&adj, 0);
+        assert_eq!(order, vec![0, 1, 2, 3, 5, 4, 6, 7]); // FIXME: 実装依存になっていてよくない
+    }
+
+    #[test]
+    fn test_dfs_pre_order() {
+        // 0 → 1
+        // ↓
+        // 2 → 3 → 4
+        // ↓   ↓
+        // 5   6 → 7
+
+        let n_vertex = 8;
+        let edges = [(0, 1), (0, 2), (2, 3), (2, 5), (3, 4), (3, 6), (6, 7)]
+            .map(|(from, to)| Edge::new(from, to));
+        let adj = make_adj(n_vertex, &edges);
+        let order = dfs_pre_order(&adj, 0);
+        assert_eq!(order, vec![0, 2, 5, 3, 6, 7, 4, 1]); // FIXME: 実装依存になっていてよくない
+    }
+
+    #[test]
+    fn test_dfs_post_order() {
+        // 0 → 1
+        // ↓
+        // 2 → 3 → 4
+        // ↓   ↓
+        // 5   6 → 7
+
+        let n_vertex = 8;
+        let edges = [(0, 1), (0, 2), (2, 3), (2, 5), (3, 4), (3, 6), (6, 7)]
+            .map(|(from, to)| Edge::new(from, to));
+        let adj = make_adj(n_vertex, &edges);
+        let order = dfs_post_order(&adj, 0);
+        assert_eq!(order, vec![5, 7, 6, 4, 3, 2, 1, 0]); // FIXME: 実装依存になっていてよくない
     }
 
     #[test]
