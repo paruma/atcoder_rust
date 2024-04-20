@@ -1,18 +1,27 @@
 //#[derive_readable]
 #[derive(Debug)]
 struct Problem {
-    _a: usize,
+    s: Vec<u8>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            s: Bytes,
         }
-        Problem { _a }
+        Problem { s }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let s = &self.s;
+
+        let num = String::from_utf8(s[3..].to_vec())
+            .unwrap()
+            .parse::<i64>()
+            .unwrap();
+
+        //dbg!(num);
+
+        let ans = 1 <= num && num <= 349 && num != 316;
         Answer { ans }
     }
 
@@ -26,12 +35,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_yesno(self.ans);
     }
 }
 

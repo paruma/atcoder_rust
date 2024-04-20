@@ -1,18 +1,25 @@
 //#[derive_readable]
 #[derive(Debug)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    q: usize,
+    ts: Vec<usize>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            q: usize,
+            ts: [Usize1; q],
         }
-        Problem { _a }
+        Problem { n, q, ts }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let cnts = self.ts.iter().copied().counts();
+        let ans = n - cnts.values().filter(|x| **x % 2 == 1).count();
+        let ans = ans as i64;
         Answer { ans }
     }
 

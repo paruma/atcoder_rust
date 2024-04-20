@@ -1,18 +1,68 @@
-//#[derive_readable]
+#[derive_readable]
 #[derive(Debug)]
 struct Problem {
-    _a: usize,
+    n: i64,
+    a: i64,
+    x: i64,
+    y: i64,
+}
+
+struct Rec2 {
+    dp: HashMap<i64, f64>,
+    a: i64,
+    x: i64,
+    y: i64,
+}
+
+impl Rec2 {
+    fn new(a: i64, x: i64, y: i64) -> Self {
+        let dp = HashMap::new();
+        Self { dp, a, x, y }
+    }
+
+    fn rec(&mut self, n: i64) -> f64 {
+        if self.dp.contains_key(&n) {
+            return self.dp[&n];
+        }
+        self.dp.insert(n, 0.0);
+        if n == 0 {
+            self.dp.insert(0, 0.0);
+            return 0.0;
+        }
+
+        // 決定的な方
+        let cand1 = self.rec(n / self.a) + (self.x as f64);
+
+        // 確率的な方
+        let cand2 = {
+            let sum = self.rec(n / 2)
+                + self.rec(n / 3)
+                + self.rec(n / 4)
+                + self.rec(n / 5)
+                + self.rec(n / 6);
+            (sum / 6.0 + self.y as f64) / (5.0 / 6.0)
+        };
+        let ans = f64::min(cand1, cand2);
+        self.dp.insert(n, ans);
+        ans
+    }
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            p: Problem
         }
-        Problem { _a }
+        p
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let a = self.a;
+        let x = self.x;
+        let y = self.y;
+        let mut rec2 = Rec2::new(a, x, y);
+        let ans = rec2.rec(n);
+        //dbg!(&rec2.dp);
         Answer { ans }
     }
 
@@ -24,9 +74,9 @@ impl Problem {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 struct Answer {
-    ans: i64,
+    ans: f64,
 }
 
 impl Answer {
@@ -130,3 +180,30 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+
+// struct Rec1 {
+//     set: HashSet<i64>,
+// }
+
+// impl Rec1 {
+//     fn new() -> Self {
+//         Self {
+//             set: HashSet::new(),
+//         }
+//     }
+
+//     fn rec(&mut self, n: i64) {
+//         if self.set.contains(&n) {
+//             return;
+//         }
+//         self.set.insert(n);
+//         if n == 0 {
+//             return;
+//         }
+//         self.rec(n / 2);
+//         self.rec(n / 3);
+//         self.rec(n / 4);
+//         self.rec(n / 5);
+//         self.rec(n / 6);
+//     }
+// }

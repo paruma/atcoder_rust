@@ -28,6 +28,7 @@ dependencies = [
  "easy-ext",
  "itertools",
  "maplit",
+ "memoise",
  "ndarray",
  "num",
  "num-derive",
@@ -168,6 +169,17 @@ name = "memchr"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2dffe52ecf27772e601905b7522cb4ef790d2cc203488bbd0e2fe85fcb74566d"
+
+[[package]]
+name = "memoise"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "04d4bedd9ad829dc571ce57e21d6b270a62646889bc045f265eb92183d6599db"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
 
 [[package]]
 name = "ndarray"
