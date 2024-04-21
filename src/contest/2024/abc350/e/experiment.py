@@ -1,5 +1,8 @@
 from functools import lru_cache
 
+import sys
+sys.setrecursionlimit(10**6) # 今回はなくても大丈夫
+
 s = set()
 def hoge(x):
     if x in s:

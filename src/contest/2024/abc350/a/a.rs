@@ -21,7 +21,7 @@ impl Problem {
 
         //dbg!(num);
 
-        let ans = 1 <= num && num <= 349 && num != 316;
+        let ans = (1..=349).contains(&num) && num != 316;
         Answer { ans }
     }
 

@@ -24,7 +24,6 @@ impl Rec2 {
         if self.dp.contains_key(&n) {
             return self.dp[&n];
         }
-        self.dp.insert(n, 0.0);
         if n == 0 {
             self.dp.insert(0, 0.0);
             return 0.0;
@@ -180,30 +179,3 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
-
-// struct Rec1 {
-//     set: HashSet<i64>,
-// }
-
-// impl Rec1 {
-//     fn new() -> Self {
-//         Self {
-//             set: HashSet::new(),
-//         }
-//     }
-
-//     fn rec(&mut self, n: i64) {
-//         if self.set.contains(&n) {
-//             return;
-//         }
-//         self.set.insert(n);
-//         if n == 0 {
-//             return;
-//         }
-//         self.rec(n / 2);
-//         self.rec(n / 3);
-//         self.rec(n / 4);
-//         self.rec(n / 5);
-//         self.rec(n / 6);
-//     }
-// }

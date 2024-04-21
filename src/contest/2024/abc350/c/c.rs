@@ -56,6 +56,7 @@ struct Answer {
 }
 
 impl Answer {
+    #[fastout]
     fn print(&self) {
         println!("{}", self.ans.len());
         for &(x, y) in &self.ans {
