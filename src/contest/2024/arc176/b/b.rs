@@ -1,37 +1,68 @@
-//#[derive_readable]
 #[derive(Debug)]
 struct Problem {
-    _a: usize,
+    test_cases: Vec<TestCase>,
+}
+
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct TestCase {
+    n: i64,
+    m: i64,
+    k: i64,
+}
+
+impl TestCase {
+    fn solve(&self) -> i64 {
+        let n = self.n;
+        let m = self.m;
+        let k = self.k;
+
+        if n >= k && m == k + 1 {
+            return 0;
+        }
+
+        let mid1 = if n < k { n } else { (n - k) % (m - k) + k };
+
+        [2, 4, 8, 6][(mid1 - 1) as usize % 4]
+    }
+    fn solve_naive(&self) -> i64 {
+        ((1 << self.n) % ((1 << self.m) - (1 << self.k))) % 10
+    }
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            test_cases: [TestCase; n],
         }
-        Problem { _a }
+        Problem { test_cases }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = self.test_cases.iter().map(|x| x.solve()).collect_vec();
         Answer { ans }
     }
 
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
-        todo!();
-        // let ans = 0;
-        // Answer { ans }
+        let ans = self
+            .test_cases
+            .iter()
+            .map(|x| x.solve_naive())
+            .collect_vec();
+        Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec(&self.ans);
+        //println!("{}", self.ans);
     }
 }
 
@@ -51,25 +82,26 @@ mod tests {
         assert_eq!(1 + 1, 2);
     }
 
-    fn check(p: &Problem) {
+    fn check(p: &TestCase) {
         assert_eq!(p.solve(), p.solve_naive());
     }
 
-    fn make_random_problem() -> Problem {
-        todo!()
-        // let mut rng = SmallRng::from_entropy();
-        // let n = rng.gen_range(1..=10);
-        // let p = Problem { _a: n };
-        // println!("{:?}", &p);
-        // p
+    fn make_random_problem() -> TestCase {
+        let mut rng = SmallRng::from_entropy();
+        let n = rng.gen_range(1..=15);
+        let k = rng.gen_range(1..=14);
+        let m = rng.gen_range((k + 1)..=15);
+        let p = TestCase { n, m, k };
+        println!("{:?}", &p);
+        p
     }
 
     #[test]
     fn test_with_naive() {
         // 手動でテストを作るのもOK
-        for _ in 0..100 {
-            // let p = make_random_problem();
-            // check(&p);
+        for _ in 0..100000 {
+            let p = make_random_problem();
+            check(&p);
         }
     }
 }
