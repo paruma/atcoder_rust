@@ -65,6 +65,66 @@ impl Problem {
         Answer { ans }
     }
 
+    // memoise 検証
+    // メソッド内では memoise は使えない
+    // #[memoise_map(n)]
+    // fn rec2(&self, n: i64) -> f64 {
+    //     if n == 0 {
+    //         return 0.0;
+    //     }
+    //     // 決定的な方
+    //     let cand1 = self.rec2(n / self.a) + (self.x as f64);
+
+    //     // 確率的な方
+    //     let cand2 = {
+    //         let sum = self.rec2(n / 2)
+    //             + self.rec2(n / 3)
+    //             + self.rec2(n / 4)
+    //             + self.rec2(n / 5)
+    //             + self.rec2(n / 6);
+    //         (sum / 6.0 + self.y as f64) / (5.0 / 6.0)
+    //     };
+    //     f64::min(cand1, cand2)
+    // }
+
+    thread_local!(static REC2:std::cell::RefCell<std::collections::BTreeMap<(i64),f64> >  = std::cell::RefCell::new(std::collections::BTreeMap::new()));
+    fn rec2_reset() {
+        Self::REC2.with(|cache| {
+            let mut r = cache.borrow_mut();
+            r.clear();
+        });
+    }
+    fn rec2(&self, n: i64) -> f64 {
+        if let Some(ret) = Self::REC2.with(|cache| cache.borrow().get(&(n)).cloned()) {
+            return ret.clone();
+        }
+        let ret: f64 = (|| {
+            if n == 0 {
+                return 0.0;
+            }
+            let cand1 = self.rec2(n / self.a) + (self.x as f64);
+            let cand2 = {
+                let sum = self.rec2(n / 2)
+                    + self.rec2(n / 3)
+                    + self.rec2(n / 4)
+                    + self.rec2(n / 5)
+                    + self.rec2(n / 6);
+                (sum / 6.0 + self.y as f64) / (5.0 / 6.0)
+            };
+            f64::min(cand1, cand2)
+        })();
+        Self::REC2.with(|cache| {
+            let mut bm = cache.borrow_mut();
+            bm.insert((n), ret.clone());
+        });
+        ret
+    }
+
+    fn solve2(&self) -> Answer {
+        let ans = self.rec2(self.n);
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
