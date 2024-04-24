@@ -74,6 +74,7 @@ impl Problem {
         Problem { s }
     }
     fn solve(&self) -> Answer {
+        // 未AC
         let s = &self.s;
         let s_without_paren = s
             .iter()

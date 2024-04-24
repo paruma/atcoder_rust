@@ -47,6 +47,15 @@ impl Problem {
         }
         // 各グループの個数を求める
 
+        // こう書くとエラーになる (cannot borrow `uf` as mutable more than once at a time)
+        // (0..nv)
+        //     .filter(|&v| uf.root(v) == v)
+        //     .map(|v| {
+        //         let cnt = uf.same_count(v);
+        //         nc2(cnt as usize)
+        //     })
+        //     .sum::<usize>();
+
         let mut sum = 0;
         for v in 0..nv {
             if uf.root(v) == v {
@@ -55,6 +64,26 @@ impl Problem {
             }
         }
 
+        let ans = sum - self.ne;
+        let ans = ans as i64;
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        let nv = self.nv;
+        let mut uf: UnionFind = UnionFind::new(self.nv);
+
+        for &e in &self.edges {
+            uf.unite(e.u, e.v);
+        }
+        // 各グループの個数を求める
+        let sum = (0..nv)
+            .map(|v| uf.root(v))
+            .counts()
+            .values()
+            .copied()
+            .map(nc2)
+            .sum::<usize>();
         let ans = sum - self.ne;
         let ans = ans as i64;
         Answer { ans }
@@ -80,7 +109,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]

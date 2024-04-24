@@ -23,19 +23,22 @@ impl Problem {
 
         let mut ans: Vec<(usize, usize)> = vec![];
 
-        for v in 0..n {
-            if idx_map[v] != v {
-                // 01234567
-                // 2....0.. を交換する場合
-                // もともと0の場所
-                // 古いxs[0] の値
-                let old_v_idx = idx_map[v]; //5
-                let old_xs_v = xs[v]; //2
+        for i in 0..n {
+            if idx_map[i] != i {
+                // 愚直からコードをコピーして計算量削減
 
-                idx_map[old_xs_v] = old_v_idx;
-                idx_map[v] = v;
-                xs.swap(v, old_v_idx);
-                ans.push((v, old_v_idx));
+                // 01234567
+                // 2....0.. で2と0を交換する場合(i=0)
+
+                let old_idx_map_i = idx_map[i]; //5
+                let old_xs_i = xs[i]; //2
+
+                // i番目にある値xs[i] と idx_map[i]番目にある値iを交換して、i番目にiが来るようにする。
+
+                idx_map[old_xs_i] = old_idx_map_i;
+                idx_map[i] = i; // ここも swap で書ける
+                xs.swap(i, old_idx_map_i);
+                ans.push((i, old_idx_map_i));
             }
         }
 
@@ -44,9 +47,31 @@ impl Problem {
 
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
-        todo!();
-        // let ans = 0;
-        // Answer { ans }
+        let n = self.n;
+        let mut xs = self.xs.clone();
+        let mut idx_map = vec![0_usize; n];
+        for (i, &x) in xs.iter().enumerate() {
+            idx_map[x] = i;
+        }
+
+        let mut ans: Vec<(usize, usize)> = vec![];
+
+        for i in 0..n {
+            if xs[i] != i {
+                // 愚直に古い配列をコピーする
+                let old_xs = xs.clone();
+                let old_idx_map = idx_map.clone();
+
+                // i番目にある値xs[i] と idx_map[i]番目にある値iを交換して、i番目にiが来るようにする。
+
+                idx_map[old_xs[i]] = old_idx_map[i];
+                idx_map[i] = i;
+                xs.swap(i, old_idx_map[i]);
+                ans.push((i, old_idx_map[i]));
+            }
+        }
+
+        Answer { ans }
     }
 }
 

@@ -21,27 +21,27 @@ impl Rec2 {
     }
 
     fn rec(&mut self, n: i64) -> f64 {
-        if self.dp.contains_key(&n) {
-            return self.dp[&n];
+        if let Some(&ans) = self.dp.get(&n) {
+            return ans;
         }
-        if n == 0 {
-            self.dp.insert(0, 0.0);
-            return 0.0;
-        }
+        let ans = if n == 0 {
+            0.0
+        } else {
+            // 決定的な方
+            let cand1 = self.rec(n / self.a) + (self.x as f64);
 
-        // 決定的な方
-        let cand1 = self.rec(n / self.a) + (self.x as f64);
-
-        // 確率的な方
-        let cand2 = {
-            let sum = self.rec(n / 2)
-                + self.rec(n / 3)
-                + self.rec(n / 4)
-                + self.rec(n / 5)
-                + self.rec(n / 6);
-            (sum / 6.0 + self.y as f64) / (5.0 / 6.0)
+            // 確率的な方
+            let cand2 = {
+                let sum = self.rec(n / 2)
+                    + self.rec(n / 3)
+                    + self.rec(n / 4)
+                    + self.rec(n / 5)
+                    + self.rec(n / 6);
+                (sum / 6.0 + self.y as f64) / (5.0 / 6.0)
+            };
+            f64::min(cand1, cand2)
         };
-        let ans = f64::min(cand1, cand2);
+
         self.dp.insert(n, ans);
         ans
     }
