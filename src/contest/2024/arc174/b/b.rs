@@ -1,10 +1,10 @@
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 
 struct TestCase {
     xs: Vec<i64>,
     ps: Vec<i64>,
 }
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Problem {
     test_cases: Vec<TestCase>,
 }
@@ -144,21 +144,65 @@ mod tests {
         assert_eq!(1 + 1, 2);
     }
 
-    fn test_random() {
+    #[allow(dead_code)]
+    #[derive(Debug)]
+    struct WrongTestCase {
+        problem: Problem,
+        main_ans: Answer,
+        naive_ans: Answer,
+    }
+
+    #[allow(dead_code)]
+    fn check(p: &Problem) -> Option<WrongTestCase> {
+        let main_ans = p.solve();
+        let naive_ans = p.solve_naive();
+        if main_ans != naive_ans {
+            Some(WrongTestCase {
+                problem: p.clone(),
+                main_ans,
+                naive_ans,
+            })
+        } else {
+            None
+        }
+    }
+
+    #[allow(dead_code)]
+    fn make_random_problem() -> Problem {
         let mut rng = SmallRng::from_entropy();
         let xs = (0..5).map(|_| rng.gen_range(0..4)).collect_vec();
         let ps = (0..5).map(|_| rng.gen_range(0..4)).collect_vec();
         let p = Problem {
             test_cases: vec![TestCase { xs, ps }],
         };
-        dbg!(&p);
-        assert_eq!(p.solve(), p.solve_naive());
+        p
     }
 
     #[test]
-    fn test_random_all() {
-        for _ in 0..1000 {
-            // test_random();
+    fn test_with_naive() {
+        let num_tests = 1000;
+        let max_wrong_case = 10; // この件数間違いが見つかったら打ち切り
+        let mut wrong_cases: Vec<WrongTestCase> = vec![];
+        for _ in 0..num_tests {
+            let p = make_random_problem();
+            let result = check(&p);
+            if let Some(wrong_test_case) = result {
+                wrong_cases.push(wrong_test_case);
+            }
+            if wrong_cases.len() >= max_wrong_case {
+                break;
+            }
+        }
+
+        if !wrong_cases.is_empty() {
+            for t in &wrong_cases {
+                println!("{:?}", t.problem);
+                println!("main ans : {:?}", t.main_ans);
+                println!("naive ans: {:?}", t.naive_ans);
+                println!();
+            }
+            println!("{} cases are wrong.", wrong_cases.len());
+            panic!();
         }
     }
 }

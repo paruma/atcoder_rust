@@ -1,5 +1,5 @@
 //#[derive_readable]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Problem {
     _a: usize,
 }
@@ -51,10 +51,30 @@ mod tests {
         assert_eq!(1 + 1, 2);
     }
 
-    fn check(p: &Problem) {
-        assert_eq!(p.solve(), p.solve_naive());
+    #[allow(dead_code)]
+    #[derive(Debug)]
+    struct WrongTestCase {
+        problem: Problem,
+        main_ans: Answer,
+        naive_ans: Answer,
     }
 
+    #[allow(dead_code)]
+    fn check(p: &Problem) -> Option<WrongTestCase> {
+        let main_ans = p.solve();
+        let naive_ans = p.solve_naive();
+        if main_ans != naive_ans {
+            Some(WrongTestCase {
+                problem: p.clone(),
+                main_ans,
+                naive_ans,
+            })
+        } else {
+            None
+        }
+    }
+
+    #[allow(dead_code)]
     fn make_random_problem() -> Problem {
         todo!()
         // let mut rng = SmallRng::from_entropy();
@@ -64,12 +84,33 @@ mod tests {
         // p
     }
 
+    #[allow(unreachable_code)]
     #[test]
     fn test_with_naive() {
-        // 手動でテストを作るのもOK
-        for _ in 0..100 {
-            // let p = make_random_problem();
-            // check(&p);
+        return;
+        let num_tests = 1000;
+        let max_wrong_case = 10; // この件数間違いが見つかったら打ち切り
+        let mut wrong_cases: Vec<WrongTestCase> = vec![];
+        for _ in 0..num_tests {
+            let p = make_random_problem();
+            let result = check(&p);
+            if let Some(wrong_test_case) = result {
+                wrong_cases.push(wrong_test_case);
+            }
+            if wrong_cases.len() >= max_wrong_case {
+                break;
+            }
+        }
+
+        if !wrong_cases.is_empty() {
+            for t in &wrong_cases {
+                println!("{:?}", t.problem);
+                println!("main ans : {:?}", t.main_ans);
+                println!("naive ans: {:?}", t.naive_ans);
+                println!();
+            }
+            println!("{} cases are wrong.", wrong_cases.len());
+            panic!();
         }
     }
 }
