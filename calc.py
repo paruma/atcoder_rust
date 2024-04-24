@@ -50,3 +50,15 @@ prime(3) == 5 # 3番目の素数
 primepi(12) == 5 # 12以下の素数の数 (2, 3, 5, 7, 11)
 primorial(3) == 30 # 2 * 3 * 5 =30 (素数階乗)
 totient(6) == 2 # オイラーのトーシェント関数。[0, 6) のうち 6 と互いに素な数は2つ
+
+# === ランダム ===
+
+import random
+
+random.uniform(100, 200) # 100 から 200 の float の一様乱数
+random.randrange(10) # 0 から 9 の整数の一様乱数
+random.randrange(10, 20) # 10 から 19 の整数の一様乱数
+random.randrange(10, 20, 2) # step=2
+# xs = [1, 2, 3]
+# random.shuffle(xs) # inplace なシャッフル
+random.random() < 0.3 # bool をランダムに生成 (30%でtrue)
