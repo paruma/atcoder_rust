@@ -121,7 +121,7 @@ impl Problem {
         let grid = &self.grid;
         let w = grid.w;
         let h = grid.h;
-        let mut uf = UnionFind::new(w * h);
+        let mut uf = OldUnionFind::new(w * h);
 
         for pos in iproduct!(0..h, 0..w)
             .map(|(y, x)| Pos::new(x as i64, y as i64))
@@ -171,6 +171,48 @@ impl Problem {
 
         Answer { ans }
     }
+
+    fn solve3(&self) -> Answer {
+        let grid = &self.grid;
+        let w = grid.w;
+        let h = grid.h;
+        let mut uf = UnionFind::new(w * h);
+
+        let grid_pos_iter = || iproduct!(0..h, 0..w).map(|(y, x)| Pos::new(x as i64, y as i64));
+        let around_pos_iter = |pos| DIR4_LIST.iter().copied().map(move |d| d + pos);
+
+        for pos in grid_pos_iter().filter(|pos| grid.is_green(*pos)) {
+            for next in around_pos_iter(pos).filter(|&next| grid.is_green(next)) {
+                uf.unite(grid.encode(pos), grid.encode(next));
+            }
+        }
+
+        let cnt_red = grid_pos_iter().filter(|&pos| grid.is_red(pos)).count();
+
+        // 塗り替え前の緑の連結成分数
+        let base_cnt = uf.num_groups() - cnt_red;
+
+        let cnt = grid_pos_iter()
+            .filter(|&pos| grid.is_red(pos))
+            .map(|pos| {
+                // pos にある赤を青にする
+                // pos の周りにある緑の連結成分数
+                let cnt_around = around_pos_iter(pos)
+                    .filter(|&next| grid.is_green(next))
+                    .map(|next| uf.root(grid.encode(next)))
+                    .unique()
+                    .count();
+
+                // pos を赤→緑にすることで、pos の周りにあった cnt_around 個の連結成分数が1個になる
+                base_cnt - cnt_around + 1
+            })
+            .sum::<usize>();
+
+        let ans = Mint::new(cnt) / Mint::new(cnt_red as i64);
+        let ans = ans.val() as i64;
+
+        Answer { ans }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -185,7 +227,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve2().print();
+    Problem::read().solve3().print();
 }
 
 #[cfg(test)]
@@ -252,196 +294,7 @@ fn print_yesno(ans: bool) {
     println!("{}", msg);
 }
 #[allow(unused_imports)]
-use lg::*;
-// https://github.com/ngtkana/ac-adapter-rs/blob/main/libs/lg/src/lib.rs
-pub mod lg {
-    use std::borrow::Borrow;
-    use std::fmt;
-    use std::marker::PhantomData;
-
-    #[macro_export]
-    macro_rules! lg {
-    (@contents $head:expr $(, $tail:expr)*) => {{
-        $crate::__lg_variable!($head);
-        $(
-            eprint!(",");
-            $crate::__lg_variable!($tail);
-        )*
-        eprintln!();
-    }};
-    ($($expr:expr),* $(,)?) => {{
-        eprint!("{}❯", line!());
-        $crate::lg!(@contents $($expr),*)
-    }};
-}
-
-    #[doc(hidden)]
-    #[macro_export]
-    macro_rules! __lg_variable {
-        ($value:expr) => {{
-            match $value {
-                head => {
-                    eprint!(
-                        " {} = {}",
-                        stringify!($value),
-                        $crate::__quiet(format!("{:?}", &head))
-                    );
-                }
-            }
-        }};
-    }
-
-    #[macro_export]
-    macro_rules! table {
-        ($value:expr) => {{
-            $crate::Table::new($value).title(stringify!($value))
-        }};
-    }
-
-    #[doc(hidden)]
-    pub fn __quiet(s: impl AsRef<str>) -> String {
-        s.as_ref()
-            .replace("18446744073709551615", "*") // u64
-            .replace("9223372036854775807", "*") // i64
-            .replace("-9223372036854775808", "*") // i64
-            .replace("4294967295", "*") // u32
-            .replace("2147483647", "*") // i32
-            .replace("-2147483648", "*") // i32
-            .replace("None", "*")
-            .replace("Some", "")
-    }
-
-    #[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
-    pub struct Table<T, Row, Storage> {
-        __marker: PhantomData<(T, Row)>,
-        title: String,
-        storage: Storage,
-        index_width: usize,
-        column_width: usize,
-        heading_newlines: usize,
-    }
-
-    /// Format a two dimensional container in a table style.
-    ///
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// # use lg::{table, Table};
-    /// let a = vec![vec![0, 1, 2], vec![3, 4, 5]];
-    ///
-    /// eprintln!(
-    ///     "{}",
-    ///     table(&a) // Either a or &a is ok.
-    ///         .heading_newlines(1) // Default: 1
-    ///         .index_width(1) // Default: 2
-    ///         .column_width(2), // Default: 3
-    /// );
-    /// ```
-    ///
-    ///
-    /// # Automatic quieting
-    ///
-    /// ```
-    /// # use lg::{table, Table};
-    /// eprintln!("{}", table(&[[0, 2147483647, 2], [3, 4, 5],]),);
-    /// ```
-    pub fn table<T: Clone + fmt::Debug, Row: AsRef<[T]>, Storage: AsRef<[Row]>>(
-        storage: Storage,
-    ) -> Table<T, Row, Storage> {
-        Table::new(storage)
-    }
-    impl<T, Row, Storage> Table<T, Row, Storage>
-    where
-        T: Clone + fmt::Debug,
-        Row: AsRef<[T]>,
-        Storage: AsRef<[Row]>,
-    {
-        pub fn new(storage: Storage) -> Self {
-            Self {
-                __marker: PhantomData,
-                title: String::new(),
-                storage,
-                column_width: 3,
-                index_width: 2,
-                heading_newlines: 1,
-            }
-        }
-
-        pub fn title(&mut self, title: impl Into<String>) -> &mut Self {
-            self.title = title.into();
-            self
-        }
-
-        pub fn index_width(&mut self, index_width: usize) -> &mut Self {
-            self.index_width = index_width;
-            self
-        }
-
-        pub fn column_width(&mut self, column_width: usize) -> &mut Self {
-            self.column_width = column_width;
-            self
-        }
-
-        pub fn heading_newlines(&mut self, heading_newlines: usize) -> &mut Self {
-            self.heading_newlines = heading_newlines;
-            self
-        }
-    }
-    impl<T, Row, Storage> fmt::Display for Table<T, Row, Storage>
-    where
-        T: Clone + fmt::Debug,
-        Row: AsRef<[T]>,
-        Storage: AsRef<[Row]>,
-    {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            let Self {
-                __marker: _,
-                ref title,
-                ref storage,
-                index_width,
-                column_width,
-                heading_newlines,
-            } = *self;
-            for _ in 0..heading_newlines {
-                writeln!(f)?;
-            }
-            writeln!(f, "{}❯ {}", line!(), title)?;
-            let ncols = storage.as_ref()[0].as_ref().len();
-            write!(f, "\x1b[48;2;127;127;127;37m")?;
-            write!(f, "{}|", " ".repeat(index_width))?;
-            for j in 0..ncols {
-                write!(f, "{j:column_width$}")?;
-            }
-            writeln!(f, "\x1b[0m")?;
-            for (i, row) in storage.as_ref().iter().enumerate() {
-                write!(f, "{:index_width$}|", i, index_width = index_width)?;
-                for value in row.as_ref() {
-                    write!(f, "{:>column_width$}", __quiet(format!("{:?}", value)),)?;
-                }
-                writeln!(f)?;
-            }
-            Ok(())
-        }
-    }
-
-    /// Format a iterator of [`bool`]s.
-    pub fn bools<B, I>(iter: I) -> String
-    where
-        B: Borrow<bool>,
-        I: IntoIterator<Item = B>,
-    {
-        format!(
-            "[{}]",
-            iter.into_iter()
-                .map(|b| ['.', '#'][usize::from(*(b.borrow()))])
-                .collect::<String>(),
-        )
-    }
-}
-
 // ====== snippet ======
-
 use pos::*;
 pub mod pos {
     use std::ops::{Add, AddAssign, Mul, Neg, Sub, SubAssign};
@@ -722,7 +575,7 @@ pub mod undo_uf {
     }
 }
 
-use union_find::*;
+use union_find::UnionFind as OldUnionFind;
 pub mod union_find {
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
     struct Root {
@@ -809,6 +662,104 @@ pub mod union_find {
                     },
                 }
             }
+        }
+    }
+}
+
+use simple_union_find::UnionFind;
+pub mod simple_union_find {
+    use itertools::Itertools;
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    struct RootInfo {
+        count: usize,
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    struct NonRootInfo {
+        parent_index: usize,
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    enum Node {
+        Root(RootInfo),
+        NonRoot(NonRootInfo),
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    struct RootAndIndex {
+        info: RootInfo,
+        index: usize,
+    }
+    #[derive(Clone, Debug)]
+    pub struct UnionFind {
+        nodes: Vec<Node>,
+        cnt_groups: usize,
+    }
+    impl UnionFind {
+        pub fn new(n: usize) -> UnionFind {
+            UnionFind {
+                nodes: vec![Node::Root(RootInfo { count: 1 }); n],
+                cnt_groups: n,
+            }
+        }
+        fn root_node(&mut self, index: usize) -> RootAndIndex {
+            match self.nodes[index] {
+                Node::Root(info) => RootAndIndex { info, index },
+                Node::NonRoot(info) => {
+                    let root_and_index = self.root_node(info.parent_index);
+                    self.nodes[index] = Node::NonRoot(NonRootInfo {
+                        parent_index: root_and_index.index,
+                    });
+                    root_and_index
+                }
+            }
+        }
+        pub fn root(&mut self, index: usize) -> usize {
+            self.root_node(index).index
+        }
+        pub fn same_count(&mut self, index: usize) -> usize {
+            self.root_node(index).info.count
+        }
+        pub fn same(&mut self, x: usize, y: usize) -> bool {
+            self.root(x) == self.root(y)
+        }
+        pub fn num_groups(&self) -> usize {
+            self.cnt_groups
+        }
+        pub fn unite(&mut self, x: usize, y: usize) {
+            if self.same(x, y) {
+                return;
+            }
+            self.cnt_groups -= 1;
+            let x_root_node = self.root_node(x);
+            let y_root_node = self.root_node(y);
+            let (smaller_root, larger_root) = if x_root_node.info.count < y_root_node.info.count {
+                (x_root_node, y_root_node)
+            } else {
+                (y_root_node, x_root_node)
+            };
+            self.nodes[smaller_root.index] = Node::NonRoot(NonRootInfo {
+                parent_index: larger_root.index,
+            });
+            self.nodes[larger_root.index] = Node::Root(RootInfo {
+                count: smaller_root.info.count + larger_root.info.count,
+            });
+        }
+        pub fn groups(&mut self) -> Vec<Vec<usize>> {
+            let n = self.nodes.len();
+            let roots = (0..n).map(|i| self.root(i)).collect_vec();
+            let group_size = (0..n).map(|i| roots[i]).fold(vec![0; n], |mut acc, x| {
+                acc[x] += 1;
+                acc
+            });
+            let result = {
+                let mut result = vec![Vec::new(); n];
+                for i in 0..n {
+                    result[i].reserve(group_size[i]);
+                }
+                for i in 0..n {
+                    result[roots[i]].push(i);
+                }
+                result
+            };
+            result.into_iter().filter(|x| !x.is_empty()).collect_vec()
         }
     }
 }
