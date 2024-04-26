@@ -578,9 +578,9 @@ path = "src/contest/2023/abc329/f/f.rs"
 # name = "abc328_e"
 # path = "src/contest/2023/abc328/e/e.rs"
 
-# [[bin]]
-# name = "abc328_f"
-# path = "src/contest/2023/abc328/f/f.rs"
+[[bin]]
+name = "abc328_f"
+path = "src/contest/2023/abc328/f/f.rs"
 
 # [[bin]]
 # name = "abc327_a"

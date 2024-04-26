@@ -3,6 +3,7 @@
         "./Cargo.toml",
     ],
     "cSpell.words": [
+        "Abelian",
         "chmax",
         "chmin",
         "cumsum",
@@ -14,6 +15,7 @@
         "izip",
         "lazysegtree",
         "peekable",
+        "potentialized",
         "powerset",
         "Procon",
         "proconio",
