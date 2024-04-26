@@ -36,13 +36,8 @@ impl Problem {
         let mut uf = potentialized_union_find::UnionFind::new(*len);
         let mut ans = vec![];
         for (i, &Query { a, b, dist }) in qs.iter().enumerate() {
-            if uf.same(b, a) {
-                if uf.diff(b, a) == Some(dist) {
-                    ans.push(i);
-                }
-            } else {
+            if uf.unite(b, a, dist).is_consistent() {
                 ans.push(i);
-                uf.unite(b, a, dist);
             }
         }
         Answer { ans }
@@ -312,6 +307,24 @@ pub mod potentialized_union_find {
         nodes: Vec<Node>,
         cnt_groups: usize,
     }
+    pub enum UnionResult {
+        Consistent { updated: bool },
+        Inconsistent,
+    }
+    impl UnionResult {
+        pub fn updated(&self) -> bool {
+            match self {
+                UnionResult::Consistent { updated } => *updated,
+                UnionResult::Inconsistent => false,
+            }
+        }
+        pub fn is_consistent(&self) -> bool {
+            matches!(self, UnionResult::Consistent { .. })
+        }
+        pub fn is_inconsistent(&self) -> bool {
+            matches!(self, UnionResult::Inconsistent { .. })
+        }
+    }
     impl UnionFind {
         pub fn new(n: usize) -> UnionFind {
             UnionFind {
@@ -354,9 +367,13 @@ pub mod potentialized_union_find {
         pub fn num_groups(&self) -> usize {
             self.cnt_groups
         }
-        pub fn unite(&mut self, src: usize, dst: usize, diff: i64) {
+        pub fn unite(&mut self, src: usize, dst: usize, diff: i64) -> UnionResult {
             if self.same(src, dst) {
-                return;
+                if self.diff(src, dst) == Some(diff) {
+                    return UnionResult::Consistent { updated: false };
+                } else {
+                    return UnionResult::Inconsistent;
+                }
             }
             self.cnt_groups -= 1;
             let src_root_node = self.root_node(src);
@@ -375,6 +392,7 @@ pub mod potentialized_union_find {
             self.nodes[dst_root_node.root_index] = Node::Root(RootInfo {
                 count: src_root_node.root_info.count + dst_root_node.root_info.count,
             });
+            UnionResult::Consistent { updated: true }
         }
         pub fn diff(&mut self, src: usize, dst: usize) -> Option<i64> {
             if self.same(src, dst) {

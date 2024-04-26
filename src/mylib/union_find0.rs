@@ -77,9 +77,9 @@ pub mod simple_union_find {
             self.cnt_groups
         }
 
-        pub fn unite(&mut self, x: usize, y: usize) {
+        pub fn unite(&mut self, x: usize, y: usize) -> bool {
             if self.same(x, y) {
-                return;
+                return false;
             }
 
             self.cnt_groups -= 1;
@@ -100,6 +100,7 @@ pub mod simple_union_find {
             self.nodes[larger_root.index] = Node::Root(RootInfo {
                 count: smaller_root.info.count + larger_root.info.count,
             });
+            true
         }
 
         pub fn groups(&mut self) -> Vec<Vec<usize>> {
@@ -160,6 +161,25 @@ pub mod potentialized_union_find {
         nodes: Vec<Node>,
         cnt_groups: usize,
     }
+    pub enum UnionResult {
+        Consistent { updated: bool },
+        Inconsistent,
+    }
+
+    impl UnionResult {
+        pub fn updated(&self) -> bool {
+            match self {
+                UnionResult::Consistent { updated } => *updated,
+                UnionResult::Inconsistent => false,
+            }
+        }
+        pub fn is_consistent(&self) -> bool {
+            matches!(self, UnionResult::Consistent { .. })
+        }
+        pub fn is_inconsistent(&self) -> bool {
+            matches!(self, UnionResult::Inconsistent { .. })
+        }
+    }
 
     impl UnionFind {
         pub fn new(n: usize) -> UnionFind {
@@ -218,9 +238,13 @@ pub mod potentialized_union_find {
         }
 
         // diff = dst のポテンシャル - src のポテンシャル となるように統合する
-        pub fn unite(&mut self, src: usize, dst: usize, diff: i64) {
+        pub fn unite(&mut self, src: usize, dst: usize, diff: i64) -> UnionResult {
             if self.same(src, dst) {
-                return;
+                if self.diff(src, dst) == Some(diff) {
+                    return UnionResult::Consistent { updated: false };
+                } else {
+                    return UnionResult::Inconsistent;
+                }
             }
 
             self.cnt_groups -= 1;
@@ -254,6 +278,8 @@ pub mod potentialized_union_find {
             self.nodes[dst_root_node.root_index] = Node::Root(RootInfo {
                 count: src_root_node.root_info.count + dst_root_node.root_info.count,
             });
+
+            UnionResult::Consistent { updated: true }
         }
 
         pub fn diff(&mut self, src: usize, dst: usize) -> Option<i64> {
@@ -306,12 +332,12 @@ mod tests_simple_union_find {
     fn test_uf() {
         use super::simple_union_find::*;
         let mut uf = UnionFind::new(8);
-        uf.unite(0, 1);
-        uf.unite(3, 4);
-        uf.unite(4, 5);
-        uf.unite(4, 6);
-        uf.unite(1, 4);
-        uf.unite(1, 5); // すでにつながっている
+        assert!(uf.unite(0, 1));
+        assert!(uf.unite(3, 4));
+        assert!(uf.unite(4, 5));
+        assert!(uf.unite(4, 6));
+        assert!(uf.unite(1, 4));
+        assert!(!uf.unite(1, 5)); // すでにつながっている
 
         /*
         |           [6]
@@ -350,6 +376,7 @@ mod tests_potentialized_union_find {
         uf.unite(4, 5, 3);
         uf.unite(4, 6, 4);
         uf.unite(1, 4, 5);
+        uf.unite(0, 5, 9);
         uf.unite(0, 5, 1000); // すでにつながっているので何も起こらない
 
         /*
@@ -376,5 +403,31 @@ mod tests_potentialized_union_find {
         assert_eq!(uf.diff(4, 0), Some(-6));
         assert_eq!(uf.diff(6, 5), Some(-1));
         assert_eq!(uf.diff(0, 2), None);
+    }
+
+    #[test]
+    fn test_uf_consistency() {
+        use super::potentialized_union_find::*;
+        let mut uf = UnionFind::new(4);
+
+        //    1   5
+        // [0]→[1]→[2]    [3]
+
+        let union_result1 = uf.unite(0, 1, 1);
+        assert!(union_result1.is_consistent());
+        assert!(!union_result1.is_inconsistent());
+        assert!(union_result1.updated());
+
+        uf.unite(1, 2, 5);
+
+        let union_result2 = uf.unite(0, 2, 6);
+        assert!(union_result2.is_consistent());
+        assert!(!union_result2.is_inconsistent());
+        assert!(!union_result2.updated());
+
+        let union_result3 = uf.unite(0, 2, 1000);
+        assert!(!union_result3.is_consistent());
+        assert!(union_result3.is_inconsistent());
+        assert!(!union_result3.updated());
     }
 }
