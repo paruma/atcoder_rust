@@ -1,18 +1,20 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    xs: Vec<i64>,
+    ys: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            xs: [i64; 9],
+            ys: [i64; 8],
         }
-        Problem { _a }
+        Problem { xs, ys }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = self.xs.iter().sum::<i64>() - self.ys.iter().sum::<i64>() + 1;
         Answer { ans }
     }
 

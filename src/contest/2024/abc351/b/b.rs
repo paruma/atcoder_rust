@@ -1,18 +1,25 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    xss: Vec<Vec<u8>>,
+    yss: Vec<Vec<u8>>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            xss: [Bytes; n],
+            yss: [Bytes; n],
         }
-        Problem { _a }
+        Problem { n, xss, yss }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let ans = iproduct!(0..n, 0..n)
+            .find(|&(i, j)| self.xss[i][j] != self.yss[i][j])
+            .unwrap();
         Answer { ans }
     }
 
@@ -26,12 +33,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: (usize, usize),
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        println!("{} {}", self.ans.0 + 1, self.ans.1 + 1);
     }
 }
 

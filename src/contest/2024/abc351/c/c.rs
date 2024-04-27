@@ -1,18 +1,41 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    xs: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            xs: [i64; n],
         }
-        Problem { _a }
+        Problem { n, xs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let xs = &self.xs;
+        let mut buf: Vec<i64> = vec![];
+
+        for &x in xs {
+            buf.push(x);
+
+            loop {
+                let len = buf.len();
+                if len <= 1 {
+                    break;
+                }
+                if buf[len - 2] == buf[len - 1] {
+                    buf.pop();
+                    buf[len - 2] += 1;
+                } else {
+                    break;
+                }
+            }
+        }
+
+        let ans = buf.len() as i64;
         Answer { ans }
     }
 
