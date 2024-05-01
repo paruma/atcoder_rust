@@ -91,6 +91,16 @@ pub mod pos {
         Pos { x: 0, y: -1 },
         Pos { x: -1, y: 0 },
     ];
+
+    impl Pos<i64> {
+        pub fn around4_pos_iter(self) -> impl Iterator<Item = Pos<i64>> {
+            DIR4_LIST.iter().copied().map(move |d| d + self)
+        }
+
+        pub fn around8_pos_iter(self) -> impl Iterator<Item = Pos<i64>> {
+            DIR8_LIST.iter().copied().map(move |d| d + self)
+        }
+    }
 }
 
 #[snippet(prefix = "use vec_vec_at::*;")]
@@ -111,7 +121,9 @@ pub mod vec_vec_at {
 }
 
 #[cfg(test)]
-mod test {
+mod tests_pos {
+
+    use std::collections::HashSet;
 
     use num::Zero;
 
@@ -175,10 +187,44 @@ mod test {
     }
 
     #[test]
+    fn test_around4_pos_iter() {
+        let p: Pos<i64> = Pos::new(2, 3);
+        let actual = p.around4_pos_iter().collect::<HashSet<Pos<i64>>>();
+        let expected = HashSet::from([
+            Pos::new(2, 2),
+            Pos::new(3, 3),
+            Pos::new(2, 4),
+            Pos::new(1, 3),
+        ]);
+        assert_eq!(actual, expected);
+    }
 
+    #[test]
+    fn test_around8_pos_iter() {
+        let p: Pos<i64> = Pos::new(2, 3);
+        let actual = p.around8_pos_iter().collect::<HashSet<Pos<i64>>>();
+        let expected = HashSet::from([
+            Pos::new(2, 2),
+            Pos::new(3, 2),
+            Pos::new(3, 3),
+            Pos::new(3, 4),
+            Pos::new(2, 4),
+            Pos::new(1, 4),
+            Pos::new(1, 4),
+            Pos::new(1, 3),
+            Pos::new(1, 2),
+        ]);
+        assert_eq!(actual, expected);
+    }
+}
+
+#[cfg(test)]
+mod tests_vec_vec_at {
+    use super::pos::*;
+    use super::vec_vec_at::*;
+
+    #[test]
     fn test_vec_vec_at() {
-        use super::vec_vec_at::*;
-
         let mut xss = vec![vec![1, 2, 3], vec![4, 5, 6]];
         assert_eq!(*xss.at(Pos::new(2, 1)), 6);
         *xss.at_mut(Pos::new(2, 1)) = 60;
