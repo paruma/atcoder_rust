@@ -9,6 +9,7 @@
         "cumsum",
         "Deque",
         "fastout",
+        "Fenwick",
         "fromisizee",
         "iproduct",
         "Itertools",
