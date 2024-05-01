@@ -2,6 +2,8 @@ use cargo_snippet::snippet;
 
 #[snippet(prefix = "use cumsum::*;")]
 pub mod cumsum {
+    use std::ops::{Bound, Range, RangeBounds};
+
     pub struct CumSum {
         pub cumsum: Vec<i64>,
     }
@@ -15,10 +17,28 @@ pub mod cumsum {
             }
             CumSum { cumsum }
         }
+
+        fn open(&self, range: impl RangeBounds<usize>) -> Range<usize> {
+            use Bound::Excluded;
+            use Bound::Included;
+            use Bound::Unbounded;
+            let begin = match range.start_bound() {
+                Unbounded => 0,
+                Included(&x) => x,
+                Excluded(&x) => x + 1,
+            };
+            let end = match range.end_bound() {
+                Excluded(&x) => x,
+                Included(&x) => x + 1,
+                Unbounded => self.cumsum.len() - 1, // xs.len() == self.cumsum.len() - 1
+            };
+            begin..end
+        }
+
         /// 計算量: O(1)
-        pub fn range_sum(&self, begin: usize, end: usize) -> i64 {
-            // [begin, end) の間で総和を求める
-            self.cumsum[end] - self.cumsum[begin]
+        pub fn range_sum(&self, range: impl RangeBounds<usize>) -> i64 {
+            let range = self.open(range);
+            self.cumsum[range.end] - self.cumsum[range.start]
         }
 
         pub fn prefix_sum(&self, end: usize) -> i64 {
@@ -75,9 +95,14 @@ mod test {
         let xs = vec![1, 2, 3, 4];
         let cumsum = CumSum::new(&xs);
         assert_eq!(cumsum.cumsum, vec![0, 1, 3, 6, 10]);
-        assert_eq!(cumsum.range_sum(1, 3), xs[1] + xs[2]);
-        assert_eq!(cumsum.range_sum(2, 4), xs[2] + xs[3]);
-        assert_eq!(cumsum.range_sum(2, 2), 0);
+        assert_eq!(cumsum.range_sum(1..3), xs[1] + xs[2]);
+        assert_eq!(cumsum.range_sum(2..4), xs[2] + xs[3]);
+        assert_eq!(cumsum.range_sum(2..2), 0);
+        assert_eq!(cumsum.range_sum(2..), xs[2] + xs[3]);
+        assert_eq!(cumsum.range_sum(..2), xs[0] + xs[1]);
+        assert_eq!(cumsum.range_sum(..), xs[0] + xs[1] + xs[2] + xs[3]);
+        assert_eq!(cumsum.range_sum(2..=3), xs[2] + xs[3]);
+
         assert_eq!(cumsum.prefix_sum(3), 6);
         assert_eq!(cumsum.suffix_sum(1), 9);
     }
@@ -87,7 +112,10 @@ mod test {
         let xs = vec![];
         let cumsum = CumSum::new(&xs);
         assert_eq!(cumsum.cumsum, vec![0]);
-        assert_eq!(cumsum.range_sum(0, 0), 0)
+        assert_eq!(cumsum.range_sum(..), 0);
+        assert_eq!(cumsum.range_sum(..), 0);
+        assert_eq!(cumsum.range_sum(0..0), 0);
+        assert_eq!(cumsum.range_sum(..0), 0);
     }
 
     #[test]
