@@ -27,22 +27,19 @@ impl Grid {
         }
     }
 
-    // fn at_mut(&mut self, pos: Pos<i64>) -> &mut u8 {
-    //     self.grid.at_mut(pos)
-    // }
+    fn at_mut(&mut self, pos: Pos<i64>) -> &mut u8 {
+        self.grid.at_mut(pos)
+    }
 
     fn is_magnet(&self, pos: Pos<i64>) -> bool {
         b"#".contains(self.at(pos))
-    }
-
-    fn is_nothing(&self, pos: Pos<i64>) -> bool {
-        b".".contains(self.at(pos))
     }
 }
 
 #[derive(Debug, Clone)]
 struct MagnetGrid {
     grid: Vec<Vec<u8>>,
+    is_not_around_magnet: Vec<Vec<bool>>,
     h: usize,
     w: usize,
 }
@@ -52,26 +49,24 @@ impl MagnetGrid {
         let h = grid.h;
         let w = grid.w;
 
-        let around_pos_iter = |pos| DIR4_LIST.iter().copied().map(move |d| d + pos);
-        let new_grid = (0..h)
-            .map(|y| {
+        let is_around_magnet = (0..h)
+            .map(|y: usize| {
                 (0..w)
                     .map(|x| {
                         let pos = Pos::new(x as i64, y as i64);
-                        if grid.is_magnet(pos) {
-                            b'#'
-                        } else if around_pos_iter(pos).any(|next| grid.is_magnet(next)) {
-                            b'F'
-                        } else {
-                            b'.'
-                        }
+                        DIR4_LIST
+                            .iter()
+                            .copied()
+                            .map(|d| d + pos)
+                            .all(|next| !grid.is_magnet(next))
                     })
                     .collect_vec()
             })
             .collect_vec();
 
         MagnetGrid {
-            grid: new_grid,
+            grid: grid.grid.clone(),
+            is_not_around_magnet: is_around_magnet,
             h,
             w,
         }
@@ -91,46 +86,14 @@ impl MagnetGrid {
         }
     }
 
-    fn is_magnet(&self, pos: Pos<i64>) -> bool {
-        b"#".contains(self.at(pos))
+    // マグネットの磁気を避ける
+    fn can_move_avoiding_magnet_field(&self, pos: Pos<i64>) -> bool {
+        *self.at(pos) == b'.' && self.is_not_around_magnet[pos.y as usize][pos.x as usize]
     }
 
-    fn is_magnet_field(&self, pos: Pos<i64>) -> bool {
-        b"F".contains(self.at(pos))
-    }
-
-    fn is_nothing(&self, pos: Pos<i64>) -> bool {
-        b".".contains(self.at(pos))
-    }
-
-    fn encode(&self, pos: Pos<i64>) -> usize {
-        (pos.y * self.w as i64 + pos.x) as usize
-    }
-
-    fn decode(&self, i: usize) -> Pos<i64> {
-        let y = (i / self.w) as i64;
-        let x = (i % self.w) as i64;
-        Pos::new(x, y)
-    }
-
-    fn all_pos_iter(&self) -> impl Iterator<Item = Pos<i64>> {
-        iproduct!(0..self.h, 0..self.w).map(|(y, x)| Pos::new(x as i64, y as i64))
-    }
-}
-
-struct GridUnionFind {
-    uf: UnionFind,
-    h: usize,
-    w: usize,
-}
-
-impl GridUnionFind {
-    fn new(h: usize, w: usize) -> GridUnionFind {
-        GridUnionFind {
-            uf: UnionFind::new(h * w),
-            h,
-            w,
-        }
+    // マグネットの磁気を避けない
+    fn can_move(&self, pos: Pos<i64>) -> bool {
+        *self.at(pos) == b'.'
     }
 
     fn encode(&self, pos: Pos<i64>) -> usize {
@@ -141,18 +104,6 @@ impl GridUnionFind {
         let y = (i / self.w) as i64;
         let x = (i % self.w) as i64;
         Pos::new(x, y)
-    }
-
-    fn unite(&mut self, pos1: Pos<i64>, pos2: Pos<i64>) {
-        self.uf.unite(self.encode(pos1), self.encode(pos2));
-    }
-
-    fn groups(&mut self) -> Vec<Vec<Pos<i64>>> {
-        self.uf
-            .groups()
-            .into_iter()
-            .map(|group| group.iter().copied().map(|i| self.decode(i)).collect_vec())
-            .collect_vec()
     }
 }
 
@@ -174,90 +125,39 @@ impl Problem {
         }
     }
     fn solve(&self) -> Answer {
-        // まず、マグネットやマグネットの磁場がないマスでの連結成分を求める。
-        // 各連結成分から移動可能なマスの数を求めて、最大値を求める。
-
-        let grid = MagnetGrid::new(&self.grid);
+        let mag_grid = MagnetGrid::new(&self.grid);
         // lg!(&mag_grid.is_not_around_magnet);
-        // table! {&grid.grid};
 
-        let grid_pos_iter =
-            || iproduct!(0..grid.h, 0..grid.w).map(|(y, x)| Pos::new(x as i64, y as i64));
-        let around_pos_iter = |pos| DIR4_LIST.iter().copied().map(move |d| d + pos);
+        let mut uf = UnionFind::new(mag_grid.h * mag_grid.w);
 
-        let mut uf = UnionFind::new(grid.h * grid.w);
-        for pos in grid_pos_iter().filter(|pos| grid.is_nothing(*pos)) {
-            for next in around_pos_iter(pos).filter(|next| grid.is_nothing(*next)) {
-                uf.unite(grid.encode(pos), grid.encode(next));
+        for y in 0..mag_grid.h {
+            for x in 0..mag_grid.w {
+                let pos = Pos::new(x as i64, y as i64);
+                if mag_grid.can_move_avoiding_magnet_field(pos) && *mag_grid.at(pos) == b'.' {
+                    for &d in &DIR4_LIST {
+                        let next = pos + d;
+                        if mag_grid.can_move_avoiding_magnet_field(next) {
+                            uf.unite(mag_grid.encode(pos), mag_grid.encode(next));
+                        }
+                    }
+                }
             }
         }
 
         let groups = uf.groups();
         let groups = groups
             .iter()
-            .map(|group| group.iter().copied().map(|i| grid.decode(i)).collect_vec())
             .filter(|group| {
                 if group.len() >= 2 {
                     true
                 } else {
-                    // group.len() == 1 の場合
-                    let pos = group[0];
-                    grid.is_nothing(pos)
+                    let p = mag_grid.decode(group[0]);
+                    mag_grid.can_move_avoiding_magnet_field(p) && *mag_grid.at(p) == b'.'
                 }
             })
             .collect_vec();
 
-        let ans = if groups.is_empty() {
-            1_i64
-        } else {
-            groups
-                .iter()
-                .map(|group| {
-                    // groups のある点から到達可能な点
-                    let mut set: HashSet<Pos<i64>> = group.iter().copied().collect();
-
-                    for pos in group {
-                        for next in around_pos_iter(*pos).filter(|next| grid.is_magnet_field(*next))
-                        {
-                            set.insert(next);
-                        }
-                    }
-
-                    set.len()
-                })
-                .max()
-                .unwrap() as i64
-        };
-
-        Answer { ans }
-    }
-
-    fn solve2(&self) -> Answer {
-        // grid 用 union find を使う
-
-        let grid = MagnetGrid::new(&self.grid);
-
-        let groups = {
-            let mut uf = GridUnionFind::new(grid.h, grid.w);
-            for pos in grid.all_pos_iter().filter(|pos| grid.is_nothing(*pos)) {
-                for next in pos.around4_pos_iter().filter(|next| grid.is_nothing(*next)) {
-                    uf.unite(pos, next);
-                }
-            }
-
-            uf.groups()
-                .into_iter()
-                .filter(|group| {
-                    if group.len() >= 2 {
-                        true
-                    } else {
-                        // group.len() == 1 の場合
-                        let pos = group[0];
-                        grid.is_nothing(pos)
-                    }
-                })
-                .collect_vec()
-        };
+        // lg!(&groups);
 
         let ans = if groups.is_empty() {
             1_i64
@@ -265,13 +165,20 @@ impl Problem {
             groups
                 .iter()
                 .map(|group| {
+                    let group_pos = group
+                        .iter()
+                        .copied()
+                        .map(|i| mag_grid.decode(i))
+                        .collect_vec();
                     // groups のある点から到達可能な点
-                    let mut set: HashSet<Pos<i64>> = group.iter().copied().collect();
+                    let mut set: HashSet<Pos<i64>> = group_pos.iter().copied().collect();
 
-                    for pos in group {
-                        for next in pos
-                            .around4_pos_iter()
-                            .filter(|next| grid.is_magnet_field(*next))
+                    for pos in group_pos {
+                        for next in DIR4_LIST
+                            .iter()
+                            .copied()
+                            .map(|d| d + pos)
+                            .filter(|next| *mag_grid.at(*next) == b'.')
                         {
                             set.insert(next);
                         }
@@ -306,7 +213,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve2().print();
+    Problem::read().solve().print();
 }
 
 #[cfg(test)]
@@ -517,16 +424,6 @@ pub mod pos {
         Pos { x: 0, y: -1 },
         Pos { x: -1, y: 0 },
     ];
-
-    impl Pos<i64> {
-        pub fn around4_pos_iter(self) -> impl Iterator<Item = Pos<i64>> {
-            DIR4_LIST.iter().copied().map(move |d| d + self)
-        }
-
-        pub fn around8_pos_iter(self) -> impl Iterator<Item = Pos<i64>> {
-            DIR8_LIST.iter().copied().map(move |d| d + self)
-        }
-    }
 }
 use vec_vec_at::*;
 pub mod vec_vec_at {
