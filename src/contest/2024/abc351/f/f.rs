@@ -29,7 +29,8 @@ impl Problem {
         for &(i, x) in &xsi {
             // i+1.. に対して range chmax して range sum する
             seg.change_max(i + 1.., x);
-            ans += (seg.query_sum(i + 1..) - x * (n - 1 - i) as i64);
+            let addition = seg.query_sum(i + 1..) - x * (n - 1 - i) as i64;
+            ans += addition;
         }
         Answer { ans }
     }
@@ -189,6 +190,8 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+
+// https://ngtkana.github.io/ac-adapter-rs/segbeats/struct.Segbeats.html
 use std::ops::Bound;
 use std::ops::Range;
 use std::ops::RangeBounds;
@@ -209,27 +212,16 @@ pub fn open(len: usize, range: impl RangeBounds<usize>) -> Range<usize> {
 }
 use std::cell::RefCell;
 use std::fmt::Debug;
-use std::mem::replace;
 use std::ops::Add;
 use std::ops::AddAssign;
 use std::ops::Sub;
 use std::ops::SubAssign;
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Segbeats<T> {
     len: usize,
     lg: u32,
     table: RefCell<Vec<Node<T>>>,
-}
-
-impl<T: Elm> Debug for Segbeats<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "Segbeats")?;
-        self.table
-            .borrow_mut()
-            .iter()
-            .try_for_each(|node| writeln!(f, "{:?}", &node))
-    }
 }
 
 impl<T: Elm> Segbeats<T> {
@@ -240,11 +232,9 @@ impl<T: Elm> Segbeats<T> {
         for (i, &x) in src.iter().enumerate() {
             table[len + i] = Node::single(x);
         }
-        (1..len).rev().for_each(|i| {
-            let x = table[2 * i];
-            let y = table[2 * i + 1];
-            Node::merge(&mut table[i], x, y);
-        });
+        (1..len)
+            .rev()
+            .for_each(|i| table[i] = Node::merge(table[2 * i], table[2 * i + 1]));
         Self {
             len,
             lg,
@@ -262,11 +252,6 @@ impl<T: Elm> Segbeats<T> {
         self.dfs::<ChangeMax<T>>(range, x)
     }
 
-    pub fn range_add(&mut self, range: impl Clone + RangeBounds<usize>, x: T) {
-        let range = open(self.len, range);
-        self.dfs::<RangeAdd<T>>(range, x)
-    }
-
     pub fn query_min(&self, range: impl RangeBounds<usize>) -> T {
         let range = open(self.len, range);
         self.dfs::<QueryMin<T>>(range, ())
@@ -282,45 +267,19 @@ impl<T: Elm> Segbeats<T> {
         self.dfs::<QuerySum<T>>(range, ())
     }
 
-    pub fn count_changes(&self, range: impl RangeBounds<usize>) -> u64 {
-        let range = open(self.len, range);
-        self.dfs::<CountChanges<T>>(range, ())
-    }
-
     fn push(&self, i: usize) {
-        let node = self.table.borrow()[i];
-        let max = node.max[0];
-        let min = node.min[0];
-        let lazy_add = replace(&mut self.table.borrow_mut()[i].lazy_add, T::zero());
-        let lazy_add_count = replace(&mut self.table.borrow_mut()[i].lazy_add_count, 0);
-        let lazy_change_min_count =
-            replace(&mut self.table.borrow_mut()[i].lazy_change_min_count, 0);
-        let lazy_change_max_count =
-            replace(&mut self.table.borrow_mut()[i].lazy_change_max_count, 0);
+        let x = self.table.borrow()[i].max[0];
         for j in 2 * i..2 * i + 2 {
-            self.table.borrow_mut()[j].add(lazy_add, lazy_add_count);
+            let node = self.table.borrow()[j];
+            if node.max[1] < x && x < node.max[0] {
+                self.table.borrow_mut()[j].change_min(x);
+            }
         }
-        if min == max {
-            for j in 2 * i..2 * i + 2 {
-                let child = &mut self.table.borrow_mut()[j];
-                if child.min[0] == child.max[0] {
-                    child.change_singleton(min, lazy_change_min_count + lazy_change_max_count);
-                }
-            }
-        } else {
-            for j in 2 * i..2 * i + 2 {
-                let child = self.table.borrow()[j];
-                assert!(child.max[1] < max);
-                if max < child.max[0] {
-                    self.table.borrow_mut()[j].change_min(max, lazy_change_min_count);
-                }
-            }
-            for j in 2 * i..2 * i + 2 {
-                let child = self.table.borrow()[j];
-                assert!(min < child.min[1]);
-                if child.min[0] < min {
-                    self.table.borrow_mut()[j].change_max(min, lazy_change_max_count);
-                }
+        let x = self.table.borrow()[i].min[0];
+        for j in 2 * i..2 * i + 2 {
+            let node = self.table.borrow()[j];
+            if node.min[0] < x && x < node.min[1] {
+                self.table.borrow_mut()[j].change_max(x);
             }
         }
     }
@@ -353,9 +312,8 @@ impl<T: Elm> Segbeats<T> {
     }
 
     fn update(&self, i: usize) {
-        let x = self.table.borrow()[2 * i];
-        let y = self.table.borrow()[2 * i + 1];
-        Node::merge(&mut self.table.borrow_mut()[i], x, y);
+        let x = Node::merge(self.table.borrow()[2 * i], self.table.borrow()[2 * i + 1]);
+        self.table.borrow_mut()[i] = x;
     }
 }
 
@@ -391,7 +349,7 @@ impl<T: Elm> Dfs for ChangeMin<T> {
     }
 
     fn tag(node: &mut Node<Self::Value>, x: Self::Param) {
-        node.change_min(x, 1);
+        node.change_min(x);
     }
 
     fn merge((): (), (): ()) {}
@@ -415,27 +373,7 @@ impl<T: Elm> Dfs for ChangeMax<T> {
     }
 
     fn tag(node: &mut Node<Self::Value>, x: Self::Param) {
-        node.change_max(x, 1);
-    }
-
-    fn merge((): (), (): ()) {}
-
-    fn extract(_node: Node<T>) {}
-}
-struct RangeAdd<T>(std::marker::PhantomData<T>);
-impl<T: Elm> Dfs for RangeAdd<T> {
-    type Output = ();
-    type Param = T;
-    type Value = T;
-
-    fn identity() -> Self::Output {}
-
-    fn tag(node: &mut Node<Self::Value>, x: Self::Param) {
-        if x == T::zero() {
-            node.add(x, 0)
-        } else {
-            node.add(x, 1)
-        }
+        node.change_max(x);
     }
 
     fn merge((): (), (): ()) {}
@@ -496,24 +434,6 @@ impl<T: Elm> Dfs for QuerySum<T> {
         node.sum
     }
 }
-struct CountChanges<T>(std::marker::PhantomData<T>);
-impl<T: Elm> Dfs for CountChanges<T> {
-    type Output = u64;
-    type Param = ();
-    type Value = T;
-
-    fn identity() -> Self::Output {
-        0
-    }
-
-    fn merge(left: u64, right: u64) -> u64 {
-        left + right
-    }
-
-    fn extract(node: Node<T>) -> u64 {
-        node.change_count
-    }
-}
 
 #[derive(Debug, Clone, PartialEq, Copy, Eq)]
 struct Node<T> {
@@ -522,27 +442,15 @@ struct Node<T> {
     min: [T; 2],
     c_min: u32,
     sum: T,
-    len: u32,
-    lazy_add: T,
-    change_count: u64,
-    lazy_add_count: u32,
-    lazy_change_min_count: u32,
-    lazy_change_max_count: u32,
 }
 impl<T: Elm> Node<T> {
     fn new() -> Self {
         Self {
-            max: [T::min_value(); 2],
+            max: [T::min_value(), T::min_value()],
             c_max: 0,
-            min: [T::max_value(); 2],
+            min: [T::max_value(), T::max_value()],
             c_min: 0,
             sum: T::zero(),
-            len: 0,
-            lazy_add: T::zero(),
-            change_count: 0,
-            lazy_add_count: 0,
-            lazy_change_min_count: 0,
-            lazy_change_max_count: 0,
         }
     }
 
@@ -553,73 +461,33 @@ impl<T: Elm> Node<T> {
             min: [x, T::max_value()],
             c_min: 1,
             sum: x,
-            len: 1,
-            lazy_add: T::zero(),
-            change_count: 0,
-            lazy_add_count: 0,
-            lazy_change_min_count: 0,
-            lazy_change_max_count: 0,
         }
     }
 
-    fn change_min(&mut self, x: T, weight: u32) {
+    fn change_min(&mut self, x: T) {
         assert!(self.max[1] < x && x < self.max[0]);
         self.sum += (x - self.max[0]).mul_u32(self.c_max);
-        let orig_max = replace(&mut self.max[0], x);
-        self.change_count += u64::from(self.c_max) * u64::from(weight);
-        if orig_max == self.min[0] {
-            self.min[0] = x;
+        for i in 0..2 {
+            if self.min[i] == self.max[0] {
+                self.min[i] = x;
+            }
         }
-        if orig_max == self.min[1] {
-            self.min[1] = x;
-        }
-        self.lazy_change_min_count += weight;
+        self.max[0] = x;
     }
 
-    fn change_max(&mut self, x: T, weight: u32) {
+    fn change_max(&mut self, x: T) {
         assert!(self.min[0] < x && x < self.min[1]);
         self.sum += (x - self.min[0]).mul_u32(self.c_min);
-        let orig_min = replace(&mut self.min[0], x);
-        self.change_count += u64::from(self.c_min) * u64::from(weight);
-        if orig_min == self.max[0] {
-            self.max[0] = x;
+        for i in 0..2 {
+            if self.max[i] == self.min[0] {
+                self.max[i] = x;
+            }
         }
-        if orig_min == self.max[1] {
-            self.max[1] = x;
-        }
-        self.lazy_change_max_count += weight;
-    }
-
-    fn add(&mut self, x: T, weight: u32) {
-        self.max
-            .iter_mut()
-            .filter(|y| **y != T::min_value())
-            .for_each(|y| *y += x);
-        self.min
-            .iter_mut()
-            .filter(|y| **y != T::max_value())
-            .for_each(|y| *y += x);
-        self.sum += x.mul_u32(self.len);
-        self.change_count += u64::from(self.len) * u64::from(weight);
-        self.lazy_add += x;
-        self.lazy_add_count += weight;
-    }
-
-    fn change_singleton(&mut self, x: T, weight: u32) {
-        assert!(self.min[0] == self.max[0]);
         self.min[0] = x;
-        self.max[0] = x;
-        self.sum = x.mul_u32(self.len);
-        self.change_count += u64::from(self.c_min) * u64::from(weight);
-        self.lazy_change_min_count += weight; // weigt には和が渡ってきますから、片方に寄せておくと良いです。
     }
 
-    fn merge(node: &mut Self, left: Self, right: Self) {
+    fn merge(left: Self, right: Self) -> Self {
         use std::cmp::Ordering;
-        assert_eq!(node.lazy_change_min_count, 0);
-        assert_eq!(node.lazy_change_max_count, 0);
-        assert_eq!(node.lazy_add_count, 0);
-        assert_eq!(node.lazy_add, T::zero());
         let (max, c_max) = {
             let [a, b] = left.max;
             let [c, d] = right.max;
@@ -638,19 +506,13 @@ impl<T: Elm> Node<T> {
                 Ordering::Greater => ([c, a.min(d)], right.c_min),
             }
         };
-        *node = Self {
+        Self {
             max,
             c_max,
             min,
             c_min,
-            change_count: left.change_count + right.change_count,
-            len: left.len + right.len,
             sum: left.sum + right.sum,
-            lazy_add: T::zero(),
-            lazy_add_count: 0,
-            lazy_change_min_count: 0,
-            lazy_change_max_count: 0,
-        };
+        }
     }
 }
 
@@ -708,33 +570,30 @@ impl_elm! {
 //     mod vector;
 //
 //     use super::Segbeats;
-//     use queries::{ChangeMax, ChangeMin, CountChanges, QueryMax, QueryMin, QuerySum, RangeAdd};
+//     use queries::{ChangeMax, ChangeMin, QueryMax, QuerySum};
 //     use query_test::{impl_help, Config};
 //     use rand::prelude::*;
 //     use vector::{Len, Value, Vector};
 //
-//     type Tester<T, G> = query_test::Tester<StdRng, Vector<(T, u64)>, Segbeats<T>, G>;
+//     type Tester<T, G> = query_test::Tester<StdRng, Vector<T>, Segbeats<T>, G>;
 //
 //     #[test]
 //     fn test_i64() {
 //         #[derive(Debug, Clone, PartialEq, Copy, Eq)]
 //         struct G {}
-//         impl_help! {Len, |rng| rng.gen_range(1..1000); }
-//         impl_help! {Value<i64>, |rng| rng.gen_range(-1_000_000, 1_000_000); }
+//         impl_help! {Len, |rng| rng.gen_range(1..100); }
+//         impl_help! {Value<i64>, |rng| rng.gen_range(-1_000_000_000, 1_000_000_000); }
 //
 //         let mut tester = Tester::<i64, G>::new(StdRng::seed_from_u64(42), Config::Short);
-//         for _ in 0..20 {
+//         for _ in 0..10 {
 //             tester.initialize();
-//             for _ in 0..1000 {
-//                 let command = tester.rng_mut().gen_range(0..7);
+//             for _ in 0..100 {
+//                 let command = tester.rng_mut().gen_range(0..4);
 //                 match command {
 //                     0 => tester.mutate::<ChangeMin<_>>(),
 //                     1 => tester.mutate::<ChangeMax<_>>(),
-//                     2 => tester.mutate::<RangeAdd<_>>(),
-//                     3 => tester.compare::<QueryMin<_>>(),
-//                     4 => tester.compare::<QueryMax<_>>(),
-//                     5 => tester.compare::<QuerySum<_>>(),
-//                     6 => tester.compare::<CountChanges>(),
+//                     2 => tester.compare::<QueryMax<_>>(),
+//                     3 => tester.compare::<QuerySum<_>>(),
 //                     _ => unreachable!(),
 //                 }
 //             }

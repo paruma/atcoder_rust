@@ -16,26 +16,26 @@ impl Problem {
     fn solve(&self) -> Answer {
         let n = self.n;
         let xs = &self.xs;
-        let mut buf: Vec<i64> = vec![];
+        let mut stack: Vec<i64> = vec![];
 
         for &x in xs {
-            buf.push(x);
+            stack.push(x);
 
             loop {
-                let len = buf.len();
+                let len = stack.len();
                 if len <= 1 {
                     break;
                 }
-                if buf[len - 2] == buf[len - 1] {
-                    buf.pop();
-                    buf[len - 2] += 1;
+                if stack[len - 2] == stack[len - 1] {
+                    stack.pop();
+                    stack[len - 2] += 1;
                 } else {
                     break;
                 }
             }
         }
 
-        let ans = buf.len() as i64;
+        let ans = stack.len() as i64;
         Answer { ans }
     }
 
