@@ -6,6 +6,7 @@ pub mod cumsum0;
 pub mod debug;
 pub mod ext_int;
 pub mod graph;
+pub mod grid;
 pub mod imos;
 pub mod lazy_segtree;
 pub mod math;
