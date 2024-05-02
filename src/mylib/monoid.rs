@@ -27,7 +27,7 @@ pub mod extend_acl_monoid {
 
 #[snippet(prefix = "use cum_monoid::*;")]
 pub mod cum_monoid {
-    use ac_library::Monoid;
+    use ac_library::{Max, Min, Monoid};
 
     pub struct CumMonoid<M>
     where
@@ -75,6 +75,70 @@ pub mod cum_monoid {
         // [0, l), [r, n) の区間で総積を取る
         pub fn prod_without_range(&self, l: usize, r: usize) -> M::S {
             M::binary_operation(&self.prefix_prod[l], &self.suffix_prod[r])
+        }
+    }
+
+    pub struct CumMin {
+        cum: CumMonoid<Min<i64>>,
+    }
+
+    impl CumMin {
+        pub fn new(xs: &[i64]) -> CumMin {
+            CumMin {
+                cum: CumMonoid::new(xs),
+            }
+        }
+
+        /// [0, i) の総積 (前から累積)
+        pub fn prefix_min(&self, i: usize) -> i64 {
+            self.cum.prefix_prod(i)
+        }
+
+        /// [i, n) の総積 (後ろから累積)
+        pub fn suffix_min(&self, i: usize) -> i64 {
+            self.cum.suffix_prod(i)
+        }
+
+        /// [0, i), [i + 1, n) の区間で総積を取る
+        pub fn min_without1(&self, i: usize) -> i64 {
+            self.cum.prod_without1(i)
+        }
+
+        // [0, l), [r, n) の区間で総積を取る
+        pub fn min_without_range(&self, l: usize, r: usize) -> i64 {
+            self.cum.prod_without_range(l, r)
+        }
+    }
+
+    pub struct CumMax {
+        cum: CumMonoid<Max<i64>>,
+    }
+
+    impl CumMax {
+        pub fn new(xs: &[i64]) -> CumMax {
+            CumMax {
+                cum: CumMonoid::new(xs),
+            }
+        }
+
+        /// [0, i) の総積 (前から累積)
+        pub fn prefix_max(&self, i: usize) -> i64 {
+            self.cum.prefix_prod(i)
+        }
+
+        /// [i, n) の総積 (後ろから累積)
+        pub fn suffix_max(&self, i: usize) -> i64 {
+            self.cum.suffix_prod(i)
+        }
+
+        /// [0, i), [i + 1, n) の区間で総積を取る
+        pub fn max_without1(&self, i: usize) -> i64 {
+            self.cum.prod_without1(i)
+        }
+
+        // [0, l), [r, n) の区間で総積を取る
+        pub fn max_without_range(&self, l: usize, r: usize) -> i64 {
+            self.cum.prod_without_range(l, r)
         }
     }
 }
@@ -403,6 +467,72 @@ mod test_cum_monoid {
             assert_eq!(cum.suffix_prod(0), 0);
             // cum.prod_without1(0) これはエラー
             assert_eq!(cum.prod_without_range(0, 0), 0);
+        }
+    }
+
+    #[test]
+    fn test_cum_min() {
+        // 正常系
+        let max = |xs: &[i64]| xs.iter().copied().max().unwrap();
+        {
+            let xs = [1, 2, 3, 4, 5, 6];
+            let cum = CumMax::new(&xs);
+            assert_eq!(cum.prefix_max(0), i64::MIN);
+            assert_eq!(cum.prefix_max(3), max(&xs[..3]));
+            assert_eq!(cum.prefix_max(6), max(&xs[..6]));
+            assert_eq!(cum.suffix_max(0), max(&xs[0..]));
+            assert_eq!(cum.suffix_max(4), max(&xs[4..]));
+            assert_eq!(cum.suffix_max(6), i64::MIN);
+
+            assert_eq!(cum.max_without1(2), max(&[0, 1, 3, 4, 5].map(|i| xs[i])));
+            assert_eq!(
+                cum.max_without_range(2, 4),
+                max(&[0, 1, 4, 5].map(|i| xs[i]))
+            );
+            assert_eq!(cum.max_without_range(0, 6), i64::MIN);
+        }
+
+        // 空列
+        {
+            let xs = [];
+            let cum = CumMax::new(&xs);
+            assert_eq!(cum.prefix_max(0), i64::MIN);
+            assert_eq!(cum.suffix_max(0), i64::MIN);
+            // cum.max_without1(0) これはエラー
+            assert_eq!(cum.max_without_range(0, 0), i64::MIN);
+        }
+    }
+
+    #[test]
+    fn test_cum_max() {
+        // 正常系
+        let min = |xs: &[i64]| xs.iter().copied().min().unwrap();
+        {
+            let xs = [1, 2, 3, 4, 5, 6];
+            let cum = CumMin::new(&xs);
+            assert_eq!(cum.prefix_min(0), i64::MAX);
+            assert_eq!(cum.prefix_min(3), min(&xs[..3]));
+            assert_eq!(cum.prefix_min(6), min(&xs[..6]));
+            assert_eq!(cum.suffix_min(0), min(&xs[0..]));
+            assert_eq!(cum.suffix_min(4), min(&xs[4..]));
+            assert_eq!(cum.suffix_min(6), i64::MAX);
+
+            assert_eq!(cum.min_without1(2), min(&[0, 1, 3, 4, 5].map(|i| xs[i])));
+            assert_eq!(
+                cum.min_without_range(2, 4),
+                min(&[0, 1, 4, 5].map(|i| xs[i]))
+            );
+            assert_eq!(cum.min_without_range(0, 6), i64::MAX);
+        }
+
+        // 空列
+        {
+            let xs = [];
+            let cum = CumMin::new(&xs);
+            assert_eq!(cum.prefix_min(0), i64::MAX);
+            assert_eq!(cum.suffix_min(0), i64::MAX);
+            // cum.min_without1(0) これはエラー
+            assert_eq!(cum.min_without_range(0, 0), i64::MAX);
         }
     }
 }
