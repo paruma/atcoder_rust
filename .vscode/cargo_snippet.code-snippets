@@ -2349,7 +2349,7 @@
       "    }",
       "    impl RollingHash {",
       "        pub fn get_hash(&self) -> i64 {",
-      "            self.hash.val as i64",
+      "            self.hash.val",
       "        }",
       "        pub fn unit(base: i64) -> impl (Fn(i64) -> RollingHash) {",
       "            move |x| RollingHash {",
