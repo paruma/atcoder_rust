@@ -2,10 +2,11 @@ use cargo_snippet::snippet;
 
 #[snippet(prefix = "use range_affine_range_sum::*;")]
 pub mod range_affine_range_sum {
-    use ac_library::{MapMonoid, Monoid};
+    use ac_library::{LazySegtree, MapMonoid, Monoid};
+    use itertools::Itertools;
     use std::convert::Infallible;
     use std::marker::PhantomData;
-    use std::ops::{Add, Mul};
+    use std::ops::{Add, Mul, RangeBounds};
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeSum<T> {
@@ -93,13 +94,86 @@ pub mod range_affine_range_sum {
             }
         }
     }
+
+    pub struct RangeAffineRangeSumSegtree<T>
+    where
+        T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
+    {
+        segtree: LazySegtree<RangeAffineRangeSum<T>>,
+    }
+
+    impl<T> RangeAffineRangeSumSegtree<T>
+    where
+        T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
+    {
+        pub fn new(xs: &[T]) -> RangeAffineRangeSumSegtree<T> {
+            let xs = xs.iter().copied().map(RangeSum::unit).collect_vec();
+            RangeAffineRangeSumSegtree {
+                segtree: LazySegtree::from(xs),
+            }
+        }
+
+        pub fn set(&mut self, p: usize, x: T) {
+            self.segtree.set(p, RangeSum::unit(x));
+        }
+
+        pub fn get(&mut self, p: usize) -> T {
+            self.segtree.get(p).sum
+        }
+
+        pub fn range_sum<R>(&mut self, range: R) -> T
+        where
+            R: RangeBounds<usize>,
+        {
+            self.segtree.prod(range).sum
+        }
+
+        pub fn all_sum(&self) -> T {
+            self.segtree.all_prod().sum
+        }
+
+        pub fn apply_affine(&mut self, p: usize, slope: T, intercept: T) {
+            self.segtree.apply(p, Affine { slope, intercept })
+        }
+
+        pub fn apply_update(&mut self, p: usize, x: T) {
+            // set と同じはず
+            self.segtree.apply(p, Affine::constant_func(x))
+        }
+
+        pub fn apply_add(&mut self, p: usize, x: T) {
+            self.segtree.apply(p, Affine::addition_func(x))
+        }
+
+        pub fn apply_range_affine<R>(&mut self, range: R, slope: T, intercept: T)
+        where
+            R: RangeBounds<usize>,
+        {
+            self.segtree.apply_range(range, Affine { slope, intercept })
+        }
+
+        pub fn apply_range_update<R>(&mut self, range: R, x: T)
+        where
+            R: RangeBounds<usize>,
+        {
+            self.segtree.apply_range(range, Affine::constant_func(x))
+        }
+
+        pub fn apply_range_add<R>(&mut self, range: R, x: T)
+        where
+            R: RangeBounds<usize>,
+        {
+            self.segtree.apply_range(range, Affine::addition_func(x))
+        }
+    }
 }
 
 #[snippet(prefix = "use range_affine_range_minmax::*;")]
 pub mod range_affine_range_minmax {
-    use std::{cmp::Ordering, convert::Infallible};
+    use std::{cmp::Ordering, convert::Infallible, ops::RangeBounds};
 
-    use ac_library::{MapMonoid, Monoid};
+    use ac_library::{LazySegtree, MapMonoid, Monoid};
+    use itertools::Itertools;
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeMinMax {
@@ -202,6 +276,87 @@ pub mod range_affine_range_minmax {
                     len: x.len,
                 },
             }
+        }
+    }
+
+    pub struct RangeAffineRangeMinMaxSegtree {
+        segtree: LazySegtree<RangeAffineRangeMinMax>,
+    }
+
+    impl RangeAffineRangeMinMaxSegtree {
+        pub fn new(xs: &[i64]) -> RangeAffineRangeMinMaxSegtree {
+            let xs = xs.iter().copied().map(RangeMinMax::unit).collect_vec();
+            RangeAffineRangeMinMaxSegtree {
+                segtree: LazySegtree::from(xs),
+            }
+        }
+
+        pub fn set(&mut self, p: usize, x: i64) {
+            self.segtree.set(p, RangeMinMax::unit(x));
+        }
+
+        pub fn get_min(&mut self, p: usize) -> i64 {
+            self.segtree.get(p).min
+        }
+
+        pub fn get_max(&mut self, p: usize) -> i64 {
+            self.segtree.get(p).max
+        }
+
+        pub fn range_min<R>(&mut self, range: R) -> i64
+        where
+            R: RangeBounds<usize>,
+        {
+            self.segtree.prod(range).min
+        }
+
+        pub fn range_max<R>(&mut self, range: R) -> i64
+        where
+            R: RangeBounds<usize>,
+        {
+            self.segtree.prod(range).max
+        }
+
+        pub fn all_min(&self) -> i64 {
+            self.segtree.all_prod().min
+        }
+
+        pub fn all_max(&self) -> i64 {
+            self.segtree.all_prod().max
+        }
+
+        pub fn apply_affine(&mut self, p: usize, slope: i64, intercept: i64) {
+            self.segtree.apply(p, Affine { slope, intercept })
+        }
+
+        pub fn apply_update(&mut self, p: usize, x: i64) {
+            // set と同じはず
+            self.segtree.apply(p, Affine::constant_func(x))
+        }
+
+        pub fn apply_add(&mut self, p: usize, x: i64) {
+            self.segtree.apply(p, Affine::addition_func(x))
+        }
+
+        pub fn apply_range_affine<R>(&mut self, range: R, slope: i64, intercept: i64)
+        where
+            R: RangeBounds<usize>,
+        {
+            self.segtree.apply_range(range, Affine { slope, intercept })
+        }
+
+        pub fn apply_range_update<R>(&mut self, range: R, x: i64)
+        where
+            R: RangeBounds<usize>,
+        {
+            self.segtree.apply_range(range, Affine::constant_func(x))
+        }
+
+        pub fn apply_range_add<R>(&mut self, range: R, x: i64)
+        where
+            R: RangeBounds<usize>,
+        {
+            self.segtree.apply_range(range, Affine::addition_func(x))
         }
     }
 }
@@ -522,6 +677,20 @@ mod test_range_affine_range_sum {
     }
 
     #[test]
+    fn test_range_sum_range_affine_segtree() {
+        let xs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+        let mut segtree: RangeAffineRangeSumSegtree<i64> =
+            RangeAffineRangeSumSegtree::<i64>::new(&xs);
+
+        segtree.apply_range_update(3..6, 5); // [0, 1, 2, 5, 5, 5, 6, 7, 8, 9]
+        segtree.apply_range_add(0..2, 3); // [3, 4, 2, 5, 5, 5, 6, 7, 8, 9]
+        segtree.apply_range_affine(8..10, 2, 7); // [3, 4, 2, 5, 5, 5, 6, 7, 23, 25]
+
+        assert_eq!(segtree.all_sum(), 85);
+        assert_eq!(segtree.range_sum(1..4), 11); // [4, 2, 5]
+    }
+    #[test]
     fn test_sample_of_lazy_segtree() {
         // range affine range sum の遅延セグ木の使用例
         let xs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(RangeSum::unit).to_vec();
@@ -821,9 +990,28 @@ mod test_range_affine_range_minmax {
     }
 
     #[test]
+    fn test_range_affine_range_minmax_segtree() {
+        let xs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+        let mut segtree = RangeAffineRangeMinMaxSegtree::new(&xs);
+
+        segtree.apply_range_update(3..6, 5); // [0, 1, 2, 5, 5, 5, 6, 7, 8, 9]
+        segtree.apply_range_add(0..2, 3); // [3, 4, 2, 5, 5, 5, 6, 7, 8, 9]
+        segtree.apply_range_affine(8..10, 2, 7); // [3, 4, 2, 5, 5, 5, 6, 7, 23, 25]
+
+        assert_eq!(segtree.all_min(), 2);
+        assert_eq!(segtree.all_max(), 25);
+
+        assert_eq!(segtree.range_max(1..4), 5); // [4, 2, 5]
+        assert_eq!(segtree.range_min(1..4), 2); // [4, 2, 5]
+    }
+
+    #[test]
     fn test_sample_of_lazy_segtree() {
         // range affine range min/max の遅延セグ木の使用例
-        let xs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(RangeMinMax::unit).to_vec();
+        let xs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            .map(RangeMinMax::unit)
+            .to_vec();
 
         let mut segtree: LazySegtree<RangeAffineRangeMinMax> = LazySegtree::from(xs);
 
