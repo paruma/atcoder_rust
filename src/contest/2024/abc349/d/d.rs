@@ -44,6 +44,40 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        // セグ木を意識した実装
+        let mut left = self.range.l;
+        let mut right = self.range.r;
+        let mut pow2 = 1;
+        let mut ans: Vec<Range> = vec![];
+
+        while left < right {
+            if left & 1 == 1 {
+                ans.push(Range {
+                    l: left * pow2,
+                    r: (left + 1) * pow2,
+                });
+
+                left += 1;
+            }
+
+            if right & 1 == 1 {
+                right -= 1;
+                ans.push(Range {
+                    l: right * pow2,
+                    r: (right + 1) * pow2,
+                });
+            }
+
+            left >>= 1;
+            right >>= 1;
+            pow2 <<= 1;
+        }
+
+        ans.sort_by_key(|r| r.l);
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -67,7 +101,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
