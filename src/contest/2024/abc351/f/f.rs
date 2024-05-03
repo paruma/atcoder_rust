@@ -35,11 +35,92 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        // sum_{i,j in [N], i < j} max(A_j - A_i, 0)
+        // = sum_{i,j in [N], i < j} max(A_j,  A_i) - sum_{i in [N]} (N - i - 1) * A_i
+        // 第1項は i < j を消して全範囲で計算して、対角消して2で割る
+
+        let n = self.n;
+        // i64 だとオーバーフローする
+        // (n <= 4*10^5, x <= 10^8 に対して、n * n * x くらいの値が計算されるため)
+        let xs = &self.xs.iter().copied().map(|x| x as i128).collect_vec();
+        let xs_sorted = xs.iter().copied().sorted().collect_vec();
+        // sum_{i,j in [N]} max(A_j,  A_i)
+        let term1_all = xs_sorted // 正方形全体
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(i, x)| (2 * i as i128 + 1) * x)
+            .sum::<i128>();
+
+        let term1_diag = xs.iter().sum::<i128>(); // 対角の部分
+        let term1 = (term1_all - term1_diag) / 2; // 下三角の部分
+
+        let term2 = xs
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(i, x)| (n - i - 1) as i128 * x)
+            .sum::<i128>();
+
+        let ans = (term1 - term2) as i64;
+        Answer { ans }
+    }
+
+    fn solve3(&self) -> Answer {
+        // sum_{i,j in [N], i < j} max(A_j - A_i, 0)
+        // = sum_{i,j in [N], i < j} max(A_j,  A_i) - sum_{i in [N]} (N - i - 1) * A_i
+        // 第1項は A をソートしても結果は変わらない。ソートしても探索される(A_i, A_j) の組の集合に変化はないため。
+
+        let n = self.n;
+        // i64 だとオーバーフローする
+        // (n <= 4*10^5, x <= 10^8 に対して、n * n * x くらいの値が計算されるため)
+        let xs = &self.xs.iter().copied().map(|x| x as i128).collect_vec();
+        let xs_sorted = xs.iter().copied().sorted().collect_vec();
+        // sum_{i,j in [N]} max(A_j,  A_i)
+
+        let term1 = xs_sorted
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(i, x)| (i as i128) * x)
+            .sum::<i128>();
+
+        let term2 = xs
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(i, x)| (n - i - 1) as i128 * x)
+            .sum::<i128>();
+
+        let ans = (term1 - term2) as i64;
+        Answer { ans }
+    }
+
+    fn solve4(&self) -> Answer {
+        // 想定解 (転倒数を BIT で計算するのと同じノリ)
+
+        let xs = &self.xs;
+        let cc = CoordinateCompression::new(xs);
+
+        let mut bit_cnt = FenwickTree::new(cc.space_size(), 0_usize);
+        let mut bit_sum = FenwickTree::new(cc.space_size(), 0_i64);
+
+        let mut ans = 0;
+
+        for x in xs.iter().copied().rev() {
+            let x_cc = cc.compress(x);
+            bit_sum.add(x_cc, x);
+            bit_cnt.add(x_cc, 1);
+            let addition = bit_sum.sum(x_cc + 1..) - bit_cnt.sum(x_cc + 1..) as i64 * x;
+            ans += addition
+        }
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
-        todo!();
-        // let ans = 0;
-        // Answer { ans }
+        self.solve()
     }
 }
 
@@ -55,7 +136,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve4().print();
 }
 
 #[cfg(test)]
@@ -80,8 +161,8 @@ mod tests {
 
     #[allow(dead_code)]
     fn check(p: &Problem) -> Option<WrongTestCase> {
-        let main_ans = p.solve();
-        let naive_ans = p.solve_naive();
+        let main_ans = p.solve2();
+        let naive_ans = p.solve();
         if main_ans != naive_ans {
             Some(WrongTestCase {
                 problem: p.clone(),
@@ -93,21 +174,19 @@ mod tests {
         }
     }
 
-    #[allow(dead_code)]
     fn make_random_problem() -> Problem {
-        todo!()
-        // let mut rng = SmallRng::from_entropy();
-        // let n = rng.gen_range(1..=10);
-        // let p = Problem { _a: n };
-        // println!("{:?}", &p);
-        // p
+        let mut rng = SmallRng::from_entropy();
+        let n = 2_usize;
+        let xs = (0..n).map(|_| rng.gen_range(0..=10)).collect_vec();
+        let p = Problem { n, xs };
+        println!("{:?}", &p);
+        p
     }
 
     #[allow(unreachable_code)]
     #[test]
     fn test_with_naive() {
-        return;
-        let num_tests = 1000;
+        let num_tests = 10000;
         let max_wrong_case = 10; // この件数間違いが見つかったら打ち切り
         let mut wrong_cases: Vec<WrongTestCase> = vec![];
         for _ in 0..num_tests {
@@ -134,6 +213,7 @@ mod tests {
     }
 }
 
+use ac_library::FenwickTree;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
@@ -600,3 +680,34 @@ impl_elm! {
 //         }
 //     }
 // }
+
+// ===========
+use coordinate_compression::*;
+pub mod coordinate_compression {
+    use itertools::Itertools;
+    pub struct CoordinateCompression {
+        space: Vec<i64>,
+    }
+    impl CoordinateCompression {
+        /// 計算量: O(|space|log(|space|))
+        pub fn new(space: &[i64]) -> Self {
+            let space = space.iter().copied().sorted().dedup().collect_vec();
+            Self { space }
+        }
+        /// 計算量: O(log(|space|))
+        pub fn compress(&self, x: i64) -> usize {
+            self.space.binary_search(&x).unwrap()
+        }
+        /// 計算量: O(|xs|log(|space|))
+        pub fn compress_vec(&self, xs: &[i64]) -> Vec<usize> {
+            xs.iter().copied().map(|x| self.compress(x)).collect_vec()
+        }
+        /// 計算量: O(1)
+        pub fn decompress(&self, i: usize) -> i64 {
+            self.space[i]
+        }
+        pub fn space_size(&self) -> usize {
+            self.space.len()
+        }
+    }
+}
