@@ -85,7 +85,9 @@ impl TestCase {
         let k = self.k;
 
         let s: i64 = std::iter::successors(Some((x, k)), |&(i, d)| {
-            if parent(i) == 1 {
+            if i == 1 {
+                None
+            } else if parent(i) == 1 {
                 None
             } else if d == 0 {
                 None
@@ -111,6 +113,42 @@ impl TestCase {
 
         n_descendants(x, k, n) + s
     }
+
+    #[allow(clippy::comparison_chain)]
+    fn solve3(&self) -> i64 {
+        // 方針3: 親の子孫 - 自分の子孫 を繰り返す
+        let path_to_root: Vec<(i64, i64)> =
+            std::iter::successors(
+                Some(self.x),
+                |&i| {
+                    if i == 1 {
+                        None
+                    } else {
+                        Some(parent(i))
+                    }
+                },
+            )
+            .tuple_windows()
+            .collect_vec();
+
+        let sum = path_to_root
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(i, (child, current))| {
+                // current の子孫で距離が dist のもの - child の子孫で距離が dist -1 のもの
+                let dist = self.k - i as i64 - 1;
+                if dist < 0 {
+                    0
+                } else if dist == 0 {
+                    1
+                } else {
+                    n_descendants(current, dist, self.n) - n_descendants(child, dist - 1, self.n)
+                }
+            })
+            .sum::<i64>();
+        n_descendants(self.x, self.k, self.n) + sum
+    }
 }
 
 impl Problem {
@@ -127,7 +165,7 @@ impl Problem {
     fn solve(&self) -> Answer {
         let Problem { n, test_case_list } = self;
 
-        let ans = test_case_list.iter().map(|t| t.solve2()).collect_vec();
+        let ans = test_case_list.iter().map(|t| t.solve3()).collect_vec();
         Answer { ans }
     }
 }
@@ -146,7 +184,9 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read(ProconReader::new(stdin().lock())).solve().print();
+    Problem::read(ProconReader::new(stdin().lock()))
+        .solve()
+        .print();
 }
 
 #[cfg(test)]
@@ -259,7 +299,10 @@ pub mod myio {
             T::Err: std::fmt::Debug,
         {
             let buf = self.read_line();
-            buf.trim().split(' ').map(|s| s.parse::<T>().unwrap()).collect::<Vec<T>>()
+            buf.trim()
+                .split(' ')
+                .map(|s| s.parse::<T>().unwrap())
+                .collect::<Vec<T>>()
         }
 
         fn read_vec_i64(&mut self) -> Vec<i64> {
