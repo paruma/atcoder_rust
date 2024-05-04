@@ -146,6 +146,28 @@ pub fn dfs_post_order(adj: &[Vec<usize>], init: usize) -> Vec<usize> {
     order
 }
 
+/// init から各点への距離を求める
+#[snippet(include = "mod_queue")]
+pub fn calc_dist(adj: &[Vec<usize>], init: usize) -> Vec<usize> {
+    let nv = adj.len();
+    let mut visited = vec![false; nv];
+    let mut dist = vec![usize::MAX; nv];
+    let mut open = Queue::new();
+    visited[init] = true;
+    dist[init] = 0;
+    open.push(init);
+    while let Some(current) = open.pop() {
+        for &next in &adj[current] {
+            if !visited[next] {
+                visited[next] = true;
+                dist[next] = dist[current] + 1;
+                open.push(next);
+            }
+        }
+    }
+    dist
+}
+
 #[snippet(include = "mod_queue")]
 #[allow(clippy::collapsible_else_if)]
 pub fn is_bipartite_graph(adj: &[Vec<usize>]) -> bool {
@@ -431,6 +453,23 @@ mod tests {
         let adj = make_adj_from_directed(n_vertex, &edges);
         let order = dfs_post_order(&adj, 0);
         assert_eq!(order, vec![5, 7, 6, 4, 3, 2, 1, 0]); // FIXME: 実装依存になっていてよくない
+    }
+
+    #[test]
+    fn test_calc_dist() {
+        // 0 → 1 → 2 → 3
+        // ↓           ↓
+        // 4 ----------5
+        let n_vertex = 6;
+
+        let edges = vec![(0, 1), (0, 4), (1, 2), (2, 3), (3, 5), (4, 5)];
+        let adj = make_adj_from_directed(n_vertex, &edges);
+        let dist = calc_dist(&adj, 0);
+        assert_eq!(dist, vec![0, 1, 2, 3, 1, 2]);
+
+        let dist = calc_dist(&adj, 1);
+        let inf = usize::MAX;
+        assert_eq!(dist, vec![inf, 0, 1, 2, inf, 3]);
     }
 
     #[test]
