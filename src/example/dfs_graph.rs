@@ -1,50 +1,65 @@
 #![allow(dead_code)]
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-struct Edge {
-    from: usize,
-    to: usize,
-}
-#[allow(dead_code)]
-/// 辺のリストから隣接リストを作る
-/// 計算量: O(頂点の数 + 辺の数)
-fn make_adj(n_vertex: usize, edges: &[Edge]) -> Vec<Vec<Edge>> {
-    let mut adj = vec![vec![]; n_vertex];
-
-    for &e in edges {
-        adj[e.from].push(e);
-    }
-
-    adj
-}
+use crate::mylib::stack0::mod_stack::Stack;
 
 struct DfsGraph<'a> {
-    adj: &'a Vec<Vec<Edge>>,
+    adj: &'a [Vec<usize>],
     visited: Vec<bool>,
 }
 
 impl DfsGraph<'_> {
-    fn new(adj: &Vec<Vec<Edge>>) -> DfsGraph<'_> {
+    fn new(adj: &[Vec<usize>]) -> DfsGraph<'_> {
         // adj.len() は グラフの頂点の数
-        DfsGraph { adj, visited: vec![false; adj.len()] }
+        DfsGraph {
+            adj,
+            visited: vec![false; adj.len()],
+        }
     }
     /// 計算量: O(頂点の数 + 辺の数)
     fn exec(&mut self, v: usize) {
         // 行きがけ
         self.visited[v] = true;
 
-        for &edge in &self.adj[v] {
-            if !self.visited[edge.to] {
-                self.exec(edge.to);
+        for &to in &self.adj[v] {
+            if !self.visited[to] {
+                self.exec(to);
             }
         }
         // 帰りがけ
     }
 }
 
+fn dfs_by_stack(adj: &[Vec<usize>]) -> Vec<bool> {
+    enum State {
+        Pre(usize),
+        Post(usize),
+    }
+
+    let nv = adj.len();
+    let mut visited = vec![false; nv];
+    let mut open = Stack::new();
+    open.push(State::Post(0));
+    open.push(State::Pre(0));
+    while let Some(current) = open.pop() {
+        match current {
+            State::Pre(v) => {
+                visited[v] = true;
+                for &edge in &adj[v] {
+                    if !visited[edge] {
+                        open.push(State::Post(edge));
+                        open.push(State::Pre(edge));
+                    }
+                }
+            }
+            State::Post(_v) => {}
+        }
+    }
+    visited
+}
+
 #[cfg(test)]
 mod tests {
-    use itertools::Itertools;
+    use crate::mylib::graph::make_adj_from_directed;
 
     use super::*;
 
@@ -56,11 +71,8 @@ mod tests {
         // 2
         // 3 → 4
         let n_vertex = 5;
-        let edges = [(0, 1), (1, 2), (2, 0), (3, 4)]
-            .into_iter()
-            .map(|(from, to)| Edge { from, to })
-            .collect_vec();
-        let adj = make_adj(n_vertex, &edges);
+        let edges = [(0, 1), (1, 2), (2, 0), (3, 4)];
+        let adj = make_adj_from_directed(n_vertex, &edges);
         let mut dfs = DfsGraph::new(&adj);
         dfs.exec(0);
         assert_eq!(dfs.visited[0], true);
@@ -68,5 +80,23 @@ mod tests {
         assert_eq!(dfs.visited[2], true);
         assert_eq!(dfs.visited[3], false);
         assert_eq!(dfs.visited[4], false);
+    }
+
+    #[allow(clippy::bool_assert_comparison)]
+    #[test]
+    fn test_dfs_by_stack() {
+        // 0 ← 1
+        // ↓ ↗
+        // 2
+        // 3 → 4
+        let n_vertex = 5;
+        let edges = [(0, 1), (1, 2), (2, 0), (3, 4)];
+        let adj = make_adj_from_directed(n_vertex, &edges);
+        let visited = dfs_by_stack(&adj);
+        assert_eq!(visited[0], true);
+        assert_eq!(visited[1], true);
+        assert_eq!(visited[2], true);
+        assert_eq!(visited[3], false);
+        assert_eq!(visited[4], false);
     }
 }

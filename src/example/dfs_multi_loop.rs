@@ -7,9 +7,14 @@ struct DfsMultiLoop {
     seq_list: Vec<Vec<usize>>,
 }
 
+// これは非再帰（Stack）だと書きにくい？
 impl DfsMultiLoop {
     fn new(n: usize, r: usize) -> Self {
-        Self { n, r, seq_list: vec![] }
+        Self {
+            n,
+            r,
+            seq_list: vec![],
+        }
     }
     fn exec(&mut self) {
         self.exec_rec(&mut vec![]);
@@ -54,7 +59,10 @@ mod tests {
         let mut dfs = DfsMultiLoop::new(n, r);
         dfs.exec();
         let seq_list = dfs.seq_list;
-        let expected = std::iter::repeat(0..n).take(r).multi_cartesian_product().collect_vec();
+        let expected = std::iter::repeat(0..n)
+            .take(r)
+            .multi_cartesian_product()
+            .collect_vec();
         assert_eq!(seq_list, expected);
     }
 }
