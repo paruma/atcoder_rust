@@ -1,18 +1,31 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    x: usize,
+    y: usize,
+    z: usize,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            x: usize,
+            y: usize,
+            z: usize,
         }
-        Problem { _a }
+        Problem { n, x, y, z }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let x = self.x;
+        let y = self.y;
+        let z = self.z;
+        let ans = if x < y {
+            (x..y).contains(&z)
+        } else {
+            (y..x).contains(&z)
+        };
         Answer { ans }
     }
 
@@ -26,12 +39,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_yesno(self.ans);
     }
 }
 

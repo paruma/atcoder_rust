@@ -1,18 +1,146 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n_v: usize,
+    n_info: usize,
+    infos: Vec<(usize, usize, i64)>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n_v: usize,
+            n_info: usize,
+            infos: [(Usize1, Usize1, i64); n_info],
         }
-        Problem { _a }
+        Problem { n_v, n_info, infos }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        use rand::{rngs::SmallRng, seq::SliceRandom, *};
+        let n_v = self.n_v;
+        let n_info = self.n_info;
+
+        let mut uf = UnionFind::new(n_v); // todo: 構造体の名前を変える
+
+        for (from, to, diff) in &self.infos {
+            uf.unite(*from, *to, *diff);
+        }
+
+        let roots = (0..n_v).filter(|x| uf.root(*x) == *x).collect_vec();
+
+        let mut ans = vec![];
+
+        let time = 1400000;
+
+        let mut tmp = (0..n_v as i64).collect_vec();
+
+        for _ in 0..time {
+            let mut rng = SmallRng::from_entropy();
+
+            tmp.shuffle(&mut rng);
+            let p = tmp[0..roots.len()].to_vec();
+            let mut ord = vec![-1_i64; n_v];
+            for i in 0..roots.len() {
+                // roots[i] の順位を p[i] とする
+                ord[roots[i]] = p[i];
+            }
+
+            //dbg!(&ord);
+
+            for i in 0..n_v {
+                let root = uf.root(i);
+                ord[i] = ord[root] - uf.diff(root, i).unwrap();
+            }
+
+            if ord.iter().all_unique() && ord.iter().all(|x| (0..n_v as i64).contains(x)) {
+                if ans.is_empty() {
+                    ans = ord;
+                } else {
+                    for i in 0..n_v {
+                        if ord[i] != ans[i] {
+                            ans[i] = -1;
+                        }
+                    }
+                }
+            }
+        }
+
+        // for p in (0..n_v as i64).permutations(roots.len()) {
+        //     let mut ord = vec![-1_i64; n_v];
+        //     for i in 0..roots.len() {
+        //         // roots[i] の順位を p[i] とする
+        //         ord[roots[i]] = p[i];
+        //     }
+
+        //     //dbg!(&ord);
+
+        //     for i in 0..n_v {
+        //         let root = uf.root(i);
+        //         ord[i] = ord[root] - uf.diff(root, i).unwrap();
+        //     }
+
+        //     if ord.iter().all_unique() && ord.iter().all(|x| (0..n_v as i64).contains(x)) {
+        //         if ans.is_empty() {
+        //             ans = ord;
+        //         } else {
+        //             for i in 0..n_v {
+        //                 if ord[i] != ans[i] {
+        //                     ans[i] = -1;
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        use rand::{rngs::SmallRng, seq::SliceRandom, *};
+        let n_v = self.n_v;
+        let n_info = self.n_info;
+
+        let mut uf = UnionFind::new(n_v); // todo: 構造体の名前を変える
+
+        for (from, to, diff) in &self.infos {
+            uf.unite(*from, *to, *diff);
+        }
+
+        let roots = (0..n_v).filter(|x| uf.root(*x) == *x).collect_vec();
+
+        let mut ans = vec![];
+
+        for p in (0..n_v as i64).permutations(roots.len()) {
+            let mut ord = vec![-1_i64; n_v];
+            for i in 0..roots.len() {
+                // roots[i] の順位を p[i] とする
+                ord[roots[i]] = p[i];
+            }
+
+            //dbg!(&ord);
+
+            for i in 0..n_v {
+                let root = uf.root(i);
+                ord[i] = ord[root] - uf.diff(root, i).unwrap();
+            }
+
+            if ord.iter().all_unique() && ord.iter().all(|x| (0..n_v as i64).contains(x)) {
+                if ans.is_empty() {
+                    ans = ord;
+                } else {
+                    for i in 0..n_v {
+                        if ord[i] != ans[i] {
+                            ans[i] = -1;
+                        }
+                    }
+                }
+            }
+
+            if !ans.is_empty() && ans.iter().copied().all(|x| x == -1) {
+                break;
+            }
+        }
+
         Answer { ans }
     }
 
@@ -26,17 +154,23 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        let ans = self
+            .ans
+            .iter()
+            .copied()
+            .map(|x| if (x == -1) { -1 } else { x + 1 })
+            .collect_vec();
+        print_vec_1line(&ans);
     }
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -123,6 +257,7 @@ use proconio::{
     derive_readable, fastout, input,
     marker::{Bytes, Usize1},
 };
+use rand::{rngs::SmallRng, SeedableRng};
 #[allow(unused_imports)]
 use std::collections::{BinaryHeap, HashMap, HashSet};
 
@@ -171,3 +306,146 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use potentialized_union_find::*;
+pub mod potentialized_union_find {
+    use itertools::Itertools;
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    struct RootInfo {
+        count: usize,
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    struct NonRootInfo {
+        parent_index: usize,
+        potential_diff: i64,
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    enum Node {
+        Root(RootInfo),
+        NonRoot(NonRootInfo),
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    struct ToRoot {
+        root_info: RootInfo,
+        root_index: usize,
+        potential_diff: i64,
+    }
+    #[derive(Clone, Debug)]
+    pub struct UnionFind {
+        nodes: Vec<Node>,
+        cnt_groups: usize,
+    }
+    pub enum UnionResult {
+        Consistent { updated: bool },
+        Inconsistent,
+    }
+    impl UnionResult {
+        pub fn updated(&self) -> bool {
+            match self {
+                UnionResult::Consistent { updated } => *updated,
+                UnionResult::Inconsistent => false,
+            }
+        }
+        pub fn is_consistent(&self) -> bool {
+            matches!(self, UnionResult::Consistent { .. })
+        }
+        pub fn is_inconsistent(&self) -> bool {
+            matches!(self, UnionResult::Inconsistent { .. })
+        }
+    }
+    impl UnionFind {
+        pub fn new(n: usize) -> UnionFind {
+            UnionFind {
+                nodes: vec![Node::Root(RootInfo { count: 1 }); n],
+                cnt_groups: n,
+            }
+        }
+        fn root_node(&mut self, index: usize) -> ToRoot {
+            match self.nodes[index] {
+                Node::Root(info) => ToRoot {
+                    root_info: info,
+                    root_index: index,
+                    potential_diff: 0,
+                },
+                Node::NonRoot(current_info) => {
+                    let parent_to_root = self.root_node(current_info.parent_index);
+                    let potential_diff =
+                        current_info.potential_diff + parent_to_root.potential_diff;
+                    self.nodes[index] = Node::NonRoot(NonRootInfo {
+                        parent_index: parent_to_root.root_index,
+                        potential_diff,
+                    });
+                    ToRoot {
+                        root_info: parent_to_root.root_info,
+                        root_index: parent_to_root.root_index,
+                        potential_diff,
+                    }
+                }
+            }
+        }
+        pub fn root(&mut self, index: usize) -> usize {
+            self.root_node(index).root_index
+        }
+        pub fn same_count(&mut self, index: usize) -> usize {
+            self.root_node(index).root_info.count
+        }
+        pub fn same(&mut self, x: usize, y: usize) -> bool {
+            self.root(x) == self.root(y)
+        }
+        pub fn num_groups(&self) -> usize {
+            self.cnt_groups
+        }
+        pub fn unite(&mut self, src: usize, dst: usize, diff: i64) -> UnionResult {
+            if self.same(src, dst) {
+                if self.diff(src, dst) == Some(diff) {
+                    return UnionResult::Consistent { updated: false };
+                } else {
+                    return UnionResult::Inconsistent;
+                }
+            }
+            self.cnt_groups -= 1;
+            let src_root_node = self.root_node(src);
+            let dst_root_node = self.root_node(dst);
+            let root_diff = -src_root_node.potential_diff + diff + dst_root_node.potential_diff;
+            let (src_root_node, dst_root_node, root_diff) =
+                if src_root_node.root_info.count <= dst_root_node.root_info.count {
+                    (src_root_node, dst_root_node, root_diff)
+                } else {
+                    (dst_root_node, src_root_node, -root_diff)
+                };
+            self.nodes[src_root_node.root_index] = Node::NonRoot(NonRootInfo {
+                parent_index: dst_root_node.root_index,
+                potential_diff: root_diff,
+            });
+            self.nodes[dst_root_node.root_index] = Node::Root(RootInfo {
+                count: src_root_node.root_info.count + dst_root_node.root_info.count,
+            });
+            UnionResult::Consistent { updated: true }
+        }
+        pub fn diff(&mut self, src: usize, dst: usize) -> Option<i64> {
+            if self.same(src, dst) {
+                Some(self.root_node(src).potential_diff - self.root_node(dst).potential_diff)
+            } else {
+                None
+            }
+        }
+        pub fn groups(&mut self) -> Vec<Vec<usize>> {
+            let n = self.nodes.len();
+            let roots = (0..n).map(|i| self.root(i)).collect_vec();
+            let group_size = (0..n).map(|i| roots[i]).fold(vec![0; n], |mut acc, x| {
+                acc[x] += 1;
+                acc
+            });
+            let result = {
+                let mut result = vec![Vec::new(); n];
+                for i in 0..n {
+                    result[i].reserve(group_size[i]);
+                }
+                for i in 0..n {
+                    result[roots[i]].push(i);
+                }
+                result
+            };
+            result.into_iter().filter(|x| !x.is_empty()).collect_vec()
+        }
+    }
+}

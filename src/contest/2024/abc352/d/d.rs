@@ -1,18 +1,48 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    k: usize,
+    ps: Vec<usize>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            k: usize,
+            ps: [Usize1; n],
         }
-        Problem { _a }
+        Problem { n, k, ps }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let k = self.k;
+        let ps = &self.ps;
+        let ps_inv = {
+            let mut ps_inv = vec![0; n];
+            for (i, &p) in ps.iter().enumerate() {
+                ps_inv[p] = i;
+            }
+            ps_inv
+        };
+
+        let seg_min = Segtree::<Min<usize>>::from(ps_inv.clone());
+        let seg_max = Segtree::<Max<usize>>::from(ps_inv.clone());
+
+        let ans = (0..n - k + 1)
+            .map(|begin| {
+                let end = begin + k;
+
+                let max = seg_max.prod(begin..end);
+                let min = seg_min.prod(begin..end);
+                max - min
+            })
+            .min()
+            .unwrap();
+
+        let ans = ans as i64;
+
         Answer { ans }
     }
 
@@ -115,6 +145,7 @@ mod tests {
     }
 }
 
+use ac_library::{Max, Min, Segtree};
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};

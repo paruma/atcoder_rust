@@ -1,18 +1,33 @@
-//#[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Giant {
+    shoulder: i64,
+    head: i64,
+}
+
+impl Giant {
+    fn head_size(&self) -> i64 {
+        self.head - self.shoulder
+    }
+}
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    giants: Vec<Giant>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            giants: [Giant; n],
         }
-        Problem { _a }
+        Problem { n, giants }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let max_head_size = self.giants.iter().map(|g| g.head_size()).max().unwrap();
+        let ans = self.giants.iter().copied().map(|g| g.shoulder).sum::<i64>() + max_head_size;
+
         Answer { ans }
     }
 

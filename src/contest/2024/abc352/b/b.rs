@@ -1,18 +1,36 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    s: Vec<u8>,
+    t: Vec<u8>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            s: Bytes,
+            t: Bytes,
         }
-        Problem { _a }
+        Problem { s, t }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let s = &self.s;
+        let t = &self.t;
+
+        let mut ti = 0;
+        let mut ans: Vec<usize> = vec![];
+
+        for &x in s {
+            // x が現れるまで ti をインクリメント
+
+            while x != t[ti] {
+                ti += 1;
+            }
+
+            ans.push(ti);
+            ti += 1;
+        }
+
         Answer { ans }
     }
 
@@ -26,12 +44,13 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<usize>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        let ans = self.ans.iter().copied().map(|x| x + 1).collect_vec();
+        print_vec_1line(&ans);
     }
 }
 

@@ -1,18 +1,59 @@
 //#[derive_readable]
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct Operation {
+    k: usize,
+    cost: i64,
+    vs: Vec<usize>,
+}
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    nv: usize,
+    n_op: usize,
+    ops: Vec<Operation>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            nv: usize,
+            n_op: usize,
         }
-        Problem { _a }
+
+        let ops = (0..n_op)
+            .map(|_| {
+                input! {
+                    k: usize,
+                    cost: i64,
+                    vs: [Usize1; k],
+                }
+                Operation { k, cost, vs }
+            })
+            .collect_vec();
+        Problem { nv, n_op, ops }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let nv = self.nv;
+        let ops = &self.ops;
+        let ops = {
+            let mut ops = ops.clone();
+            ops.sort_by_key(|op| op.cost);
+            ops
+        };
+
+        let mut uf = UnionFind::new(nv);
+        let mut sum = 0;
+        for op in &ops {
+            let src = op.vs[0];
+            for &dst in &op.vs[1..] {
+                if uf.unite(src, dst) {
+                    sum += op.cost;
+                }
+            }
+        }
+
+        let ans = if uf.num_groups() == 1 { sum } else { -1 };
+
         Answer { ans }
     }
 
@@ -171,3 +212,101 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use simple_union_find::*;
+pub mod simple_union_find {
+    use itertools::Itertools;
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    struct RootInfo {
+        count: usize,
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    struct NonRootInfo {
+        parent_index: usize,
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    enum Node {
+        Root(RootInfo),
+        NonRoot(NonRootInfo),
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    struct RootAndIndex {
+        info: RootInfo,
+        index: usize,
+    }
+    #[derive(Clone, Debug)]
+    pub struct UnionFind {
+        nodes: Vec<Node>,
+        cnt_groups: usize,
+    }
+    impl UnionFind {
+        pub fn new(n: usize) -> UnionFind {
+            UnionFind {
+                nodes: vec![Node::Root(RootInfo { count: 1 }); n],
+                cnt_groups: n,
+            }
+        }
+        fn root_node(&mut self, index: usize) -> RootAndIndex {
+            match self.nodes[index] {
+                Node::Root(info) => RootAndIndex { info, index },
+                Node::NonRoot(info) => {
+                    let root_and_index = self.root_node(info.parent_index);
+                    self.nodes[index] = Node::NonRoot(NonRootInfo {
+                        parent_index: root_and_index.index,
+                    });
+                    root_and_index
+                }
+            }
+        }
+        pub fn root(&mut self, index: usize) -> usize {
+            self.root_node(index).index
+        }
+        pub fn same_count(&mut self, index: usize) -> usize {
+            self.root_node(index).info.count
+        }
+        pub fn same(&mut self, x: usize, y: usize) -> bool {
+            self.root(x) == self.root(y)
+        }
+        pub fn num_groups(&self) -> usize {
+            self.cnt_groups
+        }
+        pub fn unite(&mut self, x: usize, y: usize) -> bool {
+            if self.same(x, y) {
+                return false;
+            }
+            self.cnt_groups -= 1;
+            let x_root_node = self.root_node(x);
+            let y_root_node = self.root_node(y);
+            let (smaller_root, larger_root) = if x_root_node.info.count <= y_root_node.info.count {
+                (x_root_node, y_root_node)
+            } else {
+                (y_root_node, x_root_node)
+            };
+            self.nodes[smaller_root.index] = Node::NonRoot(NonRootInfo {
+                parent_index: larger_root.index,
+            });
+            self.nodes[larger_root.index] = Node::Root(RootInfo {
+                count: smaller_root.info.count + larger_root.info.count,
+            });
+            true
+        }
+        pub fn groups(&mut self) -> Vec<Vec<usize>> {
+            let n = self.nodes.len();
+            let roots = (0..n).map(|i| self.root(i)).collect_vec();
+            let group_size = (0..n).map(|i| roots[i]).fold(vec![0; n], |mut acc, x| {
+                acc[x] += 1;
+                acc
+            });
+            let result = {
+                let mut result = vec![Vec::new(); n];
+                for i in 0..n {
+                    result[i].reserve(group_size[i]);
+                }
+                for i in 0..n {
+                    result[roots[i]].push(i);
+                }
+                result
+            };
+            result.into_iter().filter(|x| !x.is_empty()).collect_vec()
+        }
+    }
+}
