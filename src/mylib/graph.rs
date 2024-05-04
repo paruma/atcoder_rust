@@ -4,25 +4,11 @@ use super::queue0::mod_queue::Queue;
 use super::stack0::mod_stack::Stack;
 
 #[snippet(name = "edge")]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct Edge {
-    from: usize,
-    to: usize,
-}
-
-#[snippet(name = "edge")]
-impl Edge {
-    pub fn new(from: usize, to: usize) -> Self {
-        Self { from, to }
-    }
-}
-
-#[snippet(name = "edge")]
-pub fn make_adj(n_vertex: usize, edges: &[Edge]) -> Vec<Vec<usize>> {
+pub fn make_adj(n_vertex: usize, edges: &[(usize, usize)]) -> Vec<Vec<usize>> {
     let mut adj = vec![vec![]; n_vertex];
 
-    for &e in edges {
-        adj[e.from].push(e.to);
+    for &(from, to) in edges {
+        adj[from].push(to);
     }
 
     adj
@@ -148,25 +134,25 @@ pub fn is_bipartite_graph(adj: &[Vec<usize>]) -> bool {
 }
 
 #[snippet]
-pub fn is_bipartite_graph_by_uf(n_vertex: usize, edges: &[Edge]) -> bool {
+pub fn is_bipartite_graph_by_uf(n_vertex: usize, edges: &[(usize, usize)]) -> bool {
     use petgraph::unionfind::UnionFind;
     let mut uf = UnionFind::new(2 * n_vertex);
-    for &e in edges {
-        uf.union(e.from, e.to + n_vertex);
-        uf.union(e.from + n_vertex, e.to);
+    for &(from, to) in edges {
+        uf.union(from, to + n_vertex);
+        uf.union(from + n_vertex, to);
     }
     (0..n_vertex).all(|i| !uf.equiv(i, i + n_vertex))
 }
 
 #[snippet]
-pub fn has_cycle_undirected(n_vertex: usize, edges: &[Edge]) -> bool {
+pub fn has_cycle_undirected(n_vertex: usize, edges: &[(usize, usize)]) -> bool {
     use petgraph::unionfind::UnionFind;
     let mut uf = UnionFind::new(n_vertex);
-    for &e in edges {
-        if uf.equiv(e.from, e.to) {
+    for &(from, to) in edges {
+        if uf.equiv(from, to) {
             return true;
         }
-        uf.union(e.from, e.to);
+        uf.union(from, to);
     }
     false
 }
@@ -215,31 +201,23 @@ mod tests {
     use super::*;
 
     #[allow(dead_code)]
-    fn edge1() -> (usize, Vec<Edge>) {
+    fn edge1() -> (usize, Vec<(usize, usize)>) {
         // 0
         // ↓  ↘
         // 1 → 2
-        (3, vec![Edge::new(0, 1), Edge::new(0, 2), Edge::new(1, 2)])
+        (3, vec![(0, 1), (0, 2), (1, 2)])
     }
     #[allow(dead_code)]
-    fn edge2() -> (usize, Vec<Edge>) {
+    fn edge2() -> (usize, Vec<(usize, usize)>) {
         // 0 → 1 → 2
-        (3, vec![Edge::new(0, 1), Edge::new(1, 2)])
+        (3, vec![(0, 1), (1, 2)])
     }
     #[allow(dead_code)]
-    fn edge3() -> (usize, Vec<Edge>) {
+    fn edge3() -> (usize, Vec<(usize, usize)>) {
         // 0 → 1
         // ↓   ↓
         // 2 → 3
-        (
-            4,
-            vec![
-                Edge::new(0, 1),
-                Edge::new(0, 2),
-                Edge::new(1, 3),
-                Edge::new(2, 3),
-            ],
-        )
+        (4, vec![(0, 1), (0, 2), (1, 3), (2, 3)])
     }
 
     #[test]
@@ -276,8 +254,8 @@ mod tests {
         // 5   6 → 7
 
         let n_vertex = 8;
-        let edges = [(0, 1), (0, 2), (2, 3), (2, 5), (3, 4), (3, 6), (6, 7)]
-            .map(|(from, to)| Edge::new(from, to));
+        let edges =
+            [(0, 1), (0, 2), (2, 3), (2, 5), (3, 4), (3, 6), (6, 7)].map(|(from, to)| (from, to));
         let adj = make_adj(n_vertex, &edges);
         let order = bfs_order(&adj, 0);
         assert_eq!(order, vec![0, 1, 2, 3, 5, 4, 6, 7]); // FIXME: 実装依存になっていてよくない
@@ -292,8 +270,8 @@ mod tests {
         // 5   6 → 7
 
         let n_vertex = 8;
-        let edges = [(0, 1), (0, 2), (2, 3), (2, 5), (3, 4), (3, 6), (6, 7)]
-            .map(|(from, to)| Edge::new(from, to));
+        let edges =
+            [(0, 1), (0, 2), (2, 3), (2, 5), (3, 4), (3, 6), (6, 7)].map(|(from, to)| (from, to));
         let adj = make_adj(n_vertex, &edges);
         let order = dfs_pre_order(&adj, 0);
         assert_eq!(order, vec![0, 2, 5, 3, 6, 7, 4, 1]); // FIXME: 実装依存になっていてよくない
@@ -308,8 +286,8 @@ mod tests {
         // 5   6 → 7
 
         let n_vertex = 8;
-        let edges = [(0, 1), (0, 2), (2, 3), (2, 5), (3, 4), (3, 6), (6, 7)]
-            .map(|(from, to)| Edge::new(from, to));
+        let edges =
+            [(0, 1), (0, 2), (2, 3), (2, 5), (3, 4), (3, 6), (6, 7)].map(|(from, to)| (from, to));
         let adj = make_adj(n_vertex, &edges);
         let order = dfs_post_order(&adj, 0);
         assert_eq!(order, vec![5, 7, 6, 4, 3, 2, 1, 0]); // FIXME: 実装依存になっていてよくない
@@ -387,13 +365,7 @@ mod tests {
             //     ↑   ↓
             //     4 → 3
             let n_vertex = 5;
-            let edges = vec![
-                Edge::new(0, 1),
-                Edge::new(1, 2),
-                Edge::new(2, 3),
-                Edge::new(3, 4),
-                Edge::new(4, 1),
-            ];
+            let edges = vec![(0, 1), (1, 2), (2, 3), (3, 4), (4, 1)];
             let adj = make_adj(n_vertex, &edges);
             assert!(has_cycle_directed(&adj));
         }
@@ -409,16 +381,16 @@ mod tests {
         let n_vertex = 5;
         let edges = [(0, 1), (0, 2), (2, 1), (3, 4)]
             .into_iter()
-            .map(|(from, to)| Edge::new(from, to))
+            .map(|(from, to)| (from, to))
             .collect_vec();
         let adj = make_adj(n_vertex, &edges);
 
         let sorted = topo_sort(&adj);
 
         // ソートされているか確認
-        for &e in &edges {
-            let from_pos = sorted.iter().position(|&x| x == e.from).unwrap();
-            let to_pos = sorted.iter().position(|&x| x == e.to).unwrap();
+        for &(from, to) in &edges {
+            let from_pos = sorted.iter().position(|&x| x == from).unwrap();
+            let to_pos = sorted.iter().position(|&x| x == to).unwrap();
             assert!(from_pos <= to_pos);
         }
     }
