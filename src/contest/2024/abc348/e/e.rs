@@ -68,6 +68,7 @@ fn dfs_post_order(adj: &[Vec<usize>], init: usize) -> Vec<usize> {
     order
 }
 
+/// 全方位木DP
 trait Reroot {
     type M: Monoid; // 可換モノイド
 

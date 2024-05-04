@@ -3,12 +3,59 @@ use cargo_snippet::snippet;
 use super::queue0::mod_queue::Queue;
 use super::stack0::mod_stack::Stack;
 
-#[snippet(name = "edge")]
-pub fn make_adj(n_vertex: usize, edges: &[(usize, usize)]) -> Vec<Vec<usize>> {
+#[snippet]
+pub fn make_adj_from_directed(n_vertex: usize, edges: &[(usize, usize)]) -> Vec<Vec<usize>> {
     let mut adj = vec![vec![]; n_vertex];
 
     for &(from, to) in edges {
         adj[from].push(to);
+    }
+
+    adj
+}
+
+#[snippet]
+pub fn make_adj_from_undirected(n_vertex: usize, edges: &[(usize, usize)]) -> Vec<Vec<usize>> {
+    let mut adj = vec![vec![]; n_vertex];
+
+    for &(from, to) in edges {
+        adj[from].push(to);
+        adj[to].push(from);
+    }
+
+    adj
+}
+
+#[snippet]
+pub fn make_adj_from_weighted_directed<T>(
+    n_vertex: usize,
+    edges: &[(usize, usize, T)],
+) -> Vec<Vec<(usize, T)>>
+where
+    T: Clone,
+{
+    let mut adj = vec![vec![]; n_vertex];
+
+    for (from, to, weight) in edges {
+        adj[*from].push((*to, weight.clone()));
+    }
+
+    adj
+}
+
+#[snippet]
+pub fn make_adj_from_weighted_undirected<T>(
+    n_vertex: usize,
+    edges: &[(usize, usize, T)],
+) -> Vec<Vec<(usize, T)>>
+where
+    T: Clone,
+{
+    let mut adj = vec![vec![]; n_vertex];
+
+    for (from, to, weight) in edges {
+        adj[*from].push((*to, weight.clone()));
+        adj[*to].push((*from, weight.clone()));
     }
 
     adj
@@ -196,24 +243,25 @@ pub fn topo_sort(adj: &Vec<Vec<usize>>) -> Vec<usize> {
 
 mod tests {
     #[allow(unused_imports)]
-    use itertools::Itertools;
-
     use super::*;
 
+    #[allow(unused_imports)]
+    use itertools::Itertools;
+
     #[allow(dead_code)]
-    fn edge1() -> (usize, Vec<(usize, usize)>) {
+    fn sample_edges1() -> (usize, Vec<(usize, usize)>) {
         // 0
         // ↓  ↘
         // 1 → 2
         (3, vec![(0, 1), (0, 2), (1, 2)])
     }
     #[allow(dead_code)]
-    fn edge2() -> (usize, Vec<(usize, usize)>) {
+    fn sample_edge2() -> (usize, Vec<(usize, usize)>) {
         // 0 → 1 → 2
         (3, vec![(0, 1), (1, 2)])
     }
     #[allow(dead_code)]
-    fn edge3() -> (usize, Vec<(usize, usize)>) {
+    fn sample_edges3() -> (usize, Vec<(usize, usize)>) {
         // 0 → 1
         // ↓   ↓
         // 2 → 3
@@ -221,25 +269,117 @@ mod tests {
     }
 
     #[test]
-    fn test_make_adj() {
+    fn test_make_adj_from_directed() {
         {
-            let (n_vertex, edges) = edge1();
-            let adj = make_adj(n_vertex, &edges);
+            // 0
+            // ↓  ↘
+            // 1 → 2
+            let n_vertex = 3;
+            let edges = [(0, 1), (0, 2), (1, 2)];
+            let adj = make_adj_from_directed(n_vertex, &edges);
             let expected = vec![vec![1, 2], vec![2], vec![]];
             assert_eq!(adj, expected);
         }
         {
             let n_vertex = 3;
             let edges = [];
-            let adj = make_adj(n_vertex, &edges);
+            let adj = make_adj_from_directed(n_vertex, &edges);
             let expected = vec![vec![], vec![], vec![]];
             assert_eq!(adj, expected);
         }
         {
             let n_vertex = 0;
             let edges = [];
-            let adj = make_adj(n_vertex, &edges);
+            let adj = make_adj_from_directed(n_vertex, &edges);
             let expected: Vec<Vec<usize>> = vec![];
+            assert_eq!(adj, expected);
+        }
+    }
+
+    #[test]
+    fn test_make_adj_from_undirected() {
+        {
+            // 0
+            // | ＼
+            // 1 - 2
+            let n_vertex = 3;
+            let edges = [(0, 1), (0, 2), (1, 2)];
+            let adj = make_adj_from_undirected(n_vertex, &edges);
+            let expected = vec![vec![1, 2], vec![0, 2], vec![0, 1]];
+            assert_eq!(adj, expected);
+        }
+        {
+            let n_vertex = 3;
+            let edges = [];
+            let adj = make_adj_from_undirected(n_vertex, &edges);
+            let expected = vec![vec![], vec![], vec![]];
+            assert_eq!(adj, expected);
+        }
+        {
+            let n_vertex = 0;
+            let edges = [];
+            let adj = make_adj_from_undirected(n_vertex, &edges);
+            let expected: Vec<Vec<usize>> = vec![];
+            assert_eq!(adj, expected);
+        }
+    }
+
+    #[test]
+    fn test_make_adj_from_weighted_directed() {
+        {
+            // 0
+            // ↓  ↘
+            // 1 → 2
+            let n_vertex = 3;
+            let edges = [(0, 1, 100), (0, 2, 200), (1, 2, 300)];
+            let adj = make_adj_from_weighted_directed(n_vertex, &edges);
+            let expected = vec![vec![(1, 100), (2, 200)], vec![(2, 300)], vec![]];
+            assert_eq!(adj, expected);
+        }
+        {
+            let n_vertex = 3;
+            let edges: [(usize, usize, i64); 0] = [];
+            let adj: Vec<Vec<(usize, i64)>> = make_adj_from_weighted_directed(n_vertex, &edges);
+            let expected: Vec<Vec<(usize, i64)>> = vec![vec![], vec![], vec![]];
+            assert_eq!(adj, expected);
+        }
+        {
+            let n_vertex = 0;
+            let edges: [(usize, usize, i64); 0] = [];
+            let adj: Vec<Vec<(usize, i64)>> = make_adj_from_weighted_directed(n_vertex, &edges);
+            let expected: Vec<Vec<(usize, i64)>> = vec![];
+            assert_eq!(adj, expected);
+        }
+    }
+
+    #[test]
+    fn test_make_adj_from_weighted_undirected() {
+        {
+            // 0
+            // | ＼
+            // 1 - 2
+            let n_vertex = 3;
+            let edges = [(0, 1, 100), (0, 2, 200), (1, 2, 300)];
+            let adj = make_adj_from_weighted_undirected(n_vertex, &edges);
+            let expected = vec![
+                vec![(1, 100), (2, 200)],
+                vec![(0, 100), (2, 300)],
+                vec![(0, 200), (1, 300)],
+            ];
+            assert_eq!(adj, expected);
+        }
+        {
+            let n_vertex = 3;
+            let edges: [(usize, usize, i64); 0] = [];
+            let adj = make_adj_from_weighted_undirected(n_vertex, &edges);
+            let expected = vec![vec![], vec![], vec![]];
+            assert_eq!(adj, expected);
+        }
+        {
+            let n_vertex = 0;
+            let edges: [(usize, usize, i64); 0] = [];
+            let adj: Vec<Vec<(usize, i64)>> = make_adj_from_weighted_undirected(n_vertex, &edges);
+            let expected: Vec<Vec<(usize, i64)>> = vec![];
             assert_eq!(adj, expected);
         }
     }
@@ -256,7 +396,7 @@ mod tests {
         let n_vertex = 8;
         let edges =
             [(0, 1), (0, 2), (2, 3), (2, 5), (3, 4), (3, 6), (6, 7)].map(|(from, to)| (from, to));
-        let adj = make_adj(n_vertex, &edges);
+        let adj = make_adj_from_directed(n_vertex, &edges);
         let order = bfs_order(&adj, 0);
         assert_eq!(order, vec![0, 1, 2, 3, 5, 4, 6, 7]); // FIXME: 実装依存になっていてよくない
     }
@@ -272,7 +412,7 @@ mod tests {
         let n_vertex = 8;
         let edges =
             [(0, 1), (0, 2), (2, 3), (2, 5), (3, 4), (3, 6), (6, 7)].map(|(from, to)| (from, to));
-        let adj = make_adj(n_vertex, &edges);
+        let adj = make_adj_from_directed(n_vertex, &edges);
         let order = dfs_pre_order(&adj, 0);
         assert_eq!(order, vec![0, 2, 5, 3, 6, 7, 4, 1]); // FIXME: 実装依存になっていてよくない
     }
@@ -288,7 +428,7 @@ mod tests {
         let n_vertex = 8;
         let edges =
             [(0, 1), (0, 2), (2, 3), (2, 5), (3, 4), (3, 6), (6, 7)].map(|(from, to)| (from, to));
-        let adj = make_adj(n_vertex, &edges);
+        let adj = make_adj_from_directed(n_vertex, &edges);
         let order = dfs_post_order(&adj, 0);
         assert_eq!(order, vec![5, 7, 6, 4, 3, 2, 1, 0]); // FIXME: 実装依存になっていてよくない
     }
@@ -296,18 +436,18 @@ mod tests {
     #[test]
     fn test_is_bipartite_graph() {
         {
-            let (n_vertex, edges) = edge1();
-            let adj = make_adj(n_vertex, &edges);
+            let (n_vertex, edges) = sample_edges1();
+            let adj = make_adj_from_directed(n_vertex, &edges);
             assert!(!is_bipartite_graph(&adj));
         }
         {
-            let (n_vertex, edges) = edge2();
-            let adj = make_adj(n_vertex, &edges);
+            let (n_vertex, edges) = sample_edge2();
+            let adj = make_adj_from_directed(n_vertex, &edges);
             assert!(is_bipartite_graph(&adj));
         }
         {
-            let (n_vertex, edges) = edge3();
-            let adj = make_adj(n_vertex, &edges);
+            let (n_vertex, edges) = sample_edges3();
+            let adj = make_adj_from_directed(n_vertex, &edges);
             assert!(is_bipartite_graph(&adj));
         }
     }
@@ -315,49 +455,49 @@ mod tests {
     #[test]
     fn test_is_bipartite_graph_uf() {
         {
-            let (n_vertex, edges) = edge1();
+            let (n_vertex, edges) = sample_edges1();
             assert!(!is_bipartite_graph_by_uf(n_vertex, &edges));
         }
         {
-            let (n_vertex, edges) = edge2();
+            let (n_vertex, edges) = sample_edge2();
             assert!(is_bipartite_graph_by_uf(n_vertex, &edges));
         }
         {
-            let (n_vertex, edges) = edge3();
+            let (n_vertex, edges) = sample_edges3();
             assert!(is_bipartite_graph_by_uf(n_vertex, &edges));
         }
     }
     #[test]
     fn test_has_cycle_undirected() {
         {
-            let (n_vertex, edges) = edge1();
+            let (n_vertex, edges) = sample_edges1();
 
             assert!(has_cycle_undirected(n_vertex, &edges));
         }
         {
-            let (n_vertex, edges) = edge2();
+            let (n_vertex, edges) = sample_edge2();
             assert!(!has_cycle_undirected(n_vertex, &edges));
         }
         {
-            let (n_vertex, edges) = edge3();
+            let (n_vertex, edges) = sample_edges3();
             assert!(has_cycle_undirected(n_vertex, &edges));
         }
     }
     #[test]
     fn test_has_cycle_directed() {
         {
-            let (n_vertex, edges) = edge1();
-            let adj = make_adj(n_vertex, &edges);
+            let (n_vertex, edges) = sample_edges1();
+            let adj = make_adj_from_directed(n_vertex, &edges);
             assert!(!has_cycle_directed(&adj));
         }
         {
-            let (n_vertex, edges) = edge2();
-            let adj = make_adj(n_vertex, &edges);
+            let (n_vertex, edges) = sample_edge2();
+            let adj = make_adj_from_directed(n_vertex, &edges);
             assert!(!has_cycle_directed(&adj));
         }
         {
-            let (n_vertex, edges) = edge3();
-            let adj = make_adj(n_vertex, &edges);
+            let (n_vertex, edges) = sample_edges3();
+            let adj = make_adj_from_directed(n_vertex, &edges);
             assert!(!has_cycle_directed(&adj));
         }
         {
@@ -366,7 +506,7 @@ mod tests {
             //     4 → 3
             let n_vertex = 5;
             let edges = vec![(0, 1), (1, 2), (2, 3), (3, 4), (4, 1)];
-            let adj = make_adj(n_vertex, &edges);
+            let adj = make_adj_from_directed(n_vertex, &edges);
             assert!(has_cycle_directed(&adj));
         }
     }
@@ -383,7 +523,7 @@ mod tests {
             .into_iter()
             .map(|(from, to)| (from, to))
             .collect_vec();
-        let adj = make_adj(n_vertex, &edges);
+        let adj = make_adj_from_directed(n_vertex, &edges);
 
         let sorted = topo_sort(&adj);
 
