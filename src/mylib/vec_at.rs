@@ -5,7 +5,7 @@ use cargo_snippet::snippet;
 pub mod vec_at {
     use easy_ext::ext;
 
-    #[ext]
+    #[ext(VecAt)]
     impl<T> Vec<T> {
         pub fn at(&self, index: i64) -> &T {
             &self[index as usize]

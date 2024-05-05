@@ -339,7 +339,7 @@ use btree_set_ext::*;
 pub mod btree_set_ext {
     use easy_ext::ext;
     use std::{collections::BTreeSet, ops::RangeBounds};
-    #[ext]
+    #[ext(BTreeSetExt)]
     impl<T> BTreeSet<T>
     where
         T: Ord,

@@ -7,7 +7,7 @@ pub mod btree_set_ext {
 
     use easy_ext::ext;
 
-    #[ext]
+    #[ext(BTreeSetExt)]
     impl<T> BTreeSet<T>
     where
         T: Ord,

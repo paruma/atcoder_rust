@@ -108,7 +108,7 @@ pub mod vec_vec_at {
     use super::pos::*;
     use easy_ext::ext;
 
-    #[ext]
+    #[ext(VecVecAt)]
     impl<T> Vec<Vec<T>> {
         pub fn at(&self, pos: Pos<i64>) -> &T {
             &self[pos.y as usize][pos.x as usize]
