@@ -34,6 +34,24 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        let s = &self.s; // 例: "abc"
+        let t = &self.t; // 例: "axbxyc"
+
+        let mut ans: Vec<usize> = vec![];
+
+        let mut s_iter = s.iter().copied().peekable();
+
+        for (i, x) in t.iter().copied().enumerate() {
+            if s_iter.peek() == Some(&x) {
+                ans.push(i);
+                s_iter.next();
+            }
+        }
+
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -55,7 +73,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]

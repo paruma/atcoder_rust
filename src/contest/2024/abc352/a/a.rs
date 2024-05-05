@@ -18,14 +18,29 @@ impl Problem {
         Problem { n, x, y, z }
     }
     fn solve(&self) -> Answer {
+        // コンテスト中の実装（微妙）
         let x = self.x;
         let y = self.y;
         let z = self.z;
         let ans = if x < y {
+            // x < z < y のつもりで書いたが、実際には x ≤ z < y になっている
             (x..y).contains(&z)
         } else {
             (y..x).contains(&z)
         };
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // リファクタリング
+        let x = self.x;
+        let y = self.y;
+        let z = self.z;
+
+        let min = min(x, y);
+        let max = max(x, y);
+
+        let ans = min < z && z < max;
         Answer { ans }
     }
 
@@ -49,7 +64,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -136,6 +151,7 @@ use proconio::{
     derive_readable, fastout, input,
     marker::{Bytes, Usize1},
 };
+use std::cmp::{max, min};
 #[allow(unused_imports)]
 use std::collections::{BinaryHeap, HashMap, HashSet};
 
