@@ -46,12 +46,9 @@ impl Problem {
             ops,
         } = self;
 
-        let xs = xs
-            .iter()
-            .copied()
-            .map(|x| RangeSum::unit(x.into()))
-            .collect_vec();
-        let mut segtree = LazySegtree::<RangeAffineRangeSum<Mint>>::from(xs);
+        let xs = xs.iter().copied().map(Mint::new).collect_vec();
+
+        let mut segtree = dual_segtree::DualSegtree::<RangeAffine<Mint>>::from(xs);
 
         for op in ops {
             let prob = Mint::new(op.end - op.begin).inv();
@@ -62,48 +59,7 @@ impl Problem {
             segtree.apply_range(op.begin..op.end, affine);
         }
 
-        let ans = (0..*len).map(|i| segtree.get(i).sum).collect_vec();
-        Answer { ans }
-    }
-    fn solve_wrong(&self) -> Answer {
-        let Problem {
-            len,
-            n_ops,
-            xs,
-            ops,
-        } = self;
-
-        // (index, 確率, 値, in(1)/out(0))
-        let mut pos_to_ops = vec![vec![]; len + 1];
-
-        for (i, op) in ops.iter().enumerate() {
-            let prob = (Mint::new(op.end) - Mint::new(op.begin)).inv();
-
-            pos_to_ops[op.begin].push((i, prob, op.value, 1));
-            pos_to_ops[op.end].push((i, prob, op.value, 0));
-        }
-
-        let mut imos1 = vec![Mint::new(0); len + 1];
-        let mut imos2 = vec![Mint::new(1); len + 1];
-
-        for pos in 0..*len {
-            if pos != 0 {
-                imos1[pos] = imos1[pos - 1];
-                imos2[pos] = imos1[pos - 1];
-            }
-            for (i, prob, value, kind) in pos_to_ops[pos].iter().sorted_by_key(|x| x.0) {
-                if *kind == 1 {
-                    // in
-                    imos1[pos] = prob * Mint::new(*value) + (Mint::new(1) - prob) * imos1[pos];
-                    imos2[pos] *= Mint::new(1) - prob;
-                } else {
-                    // out
-                    imos1[pos] = (imos1[pos] - prob * Mint::new(*value)) / (Mint::new(1) - prob);
-                    imos2[pos] /= Mint::new(1) - prob;
-                }
-            }
-        }
-        let ans = (0..*len).map(|i| imos1[i] + imos2[i] * xs[i]).collect_vec();
+        let ans = (0..*len).map(|i| segtree.get(i)).collect_vec();
         Answer { ans }
     }
 }
@@ -189,22 +145,169 @@ fn print_yesno(ans: bool) {
 
 // ====== snippet ======
 
-use range_affine_range_sum::*;
-pub mod range_affine_range_sum {
-    use ac_library::{MapMonoid, Monoid};
+pub mod dual_segtree {
+    use std::ops::{Bound, RangeBounds};
+
+    fn ceil_pow2(n: u32) -> u32 {
+        32 - n.saturating_sub(1).leading_zeros()
+    }
+
+    pub trait MapMonoid {
+        type F: Clone;
+        type S: Clone;
+        fn identity_map() -> Self::F;
+        fn mapping(f: &Self::F, x: &Self::S) -> Self::S;
+        fn composition(f: &Self::F, g: &Self::F) -> Self::F;
+    }
+
+    impl<F: MapMonoid> Default for DualSegtree<F>
+    where
+        F::S: Default,
+    {
+        fn default() -> Self {
+            Self::new(0)
+        }
+    }
+    impl<F: MapMonoid> DualSegtree<F> {
+        pub fn new(n: usize) -> Self
+        where
+            F::S: Default,
+        {
+            vec![F::S::default(); n].into()
+        }
+    }
+
+    impl<F: MapMonoid> From<Vec<F::S>> for DualSegtree<F>
+    where
+        F::S: Default,
+    {
+        fn from(v: Vec<F::S>) -> Self {
+            let n = v.len();
+            let log = ceil_pow2(n as u32) as usize;
+            let size = 1 << log;
+            let mut d = vec![F::S::default(); size];
+            let lz = vec![F::identity_map(); size];
+            d[..n].clone_from_slice(&v);
+            DualSegtree {
+                n,
+                size,
+                log,
+                d,
+                lz,
+            }
+        }
+    }
+
+    impl<F: MapMonoid> DualSegtree<F> {
+        pub fn set(&mut self, p: usize, x: F::S) {
+            assert!(p < self.n);
+            for i in (1..=self.log).rev() {
+                self.push((p + self.size) >> i);
+            }
+            self.d[p] = x;
+        }
+
+        pub fn get(&mut self, p: usize) -> F::S {
+            assert!(p < self.n);
+            for i in (1..=self.log).rev() {
+                self.push((p + self.size) >> i);
+            }
+            self.d[p].clone()
+        }
+
+        pub fn apply(&mut self, p: usize, f: F::F) {
+            assert!(p < self.n);
+            for i in (1..=self.log).rev() {
+                self.push((p + self.size) >> i);
+            }
+            self.d[p] = F::mapping(&f, &self.d[p]);
+        }
+        pub fn apply_range<R>(&mut self, range: R, f: F::F)
+        where
+            R: RangeBounds<usize>,
+        {
+            let mut r = match range.end_bound() {
+                Bound::Included(r) => r + 1,
+                Bound::Excluded(r) => *r,
+                Bound::Unbounded => self.n,
+            };
+            let mut l = match range.start_bound() {
+                Bound::Included(l) => *l,
+                Bound::Excluded(l) => l + 1,
+                // TODO: There are another way of optimizing [0..r)
+                Bound::Unbounded => 0,
+            };
+
+            assert!(l <= r && r <= self.n);
+            if l == r {
+                return;
+            }
+
+            l += self.size;
+            r += self.size;
+
+            for i in (1..=self.log).rev() {
+                if ((l >> i) << i) != l {
+                    self.push(l >> i);
+                }
+                if ((r >> i) << i) != r {
+                    self.push((r - 1) >> i);
+                }
+            }
+
+            {
+                while l < r {
+                    if l & 1 != 0 {
+                        self.all_apply(l, f.clone());
+                        l += 1;
+                    }
+                    if r & 1 != 0 {
+                        r -= 1;
+                        self.all_apply(r, f.clone());
+                    }
+                    l >>= 1;
+                    r >>= 1;
+                }
+            }
+        }
+    }
+
+    pub struct DualSegtree<F>
+    where
+        F: MapMonoid,
+    {
+        n: usize,
+        size: usize,
+        log: usize,
+        d: Vec<F::S>,
+        lz: Vec<F::F>,
+    }
+    impl<F> DualSegtree<F>
+    where
+        F: MapMonoid,
+    {
+        fn all_apply(&mut self, k: usize, f: F::F) {
+            if k < self.size {
+                self.lz[k] = F::composition(&f, &self.lz[k]);
+            } else {
+                self.d[k - self.size] = F::mapping(&f, &self.d[k - self.size]);
+            }
+        }
+        fn push(&mut self, k: usize) {
+            self.all_apply(2 * k, self.lz[k].clone());
+            self.all_apply(2 * k + 1, self.lz[k].clone());
+            self.lz[k] = F::identity_map();
+        }
+    }
+}
+
+use range_affine::*;
+pub mod range_affine {
+    use super::dual_segtree::*;
     use std::convert::Infallible;
     use std::marker::PhantomData;
     use std::ops::{Add, Mul};
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-    pub struct RangeSum<T> {
-        pub sum: T,
-        pub len: i64,
-    }
-    impl<T> RangeSum<T> {
-        pub fn unit(x: T) -> RangeSum<T> {
-            RangeSum { sum: x, len: 1 }
-        }
-    }
+
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct Affine<T> {
         pub slope: T,
@@ -229,32 +332,14 @@ pub mod range_affine_range_sum {
             }
         }
     }
-    pub struct ValueLenSum<T>(Infallible, PhantomData<fn() -> T>);
-    impl<T> Monoid for ValueLenSum<T>
+
+    pub struct RangeAffine<T>(Infallible, PhantomData<fn() -> T>);
+    impl<T> MapMonoid for RangeAffine<T>
     where
         T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
     {
-        type S = RangeSum<T>;
-        fn identity() -> RangeSum<T> {
-            RangeSum {
-                sum: 0.into(),
-                len: 0,
-            }
-        }
-        fn binary_operation(a: &RangeSum<T>, b: &RangeSum<T>) -> RangeSum<T> {
-            RangeSum {
-                sum: a.sum + b.sum,
-                len: a.len + b.len,
-            }
-        }
-    }
-    pub struct RangeAffineRangeSum<T>(Infallible, PhantomData<fn() -> T>);
-    impl<T> MapMonoid for RangeAffineRangeSum<T>
-    where
-        T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
-    {
-        type M = ValueLenSum<T>;
         type F = Affine<T>;
+        type S = T;
         fn identity_map() -> Affine<T> {
             Affine {
                 slope: 1.into(),
@@ -267,11 +352,8 @@ pub mod range_affine_range_sum {
                 intercept: a.slope * b.intercept + a.intercept,
             }
         }
-        fn mapping(f: &Affine<T>, x: &RangeSum<T>) -> RangeSum<T> {
-            RangeSum {
-                sum: f.slope * x.sum + f.intercept * x.len.into(),
-                len: x.len,
-            }
+        fn mapping(f: &Affine<T>, x: &T) -> T {
+            f.slope * *x + f.intercept
         }
     }
 }
