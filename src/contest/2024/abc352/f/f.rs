@@ -20,6 +20,8 @@ impl Problem {
         use rand::seq::SliceRandom;
         let n_v = self.n_v;
 
+        let time_keeper = TimeKeeper::new(1.98); // 問題の制限時間は2秒
+
         let mut uf = PotentializedUnionFind::new(n_v);
 
         for (a, b, diff) in &self.infos {
@@ -31,11 +33,9 @@ impl Problem {
 
         let mut ans = vec![];
 
-        let time = 1400000;
-
         let mut tmp = (0..n_v as i64).collect_vec();
 
-        for _ in 0..time {
+        while !time_keeper.is_time_over() {
             let mut rng = SmallRng::from_entropy();
 
             tmp.shuffle(&mut rng);
@@ -422,6 +422,29 @@ pub mod potentialized_union_find {
                 result
             };
             result.into_iter().filter(|x| !x.is_empty()).collect_vec()
+        }
+    }
+}
+
+use time_keeper::*;
+pub mod time_keeper {
+    #[derive(Debug, Clone)]
+    pub struct TimeKeeper {
+        start_time: std::time::Instant,
+        time_threshold_sec: f64,
+    }
+    impl TimeKeeper {
+        /// time_threshold_sec: 制限時間(秒数)
+        pub fn new(time_threshold_sec: f64) -> Self {
+            TimeKeeper {
+                start_time: std::time::Instant::now(),
+                time_threshold_sec,
+            }
+        }
+        #[inline]
+        pub fn is_time_over(&self) -> bool {
+            let elapsed_time = self.start_time.elapsed().as_nanos() as f64 * 1e-9;
+            elapsed_time >= self.time_threshold_sec
         }
     }
 }

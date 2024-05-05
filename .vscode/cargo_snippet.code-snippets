@@ -3685,6 +3685,34 @@
       "}"
     ]
   },
+  "time_keeper": {
+    "scope": "rust",
+    "prefix": "time_keeper",
+    "body": [
+      "use time_keeper::*;",
+      "pub mod time_keeper {",
+      "    #[derive(Debug, Clone)]",
+      "    pub struct TimeKeeper {",
+      "        start_time: std::time::Instant,",
+      "        time_threshold_sec: f64,",
+      "    }",
+      "    impl TimeKeeper {",
+      "        /// time_threshold_sec: 制限時間(秒数)",
+      "        pub fn new(time_threshold_sec: f64) -> Self {",
+      "            TimeKeeper {",
+      "                start_time: std::time::Instant::now(),",
+      "                time_threshold_sec,",
+      "            }",
+      "        }",
+      "        #[inline]",
+      "        pub fn is_time_over(&self) -> bool {",
+      "            let elapsed_time = self.start_time.elapsed().as_nanos() as f64 * 1e-9;",
+      "            elapsed_time >= self.time_threshold_sec",
+      "        }",
+      "    }",
+      "}"
+    ]
+  },
   "topo_sort": {
     "scope": "rust",
     "prefix": "topo_sort",
