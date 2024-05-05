@@ -6,6 +6,41 @@ struct Problem {
     ps: Vec<usize>,
 }
 
+fn f(xs: &[u32]) -> u32 {
+    let n = xs.len();
+    let k = n / 2;
+
+    (0..n - k + 1)
+        .map(|begin| {
+            let end = begin + k;
+            let min = xs[begin..end].iter().min().unwrap();
+            let max = xs[begin..end].iter().max().unwrap();
+            max - min
+        })
+        .min()
+        .unwrap()
+}
+
+fn g(xs: &[u32]) -> u32 {
+    let n = xs.len();
+    let k = n / 2;
+
+    (0..n - k + 1)
+        .map(|begin| {
+            let end = begin + k;
+            let min = xs[begin..end].iter().copied().min().unwrap();
+            let max = xs[begin..end].iter().copied().max().unwrap();
+            max - min
+        })
+        .min()
+        .unwrap()
+}
+
+fn _main() {
+    let xs = (0..200_000_u32).collect_vec();
+    println!("{}", f(&xs));
+}
+
 impl Problem {
     fn read() -> Problem {
         input! {
@@ -118,9 +153,35 @@ impl Problem {
 
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
-        todo!();
-        // let ans = 0;
-        // Answer { ans }
+        // 愚直 (TLE)
+        // 計算量: (N-K)*K  (最大 10^10)
+        // N, K<=2*10^5
+
+        let n = self.n;
+        let k = self.k;
+        let ps = &self.ps;
+        let ps_inv = {
+            let mut ps_inv = vec![0; n];
+            for (i, &p) in ps.iter().enumerate() {
+                ps_inv[p] = i as u32;
+            }
+            ps_inv
+        };
+
+        let ans = (0..n - k + 1)
+            .map(|begin| {
+                let end = begin + k;
+                let (min, max) = ps_inv[begin..end]
+                    .iter()
+                    .copied()
+                    .fold((std::u32::MAX, 0), |(min, max), x| (min.min(x), max.max(x)));
+
+                max - min
+            })
+            .min()
+            .unwrap() as i64;
+
+        Answer { ans }
     }
 }
 
@@ -136,7 +197,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve3().print();
+    Problem::read().solve_naive().print();
 }
 
 #[cfg(test)]
