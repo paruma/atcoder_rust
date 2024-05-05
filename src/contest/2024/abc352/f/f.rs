@@ -16,14 +16,15 @@ impl Problem {
         Problem { n_v, n_info, infos }
     }
     fn solve(&self) -> Answer {
-        use rand::{rngs::SmallRng, seq::SliceRandom, *};
+        // 素朴な乱択 (WA)
+        use rand::seq::SliceRandom;
         let n_v = self.n_v;
-        let n_info = self.n_info;
 
-        let mut uf = UnionFind::new(n_v); // todo: 構造体の名前を変える
+        let mut uf = PotentializedUnionFind::new(n_v);
 
-        for (from, to, diff) in &self.infos {
-            uf.unite(*from, *to, *diff);
+        for (a, b, diff) in &self.infos {
+            // 逆にしがちなので、問題をちゃんと読んで実装する
+            uf.unite(*b, *a, *diff); // a の順位 - b の順位 = diff
         }
 
         let roots = (0..n_v).filter(|x| uf.root(*x) == *x).collect_vec();
@@ -49,7 +50,7 @@ impl Problem {
 
             for i in 0..n_v {
                 let root = uf.root(i);
-                ord[i] = ord[root] - uf.diff(root, i).unwrap();
+                ord[i] = ord[root] + uf.diff(root, i).unwrap();
             }
 
             if ord.iter().all_unique() && ord.iter().all(|x| (0..n_v as i64).contains(x)) {
@@ -65,45 +66,18 @@ impl Problem {
             }
         }
 
-        // for p in (0..n_v as i64).permutations(roots.len()) {
-        //     let mut ord = vec![-1_i64; n_v];
-        //     for i in 0..roots.len() {
-        //         // roots[i] の順位を p[i] とする
-        //         ord[roots[i]] = p[i];
-        //     }
-
-        //     //dbg!(&ord);
-
-        //     for i in 0..n_v {
-        //         let root = uf.root(i);
-        //         ord[i] = ord[root] - uf.diff(root, i).unwrap();
-        //     }
-
-        //     if ord.iter().all_unique() && ord.iter().all(|x| (0..n_v as i64).contains(x)) {
-        //         if ans.is_empty() {
-        //             ans = ord;
-        //         } else {
-        //             for i in 0..n_v {
-        //                 if ord[i] != ans[i] {
-        //                     ans[i] = -1;
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
-
         Answer { ans }
     }
 
     fn solve2(&self) -> Answer {
-        use rand::{rngs::SmallRng, seq::SliceRandom, *};
+        // 全探索 (TLE)
         let n_v = self.n_v;
-        let n_info = self.n_info;
 
-        let mut uf = UnionFind::new(n_v); // todo: 構造体の名前を変える
+        let mut uf = PotentializedUnionFind::new(n_v);
 
-        for (from, to, diff) in &self.infos {
-            uf.unite(*from, *to, *diff);
+        for (a, b, diff) in &self.infos {
+            // 逆にしがちなので、問題をちゃんと読んで実装する
+            uf.unite(*b, *a, *diff); // a の順位 - b の順位 = diff
         }
 
         let roots = (0..n_v).filter(|x| uf.root(*x) == *x).collect_vec();
@@ -121,7 +95,7 @@ impl Problem {
 
             for i in 0..n_v {
                 let root = uf.root(i);
-                ord[i] = ord[root] - uf.diff(root, i).unwrap();
+                ord[i] = ord[root] + uf.diff(root, i).unwrap();
             }
 
             if ord.iter().all_unique() && ord.iter().all(|x| (0..n_v as i64).contains(x)) {
@@ -170,7 +144,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve2().print();
+    Problem::read().solve().print();
 }
 
 #[cfg(test)]
@@ -330,7 +304,7 @@ pub mod potentialized_union_find {
         potential_diff: i64,
     }
     #[derive(Clone, Debug)]
-    pub struct UnionFind {
+    pub struct PotentializedUnionFind {
         nodes: Vec<Node>,
         cnt_groups: usize,
     }
@@ -352,9 +326,9 @@ pub mod potentialized_union_find {
             matches!(self, UnionResult::Inconsistent { .. })
         }
     }
-    impl UnionFind {
-        pub fn new(n: usize) -> UnionFind {
-            UnionFind {
+    impl PotentializedUnionFind {
+        pub fn new(n: usize) -> PotentializedUnionFind {
+            PotentializedUnionFind {
                 nodes: vec![Node::Root(RootInfo { count: 1 }); n],
                 cnt_groups: n,
             }
@@ -394,6 +368,7 @@ pub mod potentialized_union_find {
         pub fn num_groups(&self) -> usize {
             self.cnt_groups
         }
+        /// diff = dst のポテンシャル - src のポテンシャル となるように統合する
         pub fn unite(&mut self, src: usize, dst: usize, diff: i64) -> UnionResult {
             if self.same(src, dst) {
                 if self.diff(src, dst) == Some(diff) {
@@ -421,6 +396,7 @@ pub mod potentialized_union_find {
             });
             UnionResult::Consistent { updated: true }
         }
+        /// dst のポテンシャル - src のポテンシャル を求める
         pub fn diff(&mut self, src: usize, dst: usize) -> Option<i64> {
             if self.same(src, dst) {
                 Some(self.root_node(src).potential_diff - self.root_node(dst).potential_diff)

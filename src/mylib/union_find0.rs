@@ -157,7 +157,7 @@ pub mod potentialized_union_find {
     }
 
     #[derive(Clone, Debug)]
-    pub struct UnionFind {
+    pub struct PotentializedUnionFind {
         nodes: Vec<Node>,
         cnt_groups: usize,
     }
@@ -181,9 +181,9 @@ pub mod potentialized_union_find {
         }
     }
 
-    impl UnionFind {
-        pub fn new(n: usize) -> UnionFind {
-            UnionFind {
+    impl PotentializedUnionFind {
+        pub fn new(n: usize) -> PotentializedUnionFind {
+            PotentializedUnionFind {
                 nodes: vec![Node::Root(RootInfo { count: 1 }); n],
                 cnt_groups: n,
             }
@@ -237,7 +237,7 @@ pub mod potentialized_union_find {
             self.cnt_groups
         }
 
-        // diff = dst のポテンシャル - src のポテンシャル となるように統合する
+        /// diff = dst のポテンシャル - src のポテンシャル となるように統合する
         pub fn unite(&mut self, src: usize, dst: usize, diff: i64) -> UnionResult {
             if self.same(src, dst) {
                 if self.diff(src, dst) == Some(diff) {
@@ -282,6 +282,7 @@ pub mod potentialized_union_find {
             UnionResult::Consistent { updated: true }
         }
 
+        /// dst のポテンシャル - src のポテンシャル を求める
         pub fn diff(&mut self, src: usize, dst: usize) -> Option<i64> {
             //  root
             //   ↑     ↖
@@ -430,7 +431,7 @@ mod tests_potentialized_union_find {
     #[test]
     fn test_uf() {
         use super::potentialized_union_find::*;
-        let mut uf = UnionFind::new(8);
+        let mut uf = PotentializedUnionFind::new(8);
         uf.unite(0, 1, 1);
         uf.unite(3, 4, 2);
         uf.unite(4, 5, 3);
@@ -468,7 +469,7 @@ mod tests_potentialized_union_find {
     #[test]
     fn test_uf_consistency() {
         use super::potentialized_union_find::*;
-        let mut uf = UnionFind::new(4);
+        let mut uf = PotentializedUnionFind::new(4);
 
         //    1   5
         // [0]→[1]→[2]    [3]
