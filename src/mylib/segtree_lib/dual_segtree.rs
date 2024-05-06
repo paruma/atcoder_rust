@@ -1,4 +1,7 @@
+use cargo_snippet::snippet;
+
 #[allow(clippy::module_inception)]
+#[snippet(prefix = "use dual_segtree::*;")]
 pub mod dual_segtree {
     use std::ops::{Bound, RangeBounds};
 
@@ -155,14 +158,77 @@ pub mod dual_segtree {
     }
 }
 
-#[cfg(test)]
-mod tests {
+#[snippet(prefix = "use range_affine::*;")]
+pub mod range_affine {
+    use super::dual_segtree::*;
+    use std::convert::Infallible;
+    use std::marker::PhantomData;
+    use std::ops::{Add, Mul};
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub struct Affine<T> {
+        pub slope: T,
+        pub intercept: T,
+    }
+
+    impl<T> Affine<T> {
+        pub fn new(slope: T, intercept: T) -> Affine<T> {
+            Affine { slope, intercept }
+        }
+    }
+
+    impl<T> Affine<T>
+    where
+        T: From<i64>,
+    {
+        /// 区間変更用（定数関数）
+        pub fn constant_func(x: T) -> Affine<T> {
+            Affine {
+                slope: 0.into(),
+                intercept: x,
+            }
+        }
+        /// 区間加算用
+        pub fn addition_func(x: T) -> Affine<T> {
+            Affine {
+                slope: 1.into(),
+                intercept: x,
+            }
+        }
+    }
+
+    pub struct AffineMonoid<T>(Infallible, PhantomData<fn() -> T>);
+    impl<T> MapMonoid for AffineMonoid<T>
+    where
+        T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
+    {
+        type F = Affine<T>;
+        type S = T;
+        fn identity_map() -> Affine<T> {
+            Affine {
+                slope: 1.into(),
+                intercept: 0.into(),
+            }
+        }
+        fn composition(a: &Affine<T>, b: &Affine<T>) -> Affine<T> {
+            Affine {
+                slope: a.slope * b.slope,
+                intercept: a.slope * b.intercept + a.intercept,
+            }
+        }
+        fn mapping(f: &Affine<T>, x: &T) -> T {
+            f.slope * *x + f.intercept
+        }
+    }
+}
+
+#[snippet(prefix = "use range_add::*;")]
+pub mod range_add {
+    use super::dual_segtree::*;
     use std::convert::Infallible;
 
-    use super::dual_segtree::{DualSegtree, MapMonoid};
-
-    struct RangeAdd(Infallible);
-    impl MapMonoid for RangeAdd {
+    pub struct AddMonoid(Infallible);
+    impl MapMonoid for AddMonoid {
         type F = i32;
         type S = i32;
 
@@ -178,16 +244,23 @@ mod tests {
             f + g
         }
     }
+}
 
+#[cfg(test)]
+mod tests_dual_segtree {
+    use super::dual_segtree::DualSegtree;
+    use super::range_add::AddMonoid;
+
+    // ACL の lazysegtree のテストを流用したもの
     #[test]
     fn test_range_add_dual_segtree() {
         let base = vec![3, 1, 4, 1, 5, 9, 2, 6, 5, 3];
         let n = base.len();
-        let mut segtree: DualSegtree<RangeAdd> = base.clone().into();
+        let mut segtree: DualSegtree<AddMonoid> = base.clone().into();
         check_segtree(&base, &mut segtree);
 
         let mut internal = vec![i32::min_value(); n];
-        let mut segtree = DualSegtree::<RangeAdd>::from(internal.clone());
+        let mut segtree = DualSegtree::<AddMonoid>::from(internal.clone());
 
         for i in 0..n {
             segtree.set(i, base[i]);
@@ -217,11 +290,86 @@ mod tests {
     }
 
     //noinspection DuplicatedCode
-    fn check_segtree(base: &[i32], segtree: &mut DualSegtree<RangeAdd>) {
+    fn check_segtree(base: &[i32], segtree: &mut DualSegtree<AddMonoid>) {
         let n = base.len();
         #[allow(clippy::needless_range_loop)]
         for i in 0..n {
             assert_eq!(segtree.get(i), base[i]);
         }
+    }
+}
+
+#[cfg(test)]
+pub mod test_range_affine {
+    use crate::mylib::segtree_lib::dual_segtree::dual_segtree::MapMonoid;
+
+    use super::range_affine::{Affine, AffineMonoid};
+
+    #[test]
+    fn test_affine_addition_func() {
+        let f = Affine::addition_func(5_i64);
+        assert_eq!(AffineMonoid::mapping(&f, &0), 5);
+        assert_eq!(AffineMonoid::mapping(&f, &3), 8);
+    }
+
+    #[test]
+    fn test_affine_constant_func() {
+        let f = Affine::constant_func(5_i64);
+        assert_eq!(AffineMonoid::mapping(&f, &0), 5);
+        assert_eq!(AffineMonoid::mapping(&f, &3), 5);
+        assert_eq!(AffineMonoid::mapping(&f, &5), 5);
+        assert_eq!(AffineMonoid::mapping(&f, &10), 5);
+    }
+
+    #[test]
+    fn test_affine() {
+        let f = Affine::new(-2_i64, 1);
+        assert_eq!(AffineMonoid::mapping(&f, &0), 1);
+        assert_eq!(AffineMonoid::mapping(&f, &3), -5);
+        assert_eq!(AffineMonoid::mapping(&f, &5), -9);
+    }
+    #[test]
+    fn test_affine_composition() {
+        let f1 = Affine {
+            slope: 3_i64,
+            intercept: 5,
+        };
+
+        let f2 = Affine {
+            slope: 5,
+            intercept: 2,
+        };
+
+        let f3 = Affine {
+            slope: 0,
+            intercept: 2,
+        };
+
+        // 3(5x + 2) + 5 = 15x + 11
+        assert_eq!(
+            AffineMonoid::composition(&f1, &f2),
+            Affine {
+                slope: 15,
+                intercept: 11
+            }
+        );
+
+        // 3*(0x + 2) + 5 = 11
+        assert_eq!(
+            AffineMonoid::composition(&f1, &f3),
+            Affine {
+                slope: 0,
+                intercept: 11
+            }
+        );
+
+        // 0(3x + 5) + 2 = 2
+        assert_eq!(
+            AffineMonoid::composition(&f3, &f1),
+            Affine {
+                slope: 0,
+                intercept: 2
+            }
+        );
     }
 }
