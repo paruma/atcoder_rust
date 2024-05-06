@@ -2,6 +2,7 @@
 fn rand() {
     use rand::{rngs::SmallRng, seq::SliceRandom, *};
     let mut rng = SmallRng::from_entropy();
+    // let mut rng = SmallRng::seed_from_u64(42);
 
     rng.gen_range(0..10); // 0..10 の一様乱数
     rng.gen_range(0.0..1.0); // 0.0..1.0 の一様乱数
