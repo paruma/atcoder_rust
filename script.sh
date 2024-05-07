@@ -125,3 +125,14 @@ exe() {
         "$(git rev-parse --show-toplevel)/target/debug/${contest}_${task}"
     fi
 }
+
+
+exe_release() {
+    contest="$(get_contest)"
+    task="$(get_task)"
+
+    if cargo build --bin "${contest}_${task}"; then
+        export RUST_BACKTRACE=1
+        "$(git rev-parse --show-toplevel)/target/release/${contest}_${task}"
+    fi
+}
