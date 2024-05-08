@@ -1,68 +1,225 @@
 #![allow(dead_code)]
 
-struct DfsMultiLoop {
-    // n個のものから重複を許してr個取る順列 n^r
-    n: usize,
-    r: usize,
-    seq_list: Vec<Vec<usize>>,
+// replace: 元に戻す
+
+fn permutations_with_replacement(n: usize, r: usize) -> Vec<Vec<usize>> {
+    struct DfsPermutationsWithReplacement {
+        // n個のものから重複を許してr個取る順列 n^r
+        n: usize,
+        r: usize,
+    }
+
+    // これは非再帰（Stack）だと書きにくい？
+    impl DfsPermutationsWithReplacement {
+        fn new(n: usize, r: usize) -> Self {
+            Self { n, r }
+        }
+
+        /// 計算量: O(n^r)
+        fn exec(&self) -> Vec<Vec<usize>> {
+            let mut seq_list = vec![];
+            self.exec_rec(&mut vec![], &mut seq_list);
+            seq_list
+        }
+
+        // seq が現在の状態、seq_list が結果の蓄積物
+        fn exec_rec(&self, seq: &mut Vec<usize>, seq_list: &mut Vec<Vec<usize>>) {
+            if seq.len() == self.r {
+                // ここがforループの中のようなもの
+                seq_list.push(seq.clone());
+                return;
+            }
+
+            for i in 0..self.n {
+                seq.push(i);
+                self.exec_rec(seq, seq_list);
+                seq.pop();
+            }
+        }
+        // for x in 0..n{
+        //     for y in 0..n{
+        //         for z in 0..n{
+        //             // ここの処理 が `if seq.len() == self.r` の中の処理に対応している
+        //         }
+        //     }
+        // }
+    }
+    let dfs = DfsPermutationsWithReplacement::new(n, r);
+    dfs.exec()
 }
 
-// これは非再帰（Stack）だと書きにくい？
-impl DfsMultiLoop {
-    fn new(n: usize, r: usize) -> Self {
-        Self {
-            n,
-            r,
-            seq_list: vec![],
-        }
-    }
-    fn exec(&mut self) {
-        self.exec_rec(&mut vec![]);
+fn permutations(n: usize, r: usize) -> Vec<Vec<usize>> {
+    struct DfsPermutations {
+        // n個のものからr個取る順列 nPr
+        n: usize,
+        r: usize,
     }
 
-    /// 計算量: O(n^r)
-    fn exec_rec(&mut self, seq: &mut Vec<usize>) {
-        if seq.len() == self.r {
-            // ここがforループの中のようなもの
-            self.seq_list.push(seq.clone());
-            return;
+    impl DfsPermutations {
+        fn new(n: usize, r: usize) -> Self {
+            Self { n, r }
         }
 
-        for i in 0..self.n {
-            seq.push(i);
-            self.exec_rec(seq);
-            seq.pop();
+        fn exec(&self) -> Vec<Vec<usize>> {
+            let mut seq_list = vec![];
+            self.exec_rec(&mut vec![], &mut vec![false; self.n], &mut seq_list);
+            seq_list
+        }
+
+        // seq, visited が現在の状態、seq_list が結果の蓄積物
+        fn exec_rec(
+            &self,
+            seq: &mut Vec<usize>,
+            visited: &mut Vec<bool>,
+            seq_list: &mut Vec<Vec<usize>>,
+        ) {
+            if seq.len() == self.r {
+                // ここがforループの中のようなもの
+                seq_list.push(seq.clone());
+                return;
+            }
+
+            for i in 0..self.n {
+                if visited[i] {
+                    continue;
+                }
+                seq.push(i);
+                visited[i] = true;
+                self.exec_rec(seq, visited, seq_list);
+                visited[i] = false;
+                seq.pop();
+            }
         }
     }
+    let dfs = DfsPermutations::new(n, r);
+    dfs.exec()
 }
 
-// for x in 0..n{
-//     for y in 0..n{
-//         for z in 0..n{
-//             // ここの処理 が `if seq.len() == self.r` の中の処理に対応している
-//         }
-//     }
-// }
+fn combinations_with_replacement(n: usize, r: usize) -> Vec<Vec<usize>> {
+    struct DfsCombinationsWithReplacement {
+        // n個のものからr個取る重複組合せ n+r-1 C r-1
+        n: usize,
+        r: usize,
+    }
 
+    impl DfsCombinationsWithReplacement {
+        fn new(n: usize, r: usize) -> Self {
+            Self { n, r }
+        }
+
+        fn exec(&self) -> Vec<Vec<usize>> {
+            let mut seq_list = vec![];
+            self.exec_rec(&mut vec![], &mut seq_list);
+            seq_list
+        }
+
+        // seq が現在の状態、seq_list が結果の蓄積物
+        fn exec_rec(&self, seq: &mut Vec<usize>, seq_list: &mut Vec<Vec<usize>>) {
+            if seq.len() == self.r {
+                // ここがforループの中のようなもの
+                seq_list.push(seq.clone());
+                return;
+            }
+
+            let max = seq.last().copied().unwrap_or(0);
+
+            for i in max..self.n {
+                seq.push(i);
+                self.exec_rec(seq, seq_list);
+                seq.pop();
+            }
+        }
+    }
+    let dfs = DfsCombinationsWithReplacement::new(n, r);
+    dfs.exec()
+}
+
+fn combinations(n: usize, r: usize) -> Vec<Vec<usize>> {
+    struct DfsCombinations {
+        // n個のものからr個取る組合せ nCr
+        n: usize,
+        r: usize,
+    }
+
+    impl DfsCombinations {
+        fn new(n: usize, r: usize) -> Self {
+            Self { n, r }
+        }
+
+        fn exec(&self) -> Vec<Vec<usize>> {
+            let mut seq_list = vec![];
+            self.exec_rec(&mut vec![], &mut seq_list);
+            seq_list
+        }
+
+        // seq が現在の状態、seq_list が結果の蓄積物
+        fn exec_rec(&self, seq: &mut Vec<usize>, seq_list: &mut Vec<Vec<usize>>) {
+            if seq.len() == self.r {
+                // ここがforループの中のようなもの
+                seq_list.push(seq.clone());
+                return;
+            }
+
+            let begin = seq.last().copied().map(|x| x + 1).unwrap_or(0);
+
+            for i in begin..self.n {
+                seq.push(i);
+                self.exec_rec(seq, seq_list);
+                seq.pop();
+            }
+        }
+    }
+    let dfs = DfsCombinations::new(n, r);
+    dfs.exec()
+}
 #[cfg(test)]
 mod tests {
     use itertools::Itertools;
 
-    use super::DfsMultiLoop;
+    use super::*;
 
     #[test]
-    fn test_dfs_multi_loop() {
+    fn test_permutations_with_replacement() {
         // 2つのものから重複を許して3つ取る
         let n = 2;
         let r = 3;
 
-        let mut dfs = DfsMultiLoop::new(n, r);
-        dfs.exec();
-        let seq_list = dfs.seq_list;
+        let actual = permutations_with_replacement(n, r);
         let expected = std::iter::repeat(0..n)
             .take(r)
             .multi_cartesian_product()
             .collect_vec();
-        assert_eq!(seq_list, expected);
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn test_permutations() {
+        // 2つのものから重複を許して3つ取る
+        let n = 2;
+        let r = 3;
+
+        let actual = permutations(n, r);
+        let expected = (0..n).permutations(r).collect_vec();
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn test_combinations_with_replacement() {
+        let n = 5;
+        let r = 3;
+
+        let actual = combinations_with_replacement(n, r);
+        let expected = (0..n).combinations_with_replacement(r).collect_vec();
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn test_combinations() {
+        let n = 5;
+        let r = 3;
+
+        let actual = combinations(n, r);
+        let expected = (0..n).combinations(r).collect_vec();
+        assert_eq!(actual, expected);
     }
 }

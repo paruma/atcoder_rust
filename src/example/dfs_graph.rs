@@ -4,25 +4,28 @@ use crate::mylib::stack0::mod_stack::Stack;
 
 struct DfsGraph<'a> {
     adj: &'a [Vec<usize>],
-    visited: Vec<bool>,
 }
 
 impl DfsGraph<'_> {
     fn new(adj: &[Vec<usize>]) -> DfsGraph<'_> {
         // adj.len() は グラフの頂点の数
-        DfsGraph {
-            adj,
-            visited: vec![false; adj.len()],
-        }
+        DfsGraph { adj }
+    }
+
+    fn exec_init(&mut self, v: usize) -> Vec<bool> {
+        let n_vertex = self.adj.len();
+        let mut visited = vec![false; n_vertex];
+        self.exec(v, &mut visited);
+        visited
     }
     /// 計算量: O(頂点の数 + 辺の数)
-    fn exec(&mut self, v: usize) {
+    fn exec(&mut self, v: usize, visited: &mut Vec<bool>) {
         // 行きがけ
-        self.visited[v] = true;
+        visited[v] = true;
 
         for &to in &self.adj[v] {
-            if !self.visited[to] {
-                self.exec(to);
+            if !visited[to] {
+                self.exec(to, visited);
             }
         }
         // 帰りがけ
@@ -74,12 +77,12 @@ mod tests {
         let edges = [(0, 1), (1, 2), (2, 0), (3, 4)];
         let adj = make_adj_from_directed(n_vertex, &edges);
         let mut dfs = DfsGraph::new(&adj);
-        dfs.exec(0);
-        assert_eq!(dfs.visited[0], true);
-        assert_eq!(dfs.visited[1], true);
-        assert_eq!(dfs.visited[2], true);
-        assert_eq!(dfs.visited[3], false);
-        assert_eq!(dfs.visited[4], false);
+        let visited = dfs.exec_init(0);
+        assert_eq!(visited[0], true);
+        assert_eq!(visited[1], true);
+        assert_eq!(visited[2], true);
+        assert_eq!(visited[3], false);
+        assert_eq!(visited[4], false);
     }
 
     #[allow(clippy::bool_assert_comparison)]
