@@ -60,6 +60,19 @@ impl Board {
         }
     }
 
+    fn remove_tile(&mut self, pos: Pos<usize>, tile: &Rect) -> bool {
+        for (y, x) in iproduct!(pos.y..pos.y + tile.height, pos.x..pos.x + tile.width) {
+            if !self.board[y][x] {
+                return false;
+            }
+        }
+        self.tile_area -= tile.area();
+        for (y, x) in iproduct!(pos.y..pos.y + tile.height, pos.x..pos.x + tile.width) {
+            self.board[y][x] = false;
+        }
+        true
+    }
+
     fn is_covered(&self) -> bool {
         self.tile_area == self.width * self.height
     }
@@ -126,6 +139,8 @@ impl Problem {
         }
     }
     fn solve(&self) -> Answer {
+        // itertools で全探索
+        // タイルの順番とタイルの向きを全列挙して、左上から（座標辞書順で）タイルをおいていけるか判定する
         let n = self.n_tiles;
         let field_size = self.field_size;
         let tiles = &self.tiles;
@@ -154,6 +169,166 @@ impl Problem {
 
         Answer { ans }
     }
+
+    fn solve2(&self) -> Answer {
+        // DFS を明示的に書く
+        let n = self.n_tiles;
+        let field_size = self.field_size;
+        let tiles = &self.tiles;
+
+        // actioned_tiles[0]: 0番目のタイルとその回転を入れた配列
+        let actioned_tiles = tiles
+            .iter()
+            .map(|tile| vec![*tile, tile.rev()])
+            .collect_vec();
+
+        let field = Field { field: field_size };
+
+        struct Dfs<'a> {
+            field: &'a Field,
+            actioned_tiles: &'a [Vec<Rect>],
+            n_tiles: usize,
+        }
+
+        impl<'a> Dfs<'a> {
+            fn new(field: &'a Field, actioned_tiles: &'a [Vec<Rect>]) -> Dfs<'a> {
+                Self {
+                    field,
+                    actioned_tiles,
+                    n_tiles: actioned_tiles.len(),
+                }
+            }
+
+            fn exec(&self) -> bool {
+                self.exec_rec(&mut vec![false; self.n_tiles], &mut vec![])
+            }
+
+            fn exec_rec(&self, visited: &mut Vec<bool>, mino_route: &mut Vec<Rect>) -> bool {
+                if mino_route.len() == self.n_tiles {
+                    return self.field.can_cover(mino_route);
+                }
+
+                for (i, mino_cand) in self.actioned_tiles.iter().enumerate() {
+                    if visited[i] {
+                        continue;
+                    }
+
+                    visited[i] = true;
+                    for mino in mino_cand {
+                        mino_route.push(*mino);
+                        if self.exec_rec(visited, mino_route) {
+                            return true;
+                        }
+                        mino_route.pop();
+                    }
+                    visited[i] = false;
+                }
+                false
+            }
+        }
+        let ans = Dfs::new(&field, &actioned_tiles).exec();
+
+        Answer { ans }
+    }
+
+    fn solve3(&self) -> Answer {
+        // 枝刈りをする
+        let n = self.n_tiles;
+        let field_size = self.field_size;
+        let tiles = &self.tiles;
+
+        // actioned_tiles[0]: 0番目のタイルとその回転を入れた配列
+        let actioned_tiles = tiles
+            .iter()
+            .map(|tile| vec![*tile, tile.rev()])
+            .collect_vec();
+
+        struct Dfs<'a> {
+            field_size: &'a Rect,
+            actioned_tiles: &'a [Vec<Rect>],
+            n_tiles: usize,
+        }
+
+        impl<'a> Dfs<'a> {
+            fn new(field_size: &'a Rect, actioned_tiles: &'a [Vec<Rect>]) -> Dfs<'a> {
+                Self {
+                    field_size,
+                    actioned_tiles,
+                    n_tiles: actioned_tiles.len(),
+                }
+            }
+
+            fn encode_pos(&self, pos_idx: usize) -> Pos<usize> {
+                let x = pos_idx % self.field_size.width;
+                let y = pos_idx / self.field_size.width;
+                Pos::new(x, y)
+            }
+
+            fn next_pos_idx(&self, pos_idx: usize, board: &Board) -> usize {
+                let mut pos_idx = pos_idx;
+                while {
+                    let pos = self.encode_pos(pos_idx);
+                    board.is_tile_pos(pos.x, pos.y) && pos_idx < self.field_size.area()
+                } {
+                    pos_idx += 1;
+                }
+
+                pos_idx
+            }
+
+            fn exec(&self) -> bool {
+                let width = self.field_size.width;
+                let height = self.field_size.height;
+                self.exec_rec(
+                    &mut vec![false; self.n_tiles],
+                    0,
+                    0,
+                    &mut Board::new(width, height),
+                )
+            }
+
+            fn exec_rec(
+                &self,
+                visited: &mut Vec<bool>,
+                cnt: usize,     // タイルをおいた回数
+                pos_idx: usize, // 次タイルを置く位置(座標の辞書順の何番目か)
+                board: &mut Board,
+            ) -> bool {
+                if board.is_covered() {
+                    return true;
+                }
+                // cnt: タイルをおいた回数
+                if cnt == self.n_tiles {
+                    return false;
+                }
+
+                let pos = self.encode_pos(pos_idx); // 次タイルを置く場所
+
+                for (tile_idx, tile_cand) in self.actioned_tiles.iter().enumerate() {
+                    if visited[tile_idx] {
+                        continue;
+                    }
+
+                    visited[tile_idx] = true;
+                    for tile in tile_cand {
+                        if board.can_put_tile(pos, tile) {
+                            board.put_tile(pos, tile);
+                            let next_pos_idx = self.next_pos_idx(pos_idx, board);
+                            if self.exec_rec(visited, cnt + 1, next_pos_idx, board) {
+                                return true;
+                            }
+                            board.remove_tile(pos, tile);
+                        }
+                    }
+                    visited[tile_idx] = false;
+                }
+                false
+            }
+        }
+        let ans = Dfs::new(&field_size, &actioned_tiles).exec();
+
+        Answer { ans }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -168,7 +343,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve3().print();
 }
 
 #[cfg(test)]
