@@ -75,10 +75,8 @@ mod tests {
     }
 
     #[allow(dead_code)]
-    fn make_random_problem() -> Problem {
+    fn make_random_problem(rng: &mut SmallRng) -> Problem {
         todo!()
-        // let mut rng = SmallRng::seed_from_u64(42);
-        // // let mut rng = SmallRng::from_entropy();
         // let n = rng.gen_range(1..=10);
         // let p = Problem { _a: n };
         // println!("{:?}", &p);
@@ -88,12 +86,13 @@ mod tests {
     #[allow(unreachable_code)]
     #[test]
     fn test_with_naive() {
-        return; // テスト実行するときはこの return を消す。
-        let num_tests = 1000;
+        let num_tests = 0;
         let max_wrong_case = 10; // この件数間違いが見つかったら打ち切り
+        let mut rng = SmallRng::seed_from_u64(42);
+        // let mut rng = SmallRng::from_entropy();
         let mut wrong_cases: Vec<WrongTestCase> = vec![];
         for _ in 0..num_tests {
-            let p = make_random_problem();
+            let p = make_random_problem(&mut rng);
             let result = check(&p);
             if let Some(wrong_test_case) = result {
                 wrong_cases.push(wrong_test_case);
