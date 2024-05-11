@@ -1,18 +1,34 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    k: i64,
+    xs: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            k: i64,
+            xs: [i64; n],
         }
-        Problem { _a }
+        Problem { n, k, xs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let mut cnt = 0;
+        let mut n_emtpy_seet = self.k;
+
+        for &x in &self.xs {
+            if n_emtpy_seet < x {
+                n_emtpy_seet = self.k;
+                cnt += 1;
+            }
+            n_emtpy_seet -= x;
+        }
+        cnt += 1;
+
+        let ans = cnt;
         Answer { ans }
     }
 

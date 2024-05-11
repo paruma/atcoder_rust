@@ -1,26 +1,67 @@
 //#[derive_readable]
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    xs: Vec<i64>,
 }
+
+use ac_library::ModInt998244353 as Mint;
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            xs: [i64; n]
         }
-        Problem { _a }
+        Problem { n, xs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let xs = &self.xs;
+        let cnt_digits_pow10 = xs
+            .iter()
+            .copied()
+            .map(|x| {
+                let cnt = to_base_n_value(x, 10).len();
+                // 10^cnt
+                Mint::new(10).pow(cnt as u64)
+            })
+            .collect_vec();
+
+        let cnt_digits_pow10_cumsum = CumSum::new(&cnt_digits_pow10);
+
+        let term1 = {
+            (0..n)
+                .map(|i| Mint::new(i as i64) * Mint::new(xs[i]))
+                .sum::<Mint>()
+        };
+        let term2 = {
+            (0..n)
+                .map(|i| -> ac_library::StaticModInt<ac_library::Mod998244353> {
+                    Mint::new(xs[i]) * cnt_digits_pow10_cumsum.range_sum(i + 1..)
+                })
+                .sum::<Mint>()
+        };
+        let ans = term1 + term2;
+        let ans = ans.val() as i64;
         Answer { ans }
     }
 
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
-        todo!();
-        // let ans = 0;
-        // Answer { ans }
+        let n = self.n;
+        let mut sum: Mint = Mint::new(0);
+        let xs = &self.xs;
+
+        for i in 0..n - 1 {
+            for j in i + 1..n {
+                let c = xs[i].to_string() + xs[j].to_string().as_str();
+                let c = c.parse::<i64>().unwrap();
+                sum += Mint::new(c);
+            }
+        }
+        let ans = sum.val() as i64;
+        Answer { ans }
     }
 }
 
@@ -76,19 +117,30 @@ mod tests {
 
     #[allow(dead_code)]
     fn make_random_problem(rng: &mut SmallRng) -> Problem {
-        todo!()
-        // let n = rng.gen_range(1..=10);
-        // let p = Problem { _a: n };
+        let n = rng.gen_range(2..=10000);
+        let xs = (0..n)
+            .map(|_| {
+                let x = rng.gen_range(0..=8);
+                let y = rng.gen_range(0..=9);
+                let z = 10_i64.pow(x as u32) * y;
+                if z == 0 {
+                    1
+                } else {
+                    z
+                }
+            })
+            .collect_vec();
+        let p = Problem { n, xs };
         // println!("{:?}", &p);
-        // p
+        p
     }
 
     #[allow(unreachable_code)]
     #[test]
     fn test_with_naive() {
-        let num_tests = 0;
+        let num_tests = 5;
         let max_wrong_case = 10; // この件数間違いが見つかったら打ち切り
-        let mut rng = SmallRng::seed_from_u64(42);
+        let mut rng = SmallRng::seed_from_u64(43);
         // let mut rng = SmallRng::from_entropy();
         let mut wrong_cases: Vec<WrongTestCase> = vec![];
         for _ in 0..num_tests {
@@ -171,3 +223,67 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+// ====== snippet ======
+use cumsum::*;
+pub mod cumsum {
+    use ac_library::ModInt998244353 as Mint;
+    use std::ops::{Bound, Range, RangeBounds};
+    pub struct CumSum {
+        pub cumsum: Vec<Mint>,
+    }
+    impl CumSum {
+        /// 計算量: O(|xs|)
+        pub fn new(xs: &[Mint]) -> CumSum {
+            let mut cumsum = vec![0.into(); xs.len() + 1];
+            for i in 1..xs.len() + 1 {
+                cumsum[i] = cumsum[i - 1] + xs[i - 1];
+            }
+            CumSum { cumsum }
+        }
+        fn open(&self, range: impl RangeBounds<usize>) -> Range<usize> {
+            use Bound::Excluded;
+            use Bound::Included;
+            use Bound::Unbounded;
+            let begin = match range.start_bound() {
+                Unbounded => 0,
+                Included(&x) => x,
+                Excluded(&x) => x + 1,
+            };
+            let end = match range.end_bound() {
+                Excluded(&x) => x,
+                Included(&x) => x + 1,
+                Unbounded => self.cumsum.len() - 1,
+            };
+            begin..end
+        }
+        /// 計算量: O(1)
+        pub fn range_sum(&self, range: impl RangeBounds<usize>) -> Mint {
+            let range = self.open(range);
+            self.cumsum[range.end] - self.cumsum[range.start]
+        }
+        pub fn prefix_sum(&self, end: usize) -> Mint {
+            self.cumsum[end]
+        }
+        pub fn suffix_sum(&self, begin: usize) -> Mint {
+            self.cumsum[self.cumsum.len() - 1] - self.cumsum[begin]
+        }
+    }
+}
+
+use positional_notation::*;
+#[allow(clippy::module_inception)]
+pub mod positional_notation {
+    pub fn eval_base_n_value(xs: &[i64], base: i64) -> i64 {
+        xs.iter().fold(0, |acc, &x| acc * base + x)
+    }
+    pub fn to_base_n_value(x: i64, base: i64) -> Vec<i64> {
+        let mut ret = vec![];
+        let mut x = x;
+        while x > 0 {
+            ret.push(x % base);
+            x /= base;
+        }
+        ret.reverse();
+        ret
+    }
+}

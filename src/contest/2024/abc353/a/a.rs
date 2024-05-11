@@ -1,18 +1,24 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    heights: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            heights: [i64; n],
         }
-        Problem { _a }
+        Problem { n, heights }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = self.heights[1..]
+            .iter()
+            .copied()
+            .position(|x| x > self.heights[0])
+            .map(|x| x + 1);
         Answer { ans }
     }
 
@@ -26,12 +32,13 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Option<usize>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        let msg = self.ans.map(|x| x as i64 + 1).unwrap_or(-1);
+        println!("{}", msg);
     }
 }
 

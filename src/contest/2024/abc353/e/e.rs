@@ -1,15 +1,17 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    strs: Vec<Vec<u8>>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            strs: [Bytes; n]
         }
-        Problem { _a }
+        Problem { n, strs }
     }
     fn solve(&self) -> Answer {
         let ans = 0;
