@@ -136,3 +136,17 @@ exe_release() {
         "$(git rev-parse --show-toplevel)/target/release/${contest}_${task}"
     fi
 }
+
+make_test(){
+    if [ ! -d 'test' ]; then
+        mkdir 'test'
+    fi
+
+    name=$1
+    if [ ! -f "test/${name}.in" ]; then
+        touch "test/${name}.in"
+    fi
+    if [ ! -f "test/${name}.out" ]; then
+        touch "test/${name}.out"
+    fi
+}
