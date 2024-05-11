@@ -35,13 +35,14 @@ impl Problem {
         }
     }
     fn solve(&self) -> Answer {
+        // 愚直実装(TLE)
         // 商品は玉、袋は箱として扱う
         let n_balls = self.n_balls;
         let n_boxes = self.n_boxes;
         let weight_list = &self.weight_list;
 
         let ans = (0..n_balls)
-            .combinations(n_boxes)
+            .combinations(n_boxes) // 箱には1つ以上の玉が入っていることが条件→最初からそれぞれの箱に玉1を入れてしまう。最初に箱に入れる玉を選ぶ。
             .map(|init_balls| {
                 let init_balls_set = init_balls.iter().copied().collect::<HashSet<_>>();
                 let other_balls = (0..n_balls)
@@ -115,6 +116,7 @@ impl Problem {
     }
 
     fn solve2(&self) -> Answer {
+        // スターリング数の数だけ全探索（枝刈りあり）
         // 商品は玉、袋は箱として扱う
 
         let n_balls = self.n_balls;
@@ -241,6 +243,59 @@ impl Problem {
 
         Answer { ans }
     }
+
+    fn solve3(&self) -> Answer {
+        let n_balls = self.n_balls;
+        let n_boxes = self.n_boxes;
+        let weight_list = &self.weight_list;
+
+        let sum_sq = {
+            let mut dp = vec![vec![0; 1 << n_balls]; n_boxes + 1]; // 重みの2乗の総和
+
+            // DPの定義
+            // dp[k][S]: 箱がk個あるとき、集合Sに入っているボールをk個の箱に入れたときの各箱の重みの2乗の総和の最小値
+            // 初期値
+            // dp[1][S] = Sに入っているボールの重さの総和の2乗
+            // 遷移
+            // dp[k+1][S] = min_{A ⊆ S} (dp[k][S-A] + dp[1][A])
+            // 答え
+            // dp[n_boxes][1<<n_balls-1]
+
+            for s in 0..(1 << n_balls) {
+                let weight_sum = (0..n_balls)
+                    .filter(|&i| ((s >> i) & 1) == 1)
+                    .map(|i| self.weight_list[i])
+                    .sum::<i64>();
+                dp[1][s] = weight_sum * weight_sum;
+            }
+
+            for k in 1..n_boxes {
+                for s in 0..(1 << n_balls) {
+                    // 箱を1個追加したとき、その追加した箱に入れるボールの集合(sの部分集合)を全探索して最小のものを計算
+                    dp[k + 1][s] = std::iter::successors(Some(s), |x| {
+                        if *x == 0 {
+                            None
+                        } else {
+                            Some((x - 1) & s)
+                        }
+                    })
+                    .map(|t| dp[k][s & (!t)] + dp[1][t])
+                    .min()
+                    .unwrap();
+                }
+            }
+            dp[n_boxes][(1 << n_balls) - 1]
+        };
+
+        let weight_sum = weight_list.iter().sum::<i64>();
+
+        let n_boxes_i64 = n_boxes as i64;
+        let n_boxes_f64 = n_boxes as f64;
+        let ans =
+            (n_boxes_i64 * sum_sq - weight_sum * weight_sum) as f64 / (n_boxes_f64 * n_boxes_f64);
+
+        Answer { ans }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -255,7 +310,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve2().print();
+    Problem::read().solve3().print();
 }
 #[cfg(test)]
 mod tests {
