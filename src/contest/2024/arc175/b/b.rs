@@ -1,17 +1,74 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    n: usize,
+    exchange_cost: i64,
+    update_cost: i64,
+    xs: Vec<u8>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n: usize,
+            exchange_cost: i64,
+            update_cost: i64,
+            xs: Bytes,
         }
-        Problem { _a }
+        Problem {
+            n,
+            exchange_cost,
+            update_cost,
+            xs,
+        }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        // 解説AC (解説そのまま)
+        let n = self.n;
+        let exchange_cost = self.exchange_cost;
+        let update_cost = self.update_cost;
+        let xs = &self.xs;
+
+        let mut xs = xs
+            .iter()
+            .copied()
+            .map(|ch| match ch {
+                b'(' => 1_i64,
+                b')' => -1_i64,
+                _ => unreachable!(),
+            })
+            .collect_vec();
+
+        let cnt_1 = xs.iter().copied().filter(|&x| x == 1).count();
+        let cnt_m1 = xs.iter().copied().filter(|&x| x == -1).count();
+
+        let mut cnt_update = 0;
+
+        if cnt_m1 > cnt_1 {
+            // 左側の -1 を 1 にする
+            cnt_update = (cnt_m1 - cnt_1) / 2;
+            for x in xs.iter_mut().filter(|x| **x == -1).take(cnt_update) {
+                *x = 1;
+            }
+        } else {
+            // cnt_1 >= cnt_m1
+            // 右側の 1 を -1 にする
+            cnt_update = (cnt_1 - cnt_m1) / 2;
+            for x in xs.iter_mut().rev().filter(|x| **x == 1).take(cnt_update) {
+                *x = -1;
+            }
+        }
+
+        let exchange_cost = i64::min(exchange_cost, update_cost * 2);
+        let cumsum_xs = CumSum::new(&xs).cumsum;
+        let min_cumsum_xs = cumsum_xs.iter().copied().min().unwrap();
+
+        let cnt_exchange = if min_cumsum_xs >= 0 {
+            0
+        } else {
+            div_ceil(-min_cumsum_xs, 2)
+        };
+
+        let ans = cnt_exchange * exchange_cost + (cnt_update as i64) * update_cost;
         Answer { ans }
     }
 }
@@ -45,6 +102,7 @@ mod tests {
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::Itertools;
+use num_integer::div_ceil;
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,
@@ -95,3 +153,48 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+
+use cumsum::*;
+pub mod cumsum {
+    use std::ops::{Bound, Range, RangeBounds};
+    pub struct CumSum {
+        pub cumsum: Vec<i64>,
+    }
+    impl CumSum {
+        /// 計算量: O(|xs|)
+        pub fn new(xs: &[i64]) -> CumSum {
+            let mut cumsum = vec![0; xs.len() + 1];
+            for i in 1..xs.len() + 1 {
+                cumsum[i] = cumsum[i - 1] + xs[i - 1];
+            }
+            CumSum { cumsum }
+        }
+        fn open(&self, range: impl RangeBounds<usize>) -> Range<usize> {
+            use Bound::Excluded;
+            use Bound::Included;
+            use Bound::Unbounded;
+            let begin = match range.start_bound() {
+                Unbounded => 0,
+                Included(&x) => x,
+                Excluded(&x) => x + 1,
+            };
+            let end = match range.end_bound() {
+                Excluded(&x) => x,
+                Included(&x) => x + 1,
+                Unbounded => self.cumsum.len() - 1,
+            };
+            begin..end
+        }
+        /// 計算量: O(1)
+        pub fn range_sum(&self, range: impl RangeBounds<usize>) -> i64 {
+            let range = self.open(range);
+            self.cumsum[range.end] - self.cumsum[range.start]
+        }
+        pub fn prefix_sum(&self, end: usize) -> i64 {
+            self.cumsum[end]
+        }
+        pub fn suffix_sum(&self, begin: usize) -> i64 {
+            self.cumsum[self.cumsum.len() - 1] - self.cumsum[begin]
+        }
+    }
+}
