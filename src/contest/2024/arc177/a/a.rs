@@ -1,18 +1,77 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n_coins: Vec<i64>,
+    n_shop: usize,
+    price_list: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n_coins: [i64; 6],
+            n_shop: usize,
+            price_list: [i64; n_shop],
         }
-        Problem { _a }
+        Problem {
+            n_coins,
+            n_shop,
+            price_list,
+        }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let coin_vals = [1, 5, 10, 50, 100, 500];
+
+        let ans = self
+            .price_list
+            .iter()
+            .copied()
+            .permutations(self.n_shop)
+            .map(|lst| {
+                let mut n_coins = self.n_coins.clone();
+                for price in lst {
+                    let mut current_price = price;
+                    for coin_i in (0..6).rev() {
+                        // 残り枚数: n_coins[coin_i]
+                        // コインの価値: coin_vals[coin_i]
+
+                        let req = current_price / coin_vals[coin_i];
+                        let n_coin_to_use = std::cmp::min(req, n_coins[coin_i]);
+                        n_coins[coin_i] -= n_coin_to_use;
+                        current_price -= n_coin_to_use * coin_vals[coin_i];
+                    }
+                    if current_price != 0 {
+                        return false;
+                    }
+                }
+                true
+            })
+            .collect_vec();
+
+        let ans = self
+            .price_list
+            .iter()
+            .copied()
+            .permutations(self.n_shop)
+            .any(|lst| {
+                let mut n_coins = self.n_coins.clone();
+                for price in lst {
+                    let mut current_price = price;
+                    for coin_i in (0..6).rev() {
+                        // 残り枚数: n_coins[coin_i]
+                        // コインの価値: coin_vals[coin_i]
+
+                        let req = current_price / coin_vals[coin_i];
+                        let n_coin_to_use = std::cmp::min(req, n_coins[coin_i]);
+                        n_coins[coin_i] -= n_coin_to_use;
+                        current_price -= n_coin_to_use * coin_vals[coin_i];
+                    }
+                    if current_price != 0 {
+                        return false;
+                    }
+                }
+                true
+            });
         Answer { ans }
     }
 
@@ -26,12 +85,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_yesno(self.ans);
     }
 }
 

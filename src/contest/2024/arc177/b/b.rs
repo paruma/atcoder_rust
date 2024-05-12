@@ -1,18 +1,37 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    ideal_state: Vec<bool>, // true が on、false が off
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            ideal_state: Bytes,
         }
-        Problem { _a }
+        let ideal_state = ideal_state.iter().copied().map(|x| x == b'1').collect_vec();
+        Problem { n, ideal_state }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let ideal_state = &self.ideal_state;
+        let mut current_state = vec![false; n];
+
+        let mut ans: Vec<u8> = vec![];
+
+        for i in (0..n).rev() {
+            if current_state[i] == ideal_state[i] {
+                continue;
+            }
+            let switch_name = if ideal_state[i] { b'A' } else { b'B' };
+            for j in 0..=i {
+                current_state[j] = !current_state[j];
+                ans.push(switch_name);
+            }
+        }
+
         Answer { ans }
     }
 
@@ -26,12 +45,13 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<u8>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        println!("{}", self.ans.len());
+        print_bytes(&self.ans);
     }
 }
 
