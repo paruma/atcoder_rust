@@ -171,12 +171,49 @@ impl Problem {
         *dp.at(start)
     }
 
+    fn solve_sub2(&self, my_color: u8, start: Pos<i64>, goal: Pos<i64>) -> i64 {
+        let grid = Grid::new(self.grid.clone());
+        let mut dp = vec![vec![i64::MAX; self.n]; self.n];
+        let mut visited = vec![vec![false; self.n]; self.n];
+        let mut open: VecDeque<Pos<i64>> = VecDeque::new();
+        *dp.at_mut(start) = 0;
+        *visited.at_mut(start) = true;
+        open.push_back(start);
+
+        while let Some(current) = open.pop_back() {
+            for next in Pos::around4_pos_iter(current).filter(|next| grid.is_within(*next)) {
+                if *visited.at(next) {
+                    continue;
+                }
+                *visited.at_mut(next) = true;
+                if *grid.at(next) == my_color {
+                    *dp.at_mut(next) = *dp.at(current);
+                    open.push_back(next);
+                } else {
+                    *dp.at_mut(next) = *dp.at(current) + 1;
+                    open.push_front(next);
+                }
+            }
+        }
+
+        *dp.at(goal)
+    }
+
     fn solve(&self) -> Answer {
         let n = self.n as i64;
         let cnt_red = self.solve_sub(b'R', Pos::new(0, 0), Pos::new(n - 1, n - 1));
         //dbg!();
         let cnt_blue = self.solve_sub(b'B', Pos::new(n - 1, 0), Pos::new(0, n - 1));
         //dbg!();
+        let ans = cnt_red + cnt_blue;
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // 01-BFS のリファクタリング(UF使うのやめた)
+        let n = self.n as i64;
+        let cnt_red = self.solve_sub2(b'R', Pos::new(0, 0), Pos::new(n - 1, n - 1));
+        let cnt_blue = self.solve_sub2(b'B', Pos::new(n - 1, 0), Pos::new(0, n - 1));
         let ans = cnt_red + cnt_blue;
         Answer { ans }
     }
@@ -201,7 +238,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
