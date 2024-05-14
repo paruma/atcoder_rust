@@ -3,6 +3,7 @@ use cargo_snippet::snippet;
 #[snippet(prefix = "use coordinate_compression::*;")]
 pub mod coordinate_compression {
     use itertools::Itertools;
+    use superslice::Ext;
 
     pub struct CoordinateCompression {
         space: Vec<i64>,
@@ -18,6 +19,18 @@ pub mod coordinate_compression {
         /// 計算量: O(log(|space|))
         pub fn compress(&self, x: i64) -> usize {
             self.space.binary_search(&x).unwrap()
+        }
+
+        /// 座標圧縮前の空間のうち x 以上である最小の値を座標圧縮したものを返す
+        /// 計算量: O(log(|space|))
+        pub fn compress_floor(&self, x: i64) -> usize {
+            self.space.upper_bound(&x) - 1
+        }
+
+        /// 座標圧縮前の空間のうち x 以下である最大の値を座標圧縮したものを返す
+        /// 計算量: O(log(|space|))
+        pub fn compress_ceil(&self, x: i64) -> usize {
+            self.space.lower_bound(&x)
         }
 
         /// 計算量: O(|xs|log(|space|))
@@ -52,5 +65,32 @@ mod test {
         assert_eq!(compressed_xs1, [0, 3, 1, 6, 7, 2, 3]);
         assert_eq!(cc.decompress(3), 10);
         assert_eq!(cc.space_size(), 8);
+
+        // 圧縮前: 1, 5, 8, 10, 11, 12, 32, 99
+        // 圧縮後: 0, 1, 2,  3,  4,  5,  6,  7
+        assert_eq!(cc.compress(1), 0);
+        assert_eq!(cc.compress(5), 1);
+        assert_eq!(cc.compress(8), 2);
+        assert_eq!(cc.compress(10), 3);
+        assert_eq!(cc.compress(11), 4);
+        assert_eq!(cc.compress(12), 5);
+        assert_eq!(cc.compress(32), 6);
+        assert_eq!(cc.compress(99), 7);
+
+        // 圧縮前: 1, 5, 8, 10, 11, 12, 32, 99
+        // 圧縮後: 0, 1, 2,  3,  4,  5,  6,  7
+        assert_eq!(cc.compress_floor(9), 2);
+        assert_eq!(cc.compress_floor(10), 3);
+        assert_eq!(cc.compress_floor(11), 4);
+        assert_eq!(cc.compress_floor(12), 5);
+        assert_eq!(cc.compress_floor(13), 5);
+
+        // 圧縮前: 1, 5, 8, 10, 11, 12, 32, 99
+        // 圧縮後: 0, 1, 2,  3,  4,  5,  6,  7
+        assert_eq!(cc.compress_ceil(9), 3);
+        assert_eq!(cc.compress_ceil(10), 3);
+        assert_eq!(cc.compress_ceil(11), 4);
+        assert_eq!(cc.compress_ceil(12), 5);
+        assert_eq!(cc.compress_ceil(13), 6);
     }
 }
