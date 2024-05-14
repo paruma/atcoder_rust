@@ -14,6 +14,7 @@ impl Problem {
         Problem { n, xs }
     }
     fn solve(&self) -> Answer {
+        // ソートして二分探索
         let n = self.n;
         let xs = &self.xs;
         let xs = xs.iter().copied().sorted().collect_vec();
@@ -28,12 +29,74 @@ impl Problem {
                     //
                     let current = xs[i];
                     let xs_sub = &xs[i + 1..];
-                    // 10^8 - A_i より大きいのがいくつあるか
+                    // 10^8 - A_i 以上のがいくつあるか
                     let cnt = lower_bound(xs_sub, m - current);
                     xs_sub.len() - cnt
                 })
                 .sum::<usize>() as i64
                 * m
+        };
+        let ans = term1 - term2;
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // BIT を使う
+        let n = self.n;
+        let xs = &self.xs;
+        let xs = xs.iter().copied().sorted().collect_vec();
+
+        let term1 = (n as i64 - 1) * xs.iter().sum::<i64>();
+
+        let term2 = {
+            let m = 100_000_000; //10^8
+
+            // A_i + A_j >= 10^8, i<j となる (i,j)の数
+            let cnt = {
+                let cc = CoordinateCompression::new(
+                    &xs.iter().copied().flat_map(|x| [x, m - x]).collect_vec(),
+                );
+                let mut bit = FenwickTree::new(cc.space_size(), 0);
+                let xs_cc = cc.compress_vec(&xs);
+                let mut buf = vec![];
+                for (x, x_cc) in izip!(xs, xs_cc) {
+                    buf.push(bit.sum(cc.compress(m - x)..));
+                    bit.add(x_cc, 1);
+                }
+
+                buf.iter().sum::<i64>()
+            };
+            cnt * m
+        };
+        let ans = term1 - term2;
+        Answer { ans }
+    }
+
+    fn solve3(&self) -> Answer {
+        // BIT を使う (座標圧縮改良)
+        let n = self.n;
+        let xs = &self.xs;
+        let xs = xs.iter().copied().sorted().collect_vec();
+
+        let term1 = (n as i64 - 1) * xs.iter().sum::<i64>();
+
+        let term2 = {
+            let m = 100_000_000; //10^8
+
+            // A_i + A_j >= 10^8, i<j となる (i,j)の数
+            let cnt = {
+                let cc = CoordinateCompression::new(&xs);
+                let mut bit = FenwickTree::new(cc.space_size(), 0);
+                let xs_cc = cc.compress_vec(&xs);
+                let mut buf = vec![];
+                for (x, x_cc) in izip!(xs, xs_cc) {
+                    buf.push(bit.sum(cc.compress_ceil(m - x)..));
+                    bit.add(x_cc, 1);
+                }
+
+                buf.iter().sum::<i64>()
+            };
+            cnt * m
         };
         let ans = term1 - term2;
         Answer { ans }
@@ -59,7 +122,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve3().print();
 }
 
 #[cfg(test)]
@@ -138,6 +201,7 @@ mod tests {
     }
 }
 
+use ac_library::FenwickTree;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
@@ -247,4 +311,46 @@ where
 pub fn lower_bound<T: PartialOrd>(xs: &[T], key: T) -> usize {
     let pred = |i: i64| xs[i as usize] >= key;
     bin_search(xs.len() as i64, -1_i64, pred) as usize
+}
+
+use coordinate_compression::*;
+pub mod coordinate_compression {
+    use itertools::Itertools;
+    use superslice::*;
+
+    pub struct CoordinateCompression {
+        space: Vec<i64>,
+    }
+    impl CoordinateCompression {
+        /// 計算量: O(|space|log(|space|))
+        pub fn new(space: &[i64]) -> Self {
+            let space = space.iter().copied().sorted().dedup().collect_vec();
+            Self { space }
+        }
+        /// 計算量: O(log(|space|))
+        pub fn compress(&self, x: i64) -> usize {
+            self.space.binary_search(&x).unwrap()
+        }
+        /// 計算量: O(log(|space|))
+        pub fn compress_floor(&self, x: i64) -> usize {
+            self.space.upper_bound(&x) - 1
+        }
+
+        /// 計算量: O(log(|space|))
+        pub fn compress_ceil(&self, x: i64) -> usize {
+            self.space.lower_bound(&x)
+        }
+
+        /// 計算量: O(|xs|log(|space|))
+        pub fn compress_vec(&self, xs: &[i64]) -> Vec<usize> {
+            xs.iter().copied().map(|x| self.compress(x)).collect_vec()
+        }
+        /// 計算量: O(1)
+        pub fn decompress(&self, i: usize) -> i64 {
+            self.space[i]
+        }
+        pub fn space_size(&self) -> usize {
+            self.space.len()
+        }
+    }
 }

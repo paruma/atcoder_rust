@@ -26,9 +26,37 @@ impl Problem {
             }
             n_emtpy_seet -= x;
         }
+
         cnt += 1;
 
         let ans = cnt;
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // 問題文をそのまま実装
+        let mut cnt = 0; // アトラクションをスタートさせた回数
+        let mut n_emtpy_seet = self.k;
+
+        let mut group_iter = self.xs.iter().copied().peekable();
+
+        loop {
+            if let Some(&x) = group_iter.peek() {
+                if n_emtpy_seet < x {
+                    n_emtpy_seet = self.k;
+                    cnt += 1;
+                } else {
+                    group_iter.next();
+                    n_emtpy_seet -= x;
+                }
+            } else {
+                cnt += 1;
+                break;
+            }
+        }
+
+        let ans = cnt;
+
         Answer { ans }
     }
 
@@ -52,7 +80,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]

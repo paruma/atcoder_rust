@@ -1369,7 +1369,7 @@ regex = "=1.9.1"
 # permutohedron = "=0.2.4"
 
 # スライスの拡張
-# superslice = "=1.0.0"
+superslice = "=1.0.0"
 
 # イテレータの拡張
 itertools = "=0.11.0"
