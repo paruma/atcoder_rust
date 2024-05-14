@@ -24,6 +24,7 @@ build-backend = "hatchling.build"
 managed = true
 dev-dependencies = [
     "jupyterlab>=4.1.6",
+    "ruff>=0.4.4",
 ]
 
 [tool.hatch.metadata]
