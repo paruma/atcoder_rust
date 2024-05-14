@@ -3,14 +3,14 @@ from math import prod, gcd, lcm, comb, perm, factorial, log10, log2
 import functools
 
 # === 総和・総積 ===
-prod([1, 2, 3, 4]) == 24
-sum([1, 2, 3, 4]) == 10
+assert prod([1, 2, 3, 4]) == 24
+assert sum([1, 2, 3, 4]) == 10
 
 
 # === modint ===
 # from math import pow をすると、組み込みの pow が上書きされて↓がエラーになるので注意
 # 2^{-1}
-pow(2, -1, 998244353) == 499122177
+assert pow(2, -1, 998244353) == 499122177
 
 
 # 有理数復元
@@ -34,24 +34,26 @@ def f(x: int) -> int:
 # === gcd/ lcm ===
 
 # gcd, lcm は複数引数に対応している
-lcm(*range(1, 10)) == 2520  # lcm(1, 2,..., 9)
+assert lcm(*range(1, 10)) == 2520  # lcm(1, 2,..., 9)
 
 
 # === reduce の使い方 ===
 
-functools.reduce(lambda x, y: x + y, [1, 2, 3, 4]) == 10
+assert functools.reduce(lambda x, y: x + y, [1, 2, 3, 4]) == 10
 
 # === 素数/素因数分解 ===
 
 # 素因数分解は linux の factor コマンドでもできる
 from sympy import factorint, primerange, primepi, prime, primorial, totient
 
-factorint(24) == {2: 3, 3: 1}
-list(primerange(7, 18)) == [7, 11, 13, 17]
-prime(3) == 5  # 3番目の素数
-primepi(12) == 5  # 12以下の素数の数 (2, 3, 5, 7, 11)
-primorial(3) == 30  # 2 * 3 * 5 =30 (素数階乗)
-totient(6) == 2  # オイラーのトーシェント関数。[0, 6) のうち 6 と互いに素な数は2つ
+assert factorint(24) == {2: 3, 3: 1}
+assert list(primerange(7, 18)) == [7, 11, 13, 17]
+assert prime(3) == 5  # 3番目の素数
+assert primepi(12) == 5  # 12以下の素数の数 (2, 3, 5, 7, 11)
+assert primorial(3) == 30  # 2 * 3 * 5 =30 (素数階乗)
+assert (
+    totient(6) == 2
+)  # オイラーのトーシェント関数。[0, 6) のうち 6 と互いに素な数は2つ
 
 # === ランダム ===
 
@@ -66,12 +68,13 @@ random.randrange(10, 20, 2)  # step=2
 random.random() < 0.3  # bool をランダムに生成 (30%でtrue)
 
 # === 写像12相 ===
-perm(5, 3) == 60
-comb(5, 3) == 10
+assert perm(5, 3) == 60
+assert comb(5, 3) == 10
 
 # 以下の関数の計算は速くはないので注意
 
-def num_bij(ball: int, box: int) -> int:
+
+def num_surj(ball: int, box: int) -> int:
     return sum((-1) ** (box - i) * comb(box, i) * i**ball for i in range(0, box + 1))
 
 
@@ -95,7 +98,7 @@ def partition(ball: int, box: int) -> int:
     return partition(ball, box - 1) + partition(ball - box, box)
 
 
-stirling_s2(5, 3) == 25
-num_bij(5, 3) == 150
-bell(5, 3) == 41
-partition(5, 3) == 5
+assert num_surj(5, 3) == 150
+assert stirling_s2(5, 3) == 25
+assert bell(5, 3) == 41
+assert partition(5, 3) == 5
