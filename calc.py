@@ -1,4 +1,11 @@
 # 電卓
+
+# TAB補完の有効化
+import rlcompleter
+import readline
+readline.parse_and_bind('tab: complete')
+
+
 from math import prod, gcd, lcm, comb, perm, factorial, log10, log2
 import functools
 
