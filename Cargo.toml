@@ -758,9 +758,9 @@ path = "src/contest/2023/abc326/d/d.rs"
 # name = "abc325_d"
 # path = "src/contest/2023/abc325/d/d.rs"
 
-# [[bin]]
-# name = "abc325_e"
-# path = "src/contest/2023/abc325/e/e.rs"
+[[bin]]
+name = "abc325_e"
+path = "src/contest/2023/abc325/e/e.rs"
 
 # [[bin]]
 # name = "arc167_a"

@@ -73,7 +73,7 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
-        // ダイクストラ法 頂点倍化解法
+        // ダイクストラ法 頂点倍化解法 O(|E|log|V|)
         let n_cities = self.n_cities;
 
         // 頂点0 からのコスト
@@ -104,6 +104,40 @@ impl Problem {
         let ans = min(dp_last_car, dp_last_train).get_fin();
         Answer { ans }
     }
+
+    fn solve2(&self) -> Answer {
+        // ダイクストラ法 頂点倍化解法 (O(|V|^2))
+        let n_cities = self.n_cities;
+
+        // 頂点0 からのコスト
+        let dp: Vec<ExtInt> = {
+            let init_pos = self.encode(Car(0)); // 0
+            let mut dp: Vec<ExtInt> = vec![Inf; n_cities * 2]; // init_pos からの距離
+            let mut fixed: Vec<bool> = vec![false; n_cities * 2];
+            dp[init_pos] = Fin(0);
+
+            for _ in 0..n_cities * 2 {
+                let min_v = (0..n_cities * 2)
+                    .filter(|i| !fixed[*i])
+                    .min_by_key(|i| dp[*i])
+                    .unwrap();
+
+                for next in 0..n_cities * 2 {
+                    if fixed[next] {
+                        continue;
+                    }
+                    dp[next] = min(dp[next], dp[min_v] + self.edge_weight(min_v, next));
+                }
+                fixed[min_v] = true;
+            }
+            dp
+        };
+
+        let dp_last_car = dp[self.encode(Car(n_cities - 1))];
+        let dp_last_train = dp[self.encode(Train(n_cities - 1))];
+        let ans = min(dp_last_car, dp_last_train).get_fin();
+        Answer { ans }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -118,7 +152,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
