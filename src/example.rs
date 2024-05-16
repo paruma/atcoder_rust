@@ -7,3 +7,4 @@ mod knapsack;
 mod kruskal;
 mod random;
 mod shakutori;
+mod shortest_path;
