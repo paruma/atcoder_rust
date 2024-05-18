@@ -1,18 +1,44 @@
 //#[derive_readable]
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct User {
+    name: String,
+    rate: i64,
+}
+
+impl User {
+    fn read() -> Self {
+        input! {
+            name: String,
+            rate: i64,
+        }
+        User { name, rate }
+    }
+}
+
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    users: Vec<User>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
         }
-        Problem { _a }
+        let users = (0..n).map(|_| User::read()).collect_vec();
+        Problem { n, users }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let user_sorted = self
+            .users
+            .iter()
+            .sorted_by_key(|user| &user.name)
+            .collect_vec();
+
+        let sum = user_sorted.iter().map(|user| user.rate).sum::<i64>();
+        let ans = user_sorted[(sum as usize) % self.n].name.clone();
         Answer { ans }
     }
 
@@ -26,7 +52,7 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: String,
 }
 
 impl Answer {

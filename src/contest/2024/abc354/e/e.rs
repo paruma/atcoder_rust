@@ -1,18 +1,116 @@
-//#[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Card {
+    front: i64,
+    back: i64,
+}
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    cards: Vec<Card>,
+}
+
+struct State {
+    bit: u32,
+}
+
+impl State {
+    fn new(n: usize) -> Self {
+        let bit = (1 << n) - 1;
+        State { bit }
+    }
+
+    fn remove2(&self, i: usize, j: usize) -> State {
+        let next_bit = self.bit & (!(1 << i)) & (!(1 << j));
+        State { bit: next_bit }
+    }
+
+    fn has_finished(&self, cards: &[Card]) -> bool {
+        let remain_cards = (0..cards.len())
+            .filter(|i| {
+                (self.bit >> i & 1) == 1 // まだ残っている
+            })
+            .map(|i| cards[i])
+            .collect_vec();
+
+        let dup_front = remain_cards.iter().duplicates_by(|card| card.front).count() >= 1;
+        let dup_back = remain_cards.iter().duplicates_by(|card| card.back).count() >= 1;
+        !(dup_front || dup_back)
+    }
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            cards: [Card; n],
         }
-        Problem { _a }
+        Problem { n, cards }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        // 表が同じ/裏が同じでgroup by
+
+        struct Rec {
+            n: usize,
+            cards: Vec<Card>,
+        }
+
+        impl Rec {
+            fn new(n: usize, cards: Vec<Card>) -> Self {
+                Rec { n, cards }
+            }
+
+            fn rec(&self, state: &State, tern: usize, dp: &mut Vec<usize>) -> usize {
+                let player = tern % 2;
+
+                if dp[state.bit as usize] != 100 {
+                    return dp[state.bit as usize];
+                }
+
+                if state.has_finished(&self.cards) {
+                    let ans = 1 - player;
+                    dp[state.bit as usize] = ans;
+                    return ans;
+                }
+
+                let remain_card_i = (0..self.n)
+                    .filter(|i| {
+                        ((state.bit >> i) & 1) == 1 // まだ残っている
+                    })
+                    .collect_vec();
+
+                let can_win = remain_card_i
+                    .iter()
+                    .copied()
+                    .tuple_combinations()
+                    .filter(|(i, j)| {
+                        let card1 = self.cards[*i];
+                        let card2 = self.cards[*j];
+                        card1.front == card2.front || card1.back == card2.back
+                    })
+                    .map(|(i, j)| {
+                        // i と j を state から除く
+                        let next_state = state.remove2(i, j);
+                        self.rec(&next_state, tern + 1, dp)
+                    })
+                    .any(|winner| player == winner);
+
+                let ans = if can_win { player } else { 1 - player };
+                dp[state.bit as usize] = ans;
+                ans
+            }
+        }
+
+        let mut dp = vec![100; 1 << self.n];
+        let rec = Rec::new(self.n, self.cards.clone());
+        let ans = rec.rec(&State::new(self.n), 0, &mut dp);
+
+        let ans = match ans {
+            0 => "Takahashi",
+            1 => "Aoki",
+            _ => panic!(),
+        };
+        let ans = ans.to_string();
         Answer { ans }
     }
 
@@ -26,7 +124,7 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: String,
 }
 
 impl Answer {

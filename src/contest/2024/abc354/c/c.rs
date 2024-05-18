@@ -1,18 +1,44 @@
-//#[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Card {
+    strength: i64,
+    cost: i64,
+}
+
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    cards: Vec<Card>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            cards: [Card; n]
         }
-        Problem { _a }
+        Problem { n, cards }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let cards = &self.cards;
+        let cards_index = cards.iter().copied().enumerate().collect_vec();
+        let cards_index = cards_index
+            .iter()
+            .copied()
+            .sorted_by_key(|(_, card)| Reverse(card.strength))
+            .collect_vec();
+
+        let mut min_cost = i64::MAX;
+        let mut ans: Vec<usize> = vec![];
+
+        for (i, card) in cards_index {
+            if min_cost > card.cost {
+                min_cost = card.cost;
+                ans.push(i);
+            }
+        }
+
+        ans.sort();
         Answer { ans }
     }
 
@@ -26,12 +52,14 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<usize>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        println!("{}", self.ans.len());
+        let ans_1index = self.ans.iter().copied().map(|i| i + 1).collect_vec();
+        print_vec_1line(&ans_1index);
     }
 }
 
@@ -123,6 +151,7 @@ use proconio::{
     derive_readable, fastout, input,
     marker::{Bytes, Usize1},
 };
+use std::cmp::Reverse;
 #[allow(unused_imports)]
 use std::collections::{BinaryHeap, HashMap, HashSet};
 

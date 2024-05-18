@@ -1,18 +1,77 @@
-//#[derive_readable]
+#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    a: i64,
+    b: i64,
+    c: i64,
+    d: i64,
+}
+
+struct QuerySolver {
+    cumsum: CumSum2D,
+    height: i64,
+    width: i64,
+}
+impl QuerySolver {
+    fn new(grid: &Vec<Vec<i64>>, height: usize, width: usize) -> Self {
+        let cumsum = CumSum2D::new(grid);
+        Self {
+            cumsum,
+            height: height as i64,
+            width: width as i64,
+        }
+    }
+
+    fn prefix_sum(&self, y: i64, x: i64) -> i64 {
+        //  [0, x) × [0, y) で数える
+        let cnt_sq_x = div_floor(x, self.width);
+        let cnt_sq_y = div_floor(y, self.height);
+        let remain_x = i64::rem_euclid(x, self.width) as usize;
+        let remain_y = i64::rem_euclid(y, self.height) as usize;
+        let height_usize = self.height as usize;
+        let width_usize = self.width as usize;
+        let cnt_in_sq = self
+            .cumsum
+            .get_rect_sum((0, 0), (width_usize, height_usize));
+
+        let sum1 = cnt_sq_x * cnt_sq_y * cnt_in_sq;
+        let sum2 = self.cumsum.get_rect_sum((0, 0), (width_usize, remain_y)) * cnt_sq_x;
+        let sum3: i64 = self.cumsum.get_rect_sum((0, 0), (remain_x, height_usize)) * cnt_sq_y;
+        let sum4 = self.cumsum.get_rect_sum((0, 0), (remain_x, remain_y));
+        sum1 + sum2 + sum3 + sum4
+    }
+
+    fn solve(&self, a: i64, b: i64, c: i64, d: i64) -> i64 {
+        let x1 = a;
+        let y1 = b;
+        let x2 = c;
+        let y2 = d;
+        // self.prefix_sum(y2 + 1, x2 + 1) - self.prefix_sum(y1, x2 + 1) - self.prefix_sum(y2 + 1, x1)
+        //     + self.prefix_sum(y1, x1)
+
+        self.prefix_sum(y2, x2) - self.prefix_sum(y1, x2) - self.prefix_sum(y2, x1)
+            + self.prefix_sum(y1, x1)
+    }
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            a: i64,
+            b: i64,
+            c: i64,
+            d: i64,
         }
-        Problem { _a }
+        Problem { a, b, c, d }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let a = self.a;
+        let b = self.b;
+        let c = self.c;
+        let d = self.d;
+        let grid = vec![vec![2, 1, 0, 1], vec![1, 2, 1, 0]];
+        let solver = QuerySolver::new(&grid, 2, 4);
+        let ans = solver.solve(a, b, c, d);
         Answer { ans }
     }
 
@@ -118,6 +177,7 @@ mod tests {
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
+use num_integer::div_floor;
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,
@@ -171,3 +231,32 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+
+use cumsum_2d::*;
+pub mod cumsum_2d {
+    pub struct CumSum2D {
+        pub cumsum: Vec<Vec<i64>>,
+    }
+    impl CumSum2D {
+        pub fn new(xss: &Vec<Vec<i64>>) -> CumSum2D {
+            if xss.is_empty() {
+                return CumSum2D {
+                    cumsum: vec![vec![0]],
+                };
+            }
+            let height = xss.len();
+            let width = xss[0].len();
+            let mut cumsum = vec![vec![0; width + 1]; height + 1];
+            for y in 1..height + 1 {
+                for x in 1..width + 1 {
+                    cumsum[y][x] = cumsum[y - 1][x] + cumsum[y][x - 1] - cumsum[y - 1][x - 1]
+                        + xss[y - 1][x - 1];
+                }
+            }
+            CumSum2D { cumsum }
+        }
+        pub fn get_rect_sum(&self, (x1, y1): (usize, usize), (x2, y2): (usize, usize)) -> i64 {
+            self.cumsum[y2][x2] - self.cumsum[y2][x1] - self.cumsum[y1][x2] + self.cumsum[y1][x1]
+        }
+    }
+}

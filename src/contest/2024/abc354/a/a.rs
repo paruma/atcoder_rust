@@ -1,19 +1,29 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    h: i64,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            h: i64,
         }
-        Problem { _a }
+        Problem { h }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
-        Answer { ans }
+        let mut plant_height = 0_i64;
+        for day in 0..40 {
+            plant_height += 2_i64.pow(day); // よる
+            if self.h < plant_height {
+                // 次の日の朝
+                return Answer {
+                    ans: (day + 1) as i64,
+                };
+            }
+        }
+
+        panic!();
     }
 
     #[allow(dead_code)]
