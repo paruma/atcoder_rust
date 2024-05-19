@@ -1,18 +1,74 @@
-//#[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct TestCase {
+    a1: i64,
+    a2: i64,
+    a3: i64,
+}
+
+impl TestCase {
+    fn solve(&self) -> i64 {
+        // 実装途中
+        let ad = self.a1;
+        let bd = self.a2;
+        let sd = self.a3;
+
+        let mint10 = Mint::new(10);
+        let amin = mint10.pow((ad - 1) as u64);
+        let amax = mint10.pow((ad) as u64) - Mint::new(1);
+        let bmin = mint10.pow((bd - 1) as u64);
+        let bmax = mint10.pow((bd) as u64) - Mint::new(1);
+
+        let smin = mint10.pow((sd - 1) as u64);
+        let smax = mint10.pow((sd) as u64) - Mint::new(1);
+
+        let ans13: Mint = {
+            // max(amax + bmin, smin)
+            // max(10^ad + 10^(bd-1) -1, 10^(sd -1))
+            let s_sub_min = if sd - 1 <= ad || sd - 1 <= bd - 1 {
+                amax + bmin
+            } else {
+                smin
+            };
+
+            // min(amin + bmax, smax)
+            // max(10^(ad-1) + 10^(bd) -1, 10^sd -1)
+            let s_sub_max = if sd <= ad - 1 || sd <= bd {
+                amin + bmax
+            } else {
+                smax
+            };
+
+            let p = amin;
+            let q = amax;
+
+            // P - Q + 1 =
+            (p - q + Mint::new(1)) * (s_sub_max - s_sub_min + Mint::new(1))
+        };
+        let ans14 = {};
+        let ans23 = Mint::new(0);
+        let ans24 = Mint::new(0);
+
+        0
+    }
+}
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    ts: Vec<TestCase>,
 }
+use ac_library::ModInt998244353 as Mint;
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            ts: [TestCase; n],
         }
-        Problem { _a }
+
+        Problem { ts }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = self.ts.iter().map(|t| t.solve()).collect_vec();
         Answer { ans }
     }
 
@@ -26,12 +82,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec(&self.ans)
     }
 }
 

@@ -36,6 +36,8 @@
         "-A",
         "clippy::collapsible_else_if",
         "-A",
-        "clippy::if_same_then_else"
+        "clippy::if_same_then_else",
+        "-A",
+        "clippy::int_plus_one"
     ],
 }
