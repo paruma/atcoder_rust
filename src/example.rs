@@ -3,6 +3,7 @@ mod dfs_graph;
 mod dfs_multi_loop;
 mod digit_dp;
 mod integer;
+mod interval_dp;
 mod knapsack;
 mod kruskal;
 mod random;

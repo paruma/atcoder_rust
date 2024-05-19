@@ -35,5 +35,7 @@
         "clippy::too_many_arguments",
         "-A",
         "clippy::collapsible_else_if",
+        "-A",
+        "clippy::if_same_then_else"
     ],
 }
