@@ -7,3 +7,4 @@ mod kruskal;
 mod random;
 mod shakutori;
 mod shortest_path;
+mod twelvefold_way_enumerate;
