@@ -180,46 +180,71 @@ mod tests {
 
     #[test]
     fn test_permutations_with_replacement() {
-        // 2つのものから重複を許して3つ取る
-        let n = 2;
-        let r = 3;
+        // n個から重複を許してr個取って並べる順列
+        fn expected(n: usize, r: usize) -> Vec<Vec<usize>> {
+            if r == 0 {
+                // itertools の multi_cartesian_product では
+                // 0個の直積は空集合という扱いになってしまっているバグがある。
+                // （なお、itertools 0.13.0 で解決された。）
+                // https://github.com/rust-itertools/itertools/issues/337
+                vec![vec![]]
+            } else {
+                std::iter::repeat(0..n)
+                    .take(r)
+                    .multi_cartesian_product()
+                    .collect_vec()
+            }
+        }
+        fn test(n: usize, r: usize) {
+            assert_eq!(permutations_with_replacement(n, r), expected(n, r));
+        }
 
-        let actual = permutations_with_replacement(n, r);
-        let expected = std::iter::repeat(0..n)
-            .take(r)
-            .multi_cartesian_product()
-            .collect_vec();
-        assert_eq!(actual, expected);
+        test(2, 3); // 2^3
+        test(0, 2); // 0^2
+        test(2, 0); // 0^0
+        test(0, 0); // 0^0
     }
 
     #[test]
     fn test_permutations() {
-        // 2つのものから重複を許して3つ取る
-        let n = 2;
-        let r = 3;
+        // n 個から r 個取って並べる順列
+        fn test(n: usize, r: usize) {
+            let actual = permutations(n, r);
+            let expected = (0..n).permutations(r).collect_vec();
+            dbg!(&actual);
+            assert_eq!(actual, expected);
+        }
 
-        let actual = permutations(n, r);
-        let expected = (0..n).permutations(r).collect_vec();
-        assert_eq!(actual, expected);
+        test(2, 3);
+        test(2, 0);
+        test(0, 0);
     }
 
     #[test]
     fn test_combinations_with_replacement() {
-        let n = 5;
-        let r = 3;
-
-        let actual = combinations_with_replacement(n, r);
-        let expected = (0..n).combinations_with_replacement(r).collect_vec();
-        assert_eq!(actual, expected);
+        // n 個の中から重複を許して r 個選ぶ選び方
+        fn test(n: usize, r: usize) {
+            let actual = combinations_with_replacement(n, r);
+            let expected = (0..n).combinations_with_replacement(r).collect_vec();
+            assert_eq!(actual, expected);
+        }
+        test(5, 3);
+        test(5, 6);
+        test(5, 0);
+        test(0, 0);
     }
 
     #[test]
     fn test_combinations() {
-        let n = 5;
-        let r = 3;
-
-        let actual = combinations(n, r);
-        let expected = (0..n).combinations(r).collect_vec();
-        assert_eq!(actual, expected);
+        // n 個の中から r 個を選ぶ選び方
+        fn test(n: usize, r: usize) {
+            let actual = combinations(n, r);
+            let expected = (0..n).combinations(r).collect_vec();
+            assert_eq!(actual, expected);
+        }
+        test(5, 3);
+        test(5, 5);
+        test(5, 0);
+        test(0, 0);
     }
 }
