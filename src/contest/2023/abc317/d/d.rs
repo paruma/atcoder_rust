@@ -81,7 +81,11 @@ impl Problem {
             // 選挙区iを使う
             let d = &district[i];
             // この選挙区で高橋派が勝つのに必要な鞍替えの数
-            let kuragae = if d.x >= d.y { 0 } else { (d.x + d.y) / 2 + 1 - d.x };
+            let kuragae = if d.x >= d.y {
+                0
+            } else {
+                (d.x + d.y) / 2 + 1 - d.x
+            };
 
             for j in 0..max_sheets {
                 // dp[i+1][j] を求める
@@ -105,6 +109,39 @@ impl Problem {
         let ans = dp[n][need as usize].get_fin();
         Answer { ans }
     }
+
+    fn solve3(&self) -> Answer {
+        // dp[i][z]: [0, i)の選挙区まで見たときの、z議席以上獲得するのに必要な最小鞍替え数
+        // 議席数の合計値
+        let sum_district = self.district.iter().map(|d| d.z).sum::<i64>() as usize;
+
+        let mut dp = vec![vec![Inf; sum_district + 1]; self.n + 1];
+        dp[0][0] = Fin(0);
+
+        for (i, d) in self.district.iter().enumerate() {
+            for z in 0..=sum_district {
+                // この選挙区で勝つ
+                let case_win = {
+                    let majority = (d.x + d.y) / 2 + 1; //過半数
+                    let kuragae = i64::max(majority - d.x, 0);
+                    let prev = if z >= d.z as usize {
+                        dp[i][z - d.z as usize]
+                    } else {
+                        dp[i][0]
+                    };
+                    prev + Fin(kuragae)
+                };
+
+                // この選挙区で勝たない
+                let case_lose = dp[i][z];
+
+                dp[i + 1][z] = ExtInt::min(case_win, case_lose);
+            }
+        }
+
+        let ans = dp[self.n][sum_district / 2 + 1].get_fin();
+        Answer { ans }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -119,7 +156,9 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read(ProconReader::new(stdin().lock())).solve2().print();
+    Problem::read(ProconReader::new(stdin().lock()))
+        .solve3()
+        .print();
 }
 
 #[cfg(test)]
@@ -292,7 +331,10 @@ pub mod myio {
             T::Err: std::fmt::Debug,
         {
             let buf = self.read_line();
-            buf.trim().split(' ').map(|s| s.parse::<T>().unwrap()).collect::<Vec<T>>()
+            buf.trim()
+                .split(' ')
+                .map(|s| s.parse::<T>().unwrap())
+                .collect::<Vec<T>>()
         }
 
         fn read_vec_i64(&mut self) -> Vec<i64> {
