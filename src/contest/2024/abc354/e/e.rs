@@ -11,7 +11,7 @@ struct Problem {
 }
 
 struct State {
-    bit: u32,
+    bit: usize,
 }
 
 impl State {
@@ -48,8 +48,7 @@ impl Problem {
         Problem { n, cards }
     }
     fn solve(&self) -> Answer {
-        // 表が同じ/裏が同じでgroup by
-
+        // メモ化再帰による解法（コンテスト時の解法）
         struct Rec {
             n: usize,
             cards: Vec<Card>,
@@ -60,51 +59,97 @@ impl Problem {
                 Rec { n, cards }
             }
 
-            fn rec(&self, state: &State, tern: usize, dp: &mut Vec<usize>) -> usize {
-                let player = tern % 2;
-
-                if dp[state.bit as usize] != 100 {
-                    return dp[state.bit as usize];
-                }
-
-                if state.has_finished(&self.cards) {
-                    let ans = 1 - player;
-                    dp[state.bit as usize] = ans;
+            fn rec(&self, state: &State, tern: usize, dp: &mut Vec<Option<usize>>) -> usize {
+                if let Some(ans) = dp[state.bit] {
                     return ans;
                 }
 
-                let remain_card_i = (0..self.n)
-                    .filter(|i| {
-                        ((state.bit >> i) & 1) == 1 // まだ残っている
-                    })
-                    .collect_vec();
+                let player = tern % 2;
 
-                let can_win = remain_card_i
-                    .iter()
-                    .copied()
-                    .tuple_combinations()
-                    .filter(|(i, j)| {
-                        let card1 = self.cards[*i];
-                        let card2 = self.cards[*j];
-                        card1.front == card2.front || card1.back == card2.back
-                    })
-                    .map(|(i, j)| {
-                        // i と j を state から除く
-                        let next_state = state.remove2(i, j);
-                        self.rec(&next_state, tern + 1, dp)
-                    })
-                    .any(|winner| player == winner);
+                let ans = if state.has_finished(&self.cards) {
+                    1 - player
+                } else {
+                    let remain_card_i = (0..self.n)
+                        .filter(|i| {
+                            ((state.bit >> i) & 1) == 1 // まだ残っている
+                        })
+                        .collect_vec();
 
-                let ans = if can_win { player } else { 1 - player };
-                dp[state.bit as usize] = ans;
+                    let can_win = remain_card_i
+                        .iter()
+                        .copied()
+                        .tuple_combinations()
+                        .filter(|(i, j)| {
+                            let card1 = self.cards[*i];
+                            let card2 = self.cards[*j];
+                            card1.front == card2.front || card1.back == card2.back
+                        })
+                        .map(|(i, j)| {
+                            // i と j を state から除く
+                            let next_state = state.remove2(i, j);
+                            self.rec(&next_state, tern + 1, dp)
+                        })
+                        .any(|winner| player == winner); // has_finished の処理は ここの any で十分かも
+
+                    if can_win {
+                        player
+                    } else {
+                        1 - player
+                    }
+                };
+                dp[state.bit] = Some(ans);
                 ans
             }
         }
 
-        let mut dp = vec![100; 1 << self.n];
+        let mut dp = vec![None; 1 << self.n];
         let rec = Rec::new(self.n, self.cards.clone());
         let ans = rec.rec(&State::new(self.n), 0, &mut dp);
 
+        let ans = match ans {
+            0 => "Takahashi",
+            1 => "Aoki",
+            _ => panic!(),
+        };
+        let ans = ans.to_string();
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // for ループによるDPの解法
+        let mut dp = vec![10; 1 << self.n];
+
+        for bit in 0_usize..(1 << self.n) {
+            // 1ターンで2ずつ除かれる。
+            // self.n - bit.count_ones() が 奇数の場合は、ゲームでは到達不可能なので計算する意味はない。
+            // メモ化再帰による解法では、ターン数は自然に計算できるが、
+            // forループによる解法の場合はターン数をちょっと工夫して計算する必要がある。
+
+            let tern = (self.n - bit.count_ones() as usize) / 2;
+            let player = tern % 2;
+
+            let can_win = (0..self.n)
+                .filter(|&i| (bit >> i) & 1 == 1)
+                .tuple_combinations()
+                .filter(|&(i, j)| {
+                    let card1 = self.cards[i];
+                    let card2 = self.cards[j];
+
+                    card1.front == card2.front || card1.back == card2.back
+                })
+                .map(|(i, j)| {
+                    let next_bit = bit & !(1 << i) & !(1 << j);
+                    dp[next_bit]
+                })
+                .any(|winner| winner == player);
+            dp[bit] = if can_win { player } else { 1 - player };
+        }
+        let ans = dp[(1 << self.n) - 1];
+        // for bit in 0..1 << self.n {
+        //     let bit_msg = format!("{:b}", bit);
+        //     let msg = format!("dp[{}]={}", bit_msg, dp[bit]);
+        //     dbg!(msg);
+        // }
         let ans = match ans {
             0 => "Takahashi",
             1 => "Aoki",
