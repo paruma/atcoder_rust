@@ -153,9 +153,8 @@ impl Problem {
                         &self,
                         cnt_balls: usize,
                         boxes: &mut Vec<Vec<usize>>,
-                        sum_weight_sq: i64,           // 各バッグの重みの2乗の総和
-                        weight_sq_by_box: &mut [i64], //各バッグの重みの2乗
-                        weight_by_box: &mut [i64],    // 各バッグの重み
+                        sum_weight_sq: i64,        // 各バッグの重みの2乗の総和
+                        weight_by_box: &mut [i64], // 各バッグの重み
                         acc_min_sum_sq: &mut i64,
                     ) {
                         if cnt_balls == self.other_balls.len() {
@@ -173,13 +172,11 @@ impl Problem {
                             if ball > boxes[box_i].last().copied().unwrap() {
                                 boxes[box_i].push(ball);
 
-                                let current_weight_sq = weight_sq_by_box[box_i];
-                                let current_weight_by = weight_by_box[box_i];
+                                let current_weight = weight_by_box[box_i];
 
                                 let addition_weight_sq =
                                     2 * weight_by_box[box_i] * self.weight_list[ball]
                                         + self.weight_list[ball] * self.weight_list[ball];
-                                weight_sq_by_box[box_i] += addition_weight_sq;
                                 let next_sum_weight_sq = sum_weight_sq + addition_weight_sq;
 
                                 weight_by_box[box_i] += self.weight_list[ball];
@@ -188,12 +185,10 @@ impl Problem {
                                     cnt_balls + 1,
                                     boxes,
                                     next_sum_weight_sq,
-                                    weight_sq_by_box,
                                     weight_by_box,
                                     acc_min_sum_sq,
                                 );
-                                weight_by_box[box_i] = current_weight_by;
-                                weight_sq_by_box[box_i] = current_weight_sq;
+                                weight_by_box[box_i] = current_weight;
                                 boxes[box_i].pop();
                             }
                         }
@@ -204,8 +199,7 @@ impl Problem {
                     .iter()
                     .map(|balls| balls.iter().map(|ball| weight_list[*ball]).sum::<i64>())
                     .collect_vec();
-                let mut weight_sq_by_box =
-                    weight_by_box.iter().copied().map(|w| w * w).collect_vec();
+                let weight_sq_by_box = weight_by_box.iter().copied().map(|w| w * w).collect_vec();
                 let sum_weight_sq = weight_sq_by_box.iter().sum();
                 let mut acc_min_sum_eq = i64::MAX;
 
@@ -213,7 +207,6 @@ impl Problem {
                     0,
                     &mut boxes,
                     sum_weight_sq,
-                    &mut weight_sq_by_box,
                     &mut weight_by_box,
                     &mut acc_min_sum_eq,
                 );
@@ -310,7 +303,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve3().print();
+    Problem::read().solve2().print();
 }
 #[cfg(test)]
 mod tests {
