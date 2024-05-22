@@ -123,6 +123,7 @@ impl Problem {
         let n_boxes = self.n_boxes;
         let weight_list = &self.weight_list;
 
+        // 二乗和の最小値
         let sum_sq = (0..n_balls)
             .combinations(n_boxes)
             .map(|init_balls| {
@@ -238,6 +239,105 @@ impl Problem {
     }
 
     fn solve3(&self) -> Answer {
+        // 「スターリング数の数だけ全探索」のリファクタリング
+        // 商品は玉、袋は箱として扱う
+
+        let n_balls = self.n_balls;
+        let n_boxes = self.n_boxes;
+        let weight_list = &self.weight_list;
+
+        let min_sum_sq = {
+            struct Rec {
+                n_balls: usize,
+                n_boxes: usize,
+                weight_list: Vec<i64>,
+            }
+            impl Rec {
+                fn new(n_balls: usize, n_boxes: usize, weight_list: Vec<i64>) -> Self {
+                    Rec {
+                        n_balls,
+                        n_boxes,
+                        weight_list,
+                    }
+                }
+
+                fn exec(&self) -> i64 {
+                    let mut acc_min_sum_sq = i64::MAX;
+                    self.rec(0, 0, &mut vec![], &mut acc_min_sum_sq);
+                    acc_min_sum_sq
+                }
+
+                fn rec(
+                    &self,
+                    cnt: usize,
+                    sum_sq: i64,
+                    sum_by_group: &mut Vec<i64>,
+                    acc_min_sum_sq: &mut i64,
+                ) {
+                    let n_remain_balls = self.n_balls - cnt;
+                    let n_remain_boxes = self.n_boxes - sum_by_group.len();
+
+                    if n_remain_balls == n_remain_boxes {
+                        let sum_sq =
+                            sum_sq + self.weight_list[cnt..].iter().map(|x| x * x).sum::<i64>();
+                        *acc_min_sum_sq = (*acc_min_sum_sq).min(sum_sq);
+                        return;
+                    }
+
+                    // 枝刈り
+                    if *acc_min_sum_sq <= sum_sq {
+                        return;
+                    }
+
+                    let current_ball_weight = self.weight_list[cnt];
+
+                    // すでにあるグループに追加
+                    for group_i in 0..sum_by_group.len() {
+                        let next_sum_sq = sum_sq
+                            + 2 * sum_by_group[group_i] * current_ball_weight
+                            + current_ball_weight * current_ball_weight;
+
+                        sum_by_group[group_i] += current_ball_weight;
+                        self.rec(cnt + 1, next_sum_sq, sum_by_group, acc_min_sum_sq);
+                        sum_by_group[group_i] -= current_ball_weight
+                    }
+
+                    // 新しくグループを作成する
+                    if sum_by_group.len() < self.n_boxes {
+                        let next_sum_sq = sum_sq + current_ball_weight * current_ball_weight;
+
+                        sum_by_group.push(current_ball_weight);
+                        self.rec(cnt + 1, next_sum_sq, sum_by_group, acc_min_sum_sq);
+                        sum_by_group.pop();
+                    }
+                }
+            }
+            Rec::new(n_balls, n_boxes, weight_list.to_vec()).exec()
+        };
+        // これだとans の引き算で誤差が発生してしまう
+        // let weight_mean = (weight_list.iter().sum::<i64>() as f64) / (n_boxes as f64);
+        // let ans = (sum_sq as f64 / n_boxes as f64) - (weight_mean * weight_mean);
+        /*
+        ```
+        4
+        2
+        100000000 100000000 2 1
+        ```
+        こういう入力で0を返してしまう（答えは0.25）
+         */
+
+        let weight_sum = weight_list.iter().sum::<i64>();
+
+        let n_boxes_i64 = n_boxes as i64;
+        let n_boxes_f64 = n_boxes as f64;
+        let ans = (n_boxes_i64 * min_sum_sq - weight_sum * weight_sum) as f64
+            / (n_boxes_f64 * n_boxes_f64);
+
+        Answer { ans }
+    }
+
+    fn solve4(&self) -> Answer {
+        // 袋の数に関するDPによる解法 (想定解)
         let n_balls = self.n_balls;
         let n_boxes = self.n_boxes;
         let weight_list = &self.weight_list;
@@ -303,14 +403,12 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve2().print();
+    Problem::read().solve3().print();
 }
 #[cfg(test)]
 mod tests {
     #[allow(unused_imports)]
     use super::*;
-    use num_integer::Roots;
-    use num_traits::Pow;
     #[allow(unused_imports)]
     use rand::{rngs::SmallRng, seq::SliceRandom, *};
 
