@@ -1,183 +1,26 @@
-use std::io::stdin;
-
-#[allow(unused_imports)]
-use myio::*;
-pub mod myio {
-    use std::io::BufRead;
-
-    pub trait IProconReader {
-        fn read_line(&mut self) -> String;
-
-        fn read_bytes(&mut self) -> Vec<u8> {
-            self.read_line().as_bytes().to_vec()
-        }
-
-        fn read_any_1<T>(&mut self) -> T
-        where
-            T: std::str::FromStr,
-            T::Err: std::fmt::Debug,
-        {
-            let buf = self.read_line();
-            buf.parse::<T>().unwrap()
-        }
-
-        fn read_any_2<T0, T1>(&mut self) -> (T0, T1)
-        where
-            T0: std::str::FromStr,
-            T0::Err: std::fmt::Debug,
-            T1: std::str::FromStr,
-            T1::Err: std::fmt::Debug,
-        {
-            let buf = self.read_line();
-            let splitted = buf.trim().split(' ').collect::<Vec<_>>();
-            let a0 = splitted[0].parse::<T0>().unwrap();
-            let a1 = splitted[1].parse::<T1>().unwrap();
-            (a0, a1)
-        }
-
-        fn read_any_3<T0, T1, T2>(&mut self) -> (T0, T1, T2)
-        where
-            T0: std::str::FromStr,
-            T0::Err: std::fmt::Debug,
-            T1: std::str::FromStr,
-            T1::Err: std::fmt::Debug,
-            T2: std::str::FromStr,
-            T2::Err: std::fmt::Debug,
-        {
-            let buf = self.read_line();
-            let splitted = buf.trim().split(' ').collect::<Vec<_>>();
-            let a0 = splitted[0].parse::<T0>().unwrap();
-            let a1 = splitted[1].parse::<T1>().unwrap();
-            let a2 = splitted[2].parse::<T2>().unwrap();
-            (a0, a1, a2)
-        }
-        fn read_vec_any<T>(&mut self) -> Vec<T>
-        where
-            T: std::str::FromStr,
-            T::Err: std::fmt::Debug,
-        {
-            let buf = self.read_line();
-            buf.trim().split(' ').map(|s| s.parse::<T>().unwrap()).collect::<Vec<T>>()
-        }
-
-        fn read_vec_i64(&mut self) -> Vec<i64> {
-            self.read_vec_any::<i64>()
-        }
-
-        fn read_vec_usize(&mut self) -> Vec<usize> {
-            self.read_vec_any::<usize>()
-        }
-
-        fn read_vec_str(&mut self) -> Vec<String> {
-            self.read_vec_any::<String>()
-        }
-
-        fn read_i64_1(&mut self) -> i64 {
-            self.read_any_1::<i64>()
-        }
-
-        fn read_i64_2(&mut self) -> (i64, i64) {
-            self.read_any_2::<i64, i64>()
-        }
-
-        fn read_i64_3(&mut self) -> (i64, i64, i64) {
-            self.read_any_3::<i64, i64, i64>()
-        }
-
-        fn read_usize_1(&mut self) -> usize {
-            self.read_any_1::<usize>()
-        }
-
-        fn read_usize_2(&mut self) -> (usize, usize) {
-            self.read_any_2::<usize, usize>()
-        }
-
-        fn read_usize_3(&mut self) -> (usize, usize, usize) {
-            self.read_any_3::<usize, usize, usize>()
-        }
-    }
-
-    pub struct ProconReader<R: BufRead> {
-        buf_read: R,
-    }
-
-    impl<R: BufRead> ProconReader<R> {
-        pub fn new(buf_read: R) -> ProconReader<R> {
-            ProconReader { buf_read }
-        }
-    }
-
-    impl<R: BufRead> IProconReader for ProconReader<R> {
-        fn read_line(&mut self) -> String {
-            let mut buffer = String::new();
-            self.buf_read.read_line(&mut buffer).unwrap();
-            buffer.trim().to_string()
-        }
-    }
-}
-
-use num::{One, Zero};
-use rr::*;
-pub mod rr {
-    pub const MOD: i64 = 998_244_353;
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-    pub struct RR {
-        rep: i64,
-    }
-    impl RR {
-        pub fn new(x: i64) -> RR {
-            RR { rep: x.rem_euclid(MOD) }
-        }
-        pub fn rep(self) -> i64 {
-            self.rep
-        }
-    }
-    impl num_traits::Zero for RR {
-        fn zero() -> Self {
-            RR::new(0)
-        }
-        fn is_zero(&self) -> bool {
-            self.rep == 0
-        }
-    }
-    impl num_traits::One for RR {
-        fn one() -> Self {
-            RR::new(1)
-        }
-    }
-    macro_rules ! bi_ops_impl {($ std_ops : ident , $ fn : ident , $ op : tt ) => {impl std :: ops ::$ std_ops for RR {type Output = Self ; fn $ fn (self , rhs : Self ) -> Self :: Output {RR :: new (self . rep $ op rhs . rep ) } } } ; }
-    bi_ops_impl ! (Add , add , + );
-    bi_ops_impl ! (Sub , sub , - );
-    bi_ops_impl ! (Mul , mul , * );
-    macro_rules ! bi_ops_assign_impl {($ std_ops_assign : ident , $ fn_assign : ident , $ op : tt ) => {impl std :: ops ::$ std_ops_assign for RR {fn $ fn_assign (& mut self , rhs : Self ) {* self = * self $ op rhs } } } ; }
-    bi_ops_assign_impl ! (AddAssign , add_assign , + );
-    bi_ops_assign_impl ! (SubAssign , sub_assign , - );
-    bi_ops_assign_impl ! (MulAssign , mul_assign , * );
-    impl std::ops::Neg for RR {
-        type Output = Self;
-        fn neg(self) -> Self::Output {
-            RR::new(-self.rep)
-        }
-    }
-}
-
+//#[derive_readable]
+#[derive(Debug, Clone)]
 struct Problem {
     s: Vec<u8>,
 }
 
 impl Problem {
-    fn read<R: IProconReader>(mut r: R) -> Problem {
-        let s = r.read_bytes();
+    fn read() -> Problem {
+        input! {
+            s: Bytes,
+        }
         Problem { s }
     }
     fn solve(&self) -> Answer {
+        // '('を右、')'を上に対応させて経路探索問題をする
+        use ac_library::ModInt998244353 as Mint;
         let n = self.s.len();
         if n % 2 == 1 {
             return Answer { ans: 0 };
         }
         assert!(n % 2 == 0);
-        let mut dp = vec![vec![RR::zero(); n / 2 + 1]; n / 2 + 1];
-        dp[0][0] = RR::one();
+        let mut dp = vec![vec![Mint::new(0); n / 2 + 1]; n / 2 + 1];
+        dp[0][0] = Mint::new(1);
         for y in 0..=n / 2 {
             for x in 0..=n / 2 {
                 if x < y {
@@ -187,15 +30,77 @@ impl Problem {
                     continue;
                 }
                 // 配列外に気をつける
-                let from_left =
-                    if x == 0 || self.s[x + y - 1] == b')' { RR::zero() } else { dp[y][x - 1] };
-                let from_bottom =
-                    if y == 0 || self.s[x + y - 1] == b'(' { RR::zero() } else { dp[y - 1][x] };
+                let from_left = if x == 0 || self.s[x + y - 1] == b')' {
+                    Mint::new(0)
+                } else {
+                    dp[y][x - 1]
+                };
+                let from_bottom = if y == 0 || self.s[x + y - 1] == b'(' {
+                    Mint::new(0)
+                } else {
+                    dp[y - 1][x]
+                };
                 dp[y][x] = from_left + from_bottom;
             }
         }
-        let ans = dp[n / 2][n / 2].rep();
+        let ans = dp[n / 2][n / 2].val() as i64;
         Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // 括弧列を↗↘で考える
+        use ac_library::ModInt998244353 as Mint;
+        struct Dp {
+            dp: Vec<Vec<Mint>>,
+            len: usize,
+        }
+        impl Dp {
+            fn new(len: usize) -> Self {
+                Dp {
+                    dp: vec![vec![Mint::new(0); len + 1]; len + 1],
+                    len,
+                }
+            }
+
+            fn at(&self, x: i64, y: i64) -> Mint {
+                if y < 0 || y > self.len as i64 {
+                    Mint::new(0)
+                } else {
+                    self.dp[y as usize][x as usize]
+                }
+            }
+            fn at_mut(&mut self, x: i64, y: i64) -> &mut Mint {
+                &mut self.dp[y as usize][x as usize]
+            }
+        }
+
+        let mut dp = Dp::new(self.s.len());
+        *dp.at_mut(0, 0) = Mint::new(1);
+        for (i, ch) in self.s.iter().enumerate() {
+            // 左上から来たか、左下から来たかを0,1で表現
+            let (from_upper_coef, from_bottom_coef) = match ch {
+                b'(' => (0, 1),
+                b')' => (1, 0),
+                b'?' => (1, 1),
+                _ => panic!(),
+            };
+            let from_upper_coef = Mint::new(from_upper_coef);
+            let from_bottom_coef = Mint::new(from_bottom_coef);
+            let i = i as i64;
+            for y in 0..=self.s.len() as i64 {
+                *dp.at_mut(i + 1, y) =
+                    from_bottom_coef * dp.at(i, y - 1) + from_upper_coef * dp.at(i, y + 1);
+            }
+        }
+        let ans = dp.at(self.s.len() as i64, 0).val() as i64;
+        Answer { ans }
+    }
+
+    #[allow(dead_code)]
+    fn solve_naive(&self) -> Answer {
+        todo!();
+        // let ans = 0;
+        // Answer { ans }
     }
 }
 
@@ -211,25 +116,138 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read(ProconReader::new(stdin().lock())).solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
     use super::*;
-
-    fn check(input: &str, expected: Answer) {
-        let actual = Problem::read(ProconReader::new(input.as_bytes())).solve();
-        assert_eq!(expected, actual);
-    }
+    #[allow(unused_imports)]
+    use rand::{rngs::SmallRng, seq::SliceRandom, *};
 
     #[test]
     fn test_problem() {
-        let input = "
-3
-4
-        "
-        .trim();
-        // check(input, Answer { ans: 7 });
+        assert_eq!(1 + 1, 2);
+    }
+
+    #[allow(dead_code)]
+    #[derive(Debug)]
+    struct WrongTestCase {
+        problem: Problem,
+        main_ans: Answer,
+        naive_ans: Answer,
+    }
+
+    #[allow(dead_code)]
+    fn check(p: &Problem) -> Option<WrongTestCase> {
+        let main_ans = p.solve();
+        let naive_ans = p.solve_naive();
+        if main_ans != naive_ans {
+            Some(WrongTestCase {
+                problem: p.clone(),
+                main_ans,
+                naive_ans,
+            })
+        } else {
+            None
+        }
+    }
+
+    #[allow(dead_code)]
+    fn make_random_problem(rng: &mut SmallRng) -> Problem {
+        todo!()
+        // let n = rng.gen_range(1..=10);
+        // let p = Problem { _a: n };
+        // println!("{:?}", &p);
+        // p
+    }
+
+    #[allow(unreachable_code)]
+    #[test]
+    fn test_with_naive() {
+        let num_tests = 0;
+        let max_wrong_case = 10; // この件数間違いが見つかったら打ち切り
+        let mut rng = SmallRng::seed_from_u64(42);
+        // let mut rng = SmallRng::from_entropy();
+        let mut wrong_cases: Vec<WrongTestCase> = vec![];
+        for _ in 0..num_tests {
+            let p = make_random_problem(&mut rng);
+            let result = check(&p);
+            if let Some(wrong_test_case) = result {
+                wrong_cases.push(wrong_test_case);
+            }
+            if wrong_cases.len() >= max_wrong_case {
+                break;
+            }
+        }
+
+        if !wrong_cases.is_empty() {
+            for t in &wrong_cases {
+                println!("{:?}", t.problem);
+                println!("main ans : {:?}", t.main_ans);
+                println!("naive ans: {:?}", t.naive_ans);
+                println!();
+            }
+            println!("{} cases are wrong.", wrong_cases.len());
+            panic!();
+        }
     }
 }
+
+// ====== import ======
+#[allow(unused_imports)]
+use itertools::{chain, iproduct, izip, Itertools};
+#[allow(unused_imports)]
+use proconio::{
+    derive_readable, fastout, input,
+    marker::{Bytes, Usize1},
+};
+#[allow(unused_imports)]
+use std::collections::{BinaryHeap, HashMap, HashSet};
+
+// ====== output func ======
+#[allow(unused_imports)]
+use print_vec::*;
+pub mod print_vec {
+
+    use itertools::Itertools;
+    use proconio::fastout;
+    #[fastout]
+    pub fn print_vec<T: std::fmt::Debug>(arr: &[T]) {
+        for a in arr {
+            println!("{:?}", a);
+        }
+    }
+    #[fastout]
+    pub fn print_vec_1line<T: std::fmt::Debug>(arr: &[T]) {
+        let msg = arr.iter().map(|x| format!("{:?}", x)).join(" ");
+        println!("{}", msg);
+    }
+    #[fastout]
+    pub fn print_vec2<T: std::fmt::Debug>(arr: &Vec<Vec<T>>) {
+        for row in arr {
+            let msg = row.iter().map(|x| format!("{:?}", x)).join(" ");
+            println!("{}", msg);
+        }
+    }
+    pub fn print_bytes(bytes: &[u8]) {
+        let msg = String::from_utf8(bytes.to_vec()).unwrap();
+        println!("{}", msg);
+    }
+    #[fastout]
+    pub fn print_vec_bytes(vec_bytes: &[Vec<u8>]) {
+        for row in vec_bytes {
+            let msg = String::from_utf8(row.to_vec()).unwrap();
+            println!("{}", msg);
+        }
+    }
+}
+
+#[allow(unused)]
+fn print_yesno(ans: bool) {
+    let msg = if ans { "Yes" } else { "No" };
+    println!("{}", msg);
+}
+
+// ====== snippet ======
