@@ -72,6 +72,7 @@ pub mod mod_number_thm {
         res
     }
 
+    // エラトステネスの篩
     pub struct Eratosthenes {
         is_prime_list: Vec<bool>,
         min_factor_list: Vec<Option<usize>>,
