@@ -57,6 +57,7 @@ path = "src/contest/2024/abc354/f/f.rs"
 name = "abc354_g"
 path = "src/contest/2024/abc354/g/g.rs"
 
+hoge = """
 
 [[bin]]
 name = "arc177_a"
@@ -1320,7 +1321,6 @@ name = "template"
 path = "src/contest/template.rs"
 
 
-hoge = """
 
 """
 
