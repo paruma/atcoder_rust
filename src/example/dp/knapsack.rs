@@ -8,7 +8,7 @@ struct Item {
 
 /// 計算量: O(|items| * max_weight)
 #[allow(dead_code)]
-fn solve4(n: usize, items: &[Item], max_weight: i64) -> i64 {
+fn solve(n: usize, items: &[Item], max_weight: i64) -> i64 {
     // dp[i][w] := [0,i) の items を使用したときの重さ w 以下での価値の最大値
     // dp[0][0] = 0
     // dp[0][w] = 0 (w!=0)
@@ -77,7 +77,7 @@ mod tests {
 
         let max_weight = 9;
 
-        let ans = solve4(n, &items, max_weight);
+        let ans = solve(n, &items, max_weight);
         assert_eq!(ans, 94);
     }
 }
