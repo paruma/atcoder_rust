@@ -5,6 +5,12 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+
+[[bin]]
+name = "misc_abc237_e"
+path = "src/contest/2024/_misc/abc237_e.rs"
+
+
 [[bin]]
 name = "misc_arc037_c"
 path = "src/contest/2024/_misc/arc037_c.rs"
@@ -1005,9 +1011,9 @@ path = "src/contest/2023/abc328/f/f.rs"
 # name = "abc317_c"
 # path = "src/contest/2023/abc317/c/c.rs"
 
-# [[bin]]
-# name = "abc317_d"
-# path = "src/contest/2023/abc317/d/d.rs"
+[[bin]]
+name = "abc317_d"
+path = "src/contest/2023/abc317/d/d.rs"
 
 # [[bin]]
 # name = "abc317_e"
@@ -1308,9 +1314,9 @@ path = "src/contest/2023/abc328/f/f.rs"
 # name = "abc312_c"
 # path = "src/contest/2023/abc312/c.rs"
 
-# [[bin]]
-# name = "abc312_d"
-# path = "src/contest/2023/abc312/d.rs"
+[[bin]]
+name = "abc312_d"
+path = "src/contest/2023/abc312/d.rs"
 
 # [[bin]]
 # name = "abc312_f"
