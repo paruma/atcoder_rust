@@ -530,25 +530,21 @@ impl Problem {
 
         struct Dfs<'a> {
             minos: &'a Vec<&'a MinoInfoWithTrim>,
-            is_ok: bool,
         }
 
         impl<'a> Dfs<'a> {
             fn new(minos: &'a Vec<&MinoInfoWithTrim>) -> Self {
-                Self {
-                    minos,
-                    is_ok: false,
-                }
+                Self { minos }
             }
 
-            fn rec(&mut self, pos_list: &mut Vec<Pos<usize>>) {
-                if self.is_ok {
+            fn rec(&mut self, pos_list: &mut Vec<Pos<usize>>, is_ok: &mut bool) {
+                if *is_ok {
                     return;
                 }
                 #[allow(clippy::collapsible_if)]
                 if pos_list.len() == 3 {
                     if Problem::is_ok_solve6(self.minos, pos_list) {
-                        self.is_ok = true;
+                        *is_ok = true;
                     }
                     return;
                 }
@@ -557,22 +553,23 @@ impl Problem {
                 for y in 0..4 - self.minos[i].height + 1 {
                     for x in 0..4 - self.minos[i].width + 1 {
                         pos_list.push(Pos::new(x, y));
-                        self.rec(pos_list);
+                        self.rec(pos_list, is_ok);
                         pos_list.pop();
                     }
                 }
             }
 
-            fn rec_init(&mut self) {
-                self.rec(&mut vec![]);
+            fn is_ok(&mut self) -> bool {
+                let mut is_ok = false;
+                self.rec(&mut vec![], &mut is_ok);
+                is_ok
             }
         }
 
         let ans = mino_list.iter().multi_cartesian_product().any(|minos| {
             assert!(minos.len() == 3);
             let mut dfs = Dfs::new(&minos);
-            dfs.rec_init();
-            dfs.is_ok
+            dfs.is_ok()
         });
 
         Answer { ans }
@@ -593,7 +590,7 @@ impl Answer {
 
 fn main() {
     Problem::read(ProconReader::new(stdin().lock()))
-        .solve5()
+        .solve6()
         .print();
 }
 
