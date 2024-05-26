@@ -19,6 +19,7 @@ impl Problem {
         Problem { n, rs }
     }
     fn solve(&self) -> Answer {
+        // 解法1: ソートして二分探索
         let n = self.n;
         let rs = self.rs.iter().copied().sorted_by_key(|r| r.l).collect_vec();
 
@@ -36,6 +37,47 @@ impl Problem {
                 j_star as usize - i
             })
             .sum::<usize>();
+
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // 解法2: イベントソート
+
+        #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+        enum Event {
+            Left(usize),
+            Right(usize),
+        }
+
+        let events = self
+            .rs
+            .iter()
+            .flat_map(|range| [Event::Left(range.l), Event::Right(range.r)])
+            .sorted_by_key(|x| {
+                // Left(i) < Right(i) とする。他は中の値の順序に従う
+                match x {
+                    Event::Left(i) => 2 * i,      // (i, 0)
+                    Event::Right(i) => 2 * i + 1, // (i, 1) として辞書順比較でもいいかも
+                }
+            })
+            .collect_vec();
+
+        let mut cnt_range = 0;
+        let mut ans = 0;
+
+        for &e in &events {
+            //
+            match e {
+                Event::Left(_) => {
+                    ans += cnt_range;
+                    cnt_range += 1;
+                }
+                Event::Right(_) => {
+                    cnt_range -= 1;
+                }
+            }
+        }
 
         Answer { ans }
     }
@@ -60,7 +102,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]

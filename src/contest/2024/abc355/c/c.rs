@@ -22,8 +22,6 @@ impl Problem {
         let mut naname1 = 0;
         let mut naname2 = 0;
 
-        let mut ans = None;
-
         for (current_tern, i) in self.xs.iter().copied().enumerate() {
             let x = i % size;
             let y = i / size;
@@ -40,11 +38,12 @@ impl Problem {
                 .iter()
                 .any(|cnt| *cnt == size);
             if is_bingo {
-                ans = Some(current_tern);
-                break;
+                return Answer {
+                    ans: Some(current_tern),
+                };
             }
         }
-        Answer { ans }
+        Answer { ans: None }
     }
 
     #[allow(dead_code)]

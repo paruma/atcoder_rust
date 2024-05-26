@@ -35,6 +35,7 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
+        // 解法1: mut でシミュレーション
         let zs = chain!(&self.xs, &self.ys).copied().sorted().collect_vec();
         let xs_set = self.xs.iter().copied().collect::<HashSet<_>>();
 
@@ -42,6 +43,18 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        // 解法2: tuple_windows
+        let zs = chain!(&self.xs, &self.ys).copied().sorted().collect_vec();
+        let xs_set = self.xs.iter().copied().collect::<HashSet<_>>();
+
+        let ans = zs
+            .iter()
+            .copied()
+            .tuple_windows()
+            .any(|(z1, z2)| xs_set.contains(&z1) && xs_set.contains(&z2));
+        Answer { ans }
+    }
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -62,7 +75,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
