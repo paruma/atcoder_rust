@@ -1,18 +1,92 @@
-//#[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Condition {
+    a: Usize1,
+    b: Usize1,
+    c: Usize1,
+}
 #[derive(Debug)]
 struct Problem {
-    _a: usize,
+    len: usize,
+    n_conds: usize,
+    conds: Vec<Condition>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            len: usize,
+            n_conds: usize,
+            conds: [Condition; n_conds],
         }
-        Problem { _a }
+        Problem {
+            len,
+            n_conds,
+            conds,
+        }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        // 方針
+        // C で group_by して C の小さい方から P_A と P_B を決定していく。
+
+        use ac_library::ModInt998244353 as Mint;
+        // c で group_by してソートする
+        let conds = self.conds.iter().copied().into_group_map_by(|x| x.c);
+        let comb = Comb::new(self.len);
+        let mut cnt_used = 0;
+        let mut visited = vec![false; self.len];
+
+        // 辺に現れる頂点
+        let cnt1 = conds
+            .iter()
+            .sorted_by_key(|(c, _)| **c)
+            .map(|(c, sub_conds)| {
+                // sub_conds でグラフを構成したとき、そのグラフがスターになっているケースを考える。
+                // スターのルート（中心）に c を割り当てる。
+                // star_root は基本1種類だが、sub_conds.len() == 1 のときは2種類になることもある。
+                let star_root_cand = [sub_conds[0].a, sub_conds[0].b]
+                    .into_iter()
+                    .filter(|&v| sub_conds.iter().copied().all(|x| x.a == v || x.b == v))
+                    .collect_vec();
+
+                let sub_ans = star_root_cand
+                    .iter()
+                    .copied()
+                    .filter(|&star_root| !visited[star_root])
+                    .map(|_| {
+                        let cnt_unvisited = sub_conds
+                            .iter()
+                            .copied()
+                            .flat_map(|cond| [cond.a, cond.b])
+                            .unique()
+                            .filter(|&x| !visited[x])
+                            .count();
+
+                        if *c < cnt_used || cnt_unvisited == 0 {
+                            Mint::new(0)
+                        } else {
+                            comb.perm(c - cnt_used, cnt_unvisited - 1)
+                        }
+                    })
+                    .sum::<Mint>();
+
+                for &cond in sub_conds {
+                    if !visited[cond.a] {
+                        visited[cond.a] = true;
+                        cnt_used += 1;
+                    }
+                    if !visited[cond.b] {
+                        visited[cond.b] = true;
+                        cnt_used += 1;
+                    }
+                }
+
+                sub_ans
+            })
+            .product::<Mint>();
+        // 辺に現れない頂点
+        let cnt2 = comb.factorial(self.len - cnt_used);
+        let ans = (cnt1 * cnt2).val() as i64;
         Answer { ans }
     }
 
@@ -130,3 +204,47 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use mod_combinatorics::*;
+pub mod mod_combinatorics {
+    use ac_library::ModInt998244353 as Mint;
+    pub struct Comb {
+        fac: Vec<Mint>,
+        invfac: Vec<Mint>,
+    }
+    impl Comb {
+        pub fn new(max_val: usize) -> Self {
+            let mut inv = vec![Mint::new(0); max_val + 1];
+            let mut fac = vec![Mint::new(0); max_val + 1];
+            let mut invfac = vec![Mint::new(0); max_val + 1];
+            fac[0] = 1.into();
+            fac[1] = 1.into();
+            invfac[0] = 1.into();
+            invfac[1] = 1.into();
+            inv[1] = 1.into();
+            let modulus = Mint::modulus() as usize;
+            for i in 2..=max_val {
+                inv[i] = -inv[modulus % i] * Mint::new(modulus / i);
+                fac[i] = fac[i - 1] * Mint::new(i);
+                invfac[i] = invfac[i - 1] * inv[i];
+            }
+            Self { fac, invfac }
+        }
+        pub fn comb(&self, n: usize, k: usize) -> Mint {
+            if n < k {
+                0.into()
+            } else {
+                self.fac[n] * self.invfac[k] * self.invfac[n - k]
+            }
+        }
+        pub fn perm(&self, n: usize, k: usize) -> Mint {
+            if n < k {
+                0.into()
+            } else {
+                self.fac[n] * self.invfac[n - k]
+            }
+        }
+        pub fn factorial(&self, n: usize) -> Mint {
+            self.fac[n]
+        }
+    }
+}
