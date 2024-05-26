@@ -1,18 +1,42 @@
-//#[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct ClosedRange {
+    l: usize,
+    r: usize,
+}
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    rs: Vec<ClosedRange>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            rs: [ClosedRange; n],
         }
-        Problem { _a }
+        Problem { n, rs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let rs = self.rs.iter().copied().sorted_by_key(|r| r.l).collect_vec();
+
+        let ans = rs
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(i, range)| {
+                //
+                // range.r >= x.l となる x in rs の数
+                let j_star = bin_search(i as i64, n as i64, |j| {
+                    //
+                    range.r >= rs[j as usize].l
+                });
+                j_star as usize - i
+            })
+            .sum::<usize>();
+
         Answer { ans }
     }
 
@@ -26,7 +50,7 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: usize,
 }
 
 impl Answer {
@@ -171,3 +195,44 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+/// 二分探索をする
+/// ```text
+/// ng ng ng ok ok ok
+///          ↑ここの引数の値を返す
+/// ```
+/// 計算量: O(log(|ok - ng|))
+/// ## Arguments
+/// * ok != ng
+/// * |ok - ng| <= 2^63 - 1, |ok + ng| <= 2^63 - 1
+/// * p の定義域について
+///     * ng < ok の場合、p は区間 ng..ok で定義されている。
+///     * ok < ng の場合、p は区間 ok..ng で定義されている。
+/// * p の単調性について
+///     * ng < ok の場合、p は単調増加
+///     * ok < ng の場合、p は単調減少
+/// ## Return
+/// * ng < ok の場合: I = { i in ng..ok | p(i) == true } としたとき
+///     * I が空でなければ、min I を返す。
+///     * I が空ならば、ok を返す。
+/// * ok < ng の場合: I = { i in ok..ng | p(i) == true } としたとき
+///     * I が空でなければ、max I を返す。
+///     * I が空ならば、ok を返す。
+pub fn bin_search<F>(mut ok: i64, mut ng: i64, p: F) -> i64
+where
+    F: Fn(i64) -> bool,
+{
+    assert!(ok != ng);
+    assert!(ok.checked_sub(ng).is_some());
+    assert!(ok.checked_add(ng).is_some());
+    while num::abs(ok - ng) > 1 {
+        let mid = (ok + ng) / 2;
+        assert!(mid != ok);
+        assert!(mid != ng);
+        if p(mid) {
+            ok = mid;
+        } else {
+            ng = mid;
+        }
+    }
+    ok
+}

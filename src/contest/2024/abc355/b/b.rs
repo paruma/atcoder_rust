@@ -1,18 +1,44 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    xs: Vec<i64>,
+    ys: Vec<i64>,
+}
+
+fn solve_sub(zs: &[i64], xs_set: &HashSet<i64>) -> bool {
+    //
+    let mut cnt = 0;
+
+    for &z in zs {
+        if xs_set.contains(&z) {
+            cnt += 1;
+        } else {
+            cnt = 0;
+        }
+        if cnt == 2 {
+            return true;
+        }
+    }
+
+    false
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            xs_len: usize,
+            ys_len: usize,
+            xs: [i64; xs_len],
+            ys: [i64; ys_len],
         }
-        Problem { _a }
+        Problem { xs, ys }
     }
+
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let zs = chain!(&self.xs, &self.ys).copied().sorted().collect_vec();
+        let xs_set = self.xs.iter().copied().collect::<HashSet<_>>();
+
+        let ans = solve_sub(&zs, &xs_set);
         Answer { ans }
     }
 
@@ -26,12 +52,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_yesno(self.ans);
     }
 }
 

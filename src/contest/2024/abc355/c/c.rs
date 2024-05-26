@@ -1,18 +1,49 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    size: usize,
+    n_tern: usize,
+    xs: Vec<usize>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            size: usize,
+            n_tern: usize,
+            xs: [Usize1; n_tern],
         }
-        Problem { _a }
+        Problem { size, n_tern, xs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let size = self.size;
+        let mut tate = vec![0; size];
+        let mut yoko = vec![0; size];
+        let mut naname1 = 0;
+        let mut naname2 = 0;
+
+        let mut ans = None;
+
+        for (current_tern, i) in self.xs.iter().copied().enumerate() {
+            let x = i % size;
+            let y = i / size;
+            yoko[y] += 1;
+            tate[x] += 1;
+            if x == y {
+                naname1 += 1;
+            }
+            if x + y == size - 1 {
+                naname2 += 1;
+            }
+
+            let is_bingo = [yoko[y], tate[x], naname1, naname2]
+                .iter()
+                .any(|cnt| *cnt == size);
+            if is_bingo {
+                ans = Some(current_tern);
+                break;
+            }
+        }
         Answer { ans }
     }
 
@@ -26,12 +57,16 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Option<usize>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        if let Some(ans) = self.ans {
+            println!("{}", ans + 1);
+        } else {
+            println!("{}", -1);
+        }
     }
 }
 

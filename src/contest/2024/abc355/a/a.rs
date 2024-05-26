@@ -1,21 +1,43 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    a: usize,
+    b: usize,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            a: usize,
+            b: usize,
         }
-        Problem { _a }
+        Problem { a, b }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let a = self.a;
+        let b = self.b;
+        let mut set = hashset! {1,2,3};
+
+        set.remove(&a);
+        set.remove(&b);
+        let ans = if set.len() == 1 {
+            Some(set.iter().next().copied().unwrap())
+        } else {
+            None
+        };
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        let a = self.a;
+        let b = self.b;
+        let set = hashset! {1,2,3};
+        let removing = hashset! {a,b};
+
+        let cand = set.difference(&removing).copied().collect_vec();
+        let ans = if cand.len() == 1 { Some(cand[0]) } else { None };
+        Answer { ans }
+    }
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -26,17 +48,21 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Option<usize>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        if let Some(ans) = self.ans {
+            println!("{}", ans);
+        } else {
+            println!("{}", -1);
+        }
     }
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -118,6 +144,7 @@ mod tests {
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
+use maplit::hashset;
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,
