@@ -42,10 +42,6 @@ fn bellman_ford(edges: &[Edge], n_vertex: usize, start: usize) -> Option<Vec<Ext
     dist[start] = Fin(0);
 
     for n_iter in 0..n_vertex {
-        if n_iter == n_vertex - 1 {
-            // 始点からたどり着ける負閉路が存在する
-            return None;
-        }
         let mut updates = false;
         for edge in edges {
             if chmin!(dist[edge.to], dist[edge.from] + Fin(edge.cost)) {
@@ -54,6 +50,10 @@ fn bellman_ford(edges: &[Edge], n_vertex: usize, start: usize) -> Option<Vec<Ext
         }
         if !updates {
             break;
+        }
+        if n_iter == n_vertex - 1 {
+            // 始点からたどり着ける負閉路が存在する
+            return None;
         }
     }
 
@@ -136,6 +136,21 @@ mod tests {
 
     #[test]
     fn test_bellman_ford2() {
+        // 負閉路なし(パスの長さがN-1)
+        //    100
+        //  -------
+        //  |  1  ↓  2     3
+        // [0] → [1] → [2] → [3]
+        let edges = [(0, 1, 100), (2, 3, 3), (1, 2, 2), (0, 1, 1)]
+            .map(|(from, to, cost)| Edge::new(from, to, cost));
+
+        let result = bellman_ford(&edges, 4, 0);
+
+        assert_eq!(result, Some(vec![Fin(0), Fin(1), Fin(3), Fin(6)]));
+    }
+
+    #[test]
+    fn test_bellman_ford3() {
         // 負閉路なし（長さ0の閉路あり）
         //         [1]
         //     2 ↗  ↑|  ↘ 4
@@ -160,7 +175,7 @@ mod tests {
     }
 
     #[test]
-    fn test_bellman_ford3() {
+    fn test_bellman_ford4() {
         // 始点から到達可能な負閉路あり
         //         [1]
         //     2 ↗  ↑|  ↘ 4
@@ -185,7 +200,7 @@ mod tests {
     }
 
     #[test]
-    fn test_bellman_ford4() {
+    fn test_bellman_ford5() {
         // 始点から到達可能ではない負閉路あり
         //
         //     1    1      1
