@@ -79,6 +79,7 @@ pub mod mod_number_thm {
     }
 
     impl Eratosthenes {
+        /// 計算量: O(n log(log(n)))
         pub fn new(n: usize) -> Self {
             let mut is_prime_list = vec![true; n + 1];
             let mut min_factor_list = vec![None; n + 1];
@@ -102,15 +103,17 @@ pub mod mod_number_thm {
             }
         }
 
+        /// 計算量: O(1)
         pub fn is_prime(&self, n: usize) -> bool {
             self.is_prime_list[n]
         }
 
+        /// 計算量: O(log n)
         pub fn prime_factorize(&self, n: usize) -> HashMap<usize, usize> {
             let mut n = n;
             let mut cnt_table: HashMap<usize, usize> = HashMap::new();
             while n > 1 {
-                let p = self.min_factor_list[n].unwrap(); // n > 2 なら unwrap できる
+                let p = self.min_factor_list[n].unwrap(); // n >= 2 なら unwrap できる
                 let mut exp = 0;
                 while self.min_factor_list[n] == Some(p) {
                     n /= p;
@@ -122,6 +125,7 @@ pub mod mod_number_thm {
             cnt_table
         }
 
+        /// 計算量: O(nの約数の個数)
         pub fn divisors(&self, n: usize) -> Vec<usize> {
             let mut res = vec![1];
             let pf = self.prime_factorize(n);
