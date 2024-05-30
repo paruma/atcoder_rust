@@ -61,6 +61,15 @@ impl Range {
     }
 }
 
+/// 大文字小文字入れ替え
+fn transpose(ch: u8) -> u8 {
+    if ch.is_ascii_lowercase() {
+        ch.to_ascii_uppercase()
+    } else {
+        ch.to_ascii_lowercase()
+    }
+}
+
 #[derive(Debug)]
 struct Problem {
     s: Vec<u8>,
@@ -74,6 +83,138 @@ impl Problem {
         Problem { s }
     }
     fn solve(&self) -> Answer {
+        // 各アルファベットがどういう順番で訪問されるか考えて、いい感じに訪問順を作る
+        let len = self.s.len();
+        let s = &self.s;
+        let paren_map = {
+            let mut paren_map = vec![None; len];
+            let mut stack = Stack::new();
+            for (i, ch) in s.iter().copied().enumerate() {
+                match ch {
+                    b'(' => {
+                        stack.push(i);
+                    }
+                    b')' => {
+                        let begin = stack.pop().unwrap();
+                        let end = i;
+                        paren_map[begin] = Some(end);
+                        paren_map[end] = Some(begin)
+                    }
+                    _ => {}
+                }
+            }
+            paren_map
+        };
+
+        let mut current = 0;
+        let mut moving_right = true;
+        let mut ans = vec![];
+        while current < len {
+            let current_ch = s[current];
+            match current_ch {
+                b'(' => {
+                    current = paren_map[current].unwrap();
+                    moving_right = !moving_right;
+                }
+                b')' => {
+                    current = paren_map[current].unwrap();
+                    moving_right = !moving_right;
+                }
+                _ => {
+                    if moving_right {
+                        ans.push(current_ch);
+                    } else {
+                        ans.push(transpose(current_ch));
+                    }
+                }
+            }
+            if moving_right {
+                current += 1;
+            } else {
+                current -= 1;
+            }
+        }
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // 再帰をする
+        let len = self.s.len();
+        let s = &self.s;
+        let paren_map = {
+            let mut paren_map = vec![None; len];
+            let mut stack = Stack::new();
+            for (i, ch) in s.iter().copied().enumerate() {
+                match ch {
+                    b'(' => {
+                        stack.push(i);
+                    }
+                    b')' => {
+                        let begin = stack.pop().unwrap();
+                        let end = i;
+                        paren_map[begin] = Some(end);
+                        paren_map[end] = Some(begin)
+                    }
+                    _ => {}
+                }
+            }
+            paren_map
+        };
+
+        struct Rec {
+            s: Vec<u8>,
+            paren_map: Vec<Option<usize>>,
+        }
+
+        impl Rec {
+            // [left, right] という閉区間を考える
+            fn rec_to_right(&self, left: usize, right: usize, ans: &mut Vec<u8>) {
+                let mut current = left;
+                while current <= right {
+                    let current_ch = self.s[current];
+                    if current_ch == b'(' {
+                        let paren_left = current;
+                        let paren_right = self.paren_map[current].unwrap();
+                        self.rec_to_left(paren_left + 1, paren_right - 1, ans);
+                        current = paren_right;
+                    } else {
+                        assert_ne!(current_ch, b')');
+                        ans.push(current_ch);
+                    }
+
+                    current += 1;
+                }
+            }
+
+            fn rec_to_left(&self, left: usize, right: usize, ans: &mut Vec<u8>) {
+                let mut current = right;
+                while left <= current {
+                    let current_ch = self.s[current];
+                    if current_ch == b')' {
+                        let paren_right = current;
+                        let paren_left = self.paren_map[current].unwrap();
+                        self.rec_to_right(paren_left + 1, paren_right - 1, ans);
+                        current = paren_left;
+                    } else {
+                        assert_ne!(current_ch, b'(');
+                        ans.push(transpose(current_ch));
+                    }
+
+                    current -= 1;
+                }
+            }
+        }
+
+        let mut ans = vec![];
+        let rec = Rec {
+            s: s.to_vec(),
+            paren_map,
+        };
+        rec.rec_to_right(0, len - 1, &mut ans);
+
+        Answer { ans }
+    }
+    fn solve_wrong(&self) -> Answer {
         // 未AC
         let s = &self.s;
         let s_without_paren = s
@@ -102,11 +243,11 @@ impl Problem {
         let xs = s_without_paren
             .iter()
             .copied()
-            .map(|x| if (b'a'..=b'z').contains(&x) { -1 } else { 1 })
+            .map(|x| if x.is_ascii_lowercase() { -1 } else { 1 })
             .collect_vec();
 
         let mut seg = LazySegtree::<RangeYyyRangeXxx>::from(
-            xs.iter().copied().map(|x| RangeXxx::unit(x)).collect_vec(),
+            xs.iter().copied().map(RangeXxx::unit).collect_vec(),
         );
 
         for r in range.clone() {
@@ -183,7 +324,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -199,7 +340,7 @@ mod tests {
     }
 
     fn check(p: &Problem) {
-        assert_eq!(p.solve(), p.solve_naive());
+        assert_eq!(p.solve_wrong(), p.solve_naive());
     }
 
     fn make_random_problem() -> Problem {
