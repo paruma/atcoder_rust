@@ -1,6 +1,8 @@
 #![allow(dead_code)]
 use std::{cmp::Reverse, collections::BinaryHeap};
 
+use itertools::Itertools;
+
 /*
 単一始点最短路問題
 
@@ -102,7 +104,43 @@ fn warshall_floyd(edges: &[Edge], n_vertex: usize) -> Vec<Vec<ExtInt>> {
     dist
 }
 
-// テストを書く
+fn prev_to_path(prev_list: &[Option<usize>], start: usize, goal: usize) -> Option<Vec<usize>> {
+    let mut current = goal;
+    let mut path_rev = vec![goal];
+    while let Some(prev) = prev_list[current] {
+        current = prev;
+        path_rev.push(current);
+    }
+    if current == start {
+        let path = path_rev.iter().copied().rev().collect_vec();
+        Some(path)
+    } else {
+        None
+    }
+}
+
+/// 始点 start から各頂点までの最小コストと、最小コストを実現する前者配列を返す
+fn dijkstra_with_restore(adj: &[Vec<Edge>], start: usize) -> (Vec<ExtInt>, Vec<Option<usize>>) {
+    let n_vertex = adj.len();
+    let mut pq: BinaryHeap<(Reverse<ExtInt>, usize)> = BinaryHeap::new();
+    let mut dist = vec![Inf; n_vertex];
+    let mut prev: Vec<Option<usize>> = vec![None; n_vertex];
+    dist[start] = Fin(0);
+    pq.push((Reverse(Fin(0)), start));
+
+    while let Some((Reverse(d), current)) = pq.pop() {
+        if dist[current] < d {
+            continue;
+        }
+        for e in &adj[current] {
+            if chmin!(dist[e.to], dist[e.from] + Fin(e.cost)) {
+                prev[e.to] = Some(e.from);
+                pq.push((Reverse(dist[e.to]), e.to));
+            }
+        }
+    }
+    (dist, prev)
+}
 
 #[cfg(test)]
 mod tests {
@@ -299,5 +337,105 @@ mod tests {
             vec![Inf, Inf, Inf, Fin(0)],
         ];
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_dijkstra_with_restore() {
+        // 頂点0 からすべての頂点に行ける
+        //         [1]
+        //    10 ↗  ↑|  ↘ 4
+        //    ↗     ||    ↘
+        //  [0]    3||1     [3]
+        //    ↘     ||    ↗
+        //     6 ↘  |↓  ↗ 0
+        //          [2]
+        let edges = [
+            (0, 1, 10),
+            (0, 2, 6),
+            (1, 2, 1),
+            (2, 1, 3),
+            (1, 3, 4),
+            (2, 3, 0),
+        ]
+        .map(|(from, to, cost)| Edge::new(from, to, cost));
+
+        let n_vertex = 4;
+
+        let adj: Vec<Vec<Edge>> = edges.iter().fold(vec![vec![]; n_vertex], |mut acc, e| {
+            acc[e.from].push(*e);
+            acc
+        });
+        let (result_dist, result_prev) = dijkstra_with_restore(&adj, 0);
+
+        let expected_dist = vec![Fin(0), Fin(9), Fin(6), Fin(6)];
+        let expected_prev = vec![None, Some(2), Some(0), Some(2)];
+
+        assert_eq!(result_dist, expected_dist);
+        assert_eq!(result_prev, expected_prev);
+    }
+
+    #[test]
+    fn test_dijkstra_with_restore2() {
+        // 頂点0から行けない頂点がある
+        //     2     3     4
+        // [0] → [1] → [2] ← [3]
+        //
+        let edges =
+            [(0, 1, 2), (1, 2, 3), (3, 2, 4)].map(|(from, to, cost)| Edge::new(from, to, cost));
+
+        let n_vertex = 4;
+
+        let adj: Vec<Vec<Edge>> = edges.iter().fold(vec![vec![]; n_vertex], |mut acc, e| {
+            acc[e.from].push(*e);
+            acc
+        });
+
+        let (result_dist, result_prev) = dijkstra_with_restore(&adj, 0);
+
+        let expected_dist = vec![Fin(0), Fin(2), Fin(5), Inf];
+        let expected_prev = vec![None, Some(0), Some(1), None];
+
+        assert_eq!(result_dist, expected_dist);
+        assert_eq!(result_prev, expected_prev);
+    }
+
+    #[test]
+    fn test_prev_to_path1() {
+        let prev = vec![None, Some(2), Some(0), Some(2)];
+        let result_path = prev_to_path(&prev, 0, 3);
+
+        let expected_path = Some(vec![0, 2, 3]);
+
+        assert_eq!(result_path, expected_path);
+    }
+
+    #[test]
+    fn test_prev_to_path2() {
+        let prev = vec![None, Some(2), Some(0), Some(2)];
+        let result_path = prev_to_path(&prev, 0, 1);
+
+        let expected_path = Some(vec![0, 2, 1]);
+
+        assert_eq!(result_path, expected_path);
+    }
+
+    #[test]
+    fn test_prev_to_path3() {
+        let prev = vec![None, Some(2), Some(0), Some(2)];
+        let result_path = prev_to_path(&prev, 0, 0);
+
+        let expected_path = Some(vec![0]);
+
+        assert_eq!(result_path, expected_path);
+    }
+
+    #[test]
+    fn test_prev_to_path4() {
+        let prev = vec![None, Some(0), Some(1), None];
+        let result_path = prev_to_path(&prev, 0, 3);
+
+        let expected_path = None;
+
+        assert_eq!(result_path, expected_path);
     }
 }
