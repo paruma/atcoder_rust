@@ -2,6 +2,14 @@ use cargo_snippet::snippet;
 
 #[snippet(prefix = "use cumsum::*;")]
 pub mod cumsum {
+    pub fn prefix_sum(xs: &[i64]) -> Vec<i64> {
+        let mut prefix_sum = vec![0; xs.len() + 1];
+        for i in 1..xs.len() + 1 {
+            prefix_sum[i] = prefix_sum[i - 1] + xs[i - 1];
+        }
+        prefix_sum
+    }
+
     use std::ops::{Bound, Range, RangeBounds};
 
     pub struct CumSum {
@@ -89,6 +97,20 @@ mod test {
 
     use super::cumsum::*;
     use super::cumsum_2d::*;
+
+    #[test]
+    fn test_prefix_sum_normal() {
+        let xs = vec![1, 2, 3, 4];
+        let prefix_sum = prefix_sum(&xs);
+        assert_eq!(prefix_sum, vec![0, 1, 3, 6, 10]);
+    }
+
+    #[test]
+    fn test_prefix_sum_empty() {
+        let xs = vec![];
+        let prefix_sum = prefix_sum(&xs);
+        assert_eq!(prefix_sum, vec![0]);
+    }
 
     #[test]
     fn test_cumsum_normal() {

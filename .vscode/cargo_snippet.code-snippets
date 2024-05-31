@@ -569,6 +569,13 @@
     "body": [
       "use cumsum::*;",
       "pub mod cumsum {",
+      "    pub fn prefix_sum(xs: &[i64]) -> Vec<i64> {",
+      "        let mut prefix_sum = vec![0; xs.len() + 1];",
+      "        for i in 1..xs.len() + 1 {",
+      "            prefix_sum[i] = prefix_sum[i - 1] + xs[i - 1];",
+      "        }",
+      "        prefix_sum",
+      "    }",
       "    use std::ops::{Bound, Range, RangeBounds};",
       "    pub struct CumSum {",
       "        pub cumsum: Vec<i64>,",
