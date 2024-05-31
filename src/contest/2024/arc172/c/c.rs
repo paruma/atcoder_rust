@@ -1,17 +1,65 @@
 //#[derive_readable]
 struct Problem {
-    _a: i64,
+    n: usize,
+    xs: Vec<u8>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n: usize,
+            xs: Bytes
         }
-        Problem { _a }
+        Problem { n, xs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        // 解法
+        // 括弧列の問題と同じようにAを+1, Bを-1として考えると、和はAの票数-Bの票数になる。和が正・0・負のどれかということに関心がある。
+        // 1234
+        // 2134
+        // 2314
+        // 2341
+        // のように隣接した2要素を交換しながら1を動かして、全通り試す。
+        // 隣接した2要素を交換したときの票数差（累積和）は括弧列のときと同様に簡単に計算できる。
+        let mut xs = self
+            .xs
+            .iter()
+            .copied()
+            .map(|ch| match ch {
+                b'A' => 1_i64,
+                b'B' => -1,
+                _ => panic!(),
+            })
+            .collect_vec();
+
+        let mut cumsum = vec![0; xs.len() + 1];
+        for i in 1..xs.len() + 1 {
+            cumsum[i] = cumsum[i - 1] + xs[i - 1];
+        }
+
+        let mut ans = 1;
+
+        // (0,1), (1,2)... をスワップさせていって、全パターン試す。
+        for i in 1..xs.len() {
+            if xs[i - 1] != xs[i] {
+                // Aの票数-Bの票数
+                let before = cumsum[i];
+                let after = cumsum[i] + xs[i] * 2;
+
+                // Aの方が投票数が多い → 1
+                // 投票数が同数 → 0
+                // Bの方が投票数が多い → -1
+                let before_result = i64::clamp(before, -1, 1);
+                let after_result = i64::clamp(after, -1, 1);
+                if before_result != after_result {
+                    ans += 1;
+                }
+
+                cumsum[i] = after;
+            }
+            xs.swap(i - 1, i);
+        }
+
         Answer { ans }
     }
 }
