@@ -11,36 +11,54 @@ struct Problem {
 
 impl TestCase {
     fn solve(&self) -> i64 {
-        let n_review = self.xs.iter().sum::<i64>();
+        // 目標平均値である3を引いて考える。(0オリジンなので1ずれることに注意)
+        // (-2)*xs[0] + (-1)*xs[1] + 0*xs[2] + 1*xs[3] + 2*xs[4]
         let rating_sum = self
             .xs
             .iter()
             .copied()
             .enumerate()
-            .map(|(i, x)| x * (i as i64 + 1))
+            .map(|(i, x)| x * (i as i64 - 2))
             .sum::<i64>();
 
         // 賄賂不要なケース
-        if rating_sum >= n_review * 3 {
-            // rating_sum / n_review が平均評価
+        if rating_sum >= 0 {
             return 0;
         }
-
-        let x4 = self.xs[3];
-        let x5 = self.xs[4];
+        // -rating_sum だけの星が追加でほしい
+        let required_rating = -rating_sum;
 
         let p4 = self.ps[3];
         let p5 = self.ps[4];
 
-        // 4を買う
-        let cnt4 = 3 * n_review - rating_sum;
-        let price4 = p4 * cnt4;
+        // 星4を買う数をx、星5を買う数をyとしたとき、
+        // 以下の最適化問題を解けば良い
+        // min x * p4 + y * p5
+        // s.t. x + 2 * y >= required_rating
+        //      x, y は正の整数
+        // いくつかの格子点を見れば十分
 
-        // 5を買う
-        let cnt5 = (3 * n_review - rating_sum).div_ceil(&2);
-        let price5 = p5 * cnt5;
+        let cand = if required_rating % 2 == 0 {
+            // (x, y) = (0, required_rating/2)
+            // (x, y) = (required_rating, 0)
+            [(0, required_rating / 2), (required_rating, 0)].to_vec()
+        } else {
+            // (x, y) = (0, required_rating/2 + 1)
+            // (x, y) = (1, required_rating/2)
+            // (x, y) = (required_rating, 0)
+            [
+                (0, required_rating / 2 + 1),
+                (1, required_rating / 2),
+                (required_rating, 0),
+            ]
+            .to_vec()
+        };
 
-        i64::min(price4, price5)
+        cand.iter()
+            .copied()
+            .map(|(x, y)| x * p4 + y * p5)
+            .min()
+            .unwrap()
     }
 
     fn solve_naive(&self) -> i64 {
