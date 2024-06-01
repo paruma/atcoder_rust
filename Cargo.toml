@@ -741,6 +741,9 @@ path = "src/contest/2024/abc350/g/g.rs"
 # name = "arc168_b"
 # path = "src/contest/2023/arc168/b/b.rs"
 
+# [[bin]]
+# name = "arc168_c"
+# path = "src/contest/2023/arc168/c/c.rs"
 
 # [[bin]]
 # name = "abc329_a"
