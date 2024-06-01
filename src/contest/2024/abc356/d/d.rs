@@ -1,26 +1,62 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    m: usize,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            m: usize,
         }
-        Problem { _a }
+        Problem { n, m }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        use ac_library::ModInt998244353 as Mint;
+
+        let n = self.n + 1;
+        let m = self.m;
+
+        let mut pow2 = 1;
+        let mut ans = Mint::new(0);
+
+        for i in 0..61 {
+            if (m >> i) & 1 == 1 {
+                if i == 0 {
+                    ans += Mint::new(n / 2);
+                } else {
+                    //
+                    let term1 = n / (pow2 * 2) * pow2;
+                    let term2 = if n % (pow2 * 2) >= pow2 {
+                        (n % (pow2 * 2)) - 1
+                    } else {
+                        0
+                    };
+                    let s = term1 + term2;
+                    dbg!(pow2);
+                    dbg!(term1);
+                    dbg!(term2);
+
+                    ans += Mint::new(s);
+                }
+            }
+
+            pow2 *= 2;
+        }
+
+        let ans = ans.val() as i64;
         Answer { ans }
     }
 
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
-        todo!();
-        // let ans = 0;
-        // Answer { ans }
+        let n = self.n;
+        let m = self.m;
+
+        let ans = (0..=n).map(|k| (k & m).count_ones() as i64).sum::<i64>();
+        Answer { ans }
     }
 }
 
@@ -76,17 +112,17 @@ mod tests {
 
     #[allow(dead_code)]
     fn make_random_problem(rng: &mut SmallRng) -> Problem {
-        todo!()
-        // let n = rng.gen_range(1..=10);
-        // let p = Problem { _a: n };
-        // println!("{:?}", &p);
-        // p
+        let n = rng.gen_range(1..=10);
+        let m = rng.gen_range(1..=10);
+        let p = Problem { n, m };
+        println!("{:?}", &p);
+        p
     }
 
     #[allow(unreachable_code)]
     #[test]
     fn test_with_naive() {
-        let num_tests = 0;
+        let num_tests = 100;
         let max_wrong_case = 10; // この件数間違いが見つかったら打ち切り
         let mut rng = SmallRng::seed_from_u64(42);
         // let mut rng = SmallRng::from_entropy();

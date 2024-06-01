@@ -1,18 +1,31 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    m: usize,
+    ideals: Vec<i64>,
+    xss: Vec<Vec<i64>>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            m: usize,
+            ideals: [i64; m],
+            xss: [[i64; m]; n],
         }
-        Problem { _a }
+        Problem { n, m, ideals, xss }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let actuals = (0..self.m)
+            .map(|i_nut| {
+                (0..self.n)
+                    .map(|i_food| self.xss[i_food][i_nut])
+                    .sum::<i64>()
+            })
+            .collect_vec();
+        let ans = izip!(&self.ideals, &actuals).all(|(ideal, actual)| actual >= ideal);
         Answer { ans }
     }
 
@@ -26,12 +39,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_yesno(self.ans);
     }
 }
 

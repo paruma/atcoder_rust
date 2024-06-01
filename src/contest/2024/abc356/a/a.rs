@@ -1,18 +1,23 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    l: usize,
+    r: usize,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            l: usize,
+            r: usize,
         }
-        Problem { _a }
+        Problem { n, l, r }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let mut ans = (1..=self.n).collect_vec();
+        ans[self.l - 1..=self.r - 1].reverse();
         Answer { ans }
     }
 
@@ -26,12 +31,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<usize>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec_1line(&self.ans);
     }
 }
 

@@ -1,18 +1,77 @@
 //#[derive_readable]
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct Test {
+    n_keys: usize,
+    keys: Vec<usize>,
+    opens: bool,
+}
+
+impl Test {
+    fn read() -> Self {
+        input! {
+            n_keys: usize,
+            keys: [Usize1; n_keys],
+            opens: Bytes,
+        }
+        let opens = opens[0] == b'o';
+
+        Test {
+            n_keys,
+            keys,
+            opens,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n_keys: usize,
+    n_tests: usize,
+    n_keys_to_open: usize,
+    tests: Vec<Test>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n_keys: usize,
+            n_tests: usize,
+            n_keys_to_open: usize,
         }
-        Problem { _a }
+        let tests = (0..n_tests).map(|_| Test::read()).collect_vec();
+        Problem {
+            n_keys,
+            n_tests,
+            n_keys_to_open,
+            tests,
+        }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n_keys = self.n_keys;
+        let n_tests = self.n_tests;
+        let n_keys_to_open = self.n_keys_to_open;
+        let tests = &self.tests;
+
+        let ans = (0..n_keys)
+            .powerset()
+            .filter(|real_keys| {
+                let real_keys = real_keys.iter().copied().collect::<HashSet<usize>>();
+                // 本物の鍵が real_keys のとき、全テストで矛盾が発生しないか
+                tests.iter().all(|test| {
+                    // 今の real_keys で test の結果が矛盾しないか
+                    let simulate_result = test
+                        .keys
+                        .iter()
+                        .copied()
+                        .filter(|&key| real_keys.contains(&key))
+                        .count()
+                        >= n_keys_to_open;
+                    let test_result = test.opens;
+                    simulate_result == test_result
+                })
+            })
+            .count() as i64;
         Answer { ans }
     }
 
