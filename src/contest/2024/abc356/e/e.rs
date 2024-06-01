@@ -1,18 +1,138 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    xs: Vec<usize>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            xs: [usize; n],
         }
-        Problem { _a }
+        Problem { n, xs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        // [解法]
+        // ソートすると Σ_i Σ_j xs[j]/xs[i] を求めれば良いとなる。
+        // i のループでは xs を平方分割して、大きい方は BIT を使って計算し、小さい方は愚直に計算をする。
+
+        let n = self.n;
+        let xs = &self.xs.iter().copied().sorted().collect_vec();
+
+        let xs_max = xs.iter().copied().max().unwrap();
+        let xs_max_sqrt = xs_max.sqrt();
+
+        // term1s[denom] には、今まで見た x in xs に対する x/denom の和を記録する
+        let mut term1s = vec![0; xs_max_sqrt + 1];
+        // bit[rumor] = 今まで見た x in xs のうち x == rumor となる x のカウント
+        let mut bit = FenwickTree::new(xs_max + 1, 0);
+
+        // 各 i に対して、sum_j xs[j]/xs[i] を保存する
+        let mut buf = vec![];
+
+        // 全体としての計算量は O(n √xs_max log(xs_max))
+        for i in (0..n).rev() {
+            if xs[i] > xs_max_sqrt {
+                // xs[i] が小さすぎると、計算量が大きくなってしまう。
+                // xs[i] が小さい場合は別の方法で計算をする。
+                // O(√xs_max log(xs_max))
+                let v = (0..=xs_max / xs[i])
+                    .map(|range_i| {
+                        let begin = usize::min(range_i * xs[i], xs_max);
+                        let end = usize::min((range_i + 1) * xs[i], xs_max + 1);
+                        bit.sum(begin..end) * range_i
+                    })
+                    .sum::<usize>();
+                buf.push(v)
+            } else {
+                buf.push(term1s[xs[i]])
+            }
+
+            bit.add(xs[i], 1);
+            // 計算量 O(√xs_max)
+            // 上の処理と同じくらいの計算量になるように平方分割をした
+            for denom in 1..=xs_max_sqrt {
+                term1s[denom] += xs[i] / denom;
+            }
+        }
+
+        let ans = buf.iter().sum::<usize>() as i64;
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // [解法]
+        // ソートすると Σ_i Σ_j xs[j]/xs[i] を求めれば良いとなる。
+        // 以下のような式変形をして、計算をする。
+        //
+        // sum_{i=1}^{N-1} sum_{j=i+1}^{N} A_j/A_i
+        // = sum_{i=1}^{N-1} sum_{j=1}^{N} A_j/A_i
+        //   - sum_{i=1}^{N-1} sum_{j=1}^{i} A_j/A_i
+        //
+        // 第1項では、調和級数ぽいループをして計算する。
+
+        let xs = &self.xs.iter().copied().sorted().collect_vec();
+
+        let xs_max = xs.iter().copied().max().unwrap();
+
+        // cnts[k] = #[x in xs | x == k]
+        let cnts = {
+            let mut cnts = vec![0; xs_max + 1];
+            for &x in xs {
+                cnts[x] += 1;
+            }
+            cnts
+        };
+        let cnts_cumsum = CumSum::new(&cnts);
+
+        // 各 d in 1..=xs_max に対して、sum_{x in xs} x/d を求める。
+        // 計算量は xs_max/1 + xs_max/2 + ... + xs_max/xs_max = O(xs_max log(xs_max))
+        let sum_div_ceil_list = (0..=xs_max)
+            .map(|d| {
+                if d == 0 {
+                    0
+                } else {
+                    // 計算量 O(xs_max / d) (一応 log もつく)
+                    (0..xs_max / d + 1)
+                        .map(|range_i| {
+                            let begin = range_i * d;
+                            let end = ((range_i + 1) * d).min(xs_max + 1);
+                            cnts_cumsum.range_sum(begin..end) * (range_i as i64)
+                        })
+                        .sum::<i64>() as usize
+                }
+            })
+            .collect_vec();
+
+        // sum_{i=1}^{N-1} sum_{j=i+1}^{N} A_j/A_i
+        // = sum_{i=1}^{N-1} sum_{j=1}^{N} A_j/A_i    ...... term1
+        //   - sum_{i=1}^{N-1} sum_{j=1}^{i} A_j/A_i  ...... term2
+        //
+        // term2 について
+        // sum_{i=1}^{N-1} sum_{j=1}^{i} A_j/A_i は A_i = A_j で j <= i となる (i, j)の数
+        // cnts を使えば計算できる。
+
+        let term1 = xs
+            .iter()
+            .copied()
+            // 前計算なしに毎回 sum_{r in xs} r/x を計算してると、例えば x = 1 となる x in xs が多いときに困る。
+            .map(|x| sum_div_ceil_list[x])
+            .sum::<usize>();
+
+        let term2 = cnts
+            .iter()
+            .copied()
+            .map(|cnt| {
+                let cnt = cnt as usize;
+                cnt * (cnt + 1) / 2
+            })
+            .sum::<usize>();
+
+        let ans = term1 - term2;
+        let ans = ans as i64;
+
         Answer { ans }
     }
 
@@ -36,7 +156,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -115,9 +235,11 @@ mod tests {
     }
 }
 
+use ac_library::FenwickTree;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
+use num_integer::Roots;
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,
@@ -171,3 +293,54 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use cumsum::*;
+pub mod cumsum {
+    pub fn prefix_sum(xs: &[i64]) -> Vec<i64> {
+        let mut prefix_sum = vec![0; xs.len() + 1];
+        for i in 1..xs.len() + 1 {
+            prefix_sum[i] = prefix_sum[i - 1] + xs[i - 1];
+        }
+        prefix_sum
+    }
+    use std::ops::{Bound, Range, RangeBounds};
+    pub struct CumSum {
+        pub cumsum: Vec<i64>,
+    }
+    impl CumSum {
+        /// 計算量: O(|xs|)
+        pub fn new(xs: &[i64]) -> CumSum {
+            let mut cumsum = vec![0; xs.len() + 1];
+            for i in 1..xs.len() + 1 {
+                cumsum[i] = cumsum[i - 1] + xs[i - 1];
+            }
+            CumSum { cumsum }
+        }
+        fn open(&self, range: impl RangeBounds<usize>) -> Range<usize> {
+            use Bound::Excluded;
+            use Bound::Included;
+            use Bound::Unbounded;
+            let begin = match range.start_bound() {
+                Unbounded => 0,
+                Included(&x) => x,
+                Excluded(&x) => x + 1,
+            };
+            let end = match range.end_bound() {
+                Excluded(&x) => x,
+                Included(&x) => x + 1,
+                Unbounded => self.cumsum.len() - 1,
+            };
+            begin..end
+        }
+        /// 計算量: O(1)
+        pub fn range_sum(&self, range: impl RangeBounds<usize>) -> i64 {
+            let range = self.open(range);
+            self.cumsum[range.end] - self.cumsum[range.start]
+        }
+        pub fn prefix_sum(&self, end: usize) -> i64 {
+            self.cumsum[end]
+        }
+        pub fn suffix_sum(&self, begin: usize) -> i64 {
+            self.cumsum[self.cumsum.len() - 1] - self.cumsum[begin]
+        }
+    }
+}
