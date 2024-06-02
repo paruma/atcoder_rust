@@ -19,32 +19,26 @@ impl Problem {
         let n = self.n + 1;
         let m = self.m;
 
-        let mut pow2 = 1;
-        let mut ans = Mint::new(0);
+        let ans = (0..61)
+            .filter(|&i| (m >> i) & 1 == 1)
+            .map(|i| {
+                // (0オリジン) iビット目の寄与を考える
+                // i=2の場合
+                // 00001111 00001111 という周期した数列の [0, n) の範囲での累積和を求めれば良い。
+                // 周期は2^(i+1)
 
-        for i in 0..61 {
-            if (m >> i) & 1 == 1 {
-                if i == 0 {
-                    ans += Mint::new(n / 2);
-                } else {
-                    //
-                    let term1 = n / (pow2 * 2) * pow2;
-                    let term2 = if n % (pow2 * 2) >= pow2 {
-                        (n % (pow2 * 2)) - 1
-                    } else {
-                        0
-                    };
-                    let s = term1 + term2;
-                    dbg!(pow2);
-                    dbg!(term1);
-                    dbg!(term2);
+                let q = n / (1 << (i + 1));
+                let r = n % (1 << (i + 1));
 
-                    ans += Mint::new(s);
-                }
-            }
+                // 周期何個分 * 1周期の総和
+                let term1 = (1 << i) * q;
 
-            pow2 *= 2;
-        }
+                // 周期の途中で打ち切られる分
+                let term2 = if r < 1 << i { 0 } else { r - (1 << i) };
+
+                Mint::new(term1 + term2)
+            })
+            .sum::<Mint>();
 
         let ans = ans.val() as i64;
         Answer { ans }
