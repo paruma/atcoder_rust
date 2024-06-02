@@ -1,18 +1,36 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    k: i64,
+    xs: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            k: i64,
+            xs: [i64; n],
         }
-        Problem { _a }
+        Problem { n, k, xs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let k = self.k;
+
+        let ans = if k > 0 {
+            let xs = self.xs.iter().copied().sorted().collect_vec();
+            Some(xs)
+        } else {
+            let xs = self.xs.iter().copied().sorted().rev().collect_vec();
+            let xs_cumsum = prefix_sum(&xs);
+
+            if xs_cumsum.iter().copied().all(|s| s >= k) {
+                Some(xs)
+            } else {
+                None
+            }
+        };
         Answer { ans }
     }
 
@@ -26,12 +44,17 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Option<Vec<i64>>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        if let Some(ans) = &self.ans {
+            println!("{}", "Yes");
+            print_vec_1line(&ans);
+        } else {
+            println!("{}", "No");
+        }
     }
 }
 
@@ -171,3 +194,11 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+
+pub fn prefix_sum(xs: &[i64]) -> Vec<i64> {
+    let mut prefix_sum = vec![0; xs.len() + 1];
+    for i in 1..xs.len() + 1 {
+        prefix_sum[i] = prefix_sum[i - 1] + xs[i - 1];
+    }
+    prefix_sum
+}
