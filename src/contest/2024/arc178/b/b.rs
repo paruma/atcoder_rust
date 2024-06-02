@@ -1,55 +1,83 @@
 #[derive_readable]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct TestCase {
-    a1: i64,
-    a2: i64,
-    a3: i64,
+    a: i64,
+    b: i64,
+    c: i64,
+}
+
+fn pow10(x: i64) -> Mint {
+    Mint::pow(Mint::new(10), x as u64)
+}
+
+// 0 + 1 + ... + (x-1) を計算する
+fn seq_sum(x: Mint) -> Mint {
+    x * (x - 1) / 2
+}
+
+// begin + (begin + 1) + ... + (end  - 1) を計算する
+fn seq_range_sum(begin: Mint, end: Mint) -> Mint {
+    seq_sum(end) - seq_sum(begin)
 }
 
 impl TestCase {
     fn solve(&self) -> i64 {
-        // 実装途中
-        let ad = self.a1;
-        let bd = self.a2;
-        let sd = self.a3;
+        // [方針]
+        // a>=b として一般性を失わない
+        // c が a, a+1 以外の場合は0通りである。
+        // a桁+b桁 が a桁の領域とa+1桁の領域に分ける。a桁の領域の数を計算する。
+        // a+1桁の領域は全体からa桁の領域を引く
+        // a桁の領域の計算の際には、a==b の場合と a>b の場合で場合分けする。
 
-        let mint10 = Mint::new(10);
-        let amin = mint10.pow((ad - 1) as u64);
-        let amax = mint10.pow((ad) as u64) - Mint::new(1);
-        let bmin = mint10.pow((bd - 1) as u64);
-        let bmax = mint10.pow((bd) as u64) - Mint::new(1);
+        let a = i64::max(self.a, self.b);
+        let b = i64::min(self.a, self.b);
+        let c = self.c;
 
-        let smin = mint10.pow((sd - 1) as u64);
-        let smax = mint10.pow((sd) as u64) - Mint::new(1);
+        if ![a, a + 1].contains(&c) {
+            return 0;
+        }
 
-        let ans13: Mint = {
-            // max(amax + bmin, smin)
-            // max(10^ad + 10^(bd-1) -1, 10^(sd -1))
-            let s_sub_min = if sd - 1 <= ad || sd - 1 <= bd - 1 {
-                amax + bmin
+        let ans = if a == b {
+            // [(x, y) in (pow10(a-1)..pow10(a))^2 | x + y < pow10(c)]
+
+            // (pow10(a-1)..pow10(a))^2 という正方形を考える
+            let side_len = pow10(a) - pow10(a - 1);
+
+            let cnt_sq = side_len * side_len;
+
+            // a桁 + a桁 が a桁になる場合の数
+            // // 1 + 2 + ... + 8 * pow10(a-1)
+            let cnt_triangle = seq_sum(Mint::new(8) * pow10(a - 1) + 1);
+
+            if c == a {
+                cnt_triangle
+            } else if c == a + 1 {
+                cnt_sq - cnt_triangle
             } else {
-                smin
-            };
+                unreachable!();
+            }
+        } else {
+            // a > b
+            let side_len_long = pow10(a) - pow10(a - 1);
+            let side_len_short = pow10(b) - pow10(b - 1);
 
-            // min(amin + bmax, smax)
-            // max(10^(ad-1) + 10^(bd) -1, 10^sd -1)
-            let s_sub_max = if sd <= ad - 1 || sd <= bd {
-                amin + bmax
+            let cnt_rect = side_len_long * side_len_short;
+
+            // y in [pow10(b-1), pow10(b)) に対して、x in [pow10(a-1), pow10(a) - y) だと、x + y < pow10(a) となる
+            let cnt_left = seq_range_sum(
+                (pow10(a) - (pow10(b) - 1)) - pow10(a - 1),
+                (pow10(a) - pow10(b - 1)) - pow10(a - 1) + 1,
+            ); // c == a の場合の数
+
+            if c == a {
+                cnt_left
+            } else if c == a + 1 {
+                cnt_rect - cnt_left
             } else {
-                smax
-            };
-
-            let p = amin;
-            let q = amax;
-
-            // P - Q + 1 =
-            (p - q + Mint::new(1)) * (s_sub_max - s_sub_min + Mint::new(1))
+                unreachable!()
+            }
         };
-        let ans14 = {};
-        let ans23 = Mint::new(0);
-        let ans24 = Mint::new(0);
-
-        0
+        ans.val() as i64
     }
 }
 #[derive(Debug, Clone)]
@@ -174,6 +202,7 @@ mod tests {
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
+use num::pow;
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,
