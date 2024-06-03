@@ -110,9 +110,9 @@ impl Problem {
 
         for x in xs.iter().copied().rev() {
             let x_cc = cc.compress(x);
+            let addition = bit_sum.sum(x_cc..) - bit_cnt.sum(x_cc..) as i64 * x;
             bit_sum.add(x_cc, x);
             bit_cnt.add(x_cc, 1);
-            let addition = bit_sum.sum(x_cc + 1..) - bit_cnt.sum(x_cc + 1..) as i64 * x;
             ans += addition
         }
         Answer { ans }
