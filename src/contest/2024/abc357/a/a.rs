@@ -1,18 +1,34 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    m: i64,
+    hs: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            m: i64,
+            hs: [i64; n],
         }
-        Problem { _a }
+        Problem { n, m, hs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let mut remain = self.m;
+        let mut cnt = 0;
+
+        for &h in &self.hs {
+            if remain >= h {
+                cnt += 1;
+                remain -= h;
+            } else {
+                // remain = 0;
+                break;
+            }
+        }
+        let ans = cnt;
         Answer { ans }
     }
 

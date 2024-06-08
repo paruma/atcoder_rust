@@ -1,18 +1,24 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: i64,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: i64,
         }
-        Problem { _a }
+        Problem { n }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        use ac_library::ModInt998244353 as Mint;
+        let n = self.n;
+        let n_digits = format!("{}", n).len();
+        let pow10 = Mint::new(10).pow(n_digits as u64);
+
+        let ans = (Mint::pow(pow10, n as u64) - 1) / (pow10 - 1) * n;
+        let ans = ans.val() as i64;
         Answer { ans }
     }
 

@@ -1,18 +1,37 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    s: Vec<u8>,
+}
+
+fn cnt_lower(s: &[u8]) -> usize {
+    s.iter()
+        .copied()
+        .filter(|ch| ch.is_ascii_lowercase())
+        .count()
+}
+
+fn cnt_upper(s: &[u8]) -> usize {
+    s.iter()
+        .copied()
+        .filter(|ch| ch.is_ascii_uppercase())
+        .count()
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            s: Bytes,
         }
-        Problem { _a }
+        Problem { s }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let s = &self.s;
+        let ans = if cnt_upper(s) > cnt_lower(s) {
+            s.to_ascii_uppercase()
+        } else {
+            s.to_ascii_lowercase()
+        };
         Answer { ans }
     }
 
@@ -26,12 +45,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<u8>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_bytes(&self.ans);
     }
 }
 

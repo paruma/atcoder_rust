@@ -1,18 +1,134 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    adj: Vec<usize>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            adj: [Usize1; n],
         }
-        Problem { _a }
+        Problem { n, adj }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let adj = &self.adj;
+
+        let mut visited = vec![false; n];
+        let mut uf = UnionFind::new(n);
+
+        for init_v in 0..n {
+            if visited[init_v] {
+                continue;
+            }
+
+            let mut current = init_v;
+
+            let mut cnt_visited = HashMap::<usize, usize>::new();
+
+            // 2*n 回回す
+            for _ in 0..2 * n {
+                let next = adj[current];
+                if visited[next] {
+                    break;
+                }
+                if cnt_visited.contains_key(&next) {
+                    uf.unite(current, next);
+                }
+                if cnt_visited.get(&next) == Some(&2) {
+                    break;
+                }
+                //cnt_visited.insert(next);
+                *cnt_visited.entry(next).or_insert(0) += 1;
+                current = next;
+            }
+            visited[init_v] = true;
+
+            for v in cnt_visited.keys() {
+                visited[*v] = true;
+            }
+        }
+
+        let groups = uf.groups();
+        // 各頂点から group の index がほしい。
+        let vertex_to_group_idx = {
+            //
+            let mut retval = vec![usize::MAX; n];
+            for (i, g) in groups.iter().enumerate() {
+                for v in g {
+                    retval[*v] = i;
+                }
+            }
+            retval
+        };
+        // dbg!(uf.groups());
+        // dbg!(&vertex_to_group_idx);
+
+        let adj_groups = {
+            //
+            let mut adj_groups = vec![HashSet::<usize>::new(); groups.len()];
+            let mut visited = vec![false; n];
+
+            for init_v in 0..n {
+                if visited[init_v] {
+                    continue;
+                }
+
+                visited[init_v] = true;
+                let mut current = init_v;
+
+                for _ in 0..n {
+                    let next = adj[current];
+
+                    let current_group_idx = vertex_to_group_idx[current];
+                    let next_group_idx = vertex_to_group_idx[next];
+
+                    if current_group_idx != next_group_idx {
+                        adj_groups[current_group_idx].insert(next_group_idx);
+                    }
+                    if visited[next] {
+                        break;
+                    }
+                    visited[next] = true;
+
+                    current = next;
+                }
+            }
+
+            adj_groups
+                .iter()
+                .map(|xs| xs.iter().copied().collect_vec())
+                .collect_vec()
+        };
+
+        // dbg!(&adj_groups);
+
+        // トポソ
+        let topo_sorted_group_idx = topo_sort(&adj_groups);
+        //dbg!(&topo_sorted_group_idx);
+
+        // DP
+        let mut dp = vec![0_i64; groups.len()];
+
+        for &g_i in topo_sorted_group_idx.iter().rev() {
+            dp[g_i] = adj_groups[g_i]
+                .iter()
+                .copied()
+                .map(|g_j| dp[g_j])
+                .sum::<i64>()
+                + groups[g_i].len() as i64
+        }
+
+        // dbg!(&dp);
+
+        // DP の sum
+        // let ans = dp.iter().copied().sum::<i64>();
+        let ans = (0..groups.len())
+            .map(|i| groups[i].len() as i64 * dp[i])
+            .sum::<i64>();
         Answer { ans }
     }
 
@@ -171,3 +287,160 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use simple_union_find::*;
+pub mod simple_union_find {
+    use itertools::Itertools;
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    struct RootInfo {
+        count: usize,
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    struct NonRootInfo {
+        parent_index: usize,
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    enum Node {
+        Root(RootInfo),
+        NonRoot(NonRootInfo),
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    struct RootAndIndex {
+        info: RootInfo,
+        index: usize,
+    }
+    #[derive(Clone, Debug)]
+    pub struct UnionFind {
+        nodes: Vec<Node>,
+        cnt_groups: usize,
+    }
+    impl UnionFind {
+        pub fn new(n: usize) -> UnionFind {
+            UnionFind {
+                nodes: vec![Node::Root(RootInfo { count: 1 }); n],
+                cnt_groups: n,
+            }
+        }
+        fn root_node(&mut self, index: usize) -> RootAndIndex {
+            match self.nodes[index] {
+                Node::Root(info) => RootAndIndex { info, index },
+                Node::NonRoot(info) => {
+                    let root_and_index = self.root_node(info.parent_index);
+                    self.nodes[index] = Node::NonRoot(NonRootInfo {
+                        parent_index: root_and_index.index,
+                    });
+                    root_and_index
+                }
+            }
+        }
+        pub fn root(&mut self, index: usize) -> usize {
+            self.root_node(index).index
+        }
+        pub fn same_count(&mut self, index: usize) -> usize {
+            self.root_node(index).info.count
+        }
+        pub fn same(&mut self, x: usize, y: usize) -> bool {
+            self.root(x) == self.root(y)
+        }
+        pub fn num_groups(&self) -> usize {
+            self.cnt_groups
+        }
+        pub fn unite(&mut self, x: usize, y: usize) -> bool {
+            if self.same(x, y) {
+                return false;
+            }
+            self.cnt_groups -= 1;
+            let x_root_node = self.root_node(x);
+            let y_root_node = self.root_node(y);
+            let (smaller_root, larger_root) = if x_root_node.info.count <= y_root_node.info.count {
+                (x_root_node, y_root_node)
+            } else {
+                (y_root_node, x_root_node)
+            };
+            self.nodes[smaller_root.index] = Node::NonRoot(NonRootInfo {
+                parent_index: larger_root.index,
+            });
+            self.nodes[larger_root.index] = Node::Root(RootInfo {
+                count: smaller_root.info.count + larger_root.info.count,
+            });
+            true
+        }
+        pub fn groups(&mut self) -> Vec<Vec<usize>> {
+            let n = self.nodes.len();
+            let roots = (0..n).map(|i| self.root(i)).collect_vec();
+            let group_size = (0..n).map(|i| roots[i]).fold(vec![0; n], |mut acc, x| {
+                acc[x] += 1;
+                acc
+            });
+            let result = {
+                let mut result = vec![Vec::new(); n];
+                for i in 0..n {
+                    result[i].reserve(group_size[i]);
+                }
+                for i in 0..n {
+                    result[roots[i]].push(i);
+                }
+                result
+            };
+            result.into_iter().filter(|x| !x.is_empty()).collect_vec()
+        }
+    }
+}
+
+use mod_queue::*;
+pub mod mod_queue {
+    use std::collections::VecDeque;
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct Queue<T> {
+        raw: VecDeque<T>,
+    }
+    impl<T> Queue<T> {
+        pub fn new() -> Self {
+            Queue {
+                raw: VecDeque::new(),
+            }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push_front(value)
+        }
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop_back()
+        }
+        pub fn peek(&self) -> Option<&T> {
+            self.raw.back()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.raw.is_empty()
+        }
+    }
+    impl<T> Default for Queue<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+}
+pub fn topo_sort(adj: &Vec<Vec<usize>>) -> Vec<usize> {
+    let n_vertex = adj.len();
+    let mut in_deg = vec![0; n_vertex];
+    for current in 0..n_vertex {
+        for &next in &adj[current] {
+            in_deg[next] += 1;
+        }
+    }
+    let mut open: Queue<usize> = Queue::new();
+    for v in 0..n_vertex {
+        if in_deg[v] == 0 {
+            open.push(v);
+        }
+    }
+    let mut ans = vec![];
+    while let Some(current) = open.pop() {
+        ans.push(current);
+        for &next in &adj[current] {
+            in_deg[next] -= 1;
+            if in_deg[next] == 0 {
+                open.push(next);
+            }
+        }
+    }
+    ans
+}

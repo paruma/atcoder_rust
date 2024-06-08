@@ -1,19 +1,48 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+}
+
+fn rec(board: &mut [Vec<bool>], level: usize, y: usize, x: usize) {
+    if level == 0 {
+        board[y][x] = true;
+        return;
+    }
+
+    // level=1 だと 1
+    // level=2 だと 3
+    // level=3 だと 9
+    let sub_size = usize::pow(3, level as u32 - 1);
+
+    for block_y in 0..3 {
+        for block_x in 0..3 {
+            if block_y == 1 && block_x == 1 {
+                continue;
+            }
+            rec(
+                board,
+                level - 1,
+                y + block_y * sub_size,
+                x + block_x * sub_size,
+            );
+        }
+    }
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
         }
-        Problem { _a }
+        Problem { n }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
-        Answer { ans }
+        let n = self.n;
+        let size = usize::pow(3, n as u32);
+        let mut board = vec![vec![false; size]; size];
+        rec(&mut board, n, 0, 0);
+        Answer { ans: board }
     }
 
     #[allow(dead_code)]
@@ -26,12 +55,19 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<Vec<bool>>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        for row in &self.ans {
+            let msg = row
+                .iter()
+                .copied()
+                .map(|p| if p { b'#' } else { b'.' })
+                .collect_vec();
+            print_bytes(&msg);
+        }
     }
 }
 
