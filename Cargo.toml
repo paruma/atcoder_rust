@@ -259,9 +259,9 @@ path = "src/contest/2024/abc356/g/g.rs"
 # name = "abc351_e"
 # path = "src/contest/2024/abc351/e/e.rs"
 
-# [[bin]]
-# name = "abc351_f"
-# path = "src/contest/2024/abc351/f/f.rs"
+[[bin]]
+name = "abc351_f"
+path = "src/contest/2024/abc351/f/f.rs"
 
 # [[bin]]
 # name = "abc351_g"
@@ -868,6 +868,10 @@ path = "src/contest/2023/abc328/f/f.rs"
 # [[bin]]
 # name = "abc327_e"
 # path = "src/contest/2023/abc327/e/e.rs"
+
+[[bin]]
+name = "abc327_f"
+path = "src/contest/2023/abc327/f/f.rs"
 
 # [[bin]]
 # name = "abc326_a"
