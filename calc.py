@@ -51,7 +51,7 @@ assert functools.reduce(lambda x, y: x + y, [1, 2, 3, 4]) == 10
 # === 素数/素因数分解 ===
 
 # 素因数分解は linux の factor コマンドでもできる
-from sympy import factorint, primerange, primepi, prime, primorial, totient
+from sympy import factorint, primerange, primepi, prime, primorial, totient, divisors
 
 assert factorint(24) == {2: 3, 3: 1}
 assert list(primerange(7, 18)) == [7, 11, 13, 17]

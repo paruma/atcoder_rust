@@ -12,12 +12,34 @@ impl Problem {
         Problem { n }
     }
     fn solve(&self) -> Answer {
+        // 等比数列の和の公式を使う
         use ac_library::ModInt998244353 as Mint;
         let n = self.n;
         let n_digits = format!("{}", n).len();
         let pow10 = Mint::new(10).pow(n_digits as u64);
 
         let ans = (Mint::pow(pow10, n as u64) - 1) / (pow10 - 1) * n;
+        let ans = ans.val() as i64;
+        Answer { ans }
+    }
+    fn solve2(&self) -> Answer {
+        // 行列累乗を使う (この解法だと素数 mod 以外であっても使える)
+        // 「10^(n_digits) 倍して n を足す」をn回繰り返す
+        // x[n+1] = 10^(n_digits) * x[n] + n, x[0] = 0 としたとき、x[n] が答えとなる。
+        // これを行列累乗で解く。漸化式は1次関数の形で表されているので、同次座標を使うとうまくいく。
+        use ac_library::ModInt998244353 as Mint;
+        let n = self.n;
+        let n_digits = format!("{}", n).len();
+        type M = Matrix22Mul<Mint>;
+        let matrix = M::pow(
+            &Matrix22::from_array([
+                [Mint::new(10).pow(n_digits as u64), Mint::new(n)],
+                [Mint::new(0), Mint::new(1)],
+            ]),
+            n as usize,
+        );
+
+        let ans = matrix.raw[0][1];
         let ans = ans.val() as i64;
         Answer { ans }
     }
@@ -42,7 +64,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -177,3 +199,134 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use matrix22::*;
+pub mod matrix22 {
+    use ac_library::Monoid;
+    use core::fmt::Debug;
+    use std::{
+        convert::Infallible,
+        iter::{Product, Sum},
+        marker::PhantomData,
+        ops::{Add, Mul},
+    };
+    #[derive(Clone, Copy, Debug, PartialEq)]
+    pub struct Matrix22<T>
+    where
+        T: Clone + Copy + Debug + PartialEq,
+    {
+        pub raw: [[T; 2]; 2],
+    }
+    impl<T> Matrix22<T>
+    where
+        T: Clone + Copy + Debug + PartialEq,
+    {
+        pub fn new(a00: T, a01: T, a10: T, a11: T) -> Self {
+            Self {
+                raw: [[a00, a01], [a10, a11]],
+            }
+        }
+        pub fn from_array(arr: [[T; 2]; 2]) -> Self {
+            Self { raw: arr }
+        }
+        pub fn apply(self, x: (T, T)) -> (T, T)
+        where
+            T: Add<Output = T> + Mul<Output = T>,
+        {
+            (
+                self.raw[0][0] * x.0 + self.raw[0][1] * x.1,
+                self.raw[1][0] * x.0 + self.raw[1][1] * x.1,
+            )
+        }
+        fn t_zero() -> T
+        where
+            T: Sum,
+        {
+            std::iter::empty().sum()
+        }
+        fn t_one() -> T
+        where
+            T: Product,
+        {
+            std::iter::empty().product()
+        }
+        pub fn identity() -> Self
+        where
+            T: Sum + Product,
+        {
+            Matrix22::from_array([
+                [Self::t_one(), Self::t_zero()],
+                [Self::t_zero(), Self::t_one()],
+            ])
+        }
+    }
+    impl<T> Add for Matrix22<T>
+    where
+        T: Clone + Copy + Debug + PartialEq + Add<Output = T>,
+    {
+        type Output = Matrix22<T>;
+        fn add(self, rhs: Self) -> Self::Output {
+            Matrix22::from_array([
+                [
+                    self.raw[0][0] + rhs.raw[0][0],
+                    self.raw[0][1] + rhs.raw[0][1],
+                ],
+                [
+                    self.raw[1][0] + rhs.raw[1][0],
+                    self.raw[1][1] + rhs.raw[1][1],
+                ],
+            ])
+        }
+    }
+    impl<T> Mul for Matrix22<T>
+    where
+        T: Clone + Copy + Debug + PartialEq + Add<Output = T> + Mul<Output = T>,
+    {
+        type Output = Matrix22<T>;
+        fn mul(self, rhs: Self) -> Self::Output {
+            Matrix22::from_array([
+                [
+                    self.raw[0][0] * rhs.raw[0][0] + self.raw[0][1] * rhs.raw[1][0],
+                    self.raw[0][0] * rhs.raw[0][1] + self.raw[0][1] * rhs.raw[1][1],
+                ],
+                [
+                    self.raw[1][0] * rhs.raw[0][0] + self.raw[1][1] * rhs.raw[1][0],
+                    self.raw[1][0] * rhs.raw[0][1] + self.raw[1][1] * rhs.raw[1][1],
+                ],
+            ])
+        }
+    }
+    pub struct Matrix22Mul<T>(Infallible, PhantomData<fn() -> T>);
+    impl<T> Monoid for Matrix22Mul<T>
+    where
+        T: Clone + Copy + Debug + PartialEq + Sum + Product + Add<Output = T> + Mul<Output = T>,
+    {
+        type S = Matrix22<T>;
+        fn identity() -> Self::S {
+            Matrix22::identity()
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            (*a) * (*b)
+        }
+    }
+}
+use extend_acl_monoid::*;
+pub mod extend_acl_monoid {
+    use ac_library::Monoid;
+    pub trait MonoidExtPow: Monoid {
+        /// base^n を求める
+        fn pow(base: &Self::S, n: usize) -> Self::S {
+            let mut base = base.clone();
+            let mut ans = Self::identity();
+            let mut n = n;
+            while n > 0 {
+                if n & 1 == 1 {
+                    ans = Self::binary_operation(&ans, &base);
+                }
+                base = Self::binary_operation(&base, &base);
+                n >>= 1;
+            }
+            ans
+        }
+    }
+    impl<T> MonoidExtPow for T where T: Monoid {}
+}
