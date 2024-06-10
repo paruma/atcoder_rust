@@ -38,11 +38,41 @@ impl Problem {
         Problem { n }
     }
     fn solve(&self) -> Answer {
+        // 再帰を使う
         let n = self.n;
         let size = usize::pow(3, n as u32);
         let mut board = vec![vec![false; size]; size];
         rec(&mut board, n, 0, 0);
         Answer { ans: board }
+    }
+
+    fn solve2(&self) -> Answer {
+        // 3進数展開 を考える
+        let n = self.n;
+
+        // multi_cartesian_product で空積をするとバグるので回避する。
+        if n == 0 {
+            return Answer {
+                ans: vec![vec![true]],
+            };
+        }
+
+        let ans = (0..n)
+            .map(|_| (0..3))
+            .multi_cartesian_product()
+            .map(|ternary_y| {
+                (0..n)
+                    .map(|_| (0..3))
+                    .multi_cartesian_product()
+                    .map(|ternary_x| {
+                        let is_white =
+                            izip!(&ternary_y, &ternary_x).any(|(y, x)| (*x, *y) == (1, 1));
+                        !is_white
+                    })
+                    .collect_vec()
+            })
+            .collect_vec();
+        Answer { ans }
     }
 
     #[allow(dead_code)]
@@ -72,7 +102,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
