@@ -75,6 +75,30 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve3(&self) -> Answer {
+        // forループでboard を成長させる
+        // 約数列挙を素因数分解から求めるときと同じノリ。
+
+        let mut board = vec![vec![true]];
+        for _ in 0..self.n {
+            // x:  bbb
+            // y:  b.b
+            // x:  bbb
+            // (b: board)
+            let x = board
+                .iter()
+                .map(|r| [r.clone(), r.clone(), r.clone()].concat())
+                .collect_vec();
+            let y = board
+                .iter()
+                .map(|r| [r.clone(), vec![false; board.len()], r.clone()].concat())
+                .collect_vec();
+
+            board = [x.clone(), y.clone(), x.clone()].concat();
+        }
+        Answer { ans: board }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -102,7 +126,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve2().print();
+    Problem::read().solve3().print();
 }
 
 #[cfg(test)]
