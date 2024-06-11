@@ -1,18 +1,88 @@
 //#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Query {
+    AddToA { l: usize, r: usize, x: i64 },
+    AddToB { l: usize, r: usize, x: i64 },
+    Output { l: usize, r: usize },
+}
+
+impl Query {
+    fn read() -> Self {
+        input! { t: usize, l: Usize1, r: Usize1 }
+        match t {
+            1 => {
+                input! {
+                    x: i64,
+                }
+                Query::AddToA { l, r, x }
+            }
+            2 => {
+                input! {
+                    x: i64,
+                }
+                Query::AddToB { l, r, x }
+            }
+            3 => Query::Output { l, r },
+            _ => panic!(),
+        }
+    }
+}
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    a_s: Vec<i64>,
+    b_s: Vec<i64>,
+    qs: Vec<Query>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            nq: usize,
+            a_s: [i64; n],
+            b_s: [i64; n],
         }
-        Problem { _a }
+        let qs = (0..nq).map(|_| Query::read()).collect_vec();
+        Problem { n, a_s, b_s, qs }
     }
     fn solve(&self) -> Answer {
         let ans = 0;
+        use ac_library::ModInt998244353 as Mint;
+
+        let abs = izip!(&self.a_s, &self.b_s)
+            .map(|(a, b)| RangeXxx::unit(*a, *b))
+            .collect_vec();
+        let mut seg = LazySegtree::<RangeYyyRangeXxx>::from(abs);
+
+        let mut ans = vec![];
+        for &q in &self.qs {
+            match q {
+                Query::AddToA { l, r, x } => {
+                    seg.apply_range(
+                        l..=r,
+                        Mapping {
+                            x: Mint::new(x),
+                            y: Mint::new(0),
+                        },
+                    );
+                }
+                Query::AddToB { l, r, x } => {
+                    seg.apply_range(
+                        l..=r,
+                        Mapping {
+                            x: Mint::new(0),
+                            y: Mint::new(x),
+                        },
+                    );
+                }
+                Query::Output { l, r } => {
+                    let tmp = seg.prod(l..=r).ab_sum.val() as i64;
+                    ans.push(tmp);
+                }
+            }
+        }
+
         Answer { ans }
     }
 
@@ -26,12 +96,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec(&self.ans);
     }
 }
 
@@ -115,6 +185,7 @@ mod tests {
     }
 }
 
+use ac_library::LazySegtree;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
@@ -171,3 +242,88 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use map_monoid_template::*;
+#[allow(unused_variables)]
+pub mod map_monoid_template {
+    use ac_library::lazysegtree::MapMonoid;
+    use ac_library::segtree::Monoid;
+    use ac_library::ModInt998244353 as Mint;
+    use std::convert::Infallible;
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub struct RangeXxx {
+        pub ab_sum: Mint,
+        pub a_sum: Mint,
+        pub b_sum: Mint,
+        pub const_sum: Mint,
+        pub len: usize,
+    }
+    impl RangeXxx {
+        pub fn unit(a: i64, b: i64) -> Self {
+            let a = Mint::new(a);
+            let b = Mint::new(b);
+            Self {
+                ab_sum: a * b,
+                a_sum: a,
+                b_sum: b,
+                const_sum: Mint::new(0),
+                len: 1,
+            }
+        }
+    }
+    pub struct RangeXxxMonoid(Infallible);
+    impl Monoid for RangeXxxMonoid {
+        type S = RangeXxx;
+        fn identity() -> Self::S {
+            RangeXxx {
+                ab_sum: 0.into(),
+                a_sum: 0.into(),
+                b_sum: 0.into(),
+                const_sum: 0.into(),
+                len: 0,
+            }
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            RangeXxx {
+                ab_sum: a.ab_sum + b.ab_sum,
+                a_sum: a.a_sum + b.a_sum,
+                b_sum: a.b_sum + b.b_sum,
+                const_sum: a.const_sum + b.const_sum,
+                len: a.len + b.len,
+            }
+        }
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub struct Mapping {
+        pub x: Mint,
+        pub y: Mint,
+    }
+    pub struct RangeYyyRangeXxx(Infallible);
+    impl MapMonoid for RangeYyyRangeXxx {
+        type M = RangeXxxMonoid;
+        type F = Mapping;
+        fn identity_map() -> Self::F {
+            Mapping {
+                x: 0.into(),
+                y: 0.into(),
+            }
+        }
+        fn mapping(
+            f: &Self::F,
+            x: &<Self::M as ac_library::Monoid>::S,
+        ) -> <Self::M as ac_library::Monoid>::S {
+            RangeXxx {
+                ab_sum: x.ab_sum + f.y * x.a_sum + f.x * x.b_sum + f.x * f.y * x.len,
+                a_sum: x.a_sum + f.x * x.len,
+                b_sum: x.b_sum + f.y * x.len,
+                const_sum: x.const_sum * f.x * f.y * x.len,
+                len: x.len,
+            }
+        }
+        fn composition(f: &Self::F, g: &Self::F) -> Self::F {
+            Self::F {
+                x: f.x + g.x,
+                y: f.y + g.y,
+            }
+        }
+    }
+}
