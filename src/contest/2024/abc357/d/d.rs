@@ -44,6 +44,22 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve3(&self) -> Answer {
+        // 連結という操作を繰り返し2乗法する
+        // ローリングハッシュと同じ
+        use ac_library::ModInt998244353 as Mint;
+        let n = self.n;
+        let n_digits = format!("{}", n).len();
+        type M = RollingHashConcat;
+        let rh = M::pow(
+            &RollingHash::new(Mint::new(n), Mint::new(10).pow(n_digits as u64)),
+            n as usize,
+        );
+
+        let ans = rh.get_hash();
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -64,7 +80,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve2().print();
+    Problem::read().solve3().print();
 }
 
 #[cfg(test)]
@@ -329,4 +345,42 @@ pub mod extend_acl_monoid {
         }
     }
     impl<T> MonoidExtPow for T where T: Monoid {}
+}
+
+use rolling_hash::*;
+mod rolling_hash {
+    use std::convert::Infallible;
+
+    use ac_library::{ModInt998244353 as Mint, Monoid};
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub struct RollingHash {
+        hash: Mint,
+        base: Mint,
+    }
+    impl RollingHash {
+        pub fn get_hash(&self) -> i64 {
+            self.hash.val() as i64
+        }
+
+        pub fn new(hash: Mint, base: Mint) -> Self {
+            Self { hash, base }
+        }
+    }
+
+    pub struct RollingHashConcat(Infallible);
+    impl Monoid for RollingHashConcat {
+        type S = RollingHash;
+        fn identity() -> Self::S {
+            RollingHash {
+                hash: Mint::new(0),
+                base: Mint::new(1),
+            }
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            RollingHash {
+                hash: a.hash * b.base + b.hash,
+                base: a.base * b.base,
+            }
+        }
+    }
 }
