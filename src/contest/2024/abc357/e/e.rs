@@ -14,6 +14,7 @@ impl Problem {
         Problem { n, adj }
     }
     fn solve(&self) -> Answer {
+        // Functional Graph の性質を使った解法
         let n = self.n;
         let adj = &self.adj;
 
@@ -30,6 +31,7 @@ impl Problem {
             let mut cnt_visited = HashMap::<usize, usize>::new();
 
             // 2*n 回回す
+            // (Functional Graph の性質からn回回せば閉路に入る。もうn回回せばその閉路で1周できる。)
             for _ in 0..2 * n {
                 let next = adj[current];
                 if visited[next] {
@@ -57,9 +59,9 @@ impl Problem {
         let vertex_to_group_idx = {
             //
             let mut retval = vec![usize::MAX; n];
-            for (i, g) in groups.iter().enumerate() {
-                for v in g {
-                    retval[*v] = i;
+            for (group_i, group) in groups.iter().enumerate() {
+                for v in group {
+                    retval[*v] = group_i;
                 }
             }
             retval
@@ -68,33 +70,13 @@ impl Problem {
         // dbg!(&vertex_to_group_idx);
 
         let adj_groups = {
-            //
             let mut adj_groups = vec![HashSet::<usize>::new(); groups.len()];
-            let mut visited = vec![false; n];
-
-            for init_v in 0..n {
-                if visited[init_v] {
-                    continue;
-                }
-
-                visited[init_v] = true;
-                let mut current = init_v;
-
-                for _ in 0..n {
-                    let next = adj[current];
-
-                    let current_group_idx = vertex_to_group_idx[current];
-                    let next_group_idx = vertex_to_group_idx[next];
-
-                    if current_group_idx != next_group_idx {
-                        adj_groups[current_group_idx].insert(next_group_idx);
-                    }
-                    if visited[next] {
-                        break;
-                    }
-                    visited[next] = true;
-
-                    current = next;
+            for from in 0..n {
+                let to = adj[from];
+                let from_group_idx = vertex_to_group_idx[from];
+                let to_group_idx = vertex_to_group_idx[to];
+                if from_group_idx != to_group_idx {
+                    adj_groups[from_group_idx].insert(to_group_idx);
                 }
             }
 
@@ -125,9 +107,55 @@ impl Problem {
         // dbg!(&dp);
 
         // DP の sum
-        // let ans = dp.iter().copied().sum::<i64>();
         let ans = (0..groups.len())
             .map(|i| groups[i].len() as i64 * dp[i])
+            .sum::<i64>();
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // SCC を使った解法
+        let n = self.n;
+        let mut scc_graph = SccGraph::new(self.n);
+        for from in 0..n {
+            let to = self.adj[from];
+            scc_graph.add_edge(from, to);
+        }
+
+        let scc = scc_graph.scc();
+        let to_scc_idx = {
+            let mut to_scc_idx = vec![0; n];
+            for (i, component) in scc.iter().enumerate() {
+                for v in component {
+                    to_scc_idx[*v] = i;
+                }
+            }
+            to_scc_idx
+        };
+
+        let scc_adj = {
+            let mut scc_adj = vec![HashSet::<usize>::new(); scc.len()];
+            for from in 0..n {
+                let to = self.adj[from];
+                let from_scc_idx = to_scc_idx[from];
+                let to_scc_idx = to_scc_idx[to];
+                if from_scc_idx != to_scc_idx {
+                    scc_adj[from_scc_idx].insert(to_scc_idx);
+                }
+            }
+            scc_adj
+                .iter()
+                .map(|s| s.iter().copied().collect_vec())
+                .collect_vec()
+        };
+
+        let mut dp = vec![0; scc.len()];
+        for i in (0..scc.len()).rev() {
+            dp[i] =
+                scc_adj[i].iter().copied().map(|next| dp[next]).sum::<i64>() + scc[i].len() as i64;
+        }
+        let ans = (0..scc.len())
+            .map(|i| dp[i] * scc[i].len() as i64)
             .sum::<i64>();
         Answer { ans }
     }
@@ -152,7 +180,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -231,6 +259,7 @@ mod tests {
     }
 }
 
+use ac_library::SccGraph;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
