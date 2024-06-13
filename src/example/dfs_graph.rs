@@ -23,9 +23,9 @@ impl DfsGraph<'_> {
         // 行きがけ
         visited[v] = true;
 
-        for &to in &self.adj[v] {
-            if !visited[to] {
-                self.exec(to, visited);
+        for &next in &self.adj[v] {
+            if !visited[next] {
+                self.exec(next, visited);
             }
         }
         // 帰りがけ

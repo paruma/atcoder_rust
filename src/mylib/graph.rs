@@ -84,66 +84,55 @@ pub fn bfs_order(adj: &[Vec<usize>], init: usize) -> Vec<usize> {
 
 #[snippet(include = "mod_stack")]
 pub fn dfs_pre_order(adj: &[Vec<usize>], init: usize) -> Vec<usize> {
-    enum State {
-        Pre(usize),
-        Post(usize),
-    }
+    fn dfs(
+        adj: &[Vec<usize>],
+        current: usize,
+        visited: &mut Vec<bool>,
+        pre_order: &mut Vec<usize>,
+    ) {
+        // 行きがけ
+        visited[current] = true;
+        pre_order.push(current);
 
-    let nv = adj.len();
-    let mut order = vec![];
-    let mut visited = vec![false; nv];
-    let mut open = Stack::new();
-    open.push(State::Post(init));
-    open.push(State::Pre(init));
-    while let Some(current) = open.pop() {
-        match current {
-            State::Pre(v) => {
-                order.push(v);
-                visited[v] = true;
-                for &edge in &adj[v] {
-                    if !visited[edge] {
-                        open.push(State::Post(edge));
-                        open.push(State::Pre(edge));
-                    }
-                }
+        for &next in &adj[current] {
+            if !visited[next] {
+                dfs(adj, next, visited, pre_order);
             }
-            State::Post(_v) => {}
         }
     }
-    order
+    let nv = adj.len();
+    let mut visited = vec![false; nv];
+    let mut pre_order = vec![];
+    dfs(adj, init, &mut visited, &mut pre_order);
+
+    pre_order
 }
 
 #[snippet(include = "mod_stack")]
 pub fn dfs_post_order(adj: &[Vec<usize>], init: usize) -> Vec<usize> {
-    enum State {
-        Pre(usize),
-        Post(usize),
-    }
+    fn dfs(
+        adj: &[Vec<usize>],
+        current: usize,
+        visited: &mut Vec<bool>,
+        post_order: &mut Vec<usize>,
+    ) {
+        // 行きがけ
+        visited[current] = true;
 
-    let nv = adj.len();
-    let mut order = vec![];
-    let mut visited = vec![false; nv];
-    let mut open = Stack::new();
-    open.push(State::Post(init));
-    open.push(State::Pre(init));
-    while let Some(current) = open.pop() {
-        match current {
-            State::Pre(v) => {
-                visited[v] = true;
-                for &edge in &adj[v] {
-                    if !visited[edge] {
-                        open.push(State::Post(edge));
-                        open.push(State::Pre(edge));
-                    }
-                }
-            }
-            State::Post(v) => {
-                // 帰りがけ
-                order.push(v);
+        for &next in &adj[current] {
+            if !visited[next] {
+                dfs(adj, next, visited, post_order);
             }
         }
+        // 帰りがけ
+        post_order.push(current);
     }
-    order
+    let nv = adj.len();
+    let mut visited = vec![false; nv];
+    let mut post_order = vec![];
+    dfs(adj, init, &mut visited, &mut post_order);
+
+    post_order
 }
 
 /// init から各点への距離を求める
@@ -226,12 +215,6 @@ pub fn has_cycle_undirected(n_vertex: usize, edges: &[(usize, usize)]) -> bool {
     false
 }
 
-#[snippet(include = "topo_sort")]
-pub fn has_cycle_directed(adj: &Vec<Vec<usize>>) -> bool {
-    let topo_sorted = topo_sort(adj); // 戻り値にループの部分は入ってこない。
-    topo_sorted.len() != adj.len()
-}
-
 #[snippet(include = "mod_queue")]
 pub fn topo_sort(adj: &Vec<Vec<usize>>) -> Vec<usize> {
     let n_vertex = adj.len();
@@ -261,6 +244,43 @@ pub fn topo_sort(adj: &Vec<Vec<usize>>) -> Vec<usize> {
         }
     }
     ans
+}
+
+#[snippet(include = "topo_sort")]
+pub fn has_cycle_directed_by_topo_sort(adj: &Vec<Vec<usize>>) -> bool {
+    let topo_sorted = topo_sort(adj); // 戻り値にループの部分は入ってこない。
+    topo_sorted.len() != adj.len()
+}
+
+pub fn has_cycle_directed(adj: &Vec<Vec<usize>>) -> bool {
+    // DFS を使って有向グラフの閉路判定をする (連結性は仮定する)
+    fn dfs(
+        adj: &[Vec<usize>],
+        current: usize,
+        visited_pre: &mut Vec<bool>,
+        visited_post: &mut Vec<bool>,
+    ) -> bool {
+        // 行きがけ
+        if visited_pre[current] && !visited_post[current] {
+            return true;
+            // 閉路がある
+        }
+        visited_pre[current] = true;
+
+        for &next in &adj[current] {
+            if !visited_pre[next] {
+                let has_cycle = dfs(adj, next, visited_pre, visited_post);
+                if has_cycle {
+                    return true;
+                }
+            }
+        }
+        // 帰りがけ
+        visited_post[current] = true;
+        false
+    }
+    let nv = adj.len();
+    dfs(adj, 0, &mut vec![false; nv], &mut vec![false; nv])
 }
 
 mod tests {
@@ -436,7 +456,7 @@ mod tests {
             [(0, 1), (0, 2), (2, 3), (2, 5), (3, 4), (3, 6), (6, 7)].map(|(from, to)| (from, to));
         let adj = make_adj_from_directed(n_vertex, &edges);
         let order = dfs_pre_order(&adj, 0);
-        assert_eq!(order, vec![0, 2, 5, 3, 6, 7, 4, 1]); // FIXME: 実装依存になっていてよくない
+        assert_eq!(order, vec![0, 1, 2, 3, 4, 6, 7, 5]); // FIXME: 実装依存になっていてよくない
     }
 
     #[test]
@@ -452,7 +472,33 @@ mod tests {
             [(0, 1), (0, 2), (2, 3), (2, 5), (3, 4), (3, 6), (6, 7)].map(|(from, to)| (from, to));
         let adj = make_adj_from_directed(n_vertex, &edges);
         let order = dfs_post_order(&adj, 0);
-        assert_eq!(order, vec![5, 7, 6, 4, 3, 2, 1, 0]); // FIXME: 実装依存になっていてよくない
+        assert_eq!(order, vec![1, 4, 7, 6, 3, 5, 2, 0]); // FIXME: 実装依存になっていてよくない
+    }
+
+    #[test]
+    fn test_dfs_pre_order_not_tree() {
+        // 0 → 1
+        // ↓   ↑
+        // 2 → 3
+
+        let n_vertex = 4;
+        let edges = [(0, 2), (0, 1), (2, 3), (3, 1)].map(|(from, to)| (from, to));
+        let adj = make_adj_from_directed(n_vertex, &edges);
+        let order = dfs_pre_order(&adj, 0);
+        assert_eq!(order, vec![0, 2, 3, 1]); // FIXME: 実装依存になっていてよくない
+    }
+
+    #[test]
+    fn test_dfs_post_order_not_tree() {
+        // 0 → 1
+        // ↓   ↑
+        // 2 → 3
+
+        let n_vertex = 4;
+        let edges = [(0, 2), (0, 1), (2, 3), (3, 1)].map(|(from, to)| (from, to));
+        let adj = make_adj_from_directed(n_vertex, &edges);
+        let order = dfs_post_order(&adj, 0);
+        assert_eq!(order, vec![1, 3, 2, 0]); // FIXME: 実装依存になっていてよくない
     }
 
     #[test]
@@ -527,16 +573,19 @@ mod tests {
         {
             let (n_vertex, edges) = sample_edges1();
             let adj = make_adj_from_directed(n_vertex, &edges);
+            assert!(!has_cycle_directed_by_topo_sort(&adj));
             assert!(!has_cycle_directed(&adj));
         }
         {
             let (n_vertex, edges) = sample_edge2();
             let adj = make_adj_from_directed(n_vertex, &edges);
+            assert!(!has_cycle_directed_by_topo_sort(&adj));
             assert!(!has_cycle_directed(&adj));
         }
         {
             let (n_vertex, edges) = sample_edges3();
             let adj = make_adj_from_directed(n_vertex, &edges);
+            assert!(!has_cycle_directed_by_topo_sort(&adj));
             assert!(!has_cycle_directed(&adj));
         }
         {
@@ -546,7 +595,8 @@ mod tests {
             let n_vertex = 5;
             let edges = vec![(0, 1), (1, 2), (2, 3), (3, 4), (4, 1)];
             let adj = make_adj_from_directed(n_vertex, &edges);
-            assert!(has_cycle_directed(&adj));
+            assert!(has_cycle_directed_by_topo_sort(&adj));
+            assert!(!has_cycle_directed(&adj));
         }
     }
 
