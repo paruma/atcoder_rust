@@ -24,6 +24,7 @@
         "rngs",
         "Segtree",
         "struct",
+        "sympy",
         "yesno"
     ],
     "rust-analyzer.check.command": "clippy",

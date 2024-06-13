@@ -19,7 +19,6 @@ assert sum([1, 2, 3, 4]) == 10
 # 2^{-1}
 assert pow(2, -1, 998244353) == 499122177
 
-
 # 有理数復元
 mod = 998244353
 # mod = 1000000007
@@ -37,6 +36,21 @@ def f(x: int) -> int:
                     return f"{numer}/{denom}"
     return "Not Found"
 
+# x ∈ (ℤ/ mod ℤ)^× の位数の計算
+def mul_order_of_mod(x: int, mod: int) -> int:
+    from sympy import totient, divisors
+
+    assert(gcd(x, mod) == 1) # x ∈ (ℤ/ mod ℤ)^×
+    for d in divisors(totient(mod)):
+        if pow(x, d, mod) == 1:
+            return d
+
+    assert False
+
+assert mul_order_of_mod(2, 998244353) == 499122176
+assert mul_order_of_mod(3, 998244353) == 998244352
+assert mul_order_of_mod(10, 998244353) == 998244352
+assert mul_order_of_mod(17, 998244353) == 557056
 
 # === gcd/ lcm ===
 
