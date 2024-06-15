@@ -1,18 +1,51 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n_box: usize,
+    n_people: usize,         // 箱を渡す人数 = 購入する箱の数
+    box_cnt_list: Vec<i64>,  // 箱の値段 = 箱に入っているお菓子の数
+    required_list: Vec<i64>, // それぞれの人に渡したいお菓子の数の下限
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n_box: usize,
+            n_people: usize,
+            box_price_list: [i64; n_box],
+            required_list: [i64; n_people],
         }
-        Problem { _a }
+        Problem {
+            n_box,
+            n_people,
+            box_cnt_list: box_price_list,
+            required_list,
+        }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n_box = self.n_box;
+        let n_people = self.n_people;
+        let box_price_list = &self.box_cnt_list.iter().copied().sorted().collect_vec();
+        let required_list = &self.required_list.iter().copied().sorted().collect_vec();
+
+        let mut required_iter = required_list.iter().copied().peekable();
+
+        let mut sum = 0;
+
+        for &box_price in box_price_list {
+            if let Some(&required) = required_iter.peek() {
+                if box_price >= required {
+                    sum += box_price;
+                    required_iter.next();
+                }
+            }
+        }
+
+        let ans = if required_iter.peek().is_some() {
+            None
+        } else {
+            Some(sum)
+        };
         Answer { ans }
     }
 
@@ -26,12 +59,16 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Option<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        if let Some(ans) = self.ans {
+            println!("{}", ans);
+        } else {
+            println!("-1");
+        }
     }
 }
 

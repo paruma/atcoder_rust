@@ -1,18 +1,20 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    s: String,
+    t: String,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            s: String,
+            t: String,
         }
-        Problem { _a }
+        Problem { s, t }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = self.s == "AtCoder" && self.t == "Land";
         Answer { ans }
     }
 
@@ -26,12 +28,13 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_yesno(self.ans);
+        //println!("{}", self.ans);
     }
 }
 

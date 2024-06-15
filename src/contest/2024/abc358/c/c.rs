@@ -1,18 +1,45 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n_shops: usize,
+    n_tastes: usize,
+    info: Vec<Vec<bool>>, // info[shop_i][taste_i]: お店 shop_i で taste_i の味が売られているかどうか
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n_shops: usize,
+            n_tastes: usize,
+            info: [Bytes; n_shops],
         }
-        Problem { _a }
+
+        let info = info
+            .iter()
+            .map(|shop_info| shop_info.iter().copied().map(|ch| ch == b'o').collect_vec())
+            .collect_vec();
+        Problem {
+            n_shops,
+            n_tastes,
+            info,
+        }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = (0..self.n_shops)
+            .powerset()
+            .filter(|shop_list| {
+                // このお店のリストで、すべての味のポップコーンが購入できるかどうか
+                shop_list
+                    .iter()
+                    .copied()
+                    .flat_map(|shop_i| self.info[shop_i].iter().positions(|p| *p))
+                    .unique()
+                    .count()
+                    == self.n_tastes
+            })
+            .map(|shop_list| shop_list.len())
+            .min()
+            .unwrap() as i64;
         Answer { ans }
     }
 
