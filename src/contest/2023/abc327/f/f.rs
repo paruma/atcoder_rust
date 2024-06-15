@@ -12,15 +12,15 @@ struct Basket {
     range_len: usize,
 }
 
+fn seg_to_vec(seg: &mut RangeAffineRangeMinMaxSegtree, size: usize) -> Vec<i64> {
+    (0..size).map(|i| seg.get_max(i)).collect_vec()
+}
+
 #[derive(Debug, Clone)]
 struct Problem {
     n_apples: usize,
     basket: Basket,
     apples: Vec<Apple>,
-}
-
-fn bit_to_vec(bit: &FenwickTree<i64>, len: usize) -> Vec<i64> {
-    (0..len).map(|i| bit.sum(i..=i)).collect_vec()
 }
 
 impl Problem {
@@ -37,33 +37,13 @@ impl Problem {
         }
     }
     fn solve(&self) -> Answer {
-        #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-        enum Event {
-            In { time: i64, pos: usize },
-            Out { time: i64, pos: usize },
-        }
-
-        let events = self
+        let time_max = self
             .apples
             .iter()
             .copied()
-            .flat_map(|apple| {
-                [
-                    Event::In {
-                        time: apple.time as i64,
-                        pos: apple.pos,
-                    },
-                    Event::Out {
-                        time: apple.time as i64 - self.basket.time_len as i64,
-                        pos: apple.pos,
-                    },
-                ]
-            })
-            .sorted_by_key(|e| match e {
-                Event::In { time, pos } => (Reverse(*time), 1, Reverse(*pos)), // 時刻が同じ In は pos が大きい方が先に来るようにする
-                Event::Out { time, pos } => (Reverse(*time), 0, Reverse(*pos)), // 時刻が同時な場合は In より Out が先に来るようにする (pos の順序はどうでもよい)
-            })
-            .collect_vec();
+            .map(|apple| apple.time)
+            .max()
+            .unwrap();
 
         let pos_max = self
             .apples
@@ -73,23 +53,41 @@ impl Problem {
             .max()
             .unwrap();
 
-        let mut bit = FenwickTree::new(pos_max + self.basket.range_len + 1, 0);
+        let time_to_apples = {
+            let mut time_to_apples = vec![vec![]; time_max + 1];
+            for apple in &self.apples {
+                time_to_apples[apple.time].push(*apple);
+            }
+            time_to_apples
+        };
+
+        // 各座標の値 x に対して、[x, x + self.bascket.range_len) にあるりんごの数を集計する
+        let mut seg = RangeAffineRangeMinMaxSegtree::new(&vec![0; pos_max + 1]);
 
         let mut cand = vec![];
 
-        for e in events {
-            match e {
-                Event::In { pos, .. } => {
-                    bit.add(pos, 1);
-                    cand.push(bit.sum(pos..pos + self.basket.range_len));
-                    lg!(bit_to_vec(&bit, pos_max + self.basket.range_len + 1));
-                }
-                Event::Out { pos, .. } => {
-                    bit.add(pos, -1);
+        for time in 0..=time_max {
+            // seg から time_to_apples[time - self.basket.time_len] を削除する
+            if time >= self.basket.time_len {
+                for apple in &time_to_apples[time - self.basket.time_len] {
+                    seg.apply_range_add(
+                        (apple.pos + 1).saturating_sub(self.basket.range_len)..=apple.pos,
+                        -1,
+                    )
                 }
             }
+
+            // seg に time_to_apples[pos] を追加する
+            for apple in &time_to_apples[time] {
+                seg.apply_range_add(
+                    (apple.pos + 1).saturating_sub(self.basket.range_len)..=apple.pos,
+                    1,
+                )
+            }
+
+            cand.push(seg.range_max(..))
         }
-        lg!(&cand);
+
         let ans = cand.iter().copied().max().unwrap();
         Answer { ans }
     }
@@ -193,7 +191,6 @@ mod tests {
     }
 }
 
-use ac_library::FenwickTree;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
@@ -202,7 +199,6 @@ use proconio::{
     derive_readable, fastout, input,
     marker::{Bytes, Usize1},
 };
-use std::cmp::Reverse;
 #[allow(unused_imports)]
 use std::collections::{BinaryHeap, HashMap, HashSet};
 
@@ -251,287 +247,168 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
-use lg::*;
-pub mod lg {
-    use std::borrow::Borrow;
-    use std::fmt;
-    use std::iter::once;
-    /// Print the values with the line number.
-    /// # Examples
-    /// ```rust
-    /// # use lg::*;
-    /// let x = 42;
-    /// let y = 43;
-    /// lg!(x);
-    /// lg!(x, y);
-    /// lg!(42, x, 43, y);
-    /// ```
-    #[macro_export]
-    macro_rules ! lg {(@ contents $ head : expr $ (, $ tail : expr ) * ) => {{$ crate :: __lg_internal ! ($ head ) ; $ (eprint ! ("," ) ; $ crate :: __lg_internal ! ($ tail ) ; ) * eprintln ! () ; } } ; ($ ($ expr : expr ) ,* $ (, ) ? ) => {{eprint ! ("{}\u{276f}" , line ! () ) ; $ crate :: lg ! (@ contents $ ($ expr ) ,* ) } } ; }
-    #[doc(hidden)]
-    #[macro_export]
-    macro_rules! __lg_internal {
-        ($ value : expr ) => {{
-            match $value {
-                head => {
-                    eprint!(
-                        " {} = {}",
-                        stringify!($value),
-                        $crate::__quiet(format!("{:?}", &head))
-                    );
-                }
+use range_affine_range_minmax::*;
+pub mod range_affine_range_minmax {
+    use ac_library::{LazySegtree, MapMonoid, Monoid};
+    use itertools::Itertools;
+    use std::{cmp::Ordering, convert::Infallible, ops::RangeBounds};
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub struct RangeMinMax {
+        pub min: i64,
+        pub max: i64,
+        pub len: i64,
+    }
+    impl RangeMinMax {
+        pub fn unit(x: i64) -> RangeMinMax {
+            RangeMinMax {
+                min: x,
+                max: x,
+                len: 1,
             }
-        }};
+        }
     }
-    /// Print many 1D arrays side-by-side with the line number.
-    /// # Examples
-    /// ```rust
-    /// # use lg::*;
-    /// let a = [1, 2, 3];
-    /// let b = [4, 5, 6];
-    /// let c = [7, 8, 9];
-    /// rows! {
-    ///   "id", // the name of the index
-    ///   @"a" => a,
-    ///   b,
-    ///   @"c" => c,
-    /// }
-    /// ```
-    #[macro_export]
-    macro_rules ! rows {{$ index_label : literal , $ (@ offset $ offset : expr , ) ? $ (@ verticalbar $ verticalbar : expr , ) * $ ($ (@$ label : literal => ) ? $ values : expr ) ,* $ (, ) ? } => {{#! [allow (unused_assignments ) ] let mut rows = $ crate :: Rows :: default () ; rows . line_number (line ! () ) ; $ (rows . offset ($ offset ) ; ) ? $ (rows . verticalbar ($ verticalbar ) ; ) * rows . index_label ($ index_label ) ; $ ({let mut label = stringify ! ($ values ) . to_string () ; if label . starts_with ("&" ) {label = label [1 .. ] . to_string () ; } $ ({let label_ : &'static str = $ label ; label = label_ . to_string () ; } ) ? rows . row (label , $ values ) ; } ) * eprintln ! ("{}" , rows . to_string_table () ) ; } } ; }
-    /// Print the 2D array with the line number.
-    /// # Examples
-    /// ```rust
-    /// # use lg::*;
-    /// let a = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
-    /// table! {
-    ///    @"a" => a,
-    /// }
-    /// table! {
-    ///   a,
-    /// }
-    /// ```
-    #[macro_export]
-    macro_rules ! table {{$ (@$ name : literal => ) ? $ values : expr $ (, ) ? } => {{#! [allow (unused_assignments ) ] let mut name = stringify ! ($ values ) . to_string () ; if name . starts_with ("&" ) {name = name [1 .. ] . to_string () ; } $ ({let name_ : &'static str = $ name ; name = name_ . to_string () ; } ) ? let mut rows = $ crate :: Rows :: default () ; rows . line_number (line ! () ) ; rows . table_name (name ) ; # [allow (array_into_iter ) ] for (i , row ) in $ values . into_iter () . enumerate () {rows . row (i . to_string () , row ) ; } eprintln ! ("{}" , rows . to_string_table () ) ; } } ; }
-    #[doc(hidden)]
-    pub fn __quiet(s: impl AsRef<str>) -> String {
-        s.as_ref()
-            .replace("340282366920938463463374607431768211455", "*")
-            .replace("170141183460469231731687303715884105727", "*")
-            .replace("18446744073709551615", "*")
-            .replace("9223372036854775807", "*")
-            .replace("-9223372036854775808", "*")
-            .replace("4294967295", "*")
-            .replace("2147483647", "*")
-            .replace("-2147483648", "*")
-            .replace("None", "*")
-            .replace("Some", "")
-            .replace("true", "#")
-            .replace("false", ".")
-            .replace(['"', '\''], "")
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub struct Affine {
+        pub slope: i64,
+        pub intercept: i64,
     }
-    #[doc(hidden)]
-    #[derive(Default)]
-    pub struct Rows {
-        line_number: String,
-        index_label: String,
-        offset: usize,
-        verticalbars: Vec<usize>,
-        table_name: String,
-        rows: Vec<Row>,
-    }
-    impl Rows {
-        pub fn line_number(&mut self, line_number: u32) -> &mut Self {
-            self.line_number = format!("{}", line_number);
-            self
-        }
-        pub fn index_label(&mut self, index_label: impl Into<String>) -> &mut Self {
-            self.index_label = index_label.into();
-            self
-        }
-        pub fn offset(&mut self, offset: usize) -> &mut Self {
-            self.offset = offset;
-            self
-        }
-        pub fn verticalbar(&mut self, verticalbar: impl IntoIterator<Item = usize>) -> &mut Self {
-            self.verticalbars.extend(verticalbar);
-            self
-        }
-        pub fn table_name(&mut self, table_name: impl Into<String>) -> &mut Self {
-            self.table_name = table_name.into();
-            self
-        }
-        pub fn row(
-            &mut self,
-            label: impl Into<String>,
-            values: impl IntoIterator<Item = impl fmt::Debug>,
-        ) -> &mut Self {
-            self.rows.push(Row {
-                label: label.into(),
-                values: values
-                    .into_iter()
-                    .map(|value| __quiet(format!("{:?}", value)))
-                    .collect(),
-            });
-            self
-        }
-        pub fn to_string_table(self) -> StringTable {
-            let Self {
-                line_number,
-                index_label,
-                offset,
-                verticalbars,
-                table_name,
-                rows,
-            } = self;
-            let w = rows
-                .iter()
-                .map(|row| row.values.len())
-                .max()
-                .unwrap_or_default();
-            let mut verticalbar_count = vec![0; w + 1];
-            for &v in &verticalbars {
-                if (offset..=offset + w).contains(&v) {
-                    verticalbar_count[v - offset] += 1;
-                }
+    impl Affine {
+        /// 区間変更用（定数関数）
+        pub fn constant_func(x: i64) -> Affine {
+            Affine {
+                slope: 0,
+                intercept: x,
             }
-            StringTable {
-                head: StringRow {
-                    label: format!(
-                        "{line_number}❯ {table_name}{index_label}",
-                        index_label = if index_label.is_empty() {
-                            String::new()
-                        } else {
-                            format!("[{}]", index_label)
-                        }
-                    ),
-                    values: (offset..offset + w)
-                        .map(|index| index.to_string())
-                        .collect(),
+        }
+        /// 区間加算用
+        pub fn addition_func(x: i64) -> Affine {
+            Affine {
+                slope: 1,
+                intercept: x,
+            }
+        }
+    }
+    pub struct RangeMinMaxMonoid(Infallible);
+    impl Monoid for RangeMinMaxMonoid {
+        type S = RangeMinMax;
+        fn identity() -> RangeMinMax {
+            RangeMinMax {
+                min: INF,
+                max: -INF,
+                len: 0,
+            }
+        }
+        fn binary_operation(a: &RangeMinMax, b: &RangeMinMax) -> RangeMinMax {
+            RangeMinMax {
+                min: Ord::min(a.min, b.min),
+                max: Ord::max(a.max, b.max),
+                len: a.len + b.len,
+            }
+        }
+    }
+    const INF: i64 = i64::MAX;
+    pub struct RangeAffineRangeMinMax(Infallible);
+    impl MapMonoid for RangeAffineRangeMinMax {
+        type M = RangeMinMaxMonoid;
+        type F = Affine;
+        fn identity_map() -> Affine {
+            Affine {
+                slope: 1,
+                intercept: 0,
+            }
+        }
+        fn composition(a: &Affine, b: &Affine) -> Affine {
+            Affine {
+                slope: a.slope * b.slope,
+                intercept: a.slope * b.intercept + a.intercept,
+            }
+        }
+        fn mapping(f: &Affine, x: &RangeMinMax) -> RangeMinMax {
+            if x.len == 0 {
+                return RangeMinMaxMonoid::identity();
+            }
+            match f.slope.cmp(&0) {
+                Ordering::Equal => RangeMinMax {
+                    min: f.intercept,
+                    max: f.intercept,
+                    len: x.len,
                 },
-                body: rows
-                    .iter()
-                    .map(|row| StringRow {
-                        label: row.label.clone(),
-                        values: row.values.clone(),
-                    })
-                    .collect(),
-                verticalbar_count,
+                Ordering::Greater => RangeMinMax {
+                    min: f.intercept + f.slope * x.min,
+                    max: f.intercept + f.slope * x.max,
+                    len: x.len,
+                },
+                Ordering::Less => RangeMinMax {
+                    min: f.intercept + f.slope * x.max,
+                    max: f.intercept + f.slope * x.min,
+                    len: x.len,
+                },
             }
         }
     }
-    struct Row {
-        label: String,
-        values: Vec<String>,
+    pub struct RangeAffineRangeMinMaxSegtree {
+        segtree: LazySegtree<RangeAffineRangeMinMax>,
     }
-    #[doc(hidden)]
-    pub struct StringTable {
-        head: StringRow,
-        body: Vec<StringRow>,
-        verticalbar_count: Vec<usize>,
-    }
-    impl fmt::Display for StringTable {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            let Self {
-                head,
-                body,
-                verticalbar_count,
-            } = self;
-            let w = body
-                .iter()
-                .map(|row| row.values.len())
-                .max()
-                .unwrap_or_default();
-            let label_width = once(head.label.chars().count())
-                .chain(body.iter().map(|row| row.label.chars().count()))
-                .max()
-                .unwrap();
-            let value_width = (0..w)
-                .map(|j| {
-                    once(j.to_string().len())
-                        .chain(
-                            body.iter()
-                                .map(|row| row.values.get(j).map_or(0, |s| s.chars().count())),
-                        )
-                        .max()
-                        .unwrap()
-                })
-                .collect::<Vec<_>>();
-            gray(f)?;
-            write!(
-                f,
-                "{}",
-                head.to_string(label_width, &value_width, verticalbar_count, true)
-            )?;
-            resetln(f)?;
-            for row in body {
-                write!(
-                    f,
-                    "{}",
-                    row.to_string(label_width, &value_width, verticalbar_count, false)
-                )?;
-                writeln!(f)?;
+    impl RangeAffineRangeMinMaxSegtree {
+        pub fn new(xs: &[i64]) -> RangeAffineRangeMinMaxSegtree {
+            let xs = xs.iter().copied().map(RangeMinMax::unit).collect_vec();
+            RangeAffineRangeMinMaxSegtree {
+                segtree: LazySegtree::from(xs),
             }
-            Ok(())
         }
-    }
-    struct StringRow {
-        label: String,
-        values: Vec<String>,
-    }
-    impl StringRow {
-        fn to_string(
-            &self,
-            label_width: usize,
-            value_width: &[usize],
-            varticalbars_count: &[usize],
-            label_align_left: bool,
-        ) -> String {
-            let Self { label, values } = self;
-            let w = value_width.len();
-            let mut s = String::new();
-            s.push_str(&if label_align_left {
-                format!("{label:<label_width$} |")
-            } else {
-                format!("{label:^label_width$} |")
-            });
-            for j in 0..w {
-                let value_width = value_width[j];
-                s.push_str("|".repeat(varticalbars_count[j]).as_str());
-                if varticalbars_count[j] == 0 && j != 0 && value_width <= 1 {
-                    s.push(' ');
-                }
-                match values.get(j) {
-                    Some(value) => {
-                        s.push_str(&format!(" {value:>value_width$}",));
-                    }
-                    None => {
-                        s.push_str(" ".repeat(value_width + 1).as_str());
-                    }
-                }
-            }
-            s
+        pub fn set(&mut self, p: usize, x: i64) {
+            self.segtree.set(p, RangeMinMax::unit(x));
         }
-    }
-    const GRAY: &str = "\x1b[48;2;127;127;127;37m";
-    const RESET: &str = "\x1b[0m";
-    fn gray(f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{GRAY}")
-    }
-    fn resetln(f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "{RESET}")
-    }
-    /// Format a iterator of [`bool`]s.
-    pub fn bools<B, I>(iter: I) -> String
-    where
-        B: Borrow<bool>,
-        I: IntoIterator<Item = B>,
-    {
-        format!(
-            "[{}]",
-            iter.into_iter()
-                .map(|b| ['.', '#'][usize::from(*(b.borrow()))])
-                .collect::<String>(),
-        )
+        pub fn get_min(&mut self, p: usize) -> i64 {
+            self.segtree.get(p).min
+        }
+        pub fn get_max(&mut self, p: usize) -> i64 {
+            self.segtree.get(p).max
+        }
+        pub fn range_min<R>(&mut self, range: R) -> i64
+        where
+            R: RangeBounds<usize>,
+        {
+            self.segtree.prod(range).min
+        }
+        pub fn range_max<R>(&mut self, range: R) -> i64
+        where
+            R: RangeBounds<usize>,
+        {
+            self.segtree.prod(range).max
+        }
+        pub fn all_min(&self) -> i64 {
+            self.segtree.all_prod().min
+        }
+        pub fn all_max(&self) -> i64 {
+            self.segtree.all_prod().max
+        }
+        pub fn apply_affine(&mut self, p: usize, slope: i64, intercept: i64) {
+            self.segtree.apply(p, Affine { slope, intercept })
+        }
+        pub fn apply_update(&mut self, p: usize, x: i64) {
+            self.segtree.apply(p, Affine::constant_func(x))
+        }
+        pub fn apply_add(&mut self, p: usize, x: i64) {
+            self.segtree.apply(p, Affine::addition_func(x))
+        }
+        pub fn apply_range_affine<R>(&mut self, range: R, slope: i64, intercept: i64)
+        where
+            R: RangeBounds<usize>,
+        {
+            self.segtree.apply_range(range, Affine { slope, intercept })
+        }
+        pub fn apply_range_update<R>(&mut self, range: R, x: i64)
+        where
+            R: RangeBounds<usize>,
+        {
+            self.segtree.apply_range(range, Affine::constant_func(x))
+        }
+        pub fn apply_range_add<R>(&mut self, range: R, x: i64)
+        where
+            R: RangeBounds<usize>,
+        {
+            self.segtree.apply_range(range, Affine::addition_func(x))
+        }
     }
 }
