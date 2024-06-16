@@ -32,7 +32,10 @@ impl Problem {
                 shop_list
                     .iter()
                     .copied()
-                    .flat_map(|shop_i| self.info[shop_i].iter().positions(|p| *p))
+                    .flat_map(|shop_i| {
+                        // shop_i で売られているポップコーンの味のリスト
+                        self.info[shop_i].iter().positions(|p| *p)
+                    })
                     .unique()
                     .count()
                     == self.n_tastes

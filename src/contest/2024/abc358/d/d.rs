@@ -23,6 +23,7 @@ impl Problem {
         }
     }
     fn solve(&self) -> Answer {
+        // 解法: ソートする
         let n_box = self.n_box;
         let n_people = self.n_people;
         let box_price_list = &self.box_cnt_list.iter().copied().sorted().collect_vec();
@@ -49,6 +50,28 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        let box_price_list = &self.box_cnt_list;
+        let required_list = &self.required_list;
+
+        let mut box_price_set = box_price_list.iter().copied().collect::<BTreeMultiSet<_>>();
+
+        let mut sum = 0;
+
+        for &required in required_list {
+            // range(required..) は lower_bound に相当する
+            let box_price_opt = box_price_set.range(required..).next();
+            if let Some((&box_price, _)) = box_price_opt {
+                sum += box_price;
+                box_price_set.remove1(&box_price);
+            } else {
+                return Answer { ans: None };
+            }
+        }
+
+        Answer { ans: Some(sum) }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -73,7 +96,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -208,3 +231,98 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use btree_multiset::*;
+#[allow(clippy::module_inception)]
+pub mod btree_multiset {
+    use std::{
+        borrow::Borrow,
+        collections::{btree_map::Range, BTreeMap},
+        ops::RangeBounds,
+    };
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct BTreeMultiSet<T> {
+        map: BTreeMap<T, usize>,
+        length: usize,
+    }
+    impl<T> BTreeMultiSet<T> {
+        pub const fn new() -> BTreeMultiSet<T> {
+            BTreeMultiSet {
+                map: BTreeMap::new(),
+                length: 0,
+            }
+        }
+        pub fn range<R>(&self, range: R) -> Range<'_, T, usize>
+        where
+            T: Ord,
+            R: RangeBounds<T>,
+        {
+            self.map.range(range)
+        }
+        pub fn iter(&self) -> impl Iterator<Item = (&T, &usize)> {
+            self.map.iter()
+        }
+        pub fn insert(&mut self, value: T)
+        where
+            T: Ord,
+        {
+            *self.map.entry(value).or_insert(0) += 1;
+            self.length += 1;
+        }
+        pub fn remove1<Q: ?Sized>(&mut self, value: &Q) -> bool
+        where
+            T: Borrow<Q> + Ord,
+            Q: Ord,
+        {
+            if let Some(cnt) = self.map.get_mut(value) {
+                *cnt -= 1;
+                if *cnt == 0 {
+                    self.map.remove(value);
+                }
+                self.length -= 1;
+                return true;
+            }
+            false
+        }
+        pub fn remove_all<Q: ?Sized>(&mut self, value: &Q) -> bool
+        where
+            T: Borrow<Q> + Ord,
+            Q: Ord,
+        {
+            if let Some(cnt) = self.map.get(value) {
+                self.length -= cnt;
+                self.map.remove(value);
+                return true;
+            }
+            false
+        }
+        pub fn len(&self) -> usize {
+            self.length
+        }
+        pub fn is_empty(&self) -> bool {
+            self.length == 0
+        }
+        pub fn count<Q: ?Sized>(&self, value: &Q) -> usize
+        where
+            T: Borrow<Q> + Ord,
+            Q: Ord,
+        {
+            self.map.get(value).copied().unwrap_or(0)
+        }
+        pub fn contains<Q: ?Sized>(&self, value: &Q) -> bool
+        where
+            T: Borrow<Q> + Ord,
+            Q: Ord,
+        {
+            self.map.contains_key(value)
+        }
+    }
+    impl<T: Ord> FromIterator<T> for BTreeMultiSet<T> {
+        fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> BTreeMultiSet<T> {
+            let mut set = BTreeMultiSet::new();
+            for x in iter {
+                set.insert(x);
+            }
+            set
+        }
+    }
+}
