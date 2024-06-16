@@ -15,6 +15,8 @@
         "Itertools",
         "izip",
         "lazysegtree",
+        "multiset",
+        "mutilset",
         "peekable",
         "potentialized",
         "powerset",
