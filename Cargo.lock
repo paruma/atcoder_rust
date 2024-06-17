@@ -26,6 +26,7 @@ dependencies = [
  "cargo-snippet",
  "cli_test_dir",
  "easy-ext",
+ "hashbag",
  "itertools",
  "maplit",
  "ndarray",
@@ -107,6 +108,12 @@ dependencies = [
  "libc",
  "wasi",
 ]
+
+[[package]]
+name = "hashbag"
+version = "0.1.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b3d44c238cb72d3e8993a30c32e97b2b2c2c1a12388603f28c4f19a44c4396bc"
 
 [[package]]
 name = "hashbrown"

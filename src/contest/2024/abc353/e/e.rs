@@ -14,7 +14,68 @@ impl Problem {
         Problem { n, strs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        // 解法
+        // 接頭辞の寄与を考える
+        // 各接頭辞の数を数えるために、接頭辞をロリハにした。
+        let rhs = self
+            .strs
+            .iter()
+            .map(|str| {
+                RollingHash::new(
+                    &str.iter()
+                        .copied()
+                        .map(|ch| (ch - b'a' + 1) as i64)
+                        .collect_vec(),
+                    125,
+                )
+            })
+            .collect_vec();
+
+        // 各接頭辞のロリハとそのカウント
+        let cnts = rhs
+            .iter()
+            .flat_map(|rh| (1..=rh.len()).map(|end| rh.hash(0, end)))
+            .counts();
+
+        // 正方形全体
+        let term1 = cnts.values().map(|c| c * c).sum::<usize>();
+
+        // 対角線
+        let term2 = self.strs.iter().map(|str| str.len()).sum::<usize>();
+        let ans = (term1 - term2) / 2;
+        let ans = ans as i64;
+
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // 解法1 の平面走査バージョン
+        let rhs = self
+            .strs
+            .iter()
+            .map(|str| {
+                RollingHash::new(
+                    &str.iter()
+                        .copied()
+                        .map(|ch| (ch - b'a' + 1) as i64)
+                        .collect_vec(),
+                    125,
+                )
+            })
+            .collect_vec();
+
+        let mut ans = 0;
+        let mut bag = HashBag::new();
+        for rh in rhs {
+            for end in 1..=rh.len() {
+                let hash = rh.hash(0, end);
+                ans += bag.contains(&hash);
+                bag.insert(hash);
+            }
+        }
+
+        let ans = ans as i64;
+
         Answer { ans }
     }
 
@@ -38,7 +99,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -117,6 +178,7 @@ mod tests {
     }
 }
 
+use hashbag::HashBag;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
@@ -173,3 +235,86 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use rolling_hash::*;
+pub mod rolling_hash {
+    const MOD: i64 = (1 << 61) - 1;
+    const MOD_I128: i128 = (1 << 61) - 1;
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    struct ModInt261M1 {
+        val: i64,
+    }
+    impl ModInt261M1 {
+        #[inline]
+        pub fn new(val: i64) -> Self {
+            Self { val }
+        }
+    }
+    impl std::ops::Add for ModInt261M1 {
+        type Output = Self;
+        #[inline]
+        fn add(self, rhs: Self) -> Self::Output {
+            let mut x = self.val + rhs.val;
+            if x >= MOD {
+                x -= MOD;
+            }
+            Self::new(x)
+        }
+    }
+    impl std::ops::Sub for ModInt261M1 {
+        type Output = Self;
+        #[inline]
+        fn sub(self, rhs: Self) -> Self::Output {
+            let mut x = MOD + self.val - rhs.val;
+            if x >= MOD {
+                x -= MOD;
+            }
+            Self::new(x)
+        }
+    }
+    impl std::ops::Mul for ModInt261M1 {
+        type Output = Self;
+        #[inline]
+        fn mul(self, rhs: Self) -> Self::Output {
+            let x = (self.val as i128) * (rhs.val as i128);
+            let mut x = ((x >> 61) + (x & MOD_I128)) as i64;
+            if x >= MOD {
+                x -= MOD;
+            }
+            Self::new(x)
+        }
+    }
+    pub struct RollingHash {
+        hash_list: Vec<ModInt261M1>,
+        pow_list: Vec<ModInt261M1>,
+        len: usize,
+    }
+    impl RollingHash {
+        pub fn new(xs: &[i64], base: i64) -> Self {
+            let base = ModInt261M1::new(base);
+            let mut hash_list = vec![ModInt261M1::new(0); xs.len() + 1];
+            let mut pow_list = vec![ModInt261M1::new(1); xs.len() + 1];
+            for i in 0..xs.len() {
+                hash_list[i + 1] = hash_list[i] * base + ModInt261M1::new(xs[i]);
+                pow_list[i + 1] = pow_list[i] * base;
+            }
+            let len = xs.len();
+            Self {
+                hash_list,
+                pow_list,
+                len,
+            }
+        }
+        pub fn hash(&self, begin: usize, end: usize) -> i64 {
+            let x = self.hash_list[end] - self.hash_list[begin] * self.pow_list[end - begin];
+            x.val
+        }
+
+        pub fn len(&self) -> usize {
+            self.len
+        }
+
+        pub fn is_empty(&self) -> bool {
+            self.len() == 0
+        }
+    }
+}

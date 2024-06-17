@@ -251,9 +251,9 @@ path = "src/contest/2024/abc356/g/g.rs"
 # name = "abc353_d"
 # path = "src/contest/2024/abc353/d/d.rs"
 
-# [[bin]]
-# name = "abc353_e"
-# path = "src/contest/2024/abc353/e/e.rs"
+[[bin]]
+name = "abc353_e"
+path = "src/contest/2024/abc353/e/e.rs"
 
 # [[bin]]
 # name = "abc353_f"
@@ -1505,7 +1505,7 @@ ac-library-rs = "=0.1.1"
 # argio = "=0.2.0"
 # bitvec = "=1.0.1"
 # counter = "=0.5.7"
-# hashbag = "=0.1.11"
+hashbag = "=0.1.11"
 
 # グラフライブラリ
 pathfinding = "=4.3.0"
