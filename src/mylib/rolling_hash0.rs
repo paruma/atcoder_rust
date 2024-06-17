@@ -59,9 +59,11 @@ pub mod rolling_hash {
         }
     }
 
+    #[derive(Clone, Debug)]
     pub struct RollingHash {
         hash_list: Vec<ModInt261M1>, // hash_list[i] = xs[0..i] のハッシュ値
         pow_list: Vec<ModInt261M1>,  // pow_llst[i] = base^i
+        length: usize,
     }
 
     impl RollingHash {
@@ -74,15 +76,25 @@ pub mod rolling_hash {
                 hash_list[i + 1] = hash_list[i] * base + ModInt261M1::new(xs[i]);
                 pow_list[i + 1] = pow_list[i] * base;
             }
+            let length = xs.len();
             Self {
                 hash_list,
                 pow_list,
+                length,
             }
         }
 
         pub fn hash(&self, begin: usize, end: usize) -> i64 {
             let x = self.hash_list[end] - self.hash_list[begin] * self.pow_list[end - begin];
             x.val
+        }
+
+        pub fn len(&self) -> usize {
+            self.length
+        }
+
+        pub fn is_empty(&self) -> bool {
+            self.length == 0
         }
     }
 }
@@ -195,9 +207,8 @@ pub mod monoid_rolling_hash {
 mod tests_rolling_hash {
     use super::rolling_hash::*;
 
-    #[allow(clippy::eq_op)]
     #[test]
-    fn test_rolling_hash() {
+    fn test_rolling_hash_normal() {
         let xs = vec![1, 2, 3, 4, 1, 2, 3];
         let hash = RollingHash::new(&xs, 100);
 
@@ -205,6 +216,17 @@ mod tests_rolling_hash {
         assert_eq!(hash.hash(0, 3), hash.hash(4, 7));
         assert_ne!(hash.hash(0, 3), hash.hash(3, 6)); // [1,2,3] != [4,1,2]
         assert_eq!(hash.hash(0, 0), 0); // [1,2,3] != [4,1,2]
+        assert_eq!(hash.len(), 7);
+        assert!(!hash.is_empty());
+    }
+
+    #[test]
+    fn test_rolling_hash_empty() {
+        let hash = RollingHash::new(&[], 100);
+
+        assert_eq!(hash.hash(0, 0), 0);
+        assert_eq!(hash.len(), 0);
+        assert!(hash.is_empty());
     }
 }
 
