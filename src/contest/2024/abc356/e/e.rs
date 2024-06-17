@@ -136,6 +136,66 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve3(&self) -> Answer {
+        // 解法2のメモ化バージョン
+        // 解法２ではあらかじめ計算していたが、解法3では必要になってから計算をする（都度メモ化する）
+
+        let xs = &self.xs.iter().copied().sorted().collect_vec();
+
+        let xs_max = xs.iter().copied().max().unwrap();
+
+        // cnts[k] = #[x in xs | x == k]
+        let cnts = {
+            let mut cnts = vec![0; xs_max + 1];
+            for &x in xs {
+                cnts[x] += 1;
+            }
+            cnts
+        };
+        let cnts_cumsum = CumSum::new(&cnts);
+        // (0..n).map(|j| xs[j]/d).sum() を求める
+
+        let mut memo = vec![None; xs_max + 1];
+
+        let calc = |d: usize| -> usize {
+            if let Some(ans) = memo[d] {
+                return ans;
+            }
+
+            let ans = (0..)
+                .step_by(d)
+                .take_while(|&x| x <= xs_max)
+                .map(|begin| {
+                    let end = usize::min(begin + d, xs_max + 1);
+                    cnts_cumsum.range_sum(begin..end) as usize * (begin / d)
+                })
+                .sum();
+            memo[d] = Some(ans);
+            ans
+        };
+
+        let term1 = xs
+            .iter()
+            .copied()
+            // 前計算なしに毎回 sum_{r in xs} r/x を計算してると、例えば x = 1 となる x in xs が多いときに困る。
+            .map(calc)
+            .sum::<usize>();
+
+        let term2 = cnts
+            .iter()
+            .copied()
+            .map(|cnt| {
+                let cnt = cnt as usize;
+                cnt * (cnt + 1) / 2
+            })
+            .sum::<usize>();
+
+        let ans = term1 - term2;
+        let ans = ans as i64;
+
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -156,7 +216,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve2().print();
+    Problem::read().solve3().print();
 }
 
 #[cfg(test)]
