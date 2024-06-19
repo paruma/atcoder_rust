@@ -384,6 +384,11 @@ path = "src/contest/2024/abc351/f/f.rs"
 # name = "misc_abc143_d"
 # path = "src/contest/2024/_misc/abc143_d.rs"
 
+[[bin]]
+name = "misc_exawizards2019_d"
+path = "src/contest/2024/_misc/exawizards2019_d.rs"
+
+
 # [[bin]]
 # name = "abc349_a"
 # path = "src/contest/2024/abc349/a/a.rs"
