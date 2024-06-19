@@ -79,6 +79,10 @@ pub mod mod_combinatorics {
         pub fn factorial(&self, n: usize) -> Mint {
             self.fac[n]
         }
+
+        pub fn inv_factorial(&self, n: usize) -> Mint {
+            self.invfac[n]
+        }
     }
 }
 
@@ -160,6 +164,22 @@ mod tests_mod_combinatorics {
         {
             let comb = Comb::new(10000);
             assert_eq!(comb.factorial(10000), 777990065.into());
+        }
+    }
+
+    #[test]
+    fn test_inv_factorial() {
+        use ac_library::ModInt998244353 as Mint;
+
+        {
+            let comb = Comb::new(5);
+            assert_eq!(comb.inv_factorial(0), 1.into());
+            assert_eq!(comb.inv_factorial(1), 1.into());
+            assert_eq!(comb.inv_factorial(5), Mint::new(120).inv());
+        }
+        {
+            let comb = Comb::new(10000);
+            assert_eq!(comb.inv_factorial(10000), Mint::new(777990065).inv());
         }
     }
 }

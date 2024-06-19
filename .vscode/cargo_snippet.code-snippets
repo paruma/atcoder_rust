@@ -2134,6 +2134,9 @@
       "        pub fn factorial(&self, n: usize) -> Mint {",
       "            self.fac[n]",
       "        }",
+      "        pub fn inv_factorial(&self, n: usize) -> Mint {",
+      "            self.invfac[n]",
+      "        }",
       "    }",
       "}"
     ]
