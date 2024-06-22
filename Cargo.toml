@@ -147,6 +147,11 @@ path = "src/contest/2024/abc356/g/g.rs"
 
 
 # [[bin]]
+# name = "misc_tenka1_2019_d"
+# path = "src/contest/2024/_misc/tenka1_2019_d.rs"
+
+
+# [[bin]]
 # name = "misc_abc237_e"
 # path = "src/contest/2024/_misc/abc237_e.rs"
 
