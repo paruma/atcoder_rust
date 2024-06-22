@@ -48,5 +48,15 @@ pub mod grid_template {
         pub fn find_pos_of(&self, ch: u8) -> Option<Pos<i64>> {
             self.all_pos_iter().find(|pos| self.at(*pos) == &ch)
         }
+
+        pub fn encode(&self, pos: Pos<i64>) -> usize {
+            (pos.y * self.w as i64 + pos.x) as usize
+        }
+
+        pub fn decode(&self, i: usize) -> Pos<i64> {
+            let y = (i / self.w) as i64;
+            let x = (i % self.w) as i64;
+            Pos::new(x, y)
+        }
     }
 }
