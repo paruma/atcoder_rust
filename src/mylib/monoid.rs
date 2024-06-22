@@ -383,6 +383,45 @@ pub mod monoid_transform {
     }
 }
 
+#[snippet(prefix = "use monoid_transform::*;", include = "dynamic_monoid")]
+pub mod monoid_matrix_mul {
+    use itertools::Itertools;
+
+    use super::dynamic_monoid::DynamicMonoid;
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub struct MatrixMul {
+        size: usize,
+    }
+    impl MatrixMul {
+        pub fn new(size: usize) -> Self {
+            Self { size }
+        }
+    }
+    impl DynamicMonoid for MatrixMul {
+        type S = Vec<Vec<i64>>;
+        fn identity(&self) -> Self::S {
+            (0..self.size)
+                .map(|y| {
+                    (0..self.size)
+                        .map(move |x| if x == y { 1 } else { 0 })
+                        .collect_vec()
+                })
+                .collect_vec()
+        }
+
+        fn binary_operation(&self, a: &Self::S, b: &Self::S) -> Self::S {
+            (0..self.size)
+                .map(|y| {
+                    (0..self.size)
+                        .map(move |x| (0..self.size).map(|k| a[y][k] * b[k][x]).sum())
+                        .collect_vec()
+                })
+                .collect_vec()
+        }
+    }
+}
+
 #[cfg(test)]
 mod test_extend_acl_monoid {
     use ac_library::Multiplicative;
@@ -630,5 +669,27 @@ mod test_monoid_transform {
         assert_eq!(transform.pow(&vec![1, 2, 3, 4, 0], 3), vec![3, 4, 0, 1, 2]);
         assert_eq!(transform.pow(&vec![1, 2, 3, 4, 0], 4), vec![4, 0, 1, 2, 3]);
         assert_eq!(transform.pow(&vec![1, 2, 3, 4, 0], 5), vec![0, 1, 2, 3, 4]);
+    }
+}
+
+#[cfg(test)]
+mod test_monoid_matrix_mul {
+
+    use super::dynamic_monoid::DynamicMonoid;
+
+    use super::monoid_matrix_mul::MatrixMul;
+
+    #[test]
+    fn test_monoid_matrix_mul() {
+        let transform = MatrixMul::new(2);
+        let a = vec![vec![2, 3], vec![4, 5]];
+        let b = vec![vec![6, 7], vec![8, 9]];
+
+        assert_eq!(
+            transform.binary_operation(&a, &b),
+            vec![vec![36, 41], vec![64, 73]]
+        );
+        assert_eq!(transform.binary_operation(&transform.identity(), &a), a);
+        assert_eq!(transform.binary_operation(&a, &transform.identity()), a);
     }
 }
