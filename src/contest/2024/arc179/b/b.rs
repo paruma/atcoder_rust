@@ -84,9 +84,6 @@ impl Problem {
                 //     })
                 //     .all(|(begin, end)| ys[begin..end].contains(&xs[begin]))
             })
-            .inspect(|ys| {
-                lg!(&to_1idx(ys));
-            })
             .count() as i64;
         Answer { ans }
     }
