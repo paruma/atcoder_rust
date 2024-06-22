@@ -1,18 +1,27 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    xs: Vec<usize>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            xs: [usize; n * 2],
         }
-        Problem { _a }
+        Problem { n, xs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = (1..=self.n)
+            .map(|color| self.xs.iter().positions(|x| *x == color).collect_vec())
+            .filter(|ys| {
+                assert!(ys.len() == 2);
+                ys[0].abs_diff(ys[1]) == 2
+            })
+            .count() as i64;
+
         Answer { ans }
     }
 

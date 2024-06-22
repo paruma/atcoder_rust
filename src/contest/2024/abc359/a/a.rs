@@ -1,18 +1,20 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    ss: Vec<String>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            ss: [String; n]
         }
-        Problem { _a }
+        Problem { n, ss }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = self.ss.iter().filter(|s| **s == "Takahashi").count() as i64;
         Answer { ans }
     }
 

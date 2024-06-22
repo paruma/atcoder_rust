@@ -1,18 +1,65 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    k: usize,
+    str: Vec<u8>,
+}
+
+fn is_palindrome(str: &[u8]) -> bool {
+    str == str.iter().copied().rev().collect_vec()
+}
+
+fn to_str(b: &[u8]) -> String {
+    String::from_utf8(b.to_vec()).unwrap()
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            k: usize,
+            str: Bytes,
         }
-        Problem { _a }
+        Problem { n, k, str }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        use ac_library::ModInt998244353 as Mint;
+        let n = self.n;
+        let k: usize = self.k;
+        let str = self.str.clone();
+        // k-1 文字を持っておく
+        let mut dp = vec![HashMap::<Vec<u8>, Mint>::new(); n + 1];
+
+        let dummy = b"abcdefghijklmn"[0..k - 1].to_vec();
+
+        dp[0].insert(b"abcdefghijklmn"[0..k - 1].to_vec(), Mint::new(1));
+
+        for (i, ch) in str.iter().copied().enumerate() {
+            let next_list = match ch {
+                b'A' => vec![b'A'],
+                b'B' => vec![b'B'],
+                b'?' => vec![b'A', b'B'],
+                _ => panic!(),
+            };
+
+            let mut next_dp = HashMap::<Vec<u8>, Mint>::new();
+
+            for next in next_list {
+                for (key, value) in &dp[i] {
+                    // 過去 k-1 文字が key にある
+                    let mut next_key = key.clone();
+                    next_key.push(next);
+                    if !is_palindrome(&next_key) {
+                        // next_key の先頭を取る。
+                        next_key = next_key[1..].to_vec();
+                        *next_dp.entry(next_key).or_insert(Mint::new(0)) += value;
+                    }
+                }
+            }
+            dp[i + 1] = next_dp;
+        }
+        let ans = dp[n].values().sum::<Mint>().val() as i64;
         Answer { ans }
     }
 
@@ -77,7 +124,15 @@ mod tests {
     #[allow(dead_code)]
     fn make_random_problem(rng: &mut SmallRng) -> Problem {
         todo!()
-        // let n = rng.gen_range(1..=10);
+        // let k = rng.gen_range(2..=10);
+        // let n = rng.gen_range(k + 1..=14);
+        // let chars = b"AB?";
+        // let str = (0..n)
+        //     .map(|_| {
+        //         let i = rng.gen_range(0..3);
+        //         chars[i]
+        //     })
+        //     .collect_vec();
         // let p = Problem { _a: n };
         // println!("{:?}", &p);
         // p
