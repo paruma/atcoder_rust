@@ -6,16 +6,40 @@ struct Problem {
     xs: Vec<i64>,
 }
 
+fn mex(xs: &[i64]) -> i64 {
+    let xs_set = xs.iter().copied().collect::<HashSet<_>>();
+    (0..).find(|x| !xs_set.contains(x)).unwrap()
+}
+
 struct Nim {
     l: i64,
     r: i64,
 }
 impl Nim {
+    fn new(l: i64, r: i64) -> Nim {
+        Nim { l, r }
+    }
+
     fn grundy(&self, x: i64) -> i64 {
         let l = self.l;
         let r = self.r;
         let modulo = l + r;
         (x % modulo) / l
+    }
+
+    fn grundy_naive(&self, x: i64, memo: &mut HashMap<i64, i64>) -> i64 {
+        if let Some(ans) = memo.get(&x) {
+            return *ans;
+        }
+        let next_grundy = (self.l..=self.r)
+            .map(|i| x - i)
+            .filter(|next| *next >= 0)
+            .map(|next| self.grundy_naive(next, memo))
+            .collect_vec();
+        let ans = mex(&next_grundy);
+
+        memo.insert(x, ans);
+        ans
     }
 }
 
@@ -31,8 +55,27 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
-        let nim = Nim { l: self.l, r: self.r };
-        let ans = self.xs.iter().copied().map(|x| nim.grundy(x)).fold(0, |acc, x| acc ^ x) != 0;
+        let nim = Nim::new(self.l, self.r);
+        let ans = self
+            .xs
+            .iter()
+            .copied()
+            .map(|x| nim.grundy(x))
+            .fold(0, |acc, x| acc ^ x)
+            != 0;
+        Answer { ans }
+    }
+
+    fn solve_naive(&self) -> Answer {
+        let nim = Nim::new(self.l, self.r);
+        let mut memo = HashMap::new();
+        let ans = self
+            .xs
+            .iter()
+            .copied()
+            .map(|x| nim.grundy_naive(x, &mut memo))
+            .fold(0, |acc, x| acc ^ x)
+            != 0;
         Answer { ans }
     }
 }
@@ -61,7 +104,7 @@ mod tests {
 
     #[test]
     fn test_problem() {
-        let nim = Nim { l: 2, r: 4 };
+        let nim = Nim::new(2, 4);
         assert_eq!(nim.grundy(0), 0);
         assert_eq!(nim.grundy(1), 0);
         assert_eq!(nim.grundy(2), 1);
@@ -72,7 +115,24 @@ mod tests {
         assert_eq!(nim.grundy(7), 0);
         assert_eq!(nim.grundy(8), 1);
     }
+
+    #[test]
+    fn test_problem_naive() {
+        let nim = Nim::new(2, 4);
+        let mut memo = HashMap::new();
+        assert_eq!(nim.grundy_naive(0, &mut memo), 0);
+        assert_eq!(nim.grundy_naive(1, &mut memo), 0);
+        assert_eq!(nim.grundy_naive(2, &mut memo), 1);
+        assert_eq!(nim.grundy_naive(3, &mut memo), 1);
+        assert_eq!(nim.grundy_naive(4, &mut memo), 2);
+        assert_eq!(nim.grundy_naive(5, &mut memo), 2);
+        assert_eq!(nim.grundy_naive(6, &mut memo), 0);
+        assert_eq!(nim.grundy_naive(7, &mut memo), 0);
+        assert_eq!(nim.grundy_naive(8, &mut memo), 1);
+    }
 }
+
+use std::collections::{HashMap, HashSet};
 
 // ====== import ======
 #[allow(unused_imports)]
