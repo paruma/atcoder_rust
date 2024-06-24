@@ -116,6 +116,60 @@ impl Problem {
     }
 
     fn solve2(&self) -> Answer {
+        // メモ化再帰による解法（solve のリファクタリング）
+        struct Rec {
+            n: usize,
+            cards: Vec<Card>,
+        }
+
+        impl Rec {
+            fn new(n: usize, cards: Vec<Card>) -> Self {
+                Rec { n, cards }
+            }
+
+            fn rec(&self, cards: BitSet, tern: usize, dp: &mut Vec<Option<usize>>) -> usize {
+                if let Some(ans) = dp[cards.to_bit()] {
+                    return ans;
+                }
+
+                let player = tern % 2;
+
+                let can_win = cards
+                    .to_vec(self.n)
+                    .iter()
+                    .copied()
+                    .tuple_combinations()
+                    .filter(|(i, j)| {
+                        let card1 = self.cards[*i];
+                        let card2 = self.cards[*j];
+                        card1.front == card2.front || card1.back == card2.back
+                    })
+                    .map(|(i, j)| {
+                        let next_cards = cards.remove(i).remove(j);
+                        self.rec(next_cards, tern + 1, dp)
+                    })
+                    .any(|winner| player == winner);
+
+                let ans = if can_win { player } else { 1 - player };
+                dp[cards.to_bit()] = Some(ans);
+                ans
+            }
+        }
+
+        let mut dp = vec![None; 1 << self.n];
+        let rec = Rec::new(self.n, self.cards.clone());
+        let ans = rec.rec(BitSet::universal_set(self.n), 0, &mut dp);
+
+        let ans = match ans {
+            0 => "Takahashi",
+            1 => "Aoki",
+            _ => panic!(),
+        };
+        let ans = ans.to_string();
+        Answer { ans }
+    }
+
+    fn solve3(&self) -> Answer {
         // for ループによるDPの解法
         let mut dp = vec![10; 1 << self.n];
 
@@ -179,7 +233,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -314,3 +368,97 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use bitset::*;
+#[allow(clippy::module_inception)]
+pub mod bitset {
+    use itertools::Itertools;
+    use std::{
+        fmt::{Error, Formatter},
+        ops::{BitAnd, BitOr, BitXor},
+    };
+    #[derive(Clone, Copy, PartialEq, Eq)]
+    pub struct BitSet {
+        bit: usize,
+    }
+    impl BitSet {
+        #[inline]
+        pub fn new(bit: usize) -> BitSet {
+            BitSet { bit }
+        }
+        pub fn to_bit(self) -> usize {
+            self.bit
+        }
+        /// 持っている要素を Vec<usize> で返す
+        pub fn to_vec(self, len: usize) -> Vec<usize> {
+            (0..len).filter(|i| (self.bit >> i) & 1 == 1).collect_vec()
+        }
+        pub fn contains(self, x: usize) -> bool {
+            (self.bit >> x) & 1 == 1
+        }
+        pub fn count(self) -> usize {
+            self.bit.count_ones() as usize
+        }
+        pub fn insert(self, x: usize) -> BitSet {
+            BitSet::new(self.bit | (1 << x))
+        }
+        pub fn remove(self, x: usize) -> BitSet {
+            BitSet::new(self.bit & !(1 << x))
+        }
+        pub fn empty() -> BitSet {
+            BitSet::new(0)
+        }
+        pub fn universal_set(size: usize) -> BitSet {
+            BitSet::new((1 << size) - 1)
+        }
+        pub fn complement(self, size: usize) -> BitSet {
+            BitSet::new(self.bit ^ ((1 << size) - 1))
+        }
+        pub fn set_minus(self, other: BitSet) -> BitSet {
+            BitSet::new(self.bit & !other.bit)
+        }
+        pub fn is_empty(self) -> bool {
+            self.bit == 0
+        }
+        pub fn is_subset(self, other: BitSet) -> bool {
+            self | other == other
+        }
+        pub fn all_subset(self, size: usize) -> impl Iterator<Item = BitSet> {
+            (0..(1 << size)).map(BitSet::new)
+        }
+        pub fn subset_of(self) -> impl Iterator<Item = BitSet> {
+            std::iter::successors(Some(self.bit), move |x| {
+                if *x == 0 {
+                    None
+                } else {
+                    Some((x - 1) & self.bit)
+                }
+            })
+            .map(BitSet::new)
+        }
+    }
+    impl BitAnd for BitSet {
+        type Output = BitSet;
+        fn bitand(self, rhs: BitSet) -> BitSet {
+            BitSet::new(self.bit & rhs.bit)
+        }
+    }
+    impl BitOr for BitSet {
+        type Output = BitSet;
+        fn bitor(self, rhs: BitSet) -> BitSet {
+            BitSet::new(self.bit | rhs.bit)
+        }
+    }
+    impl BitXor for BitSet {
+        type Output = BitSet;
+        fn bitxor(self, rhs: BitSet) -> BitSet {
+            BitSet::new(self.bit ^ rhs.bit)
+        }
+    }
+    use std::fmt::Debug;
+    impl Debug for BitSet {
+        fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+            f.write_fmt(format_args!("{:#b}", self.bit))?;
+            Ok(())
+        }
+    }
+}
