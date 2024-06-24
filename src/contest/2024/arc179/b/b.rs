@@ -19,6 +19,7 @@ impl Problem {
         }
         Problem { m, n, xs }
     }
+
     fn solve(&self) -> Answer {
         use ac_library::ModInt998244353 as Mint;
         let m = self.m;
@@ -43,6 +44,40 @@ impl Problem {
                                 .filter(|(_, x0)| *x0 == x)
                                 .fold(0, |acc, (i, _)| acc | (1 << i));
                         dp[i + 1][next_state] += tmp;
+                    }
+                }
+            }
+        }
+        let ans = dp[n].iter().sum::<Mint>();
+        let ans = ans.val() as i64;
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // BitSet を使ったリファクタリング
+
+        use ac_library::ModInt998244353 as Mint;
+        let m = self.m;
+        let n = self.n;
+        let xs = &self.xs;
+        // dp[i][S]: i個の整数を決めた状態で次置ける整数の集合がSである場合の数
+        let mut dp = vec![vec![Mint::new(0); 1 << m]; n + 1];
+        dp[0][BitSet::universal_set(m).to_bit()] = Mint::new(1);
+
+        for i in 0..n {
+            for s in BitSet::all_subset(m) {
+                for x in 0..m {
+                    if s.contains(x) {
+                        let tmp = dp[i][s.to_bit()];
+                        let next_s = xs
+                            .iter()
+                            .copied()
+                            .enumerate()
+                            .filter(|(_, x0)| *x0 == x)
+                            .map(|(i, _)| i) // x を置いたことで i が置けるようになった
+                            .fold(s.remove(x), |acc, i| acc.insert(i));
+
+                        dp[i + 1][next_s.to_bit()] += tmp;
                     }
                 }
             }
@@ -101,7 +136,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -282,3 +317,97 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use bitset::*;
+#[allow(clippy::module_inception)]
+pub mod bitset {
+    use itertools::Itertools;
+    use std::{
+        fmt::{Error, Formatter},
+        ops::{BitAnd, BitOr, BitXor},
+    };
+    #[derive(Clone, Copy, PartialEq, Eq)]
+    pub struct BitSet {
+        bit: usize,
+    }
+    impl BitSet {
+        #[inline]
+        pub fn new(bit: usize) -> BitSet {
+            BitSet { bit }
+        }
+        pub fn to_bit(self) -> usize {
+            self.bit
+        }
+        /// 持っている要素を Vec<usize> で返す
+        pub fn to_vec(self, len: usize) -> Vec<usize> {
+            (0..len).filter(|i| (self.bit >> i) & 1 == 1).collect_vec()
+        }
+        pub fn contains(self, x: usize) -> bool {
+            (self.bit >> x) & 1 == 1
+        }
+        pub fn count(self) -> usize {
+            self.bit.count_ones() as usize
+        }
+        pub fn insert(self, x: usize) -> BitSet {
+            BitSet::new(self.bit | (1 << x))
+        }
+        pub fn remove(self, x: usize) -> BitSet {
+            BitSet::new(self.bit & !(1 << x))
+        }
+        pub fn empty() -> BitSet {
+            BitSet::new(0)
+        }
+        pub fn universal_set(size: usize) -> BitSet {
+            BitSet::new((1 << size) - 1)
+        }
+        pub fn complement(self, size: usize) -> BitSet {
+            BitSet::new(self.bit ^ ((1 << size) - 1))
+        }
+        pub fn set_minus(self, other: BitSet) -> BitSet {
+            BitSet::new(self.bit & !other.bit)
+        }
+        pub fn is_empty(self) -> bool {
+            self.bit == 0
+        }
+        pub fn is_subset(self, other: BitSet) -> bool {
+            self | other == other
+        }
+        pub fn all_subset(size: usize) -> impl Iterator<Item = BitSet> {
+            (0..(1 << size)).map(BitSet::new)
+        }
+        pub fn subsets(self) -> impl Iterator<Item = BitSet> {
+            std::iter::successors(Some(self.bit), move |x| {
+                if *x == 0 {
+                    None
+                } else {
+                    Some((x - 1) & self.bit)
+                }
+            })
+            .map(BitSet::new)
+        }
+    }
+    impl BitAnd for BitSet {
+        type Output = BitSet;
+        fn bitand(self, rhs: BitSet) -> BitSet {
+            BitSet::new(self.bit & rhs.bit)
+        }
+    }
+    impl BitOr for BitSet {
+        type Output = BitSet;
+        fn bitor(self, rhs: BitSet) -> BitSet {
+            BitSet::new(self.bit | rhs.bit)
+        }
+    }
+    impl BitXor for BitSet {
+        type Output = BitSet;
+        fn bitxor(self, rhs: BitSet) -> BitSet {
+            BitSet::new(self.bit ^ rhs.bit)
+        }
+    }
+    use std::fmt::Debug;
+    impl Debug for BitSet {
+        fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+            f.write_fmt(format_args!("{:#b}", self.bit))?;
+            Ok(())
+        }
+    }
+}
