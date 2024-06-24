@@ -79,15 +79,95 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        // BtreeSet を使う
+        let space = chain!([0], self.xs.clone(), self.qs.iter().copied().map(|q| q.x))
+            .flat_map(|x| [x, x + 1])
+            .collect_vec();
+
+        let cc = CoordinateCompression::new(&space);
+        let mut xs_cc = cc.compress_vec(&self.xs);
+
+        let qs_cc = self
+            .qs
+            .iter()
+            .copied()
+            .map(|q| Query {
+                i: q.i,
+                x: cc.compress(q.x),
+            })
+            .collect_vec();
+
+        let mut existing = xs_cc.iter().copied().collect::<HashBag<_>>();
+        let mut missing = (0..cc.space_size())
+            .filter(|i| existing.contains(i) == 0)
+            .collect::<BTreeSet<_>>();
+
+        let mut ans = vec![];
+
+        for &q in &qs_cc {
+            existing.remove(&xs_cc[q.i]);
+            if existing.contains(&xs_cc[q.i]) == 0 {
+                missing.insert(xs_cc[q.i]);
+            }
+            xs_cc[q.i] = q.x;
+            existing.insert(xs_cc[q.i]);
+            missing.remove(&xs_cc[q.i]);
+            let mex_cc = *missing.iter().next().unwrap();
+            let mex = cc.decompress(mex_cc);
+            ans.push(mex);
+        }
+
+        Answer { ans }
+    }
+
+    fn solve3(&self) -> Answer {
+        // 解法: 長さ n の数列の mex はたかだかn。よって。数列のn以上の値は mex に寄与しない。
+        // そう考えると、座標圧縮は不要になる。
+
+        let n = self.n;
+        let mut xs = self
+            .xs
+            .iter()
+            .copied()
+            .map(|x| i64::min(x, n as i64) as usize)
+            .collect_vec();
+
+        let qs = self
+            .qs
+            .iter()
+            .copied()
+            .map(|q| Query {
+                i: q.i,
+                x: i64::min(q.x, n as i64) as usize,
+            })
+            .collect_vec();
+
+        let mut existing = xs.iter().copied().collect::<HashBag<_>>();
+        let mut missing = (0..=n)
+            .filter(|i| existing.contains(i) == 0)
+            .collect::<BTreeSet<_>>();
+
+        let mut ans = vec![];
+
+        for &q in &qs {
+            existing.remove(&xs[q.i]);
+            if existing.contains(&xs[q.i]) == 0 {
+                missing.insert(xs[q.i]);
+            }
+            xs[q.i] = q.x;
+            existing.insert(xs[q.i]);
+            missing.remove(&xs[q.i]);
+            let mex = *missing.iter().next().unwrap();
+            ans.push(mex as i64);
+        }
+
+        Answer { ans }
+    }
+
     fn mex(xs: &[i64]) -> i64 {
         let xs_set = xs.iter().copied().collect::<HashSet<_>>();
-
-        for i in 0.. {
-            if !xs_set.contains(&i) {
-                return i;
-            }
-        }
-        unreachable!()
+        (0..).find(|x| !xs_set.contains(x)).unwrap()
     }
 
     #[allow(dead_code)]
@@ -116,7 +196,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve3().print();
 }
 
 #[cfg(test)]
@@ -204,6 +284,7 @@ mod tests {
 }
 
 use ac_library::{Min, Segtree};
+use hashbag::HashBag;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
@@ -212,6 +293,7 @@ use proconio::{
     derive_readable, fastout, input,
     marker::{Bytes, Usize1},
 };
+use std::collections::BTreeSet;
 #[allow(unused_imports)]
 use std::collections::{BinaryHeap, HashMap, HashSet};
 
