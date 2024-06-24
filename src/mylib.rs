@@ -1,5 +1,6 @@
 pub mod array_2d_transformation;
 pub mod bin_search0;
+pub mod bitset;
 pub mod btree_multiset;
 pub mod btree_set_ext;
 pub mod chminmax;
