@@ -70,11 +70,11 @@ pub mod bitset {
             self | other == other
         }
 
-        pub fn all_subset(self, size: usize) -> impl Iterator<Item = BitSet> {
+        pub fn all_subset(size: usize) -> impl Iterator<Item = BitSet> {
             (0..(1 << size)).map(BitSet::new)
         }
 
-        pub fn subset_of(self) -> impl Iterator<Item = BitSet> {
+        pub fn subsets(self) -> impl Iterator<Item = BitSet> {
             std::iter::successors(Some(self.bit), move |x| {
                 if *x == 0 {
                     None
@@ -240,8 +240,7 @@ mod tests {
 
     #[test]
     fn test_all_subset() {
-        let b = BitSet::new(0b101);
-        let subsets: Vec<BitSet> = b.all_subset(3).collect();
+        let subsets: Vec<BitSet> = BitSet::all_subset(3).collect();
         let expected: Vec<BitSet> = vec![
             BitSet::new(0b000),
             BitSet::new(0b001),
@@ -254,8 +253,7 @@ mod tests {
         ];
         assert_eq!(subsets, expected);
 
-        let b = BitSet::new(0b0);
-        let subsets: Vec<BitSet> = b.all_subset(0).collect();
+        let subsets: Vec<BitSet> = BitSet::all_subset(0).collect();
         let expected: Vec<BitSet> = vec![BitSet::new(0b0)];
         assert_eq!(subsets, expected);
     }
@@ -263,7 +261,7 @@ mod tests {
     #[test]
     fn test_subset_of() {
         let b = BitSet::new(0b101);
-        let subsets: Vec<BitSet> = b.subset_of().collect();
+        let subsets: Vec<BitSet> = b.subsets().collect();
         let expected: Vec<BitSet> = vec![
             BitSet::new(0b101),
             BitSet::new(0b100),
