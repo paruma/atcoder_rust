@@ -1,5 +1,13 @@
 use cargo_snippet::snippet;
 
+#[snippet]
+pub fn lazy_segtree_to_vec<F: ac_library::MapMonoid>(
+    seg: &mut ac_library::LazySegtree<F>,
+    len: usize,
+) -> Vec<<F::M as ac_library::Monoid>::S> {
+    (0..len).map(|i| seg.get(i)).collect()
+}
+
 #[snippet(prefix = "use range_affine_range_sum::*;")]
 pub mod range_affine_range_sum {
     use ac_library::{LazySegtree, MapMonoid, Monoid};
@@ -100,6 +108,7 @@ pub mod range_affine_range_sum {
         T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
     {
         segtree: LazySegtree<RangeAffineRangeSum<T>>,
+        len: usize,
     }
 
     impl<T> RangeAffineRangeSumSegtree<T>
@@ -108,8 +117,10 @@ pub mod range_affine_range_sum {
     {
         pub fn new(xs: &[T]) -> RangeAffineRangeSumSegtree<T> {
             let xs = xs.iter().copied().map(RangeSum::unit).collect_vec();
+            let len = xs.len();
             RangeAffineRangeSumSegtree {
                 segtree: LazySegtree::from(xs),
+                len,
             }
         }
 
@@ -164,6 +175,10 @@ pub mod range_affine_range_sum {
             R: RangeBounds<usize>,
         {
             self.segtree.apply_range(range, Affine::addition_func(x))
+        }
+
+        pub fn to_vec(&mut self) -> Vec<T> {
+            (0..self.len).map(|i| self.get(i)).collect_vec()
         }
     }
 }
@@ -281,13 +296,16 @@ pub mod range_affine_range_minmax {
 
     pub struct RangeAffineRangeMinMaxSegtree {
         segtree: LazySegtree<RangeAffineRangeMinMax>,
+        len: usize,
     }
 
     impl RangeAffineRangeMinMaxSegtree {
         pub fn new(xs: &[i64]) -> RangeAffineRangeMinMaxSegtree {
             let xs = xs.iter().copied().map(RangeMinMax::unit).collect_vec();
+            let len = xs.len();
             RangeAffineRangeMinMaxSegtree {
                 segtree: LazySegtree::from(xs),
+                len,
             }
         }
 
@@ -295,12 +313,9 @@ pub mod range_affine_range_minmax {
             self.segtree.set(p, RangeMinMax::unit(x));
         }
 
-        pub fn get_min(&mut self, p: usize) -> i64 {
+        pub fn get(&mut self, p: usize) -> i64 {
+            // min でも max でも同じ
             self.segtree.get(p).min
-        }
-
-        pub fn get_max(&mut self, p: usize) -> i64 {
-            self.segtree.get(p).max
         }
 
         pub fn range_min<R>(&mut self, range: R) -> i64
@@ -357,6 +372,10 @@ pub mod range_affine_range_minmax {
             R: RangeBounds<usize>,
         {
             self.segtree.apply_range(range, Affine::addition_func(x))
+        }
+
+        pub fn to_vec(&mut self) -> Vec<i64> {
+            (0..self.len).map(|i| self.get(i)).collect_vec()
         }
     }
 }
@@ -689,6 +708,7 @@ mod test_range_affine_range_sum {
 
         assert_eq!(segtree.all_sum(), 85);
         assert_eq!(segtree.range_sum(1..4), 11); // [4, 2, 5]
+        assert_eq!(segtree.to_vec(), vec![3, 4, 2, 5, 5, 5, 6, 7, 23, 25]);
     }
     #[test]
     fn test_sample_of_lazy_segtree() {
@@ -715,6 +735,9 @@ mod test_range_affine_range_sum {
 #[cfg(test)]
 mod test_range_affine_range_minmax {
     use ac_library::{LazySegtree, MapMonoid, Monoid};
+    use itertools::Itertools;
+
+    use crate::mylib::segtree_lib::lazy_segtree::lazy_segtree_to_vec;
 
     use super::range_affine_range_minmax::*;
 
@@ -1004,6 +1027,7 @@ mod test_range_affine_range_minmax {
 
         assert_eq!(segtree.range_max(1..4), 5); // [4, 2, 5]
         assert_eq!(segtree.range_min(1..4), 2); // [4, 2, 5]
+        assert_eq!(segtree.to_vec(), vec![3, 4, 2, 5, 5, 5, 6, 7, 23, 25]);
     }
 
     #[test]
@@ -1029,6 +1053,13 @@ mod test_range_affine_range_minmax {
         let all_prod = segtree.all_prod();
         assert_eq!(all_prod.min, 2);
         assert_eq!(all_prod.max, 25);
+
+        let segtree_as_vec = lazy_segtree_to_vec(&mut segtree, 10)
+            .iter()
+            .copied()
+            .map(|m| m.max)
+            .collect_vec();
+        assert_eq!(segtree_as_vec, vec![3, 4, 2, 5, 5, 5, 6, 7, 23, 25]);
     }
 }
 

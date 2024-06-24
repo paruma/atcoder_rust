@@ -307,6 +307,10 @@ pub mod abstract_segtree_beats {
             } {}
             0
         }
+
+        pub fn to_vec(&mut self) -> Vec<<F::M as MonoidBeats>::S> {
+            (0..self.n).map(|i| self.get(i)).collect()
+        }
     }
 
     pub struct SegtreeBeats<F>
@@ -671,6 +675,14 @@ mod test_range_chmax_range_sum {
         );
         seg.apply_range(3..8, f); // [0,1,2,6,6,6,6,7,8,9]
         assert_eq!(seg.prod(2..5).unwrap().sum, 14); // [2,6,6]
+        assert_eq!(
+            seg.to_vec()
+                .iter()
+                .copied()
+                .map(|x| x.unwrap().sum)
+                .collect_vec(),
+            vec![0, 1, 2, 6, 6, 6, 6, 7, 8, 9]
+        );
         assert_eq!(
             (0..xs.len()).map(|i| seg.get(i).unwrap().sum).collect_vec(),
             vec![0, 1, 2, 6, 6, 6, 6, 7, 8, 9]

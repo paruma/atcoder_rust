@@ -127,6 +127,10 @@ pub mod dual_segtree {
                 }
             }
         }
+
+        pub fn to_vec(&mut self) -> Vec<F::S> {
+            (0..self.n).map(|i| self.get(i)).collect()
+        }
     }
 
     pub struct DualSegtree<F>
@@ -296,6 +300,7 @@ mod tests_dual_segtree {
         for i in 0..n {
             assert_eq!(segtree.get(i), base[i]);
         }
+        assert_eq!(segtree.to_vec(), base);
     }
 }
 
