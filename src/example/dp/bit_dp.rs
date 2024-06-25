@@ -1,4 +1,4 @@
-use crate::mylib::ext_int::mod_ext_int::ExtInt;
+use crate::mylib::{bitset::bitset::BitSet, ext_int::mod_ext_int::ExtInt};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct Edge {
@@ -12,7 +12,7 @@ fn solve(n_vertex: usize, edges: &[Edge]) -> ExtInt {
     // 巡回セールスマン問題
     // https://judge.u-aizu.ac.jp/onlinejudge/description.jsp
     // ハミルトン閉路が存在するなら、どの頂点を始点にしても良い→ここでは頂点0を始点にする。
-    // dp[bit][v]: (始点を除く)訪問済の点が bit、最後に訪問した点をvとしたときの最短路
+    // dp[available_set][v]: (始点を除く)訪問する頂点の集合が available_set、最後に訪問する点をvとしたときの最短路
 
     // 計算量は愚直に行うとO(n!) になるが、
     // bit DP をすることで O(n^2 2^n) 程度になる
@@ -29,23 +29,30 @@ fn solve(n_vertex: usize, edges: &[Edge]) -> ExtInt {
             }
         }
 
-        fn rec(&self, bit: usize, to: usize, dp: &mut [Vec<Option<ExtInt>>]) -> ExtInt {
-            if let Some(ans) = dp[bit][to] {
+        // 0からスタートして available_set を訪問して to までたどり着く最短経路の手数を求める
+        fn rec(&self, available_set: BitSet, to: usize, dp: &mut [Vec<Option<ExtInt>>]) -> ExtInt {
+            if let Some(ans) = dp[available_set.to_bit()][to] {
                 return ans;
             }
 
-            let ans = if bit == 0 && to == 0 {
+            let ans = if available_set.is_empty() && to == 0 {
                 ExtInt::Fin(0)
-            } else if (bit >> to) & 1 == 0 {
-                // v not in bit
+            } else if !available_set.contains(to) {
+                // to に訪問できないので to にたどり着くことはできない。
                 ExtInt::Inf
             } else {
+                // to の直前の頂点 from で場合分け。
+                // 0 → from → to という経路を考える
                 (0..self.n_vertex)
-                    .map(|from| self.rec(bit & !(1 << to), from, dp) + self.adj_matrix[from][to])
+                    .map(|from| {
+                        // 第1項が 0 → from
+                        // 第2項が from → to
+                        self.rec(available_set.remove(to), from, dp) + self.adj_matrix[from][to]
+                    })
                     .min()
                     .unwrap()
             };
-            dp[bit][to] = Some(ans);
+            dp[available_set.to_bit()][to] = Some(ans);
             ans
         }
     }
@@ -58,7 +65,9 @@ fn solve(n_vertex: usize, edges: &[Edge]) -> ExtInt {
     };
     let mut dp: Vec<Vec<Option<ExtInt>>> = vec![vec![None; n_vertex]; 1 << n_vertex];
 
-    Rec::new(n_vertex, &adj_matrix).rec((1 << n_vertex) - 1, 0, &mut dp)
+    // 頂点0からスタートして、すべての頂点を辿って頂点0までたどり着く経路の最短手数を考える。
+    // (どこからスタートしても最短ハミルトン閉路は存在する)
+    Rec::new(n_vertex, &adj_matrix).rec(BitSet::universal_set(n_vertex), 0, &mut dp)
 }
 
 #[cfg(test)]
