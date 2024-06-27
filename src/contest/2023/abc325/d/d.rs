@@ -1,17 +1,76 @@
-//#[derive_readable]
 struct Problem {
-    _a: i64,
+    items: Vec<Item>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive_readable]
+struct Item {
+    time: usize,
+    duration: usize,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Range {
+    begin: usize,
+    end: usize,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: i64,
+            n: usize,
+            items: [Item; n],
         }
-        Problem { _a }
+        Problem { items }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ranges = self
+            .items
+            .iter()
+            .copied()
+            .map(|item| Range {
+                begin: item.time,                   // 印字できる時刻
+                end: item.time + item.duration + 1, // 印字できなくなる時刻
+            })
+            .collect_vec();
+
+        let range_group_by_begin: BTreeMap<usize, Vec<(usize, Range)>> = ranges
+            .iter()
+            .copied()
+            .enumerate()
+            .into_group_map_by(|(_, r)| r.begin)
+            .into_iter()
+            .collect::<BTreeMap<_, _>>();
+        let mut current_time = 0;
+        // 印字機の範囲にいるアイテムの(印字できなくなる時刻, 添字)
+        let mut in_printer_set = BTreeSet::new();
+        let mut ans = 0; // 印字したアイテムの数
+
+        loop {
+            // 印字機の範囲に入れる
+            for (i, r) in range_group_by_begin.get(&current_time).unwrap_or(&vec![]) {
+                in_printer_set.insert((r.end, *i));
+            }
+            // 印字できなくなる時刻が早い順番に取り出す貪欲
+            if let Some((end, i)) = in_printer_set.range((current_time + 1, 0)..).next() {
+                in_printer_set.remove(&(*end, *i));
+                ans += 1;
+                current_time += 1;
+            } else {
+                // 印字機の範囲にアイテムがない場合は、次のアイテムが印字機に入るまで時間を進める。
+                if let Some(next_time) = range_group_by_begin
+                    .range(current_time + 1..)
+                    .next()
+                    .map(|(i, _)| *i)
+                {
+                    current_time = next_time
+                } else {
+                    // アイテムがもうない
+                    break;
+                }
+            }
+        }
+
         Answer { ans }
     }
 }
@@ -42,6 +101,12 @@ mod tests {
     }
 }
 
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    time::Duration,
+};
+
+use itertools::enumerate;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::Itertools;
