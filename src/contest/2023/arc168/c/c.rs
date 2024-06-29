@@ -1,13 +1,11 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    k: usize,
+    s: Vec<u8>,
 }
-
-// まだ解けていない
-use ac_library::ModInt998244353 as Mint;
-
-fn solve_sub_naive(a: usize, b: usize, c: usize, k: usize) -> usize {
+fn solve_sub_naive(k: usize, a: usize, b: usize, c: usize) -> usize {
     let n = a + b + c;
     let comb2_list: Vec<(usize, usize)> = (0..n).tuple_combinations().collect_vec();
 
@@ -32,26 +30,223 @@ fn solve_sub_naive(a: usize, b: usize, c: usize, k: usize) -> usize {
         }
         set.insert(xs);
     }
+    for x in &set {
+        let msg = String::from_utf8(x.clone()).unwrap();
+        dbg!(msg);
+    }
     set.len()
 }
+use ac_library::ModInt998244353 as Mint;
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            k: usize,
+            s: Bytes,
         }
-        Problem { _a }
+        Problem { n, k, s }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        todo!()
+    }
+
+    fn solve_wrong3(&self) -> Answer {
+        // AB置換、BC置換、CA置換、AB置換→BC置換、BC置換→CA置換、CA置換→AB置換 で場合分け
+        // ABC ってパターンで長さ3巡回置換2通りが3通りとカウントされてしまった
+        let cnt_ch = |target: u8| self.s.iter().copied().filter(|&ch| ch == target).count();
+        let n = self.n;
+        let k = self.k;
+        let na = cnt_ch(b'A');
+        let nb = cnt_ch(b'B');
+        let nc = cnt_ch(b'C');
+        let comb = Comb::new(usize::max(n, k));
+
+        let min3 = |a: usize, b: usize, c: usize| a.min(b).min(c);
+
+        let cnt_empty = Mint::new(1);
+
+        let cnt_cycle1 = |na: usize, nb: usize| -> Mint {
+            (1..=min3(na, nb, k))
+                .map(|i| comb.comb(na, i) * comb.comb(nb, i))
+                .sum::<Mint>()
+        };
+
+        let cnt_ab = cnt_cycle1(na, nb);
+        let cnt_bc = cnt_cycle1(nb, nc);
+        let cnt_ca = cnt_cycle1(nc, na);
+
+        let cnt_cycle2 = |na: usize, nb: usize, nc: usize| -> Mint {
+            let mut sum = Mint::new(0);
+            for cycle_ab in 1..=min3(na, nb, k) {
+                let cnt_ab = comb.comb(na, cycle_ab) * comb.comb(nb, cycle_ab);
+                let k = k - cycle_ab;
+
+                for cycle_bc in 1..=min3(nb, nc, k) {
+                    let cnt_bc = comb.comb(nb, cycle_bc) * comb.comb(nc, cycle_bc);
+                    let value = cnt_ab * cnt_bc;
+                    sum += value;
+                }
+            }
+            sum
+        };
+
+        let cnt_ab_bc = cnt_cycle2(na, nb, nc);
+        let cnt_bc_ca = cnt_cycle2(nb, nc, na);
+        let cnt_ca_ab = cnt_cycle2(nc, na, nb);
+
+        dbg!(cnt_empty);
+        dbg!(cnt_ab);
+        dbg!(cnt_bc);
+        dbg!(cnt_ca);
+        dbg!(cnt_ab_bc);
+        dbg!(cnt_bc_ca);
+        dbg!(cnt_ca_ab);
+
+        let ans = cnt_empty + cnt_ab + cnt_bc + cnt_ca + cnt_ab_bc + cnt_bc_ca + cnt_ca_ab;
+        let ans = ans.val() as i64;
+        Answer { ans }
+    }
+
+    fn solve_wrong2(&self) -> Answer {
+        // 5つの巡回置換 AB, BC, CA, ABC, CBA が何回起きるかを考える
+        // AABBC で2つの操作で1つの結果が生まれてしまうのでWA
+        // AABBC → BABAC → BBCAA
+        // AABBC → ABBAC → BBCAA
+        let cnt_ch = |target: u8| self.s.iter().copied().filter(|&ch| ch == target).count();
+        let n = self.n;
+        let k = self.k;
+        let na = cnt_ch(b'A');
+        let nb = cnt_ch(b'B');
+        let nc = cnt_ch(b'C');
+
+        let comb = Comb::new(usize::max(n, k));
+        let mut ans = Mint::new(0);
+        for cycle_ab in 0..=k {
+            if cycle_ab > na || cycle_ab > nb {
+                break;
+            }
+            let cnt_ab = comb.comb(na, cycle_ab) * comb.comb(nb, cycle_ab);
+
+            let na = na - cycle_ab;
+            let nb = nb - cycle_ab;
+            for cycle_bc in 0..=k {
+                if cycle_bc > nb || cycle_bc > nc || cycle_ab + cycle_bc > k {
+                    break;
+                }
+                let cnt_bc = comb.comb(nb, cycle_bc) * comb.comb(nc, cycle_bc);
+                let nb = nb - cycle_bc;
+                let nc = nc - cycle_bc;
+                for cycle_ca in 0..=k {
+                    if cycle_ca > nc || cycle_ca > na || cycle_ab + cycle_bc + cycle_ca > k {
+                        break;
+                    }
+                    let cnt_ca = comb.comb(nc, cycle_ca) * comb.comb(na, cycle_ca);
+                    let nc = nc - cycle_ca;
+                    let na = na - cycle_ca;
+                    for cycle_abc in 0..=k / 2 {
+                        if cycle_abc > na
+                            || cycle_abc > nb
+                            || cycle_abc > nc
+                            || cycle_ab + cycle_bc + cycle_ca + cycle_abc * 2 > k
+                        {
+                            break;
+                        }
+                        let cnt_abc = comb.comb(na, cycle_abc)
+                            * comb.comb(nb, cycle_abc)
+                            * comb.comb(nc, cycle_abc);
+                        let na = na - cycle_abc;
+                        let nb = nb - cycle_abc;
+                        let nc = nc - cycle_abc;
+                        for cycle_cba in 0..=k / 2 {
+                            if cycle_cba > na
+                                || cycle_cba > nb
+                                || cycle_cba > nc
+                                || cycle_ab + cycle_bc + cycle_ca + cycle_abc * 2 + cycle_cba * 2
+                                    > k
+                            {
+                                break;
+                            }
+                            let cnt_cba = comb.comb(na, cycle_cba)
+                                * comb.comb(nb, cycle_cba)
+                                * comb.comb(nc, cycle_cba);
+                            let value = cnt_ab * cnt_bc * cnt_ca * cnt_abc * cnt_cba;
+                            ans += value;
+                            let msg = format!(
+                                "{} {} {} {} {}: {}",
+                                cycle_ab, cycle_bc, cycle_ca, cycle_abc, cycle_cba, value
+                            );
+                            dbg!(msg);
+                        }
+                    }
+                }
+            }
+        }
+        let ans = ans.val() as i64;
+        Answer { ans }
+    }
+
+    fn solve_wrong(&self) -> Answer {
+        // 解法: 長さ2の巡回置換と長さ3の巡回置換を消費していく。
+        // AABBC みたいなケースで、BBAAC を4回数えてしまうのでWA
+        let cnt_ch = |target: u8| self.s.iter().copied().filter(|&ch| ch == target).count();
+        let n = self.n;
+        let k = self.k;
+        let na = cnt_ch(b'A');
+        let nb = cnt_ch(b'B');
+        let nc = cnt_ch(b'C');
+        let mut memo = vec![HashMap::<(i64, i64, i64), Mint>::new(); k + 1];
+
+        fn rec(
+            k: usize,
+            a: i64,
+            b: i64,
+            c: i64,
+            memo: &mut [HashMap<(i64, i64, i64), Mint>],
+        ) -> Mint {
+            if a < 0 || b < 0 || c < 0 {
+                return Mint::new(0);
+            }
+            if k == 0 {
+                return Mint::new(1);
+            }
+            if k == 1 {
+                return Mint::new(a * b + b * c + c * a);
+            }
+            if let Some(ans) = memo[k].get(&(a, b, c)).copied() {
+                return ans;
+            }
+
+            let ans = {
+                let term1 = rec(k - 2, a - 1, b - 1, c - 1, memo) * 2 * a * b * c;
+                let term2 = rec(k - 1, a - 1, b - 1, c, memo) * a * b;
+                let term3 = rec(k - 1, a, b - 1, c - 1, memo) * b * c;
+                let term4 = rec(k - 1, a - 1, b, c - 1, memo) * c * a;
+                term1 + term2 + term3 + term4
+            };
+            memo[k].insert((a, b, c), ans);
+            ans
+        }
+
+        let ans = (0..=k)
+            .map(|i| rec(i, na as i64, nb as i64, nc as i64, &mut memo))
+            .sum::<Mint>();
+        dbg!(memo);
+        let ans = ans.val() as i64;
         Answer { ans }
     }
 
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
-        todo!();
-        // let ans = 0;
-        // Answer { ans }
+        let cnt_ch = |target: u8| self.s.iter().copied().filter(|&ch| ch == target).count();
+        let k = self.k;
+        let na = cnt_ch(b'A');
+        let nb = cnt_ch(b'B');
+        let nc = cnt_ch(b'C');
+
+        let ans = solve_sub_naive(k, na, nb, nc);
+        let ans = ans as i64;
+        Answer { ans }
     }
 }
 
@@ -68,6 +263,7 @@ impl Answer {
 
 fn main() {
     Problem::read().solve().print();
+    // Problem::read().solve_naive().print();
 }
 
 #[cfg(test)]
@@ -145,18 +341,19 @@ mod tests {
 
     #[allow(dead_code)]
     fn make_random_problem(rng: &mut SmallRng) -> Problem {
-        todo!()
-        // let n = rng.gen_range(1..=10);
-        // let p = Problem { _a: n };
-        // println!("{:?}", &p);
-        // p
+        let n = rng.gen_range(1..=6);
+        let k = rng.gen_range(1..=5);
+        let s = (0..n).map(|_| b"ABC"[rng.gen_range(0..3)]).collect_vec();
+        let p = Problem { n, k, s };
+        println!("{:?}", &p);
+        p
     }
 
     #[allow(unreachable_code)]
     #[test]
     fn test_with_naive() {
-        let num_tests = 0;
-        let max_wrong_case = 10; // この件数間違いが見つかったら打ち切り
+        let num_tests = 1000;
+        let max_wrong_case = 50; // この件数間違いが見つかったら打ち切り
         let mut rng = SmallRng::seed_from_u64(42);
         // let mut rng = SmallRng::from_entropy();
         let mut wrong_cases: Vec<WrongTestCase> = vec![];
@@ -240,6 +437,54 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use mod_combinatorics::*;
+pub mod mod_combinatorics {
+    use ac_library::ModInt998244353 as Mint;
+    pub struct Comb {
+        fac: Vec<Mint>,
+        invfac: Vec<Mint>,
+    }
+    impl Comb {
+        pub fn new(max_val: usize) -> Self {
+            let mut inv = vec![Mint::new(0); max_val + 1];
+            let mut fac = vec![Mint::new(0); max_val + 1];
+            let mut invfac = vec![Mint::new(0); max_val + 1];
+            fac[0] = 1.into();
+            fac[1] = 1.into();
+            invfac[0] = 1.into();
+            invfac[1] = 1.into();
+            inv[1] = 1.into();
+            let modulus = Mint::modulus() as usize;
+            for i in 2..=max_val {
+                inv[i] = -inv[modulus % i] * Mint::new(modulus / i);
+                fac[i] = fac[i - 1] * Mint::new(i);
+                invfac[i] = invfac[i - 1] * inv[i];
+            }
+            Self { fac, invfac }
+        }
+        pub fn comb(&self, n: usize, k: usize) -> Mint {
+            if n < k {
+                0.into()
+            } else {
+                self.fac[n] * self.invfac[k] * self.invfac[n - k]
+            }
+        }
+        pub fn perm(&self, n: usize, k: usize) -> Mint {
+            if n < k {
+                0.into()
+            } else {
+                self.fac[n] * self.invfac[n - k]
+            }
+        }
+        pub fn factorial(&self, n: usize) -> Mint {
+            self.fac[n]
+        }
+        pub fn inv_factorial(&self, n: usize) -> Mint {
+            self.invfac[n]
+        }
+    }
+}
+
 use lg::*;
 pub mod lg {
     use std::borrow::Borrow;
