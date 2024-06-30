@@ -76,6 +76,81 @@ impl Problem {
         ans
     }
 
+    fn solve2(&self) -> Answer {
+        let x_pc = self.x_pc as i64;
+        let y_pc = self.y_pc as i64;
+        let c = self.c;
+        let c_pc = c.count_ones() as i64;
+
+        let ans = (|| {
+            if (x_pc + y_pc - c_pc) % 2 != 0 {
+                return None;
+            }
+            // cnt_11: x[i] = 1 かつ y[i] = 1 となる i の数(ビットの数)
+            // cnt_10: x[i] = 1 かつ y[i] = 0 となる i の数(ビットの数)
+            // cnt_01: x[i] = 0 かつ y[i] = 1 となる i の数(ビットの数)
+            // x xor y = c を考えると、以下の連立方程式が成り立つ
+            // cnt_10 + cnt_11 = x_pc
+            // cnt_01 + cnt_11 = y_pc
+            // cnt_01 + cnt_10 = c_pc
+            // これらの連立方程式を解くと、cnt_11, cnt_10, cnt_01 は以下のように求まる。
+            let cnt_11 = (x_pc + y_pc - c_pc) / 2;
+            let cnt_10 = x_pc - cnt_11;
+            let cnt_01 = y_pc - cnt_11;
+            if cnt_11 + cnt_10 + cnt_01 > 60 || cnt_11 < 0 || cnt_10 < 0 || cnt_01 < 0 {
+                return None;
+            }
+            let mut x = BitSet::new(0);
+            let mut y = BitSet::new(0);
+            let c = BitSet::new(c as usize);
+
+            // (0, 1) か (1, 0) を詰めていくための iterator
+            let mut iter1 = {
+                let sub1 = std::iter::repeat((1, 0)).take(cnt_10 as usize);
+                let sub2 = std::iter::repeat((0, 1)).take(cnt_01 as usize);
+                chain!(sub1, sub2)
+            };
+
+            //
+            let mut iter2 = {
+                let sub1 = std::iter::repeat((1, 1)).take(cnt_11 as usize);
+                let sub2 = std::iter::repeat((0, 0));
+                chain!(sub1, sub2)
+            };
+
+            // x と y を構成していく。c[i] によって、詰める値を変えていく。
+            for i in 0..60 {
+                if c.contains(i) {
+                    // (x[i], y[i]) に (0, 1) か (1, 0) を入れる
+
+                    let (xi, yi) = iter1.next().unwrap();
+                    if xi == 1 {
+                        x = x.insert(i);
+                    }
+                    if yi == 1 {
+                        y = y.insert(i);
+                    }
+                } else {
+                    // (x[i], y[i]) に (1, 1) か (0, 0) を入れる
+                    let (xi, yi) = iter2.next().unwrap();
+                    if xi == 1 {
+                        x = x.insert(i);
+                    }
+                    if yi == 1 {
+                        y = y.insert(i);
+                    }
+                }
+            }
+
+            Some((x.to_bit() as u64, y.to_bit() as u64))
+        })();
+
+        let ans = Answer { ans };
+        // assert!(self.check_ans(&ans));
+        self.assert_check_ans(&ans);
+        ans
+    }
+
     fn check_ans(&self, ans: &Answer) -> bool {
         if let Some((x, y)) = ans.ans {
             x < 2_u64.pow(60)
@@ -122,7 +197,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -161,6 +236,7 @@ mod tests {
     }
 }
 
+use itertools::chain;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::Itertools;
@@ -214,3 +290,97 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use bitset::*;
+#[allow(clippy::module_inception)]
+pub mod bitset {
+    use itertools::Itertools;
+    use std::{
+        fmt::{Error, Formatter},
+        ops::{BitAnd, BitOr, BitXor},
+    };
+    #[derive(Clone, Copy, PartialEq, Eq)]
+    pub struct BitSet {
+        bit: usize,
+    }
+    impl BitSet {
+        #[inline]
+        pub fn new(bit: usize) -> BitSet {
+            BitSet { bit }
+        }
+        pub fn to_bit(self) -> usize {
+            self.bit
+        }
+        /// 持っている要素を Vec<usize> で返す
+        pub fn to_vec(self, len: usize) -> Vec<usize> {
+            (0..len).filter(|i| (self.bit >> i) & 1 == 1).collect_vec()
+        }
+        pub fn contains(self, x: usize) -> bool {
+            (self.bit >> x) & 1 == 1
+        }
+        pub fn count(self) -> usize {
+            self.bit.count_ones() as usize
+        }
+        pub fn insert(self, x: usize) -> BitSet {
+            BitSet::new(self.bit | (1 << x))
+        }
+        pub fn remove(self, x: usize) -> BitSet {
+            BitSet::new(self.bit & !(1 << x))
+        }
+        pub fn empty() -> BitSet {
+            BitSet::new(0)
+        }
+        pub fn universal_set(size: usize) -> BitSet {
+            BitSet::new((1 << size) - 1)
+        }
+        pub fn complement(self, size: usize) -> BitSet {
+            BitSet::new(self.bit ^ ((1 << size) - 1))
+        }
+        pub fn set_minus(self, other: BitSet) -> BitSet {
+            BitSet::new(self.bit & !other.bit)
+        }
+        pub fn is_empty(self) -> bool {
+            self.bit == 0
+        }
+        pub fn is_subset(self, other: BitSet) -> bool {
+            self | other == other
+        }
+        pub fn all_subset(size: usize) -> impl Iterator<Item = BitSet> {
+            (0..(1 << size)).map(BitSet::new)
+        }
+        pub fn subsets(self) -> impl Iterator<Item = BitSet> {
+            std::iter::successors(Some(self.bit), move |x| {
+                if *x == 0 {
+                    None
+                } else {
+                    Some((x - 1) & self.bit)
+                }
+            })
+            .map(BitSet::new)
+        }
+    }
+    impl BitAnd for BitSet {
+        type Output = BitSet;
+        fn bitand(self, rhs: BitSet) -> BitSet {
+            BitSet::new(self.bit & rhs.bit)
+        }
+    }
+    impl BitOr for BitSet {
+        type Output = BitSet;
+        fn bitor(self, rhs: BitSet) -> BitSet {
+            BitSet::new(self.bit | rhs.bit)
+        }
+    }
+    impl BitXor for BitSet {
+        type Output = BitSet;
+        fn bitxor(self, rhs: BitSet) -> BitSet {
+            BitSet::new(self.bit ^ rhs.bit)
+        }
+    }
+    use std::fmt::Debug;
+    impl Debug for BitSet {
+        fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+            f.write_fmt(format_args!("{:#b}", self.bit))?;
+            Ok(())
+        }
+    }
+}
