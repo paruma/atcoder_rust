@@ -1,18 +1,67 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    s: Vec<u8>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            s: Bytes,
         }
-        Problem { _a }
+        Problem { n, s }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        use ac_library::ModInt1000000007 as Mint;
+
+        // AA or BB で区切る。
+
+        let splited = {
+            let s = &self.s;
+            let mut splited = vec![];
+
+            let mut begin = 0;
+
+            for i in 0..s.len() - 1 {
+                if s[i] == s[i + 1] {
+                    // i で区切る
+                    splited.push(s[begin..=i].to_vec());
+
+                    begin = i + 1;
+                }
+            }
+            splited.push(s[begin..].to_vec());
+            splited
+        };
+
+        let ans = splited
+            .iter()
+            .map(|s| {
+                let len = s.len();
+                // 4→2
+                // 5→3
+                // 6→3
+                let value = if len == 1 {
+                    1
+                } else {
+                    num_integer::div_ceil(len, 2)
+                };
+
+                Mint::new(value)
+            })
+            .product::<Mint>();
+
+        let ans = ans.val() as i64;
+
+        // let msgs = splited
+        //     .iter()
+        //     .map(|s| String::from_utf8(s.clone()).unwrap())
+        //     .collect_vec();
+
+        // dbg!(msgs);
+
         Answer { ans }
     }
 

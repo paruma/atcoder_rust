@@ -1,18 +1,65 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    xs: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            xs: [i64; n],
         }
-        Problem { _a }
+        Problem { n, xs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        // 未AC
+        use ac_library::ModInt1000000007 as Mint;
+        let n = self.n;
+        let xs = &self.xs;
+
+        let xs = {
+            let pos_opt = xs.iter().position(|x| *x != 0);
+            if let Some(pos) = pos_opt {
+                xs[pos..].to_vec()
+            } else {
+                vec![0]
+            }
+        };
+        let n = xs.len();
+
+        let mut dp = vec![HashMap::<i64, Mint>::new(); n];
+
+        dp[0].insert(xs[0], Mint::new(1));
+
+        for i in 1..n {
+            let x = xs[i];
+            // xを選ぶ
+            // xを選ばない
+
+            // dp[i-1] → dp[i] という遷移を考える
+
+            let mut next_dp = HashMap::<i64, Mint>::new();
+            for (&key, &value) in &dp[i - 1] {
+                //
+                *next_dp.entry(key).or_insert(Mint::new(0)) += value;
+                *next_dp.entry(key + x).or_insert(Mint::new(0)) += value;
+                // if x != 0 {
+                //     *next_dp.entry(key + x).or_insert(Mint::new(0)) += value;
+                // }
+            }
+            if x != 0 {
+                next_dp.entry(x).or_insert_with(|| Mint::new(1));
+            }
+
+            dp[i] = next_dp;
+        }
+
+        //dbg!(&dp);
+
+        let ans = dp[n - 1].values().sum::<Mint>();
+        let ans = ans.val() as i64;
         Answer { ans }
     }
 
