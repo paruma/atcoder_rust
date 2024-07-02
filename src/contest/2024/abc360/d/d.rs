@@ -28,7 +28,58 @@ impl Problem {
             .collect_vec();
         Problem { n, t, s, xs }
     }
+
     fn solve(&self) -> Answer {
+        // 解法1: 二分探索
+        let n = self.n;
+        let t = self.t;
+        let dirs = &self.s;
+        let xs = &self.xs;
+
+        let xs_left = (0..n)
+            .filter(|i| dirs[*i] == -1)
+            .map(|i| xs[i])
+            .sorted()
+            .collect_vec();
+
+        let xs_right = (0..n)
+            .filter(|i| dirs[*i] == 1)
+            .map(|i| xs[i])
+            .sorted()
+            .collect_vec();
+
+        let ans = xs_left
+            .iter()
+            .copied()
+            .map(|x1| {
+                // x1 は左に進む
+                // x1 - 2 * t <= x2 < x1に入っている x2 in  xs_right の数。
+
+                // xs_right
+                //     .iter()
+                //     .copied()
+                //     .filter(|x2| x1 - 2 * t <= *x2 && *x2 < x1)
+                //     .count()
+
+                // [j_star1, j_star2] が条件を満たす範囲 (長さは j_star2 - j_star1 + 1)
+                let j_star1 = bin_search(xs_right.len() as i64, -1, |j| {
+                    //
+                    x1 - 2 * t <= xs_right[j as usize]
+                });
+
+                let j_star2 = bin_search(-1, xs_right.len() as i64, |j| {
+                    //
+                    xs_right[j as usize] < x1
+                });
+                j_star2 - j_star1 + 1
+            })
+            .sum::<i64>();
+
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // 解法2: 二分探索 (lower_bound)
         let n = self.n;
         let t = self.t;
         let dirs = &self.s;
@@ -59,22 +110,15 @@ impl Problem {
                 //     .filter(|x2| x1 - 2 * t <= *x2 && *x2 < x1)
                 //     .count()
 
-                let j_star1 = bin_search(xs_right.len() as i64, -1, |j| {
-                    //
-                    x1 - 2 * t <= xs_right[j as usize]
-                });
-
-                let j_star2 = bin_search(-1, xs_right.len() as i64, |j| {
-                    //
-                    xs_right[j as usize] < x1
-                });
-                j_star2 - j_star1 + 1
+                // [begin, end) が条件を満たす範囲 (長さは end - begin)
+                let begin = lower_bound(&xs_right, x1 - 2 * t);
+                let end = lower_bound(&xs_right, x1);
+                (end - begin) as i64
             })
             .sum::<i64>();
 
         Answer { ans }
     }
-
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -95,7 +139,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -270,4 +314,18 @@ where
         }
     }
     ok
+}
+
+/// 指定された要素以上の値が現れる最初の位置を返す。
+/// 計算量: O(log(|xs|))
+/// ## Arguments
+/// * xs: 単調増加
+///     * 単調増加でなくても、 `|i| xs[i] >= key` が単調ならOK
+/// ## Return
+/// `I = {i in 0..xs.len() | xs[i] >= key}` としたとき、`min I` を返す。
+/// ただし、`I` が空の場合は `xs.len()` を返す
+/// 戻り値は、区間 `0..=xs.len()` の間で返る。
+pub fn lower_bound<T: PartialOrd>(xs: &[T], key: T) -> usize {
+    let pred = |i: i64| xs[i as usize] >= key;
+    bin_search(xs.len() as i64, -1_i64, pred) as usize
 }

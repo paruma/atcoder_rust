@@ -29,21 +29,71 @@ impl Problem {
         let n_inv = Mint::new(n).inv();
         let n_ = Mint::new(n);
 
+        // p = 一番左にある黒いボールが1回の操作で一番左のままになる確率
+        // ランダムに選ばれる2つの値(a,b) が (1,1) または (1以外, 1以外) であればよい。
+        // p = (1 + (n - 1)^2) / n^2 = (n^2 - 2n + 2) / n^2
+        let p = (n_ * n_ - n_ * 2 + 2) * (n_inv * n_inv);
+
+        // q = 一番左以外にある黒いボールが1回の操作で一番左にいく確率
+        // ランダムに選ばれる2つの値(a,b) が (1, 黒いボールの場所) または (黒いボールの場所, 1) であればよい
+        // q = 2 / n^2
+        let q = Mint::new(2) * n_inv * n_inv;
+
         for i in 1..=k {
-            let value1 = dp[i - 1] * (n_ * n_ - n_ * 2 + 2) * (n_inv * n_inv);
-            let value2 = (-dp[i - 1] + 1) * (n_ - 1) * 2 * (n_inv * n_inv) / (n - 1);
+            let value1 = dp[i - 1] * p; // 一番左 → 一番左 という遷移
+            let value2 = (-dp[i - 1] + 1) * q; // 一番左以外 → 一番左 という遷移
             dp[i] = value1 + value2;
-            //dp[i] = (Mint::new(1) - dp[i - 1]) / (n - 1);
         }
 
-        // dbg!(&dp
-        //     .iter()
-        //     .copied()
-        //     .map(|p| p.to_rational_str())
-        //     .collect_vec());
+        // 期待値は
+        // 1 * dp[k] + 2 * (1 - dp[k])/(n - 1) + 3 * (1 - dp[k])/(n - 1) + ... + n * (1 - dp[k])/(n - 1)
+        // = dp[k] + (n + 2) * (n - 1) / 2 * (1 - dp[k])/(n - 1)    ← (初項 + 末項) * 項数 / 2
+        // = dp[k] + (n + 2) / 2 * (1 - dp[k])
+        let ans = dp[k] + Mint::new(n + 2) / Mint::new(2) * (-dp[k] + 1);
+        let ans = ans.val() as i64;
+        Answer { ans }
+    }
 
-        let ans = dp[k] + Mint::new(n * (n + 1) / 2 - 1) * (-dp[k] + 1) / Mint::new(n - 1);
-        //dbg!(ans.to_rational_str());
+    fn solve2(&self) -> Answer {
+        // 解法2: 行列累乗を使う (マルコフ連鎖の確率行列)
+        use ac_library::ModInt998244353 as Mint;
+        let n = self.n;
+        let k = self.k;
+
+        if n == 1 {
+            return Answer { ans: 1 };
+        }
+
+        let n_inv = Mint::new(n).inv();
+        let n_ = Mint::new(n);
+
+        // p = 一番左にある黒いボールが1回の操作で一番左のままになる確率
+        // ランダムに選ばれる2つの値(a,b) が (1,1) または (1以外, 1以外) であればよい。
+        // p = (1 + (n - 1)^2) / n^2 = (n^2 - 2n + 2) / n^2
+        let p = (n_ * n_ - n_ * 2 + 2) * (n_inv * n_inv);
+
+        // q = 一番左以外にある黒いボールが1回の操作で一番左にいく確率
+        // ランダムに選ばれる2つの値(a,b) が (1, 黒いボールの場所) または (黒いボールの場所, 1) であればよい
+        // q = 2 / n^2
+        let q = Mint::new(2) * n_inv * n_inv;
+
+        // k回操作をした後に黒いボールが一番左にある確率
+        let prob = {
+            // p   q
+            // 1-p 1-q
+            // という行列が遷移確率行列になる
+
+            let matrix = Matrix22::new(p, q, -p + 1, -q + 1);
+            let matrix_pow_k = Matrix22Mul::pow(&matrix, k);
+
+            matrix_pow_k.apply((Mint::new(1), Mint::new(0))).0
+        };
+
+        // 期待値は
+        // 1 * prob + 2 * (1 - prob)/(n - 1) + 3 * (1 - prob)/(n - 1) + ... + n * (1 - prob)/(n - 1)
+        // = prob + (n + 2) * (n - 1) / 2 * (1 - prob)/(n - 1)    ← (初項 + 末項) * 項数 / 2
+        // = prob + (n + 2) / 2 * (1 - prob)
+        let ans = prob + Mint::new(n + 2) / Mint::new(2) * (-prob + 1);
         let ans = ans.val() as i64;
         Answer { ans }
     }
@@ -68,7 +118,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -232,4 +282,137 @@ pub mod modint_to_rational {
             None
         }
     }
+}
+
+use matrix22::*;
+pub mod matrix22 {
+    use ac_library::Monoid;
+    use core::fmt::Debug;
+    use std::{
+        convert::Infallible,
+        iter::{Product, Sum},
+        marker::PhantomData,
+        ops::{Add, Mul},
+    };
+    #[derive(Clone, Copy, Debug, PartialEq)]
+    pub struct Matrix22<T>
+    where
+        T: Clone + Copy + Debug + PartialEq,
+    {
+        pub raw: [[T; 2]; 2],
+    }
+    impl<T> Matrix22<T>
+    where
+        T: Clone + Copy + Debug + PartialEq,
+    {
+        pub fn new(a00: T, a01: T, a10: T, a11: T) -> Self {
+            Self {
+                raw: [[a00, a01], [a10, a11]],
+            }
+        }
+        pub fn from_array(arr: [[T; 2]; 2]) -> Self {
+            Self { raw: arr }
+        }
+        pub fn apply(self, x: (T, T)) -> (T, T)
+        where
+            T: Add<Output = T> + Mul<Output = T>,
+        {
+            (
+                self.raw[0][0] * x.0 + self.raw[0][1] * x.1,
+                self.raw[1][0] * x.0 + self.raw[1][1] * x.1,
+            )
+        }
+        fn t_zero() -> T
+        where
+            T: Sum,
+        {
+            std::iter::empty().sum()
+        }
+        fn t_one() -> T
+        where
+            T: Product,
+        {
+            std::iter::empty().product()
+        }
+        pub fn identity() -> Self
+        where
+            T: Sum + Product,
+        {
+            Matrix22::from_array([
+                [Self::t_one(), Self::t_zero()],
+                [Self::t_zero(), Self::t_one()],
+            ])
+        }
+    }
+    impl<T> Add for Matrix22<T>
+    where
+        T: Clone + Copy + Debug + PartialEq + Add<Output = T>,
+    {
+        type Output = Matrix22<T>;
+        fn add(self, rhs: Self) -> Self::Output {
+            Matrix22::from_array([
+                [
+                    self.raw[0][0] + rhs.raw[0][0],
+                    self.raw[0][1] + rhs.raw[0][1],
+                ],
+                [
+                    self.raw[1][0] + rhs.raw[1][0],
+                    self.raw[1][1] + rhs.raw[1][1],
+                ],
+            ])
+        }
+    }
+    impl<T> Mul for Matrix22<T>
+    where
+        T: Clone + Copy + Debug + PartialEq + Add<Output = T> + Mul<Output = T>,
+    {
+        type Output = Matrix22<T>;
+        fn mul(self, rhs: Self) -> Self::Output {
+            Matrix22::from_array([
+                [
+                    self.raw[0][0] * rhs.raw[0][0] + self.raw[0][1] * rhs.raw[1][0],
+                    self.raw[0][0] * rhs.raw[0][1] + self.raw[0][1] * rhs.raw[1][1],
+                ],
+                [
+                    self.raw[1][0] * rhs.raw[0][0] + self.raw[1][1] * rhs.raw[1][0],
+                    self.raw[1][0] * rhs.raw[0][1] + self.raw[1][1] * rhs.raw[1][1],
+                ],
+            ])
+        }
+    }
+    pub struct Matrix22Mul<T>(Infallible, PhantomData<fn() -> T>);
+    impl<T> Monoid for Matrix22Mul<T>
+    where
+        T: Clone + Copy + Debug + PartialEq + Sum + Product + Add<Output = T> + Mul<Output = T>,
+    {
+        type S = Matrix22<T>;
+        fn identity() -> Self::S {
+            Matrix22::identity()
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            (*a) * (*b)
+        }
+    }
+}
+
+use extend_acl_monoid::*;
+pub mod extend_acl_monoid {
+    use ac_library::Monoid;
+    pub trait MonoidExtPow: Monoid {
+        /// base^n を求める
+        fn pow(base: &Self::S, n: usize) -> Self::S {
+            let mut base = base.clone();
+            let mut ans = Self::identity();
+            let mut n = n;
+            while n > 0 {
+                if n & 1 == 1 {
+                    ans = Self::binary_operation(&ans, &base);
+                }
+                base = Self::binary_operation(&base, &base);
+                n >>= 1;
+            }
+            ans
+        }
+    }
+    impl<T> MonoidExtPow for T where T: Monoid {}
 }

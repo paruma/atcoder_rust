@@ -26,6 +26,7 @@ impl Problem {
             boxes[x].push(i);
         }
 
+        #[allow(clippy::len_zero)]
         let ans = boxes
             .iter()
             .map(|b| {

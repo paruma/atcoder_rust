@@ -40,6 +40,25 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        let s = &self.s;
+        let t = &self.t;
+
+        let ans = (1..s.len()).any(|w| {
+            let chunks = s.chunks(w).collect_vec();
+
+            (0..w).any(|c| {
+                let vertical = chunks
+                    .iter()
+                    .flat_map(|sub_s| sub_s.get(c).copied())
+                    .collect_vec();
+
+                vertical == *t
+            })
+        });
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -61,7 +80,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
