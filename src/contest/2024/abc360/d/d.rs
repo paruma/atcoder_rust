@@ -119,6 +119,34 @@ impl Problem {
 
         Answer { ans }
     }
+
+    fn solve3(&self) -> Answer {
+        // 解法3: 転倒数を使う
+        let t = self.t;
+        let dirs = &self.s;
+        let xs = &self.xs;
+
+        let xs_after = izip!(xs, dirs)
+            .sorted_by_key(|(x, _)| **x)
+            .map(|(x, dir)| x + t * dir)
+            .collect_vec();
+
+        fn inversion_number(xs: &[i64]) -> usize {
+            // i < j で xs[i] >= ys[j] となる (i, j) の組 (通常の転倒数と少し違う)
+            let cc = CoordinateCompression::new(xs);
+            let xs_cc = cc.compress_vec(xs);
+            let mut bit = FenwickTree::new(cc.space_size(), 0);
+            let mut ret = 0;
+            for x in xs_cc {
+                ret += bit.sum(x..); // xも含めた和
+                bit.add(x, 1);
+            }
+            ret
+        }
+        let ans = inversion_number(&xs_after) as i64;
+
+        Answer { ans }
+    }
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -139,7 +167,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve2().print();
+    Problem::read().solve3().print();
 }
 
 #[cfg(test)]
@@ -218,6 +246,7 @@ mod tests {
     }
 }
 
+use ac_library::FenwickTree;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
@@ -328,4 +357,45 @@ where
 pub fn lower_bound<T: PartialOrd>(xs: &[T], key: T) -> usize {
     let pred = |i: i64| xs[i as usize] >= key;
     bin_search(xs.len() as i64, -1_i64, pred) as usize
+}
+
+use coordinate_compression::*;
+pub mod coordinate_compression {
+    use itertools::Itertools;
+    use superslice::Ext;
+    pub struct CoordinateCompression {
+        space: Vec<i64>,
+    }
+    impl CoordinateCompression {
+        /// 計算量: O(|space|log(|space|))
+        pub fn new(space: &[i64]) -> Self {
+            let space = space.iter().copied().sorted().dedup().collect_vec();
+            Self { space }
+        }
+        /// 計算量: O(log(|space|))
+        pub fn compress(&self, x: i64) -> usize {
+            self.space.binary_search(&x).unwrap()
+        }
+        /// 座標圧縮前の空間のうち x 以上である最小の値を座標圧縮したものを返す
+        /// 計算量: O(log(|space|))
+        pub fn compress_floor(&self, x: i64) -> usize {
+            self.space.upper_bound(&x) - 1
+        }
+        /// 座標圧縮前の空間のうち x 以下である最大の値を座標圧縮したものを返す
+        /// 計算量: O(log(|space|))
+        pub fn compress_ceil(&self, x: i64) -> usize {
+            self.space.lower_bound(&x)
+        }
+        /// 計算量: O(|xs|log(|space|))
+        pub fn compress_vec(&self, xs: &[i64]) -> Vec<usize> {
+            xs.iter().copied().map(|x| self.compress(x)).collect_vec()
+        }
+        /// 計算量: O(1)
+        pub fn decompress(&self, i: usize) -> i64 {
+            self.space[i]
+        }
+        pub fn space_size(&self) -> usize {
+            self.space.len()
+        }
+    }
 }
