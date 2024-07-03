@@ -56,10 +56,26 @@ impl Problem {
             sub_prices: [i64; n_sub],
             bad_comb: [MealIndexComb; n_bad_comb],
         }
-        Problem { n_main, n_sub, n_bad_comb, main_prices, sub_prices, bad_comb }
+        Problem {
+            n_main,
+            n_sub,
+            n_bad_comb,
+            main_prices,
+            sub_prices,
+            bad_comb,
+        }
     }
     fn solve(&self) -> Answer {
-        let Problem { n_main, n_sub, n_bad_comb, main_prices, sub_prices, bad_comb } = self;
+        // 解法1: [a[i] + b[j] | i = 1,...,N, j = 1,...,M] の top L + 1 を Priority Queue で求める。
+        // a[i] + b[j] を取り出したら、a[i+1]+ b[j] と a[i] + b[j+1] を Priority Queue に入れる。
+        let Problem {
+            n_main,
+            n_sub,
+            n_bad_comb,
+            main_prices,
+            sub_prices,
+            bad_comb,
+        } = self;
 
         let main_list = main_prices
             .iter()
@@ -137,7 +153,10 @@ impl Problem {
             .iter()
             .copied()
             .filter(|comb| {
-                !bad_comb.contains(&MealIndexComb { main: comb.main.idx, sub: comb.sub.idx })
+                !bad_comb.contains(&MealIndexComb {
+                    main: comb.main.idx,
+                    sub: comb.sub.idx,
+                })
             })
             .map(|comb| comb.price())
             .max()
@@ -146,7 +165,15 @@ impl Problem {
     }
 
     fn solve2(&self) -> Answer {
-        let Problem { n_main, n_sub, n_bad_comb, main_prices, sub_prices, bad_comb } = self;
+        // 副菜をソートして、主菜全探索
+        let Problem {
+            n_main,
+            n_sub,
+            n_bad_comb,
+            main_prices,
+            sub_prices,
+            bad_comb,
+        } = self;
 
         let bad_comb: HashSet<MealIndexComb> = bad_comb.iter().copied().collect::<HashSet<_>>();
         // 実は main はソート不要
@@ -173,14 +200,158 @@ impl Problem {
                 // 主菜 main を固定した上で最も高い副菜を探す（ただし、食べ合わせの良いものに限る）
                 sub_list
                     .iter()
-                    .find(|sub| !bad_comb.contains(&MealIndexComb { main: main.idx, sub: sub.idx })) // プログラム全体で O(n_bad_cmb) の計算量
+                    .find(|sub| {
+                        !bad_comb.contains(&MealIndexComb {
+                            main: main.idx,
+                            sub: sub.idx,
+                        })
+                    }) // プログラム全体で O(n_bad_cmb) の計算量
                     .map(|sub| main.price + sub.price)
             })
             .max()
             .unwrap();
 
-        eprintln!("hoge");
+        Answer { ans }
+    }
 
+    fn solve3(&self) -> Answer {
+        // 解法3: 主菜+副菜の金額 top L+1 を含むようなリストを作る。
+        // 主菜と副菜を降順にソートして考える。
+        // (0オリジンで) i番目の主菜とj番目の副菜の組合せより値段の高い組合せは少なくても (i + 1) * (j + 1) - 1 通りある。
+        // (縦と横の長さが i + 1, j + 1 の長方形をイメージするとわかりやすい)
+        // つまり、(i + 1) * (j + 1) - 1 >= L + 1 となる (i, j) は調べなくても良い。
+        // よって、(i + 1) * (j + 1) - 1 < L + 1 となる (i, j) のみを調べれば良い。
+        // これは調和級数forループで調べられる。
+        let Problem {
+            n_main,
+            n_sub,
+            n_bad_comb,
+            main_prices,
+            sub_prices,
+            bad_comb,
+        } = self;
+
+        let main_list = main_prices
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(idx, price)| Meal { idx, price })
+            .sorted_by_key(|m| Reverse(m.price))
+            .collect_vec();
+
+        let sub_list = sub_prices
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(idx, price)| Meal { idx, price })
+            .sorted_by_key(|m| Reverse(m.price))
+            .collect_vec();
+
+        let bad_comb: HashSet<MealIndexComb> = bad_comb.iter().copied().collect::<HashSet<_>>();
+
+        // (i + 1) * (j + 1) - 1 < n_bad_comb + 1 を満たす範囲でループを回す
+        let ans = (0..*n_main)
+            .take_while(|i| (i + 1) - 1 < n_bad_comb + 1)
+            .flat_map(|i| {
+                (0..*n_sub)
+                    .take_while(move |j| (i + 1) * (j + 1) - 1 < n_bad_comb + 1)
+                    .map(move |j| (i, j))
+            })
+            .filter_map(|(i, j)| {
+                let main_meal = main_list[i];
+                let sub_meal = sub_list[j];
+
+                if bad_comb.contains(&MealIndexComb {
+                    main: main_meal.idx,
+                    sub: sub_meal.idx,
+                }) {
+                    None
+                } else {
+                    Some(main_meal.price + sub_meal.price)
+                }
+            })
+            .max()
+            .unwrap();
+
+        Answer { ans }
+    }
+
+    fn solve4(&self) -> Answer {
+        // ドント式の要領で
+        //  [a[i] + b[j] | i = 1,...,N, j = 1,...,M] の top L + 1 を求める
+
+        let Problem {
+            n_main,
+            n_sub,
+            n_bad_comb,
+            main_prices,
+            sub_prices,
+            bad_comb,
+        } = self;
+
+        let main_list = main_prices
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(idx, price)| Meal { idx, price })
+            .sorted_by_key(|m| Reverse(m.price))
+            .collect_vec();
+
+        let sub_list = sub_prices
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(idx, price)| Meal { idx, price })
+            .sorted_by_key(|m| Reverse(m.price))
+            .collect_vec();
+
+        let top_list: Vec<MealComb> = {
+            let mut buf = vec![];
+
+            let mut pq = BinaryHeap::<MealComb>::new();
+
+            for (main_i, main) in main_list.iter().copied().enumerate() {
+                pq.push(MealComb {
+                    main,
+                    sorted_main_idx: main_i,
+                    sub: sub_list[0],
+                    sorted_sub_idx: 0,
+                })
+            }
+
+            while let Some(current) = pq.pop() {
+                if buf.len() == n_bad_comb + 1 {
+                    break;
+                }
+                buf.push(current);
+                if current.sorted_sub_idx < n_sub - 1 {
+                    // sub を 1 だけ進める (ドント式だと ÷k から ÷(k+1) にするところ)
+                    let next = MealComb {
+                        main: current.main,
+                        sorted_main_idx: current.sorted_main_idx,
+                        sub: sub_list[current.sorted_sub_idx + 1],
+                        sorted_sub_idx: current.sorted_sub_idx + 1,
+                    };
+                    pq.push(next);
+                }
+            }
+            buf
+        };
+
+        let bad_comb: HashSet<MealIndexComb> = bad_comb.iter().copied().collect::<HashSet<_>>();
+
+        let ans = top_list
+            .iter()
+            .copied()
+            .filter(|comb| {
+                !bad_comb.contains(&MealIndexComb {
+                    main: comb.main.idx,
+                    sub: comb.sub.idx,
+                })
+            })
+            .map(|comb| comb.price())
+            .max()
+            .unwrap();
         Answer { ans }
     }
 }
@@ -197,7 +368,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve2().print();
+    Problem::read().solve4().print();
 }
 
 #[cfg(test)]
