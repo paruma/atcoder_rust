@@ -121,7 +121,7 @@ use itertools::{chain, iproduct, izip, Itertools};
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,
-    marker::{Bytes, Usize1},
+    marker::{Bytes, Chars, Usize1},
 };
 #[allow(unused_imports)]
 use std::collections::{BinaryHeap, HashMap, HashSet};
