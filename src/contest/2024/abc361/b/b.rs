@@ -1,18 +1,43 @@
-//#[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Point {
+    x: i64,
+    y: i64,
+    z: i64,
+}
+
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Cuboid {
+    p1: Point,
+    p2: Point,
+}
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    c1: Cuboid,
+    c2: Cuboid,
+}
+
+// 正の面積を持っていない
+fn is_disjoint(left1: i64, right1: i64, left2: i64, right2: i64) -> bool {
+    right1 <= left2 || right2 <= left1
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            c1: Cuboid,
+            c2: Cuboid,
         }
-        Problem { _a }
+        Problem { c1, c2 }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let c1 = self.c1;
+        let c2 = self.c2;
+        let is_disjoint_x = is_disjoint(c1.p1.x, c1.p2.x, c2.p1.x, c2.p2.x);
+        let is_disjoint_y = is_disjoint(c1.p1.y, c1.p2.y, c2.p1.y, c2.p2.y);
+        let is_disjoint_z = is_disjoint(c1.p1.z, c1.p2.z, c2.p1.z, c2.p2.z);
+        let ans = !(is_disjoint_x || is_disjoint_y || is_disjoint_z);
         Answer { ans }
     }
 
@@ -26,12 +51,13 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_yesno(self.ans);
+        //println!("{}", self.ans);
     }
 }
 

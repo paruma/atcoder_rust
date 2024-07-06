@@ -1,18 +1,71 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    source: Vec<u8>,
+    target: Vec<u8>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            source: Bytes,
+            target: Bytes,
         }
-        Problem { _a }
+        Problem { n, source, target }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let mut source = self.source.clone();
+        let mut target = self.target.clone();
+        source.push(b'.');
+        source.push(b'.');
+        target.push(b'.');
+        target.push(b'.');
+        let source = source;
+        let target = target;
+
+        let mut open: Queue<Vec<u8>> = Queue::new();
+        let mut visited: HashSet<Vec<u8>> = HashSet::new();
+        let mut dp: HashMap<Vec<u8>, i64> = HashMap::new();
+        open.push(source.clone());
+        visited.insert(source.clone());
+        dp.insert(source.clone(), 0);
+
+        while let Some(current) = open.pop() {
+            let empty_pos = current.iter().copied().position(|ch| ch == b'.').unwrap();
+            for i in 0..n + 1 {
+                if current[i] == b'.' || current[i + 1] == b'.' {
+                    continue;
+                }
+                // i と i + 1 を空きスペースに入れる
+                let next = {
+                    let mut next = current.clone();
+                    next[empty_pos] = next[i];
+                    next[empty_pos + 1] = next[i + 1];
+                    next[i] = b'.';
+                    next[i + 1] = b'.';
+                    next
+                };
+
+                if visited.contains(&next) {
+                    continue;
+                }
+
+                if next == target {
+                    let ans = dp[&current] + 1;
+                    return Answer { ans };
+                }
+
+                visited.insert(next.clone());
+                dp.insert(next.clone(), dp[&current] + 1);
+                open.push(next.clone());
+            }
+        }
+
+        let ans = *dp.get(&target).unwrap_or(&-1);
+
         Answer { ans }
     }
 
@@ -171,3 +224,35 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use mod_queue::*;
+pub mod mod_queue {
+    use std::collections::VecDeque;
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct Queue<T> {
+        raw: VecDeque<T>,
+    }
+    impl<T> Queue<T> {
+        pub fn new() -> Self {
+            Queue {
+                raw: VecDeque::new(),
+            }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push_front(value)
+        }
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop_back()
+        }
+        pub fn peek(&self) -> Option<&T> {
+            self.raw.back()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.raw.is_empty()
+        }
+    }
+    impl<T> Default for Queue<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+}

@@ -1,18 +1,25 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    k: usize,
+    y: i64,
+    xs: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            k: Usize1,
+            y: i64,
+            xs: [i64; n],
         }
-        Problem { _a }
+        Problem { n, k, y, xs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let mut ans = self.xs.clone();
+        ans.insert(self.k + 1, self.y);
         Answer { ans }
     }
 
@@ -26,12 +33,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec_1line(&self.ans);
     }
 }
 
