@@ -12,62 +12,68 @@ impl Problem {
         Problem { n }
     }
     fn solve(&self) -> Answer {
+        // 問題: n以下の累乗数を求める
+        // 解法: a の寄与を考える(a を固定したときに a^b <=n となる b=2,3,... が何通りあるかを考える)
+        // a <= 10^6 までは愚直に計算する。
+        // a > 10^6 の場合は、b=2 の1通り。
+        // a は累乗数の場合は除外し、累乗数でないものに対して計算をする。
+
+        // このコードは以下の提出をリファクタリングしたもの
+        // https://atcoder.jp/contests/abc361/submissions/55318346
+
         let n = self.n;
-        let sum1 = 1; // x = 1^b = 1
+        // a = 1 の寄与: 1通り
+        let sum1 = 1;
 
-        let mut visited = vec![false; 1_000_001];
-        let sum2 = (2..=(n + 1).sqrt().min(1_000_000))
-            .map(|a| {
-                // a^b <= x となる b=2,3... の数を求める
-                // a が 何かのべき乗であるケースは除く。
-                if visited[a as usize] {
-                    return 0;
+        // 2 <= a <= 10^6 に対する寄与
+        let sum2 = {
+            // 10^6 までの累乗数かどうかの判定を前処理で計算
+            let is_perfect_power = {
+                let mut is_perfect_power = vec![false; 1_000_001];
+                for a in (2..).take_while(|a| a * a <= 1_000_000) {
+                    std::iter::successors(Some(a * a), |acc| acc.checked_mul(&a))
+                        .take_while(|&acc| acc <= 1_000_000)
+                        .for_each(|x| is_perfect_power[x] = true);
                 }
-                if a * a > n {
-                    0
-                } else {
-                    let mut acc = a * a;
-                    let mut cnt = 0;
-                    loop {
-                        if acc <= 1_000_000 {
-                            visited[acc as usize] = true;
-                        }
+                is_perfect_power
+            };
+            (2..)
+                .take_while(|&a| a * a <= n && a <= 1_000_000)
+                .filter(|a| !is_perfect_power[*a as usize])
+                .map(|a| {
+                    // a^b <= n となる b=2,3... の数を求める (a は累乗数でないとする)
 
-                        if acc > n {
-                            break;
-                        }
-                        if acc.checked_mul(a).is_none() {
-                            cnt += 1;
-                            break;
-                        }
-                        acc *= a;
-                        cnt += 1;
-                    }
-                    cnt
-                }
-            })
-            .sum::<i64>();
+                    std::iter::successors(Some(a * a), |acc| acc.checked_mul(&a))
+                        .take_while(|acc| *acc <= n)
+                        .count() as i64
+                })
+                .sum::<i64>()
+        };
 
+        // a > 10^6 に対する寄与
         let sum3 = {
-            // (n + 1).sqrt().min(1_000_000) から n_sqrt() まで
-            if (n + 1).sqrt() <= 1_000_000 {
+            if n <= 1_000_000_000_000
+            // 10^12
+            {
+                // a > 10^6 の寄与はない。
                 0
             } else {
-                let mut set: HashSet<i64> = HashSet::new();
-                // 1_000_001 以上、n.sqrt() 以下で x^b の形で表せるもの
-                for i in 2..=1_000_000 {
-                    let mut acc = i;
-                    loop {
-                        acc *= i;
-                        if acc > n.sqrt() {
-                            break;
-                        }
-                        if acc >= 1_000_001 {
-                            set.insert(acc);
-                        }
-                    }
-                }
-                n.sqrt() - 1_000_000 - set.len() as i64
+                // a > 10^6 かつ a * a <= n となる累乗数 a の列挙
+                let perfect_power_set = (2..)
+                    .take_while(|x| {
+                        // a >= x^2 で、a^2 <= n なので、x^4 <= n
+                        checked_pow(*x, 4)
+                            .map(|x_pow4| x_pow4 <= n)
+                            .unwrap_or(false)
+                    })
+                    .flat_map(|x| {
+                        std::iter::successors(Some(x * x), move |acc| acc.checked_mul(&x))
+                            .take_while(|a| a.checked_mul(a).map(|aa| aa <= n).unwrap_or(false))
+                            .filter(|a| *a > 1_000_000)
+                    })
+                    .collect::<HashSet<_>>();
+                // a > 10^6, a * a <= n を満たす非累乗数 a に対して、それぞれ b = 2 という1つ分の寄与がある。
+                n.sqrt() - 1_000_000 - perfect_power_set.len() as i64
             }
         };
 
@@ -177,6 +183,7 @@ mod tests {
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
+use num::{checked_pow, CheckedMul};
 use num_integer::Roots;
 #[allow(unused_imports)]
 use proconio::{

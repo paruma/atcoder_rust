@@ -15,6 +15,7 @@ impl Problem {
         }
         Problem { n, source, target }
     }
+    #[allow(clippy::redundant_clone)]
     fn solve(&self) -> Answer {
         let n = self.n;
         let mut source = self.source.clone();
@@ -42,6 +43,7 @@ impl Problem {
                 // i と i + 1 を空きスペースに入れる
                 let next = {
                     let mut next = current.clone();
+                    // swap (i, i + 1), (empty_pos, empty_pos + 1)
                     next[empty_pos] = next[i];
                     next[empty_pos + 1] = next[i + 1];
                     next[i] = b'.';
@@ -53,18 +55,13 @@ impl Problem {
                     continue;
                 }
 
-                if next == target {
-                    let ans = dp[&current] + 1;
-                    return Answer { ans };
-                }
-
                 visited.insert(next.clone());
                 dp.insert(next.clone(), dp[&current] + 1);
                 open.push(next.clone());
             }
         }
 
-        let ans = *dp.get(&target).unwrap_or(&-1);
+        let ans = dp.get(&target).copied();
 
         Answer { ans }
     }
@@ -79,12 +76,13 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Option<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        let msg = self.ans.unwrap_or(-1);
+        println!("{}", msg);
     }
 }
 

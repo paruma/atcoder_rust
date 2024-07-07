@@ -30,6 +30,20 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        // windows を使う
+        let n = self.n;
+        let k = self.k;
+        let xs = self.xs.iter().copied().sorted().collect_vec();
+
+        let ans = xs
+            .windows(n - k)
+            .map(|sub_xs| sub_xs.last().unwrap() - sub_xs.first().unwrap())
+            .min()
+            .unwrap();
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -50,7 +64,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]

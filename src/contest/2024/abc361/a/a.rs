@@ -19,6 +19,7 @@ impl Problem {
     }
     fn solve(&self) -> Answer {
         let mut ans = self.xs.clone();
+        // k番目の要素の後に挿入。xs[k + 1] = y となるように挿入する
         ans.insert(self.k + 1, self.y);
         Answer { ans }
     }
