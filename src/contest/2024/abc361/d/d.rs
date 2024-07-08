@@ -99,6 +99,40 @@ mod tests {
 
     #[test]
     fn test_problem() {
+        let n = 5;
+        let impossible_list = iproduct!((0..n).powerset(), (0..n).powerset())
+            .filter(|(s, t)| s.len() == t.len())
+            .map(|(s, t)| {
+                let mut source = vec![b'W'; n];
+                let mut target = vec![b'W'; n];
+                for i in s {
+                    source[i] = b'B';
+                }
+
+                for i in t {
+                    target[i] = b'B';
+                }
+                (source, target)
+            })
+            .filter(|(source, target)| {
+                Problem {
+                    n,
+                    source: source.clone(),
+                    target: target.clone(),
+                }
+                .solve()
+                .ans
+                .is_none()
+            })
+            .collect_vec();
+        for (s, t) in &impossible_list {
+            let s = String::from_utf8(s.clone()).unwrap();
+            let t = String::from_utf8(t.clone()).unwrap();
+
+            println!("source={}, target={}", s, t);
+        }
+        println!("len={}", impossible_list.len());
+
         assert_eq!(1 + 1, 2);
     }
 
