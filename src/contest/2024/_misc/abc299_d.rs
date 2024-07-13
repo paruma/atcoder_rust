@@ -3,12 +3,12 @@
 //https://atcoder.jp/contests/abc299/tasks/abc299_d
 
 trait IInteractive {
-    fn ask(&self, i: usize) -> i64;
+    fn ask(&mut self, i: usize) -> i64;
 }
 
 struct StdinInteractive;
 impl IInteractive for StdinInteractive {
-    fn ask(&self, i: usize) -> i64 {
+    fn ask(&mut self, i: usize) -> i64 {
         println_flush!("? {}", i + 1);
         input_interactive! {
             s: i64
@@ -19,14 +19,24 @@ impl IInteractive for StdinInteractive {
 
 struct TestInteractive {
     xs: Vec<i64>,
+    cnt_ask: usize,
 }
+
+impl TestInteractive {
+    fn new(xs: Vec<i64>) -> TestInteractive {
+        TestInteractive { xs, cnt_ask: 0 }
+    }
+}
+
 impl IInteractive for TestInteractive {
-    fn ask(&self, i: usize) -> i64 {
+    fn ask(&mut self, i: usize) -> i64 {
+        self.cnt_ask += 1;
         self.xs[i]
     }
 }
 
-fn solve<T: IInteractive>(asker: T, n: usize) -> usize {
+fn solve<T: IInteractive>(asker: &mut T, n: usize) -> usize {
+    // s[i] == 0 かつ s[i+1] == 1 となる i を求める
     let mut i0 = 0; // s[i0] = 0
     let mut i1 = n - 1; // s[i1] = 1
 
@@ -41,15 +51,15 @@ fn solve<T: IInteractive>(asker: T, n: usize) -> usize {
         }
     }
 
-    i0 + 1
+    i0
 }
 
 fn main() {
     input_interactive! {
         n: usize,
     }
-    let ans = solve(StdinInteractive, n);
-    println_flush!("! {}", ans);
+    let ans = solve(&mut StdinInteractive, n);
+    println_flush!("! {}", ans + 1);
 }
 
 #[cfg(test)]
@@ -61,23 +71,27 @@ mod tests {
     fn test_problem() {
         let xs = vec![0, 0, 1, 0, 0, 1, 1];
         let n = xs.len();
-        let asker = TestInteractive { xs: xs.clone() };
-        let ans = solve(asker, n);
-        assert!(xs[ans - 1] != xs[ans]);
+        let mut asker = TestInteractive::new(xs.clone());
+        let ans = solve(&mut asker, n);
+        dbg!(asker.cnt_ask);
+        assert!(xs[ans] != xs[ans + 1]);
     }
 }
 
 use std::io::{stdout, Write};
 
 // ====== import ======
-#[allow(unused_imports)]
-use itertools::Itertools;
 use proconio::input_interactive;
+
+#[allow(unused_imports)]
+use itertools::{chain, iproduct, izip, Itertools};
 #[allow(unused_imports)]
 use proconio::{
-    derive_readable, fastout, input,
-    marker::{Bytes, Usize1},
+    derive_readable, fastout,
+    marker::{Bytes, Chars, Usize1},
 };
+#[allow(unused_imports)]
+use std::collections::{BinaryHeap, HashMap, HashSet};
 
 // ====== output func ======
 #[allow(unused_imports)]

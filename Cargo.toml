@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+
 [[bin]]
 name = "abc361_a"
 path = "src/contest/2024/abc361/a/a.rs"
@@ -33,1582 +35,1586 @@ name = "abc361_g"
 path = "src/contest/2024/abc361/g/g.rs"
 
 
-[[bin]]
-name = "abc360_a"
-path = "src/contest/2024/abc360/a/a.rs"
+# [[bin]]
+# name = "abc360_a"
+# path = "src/contest/2024/abc360/a/a.rs"
 
-[[bin]]
-name = "abc360_b"
-path = "src/contest/2024/abc360/b/b.rs"
+# [[bin]]
+# name = "abc360_b"
+# path = "src/contest/2024/abc360/b/b.rs"
 
-[[bin]]
-name = "abc360_c"
-path = "src/contest/2024/abc360/c/c.rs"
+# [[bin]]
+# name = "abc360_c"
+# path = "src/contest/2024/abc360/c/c.rs"
 
-[[bin]]
-name = "abc360_d"
-path = "src/contest/2024/abc360/d/d.rs"
+# [[bin]]
+# name = "abc360_d"
+# path = "src/contest/2024/abc360/d/d.rs"
 
-[[bin]]
-name = "abc360_e"
-path = "src/contest/2024/abc360/e/e.rs"
+# [[bin]]
+# name = "abc360_e"
+# path = "src/contest/2024/abc360/e/e.rs"
 
-[[bin]]
-name = "abc360_f"
-path = "src/contest/2024/abc360/f/f.rs"
+# [[bin]]
+# name = "abc360_f"
+# path = "src/contest/2024/abc360/f/f.rs"
 
-[[bin]]
-name = "abc360_g"
-path = "src/contest/2024/abc360/g/g.rs"
+# [[bin]]
+# name = "abc360_g"
+# path = "src/contest/2024/abc360/g/g.rs"
 
 
-[[bin]]
-name = "arc180_a"
-path = "src/contest/2024/arc180/a/a.rs"
+# [[bin]]
+# name = "arc180_a"
+# path = "src/contest/2024/arc180/a/a.rs"
 
-[[bin]]
-name = "arc180_b"
-path = "src/contest/2024/arc180/b/b.rs"
+# [[bin]]
+# name = "arc180_b"
+# path = "src/contest/2024/arc180/b/b.rs"
 
-[[bin]]
-name = "arc180_c"
-path = "src/contest/2024/arc180/c/c.rs"
+# [[bin]]
+# name = "arc180_c"
+# path = "src/contest/2024/arc180/c/c.rs"
 
-[[bin]]
-name = "arc180_d"
-path = "src/contest/2024/arc180/d/d.rs"
+# [[bin]]
+# name = "arc180_d"
+# path = "src/contest/2024/arc180/d/d.rs"
 
-[[bin]]
-name = "arc180_e"
-path = "src/contest/2024/arc180/e/e.rs"
+# [[bin]]
+# name = "arc180_e"
+# path = "src/contest/2024/arc180/e/e.rs"
 
-[[bin]]
-name = "arc180_f"
-path = "src/contest/2024/arc180/f/f.rs"
+# [[bin]]
+# name = "arc180_f"
+# path = "src/contest/2024/arc180/f/f.rs"
+
+
+# [[bin]]
+# name = "abc359_a"
+# path = "src/contest/2024/abc359/a/a.rs"
+
+# [[bin]]
+# name = "abc359_b"
+# path = "src/contest/2024/abc359/b/b.rs"
+
+# [[bin]]
+# name = "abc359_c"
+# path = "src/contest/2024/abc359/c/c.rs"
+
+# [[bin]]
+# name = "abc359_d"
+# path = "src/contest/2024/abc359/d/d.rs"
+
+# [[bin]]
+# name = "abc359_e"
+# path = "src/contest/2024/abc359/e/e.rs"
+
+# [[bin]]
+# name = "abc359_f"
+# path = "src/contest/2024/abc359/f/f.rs"
+
+# [[bin]]
+# name = "abc359_g"
+# path = "src/contest/2024/abc359/g/g.rs"
+
+
+# [[bin]]
+# name = "abc358_a"
+# path = "src/contest/2024/abc358/a/a.rs"
+
+# [[bin]]
+# name = "abc358_b"
+# path = "src/contest/2024/abc358/b/b.rs"
+
+# [[bin]]
+# name = "abc358_c"
+# path = "src/contest/2024/abc358/c/c.rs"
+
+# [[bin]]
+# name = "abc358_d"
+# path = "src/contest/2024/abc358/d/d.rs"
+
+# [[bin]]
+# name = "abc358_e"
+# path = "src/contest/2024/abc358/e/e.rs"
+
+# [[bin]]
+# name = "abc358_f"
+# path = "src/contest/2024/abc358/f/f.rs"
+
+# [[bin]]
+# name = "abc358_g"
+# path = "src/contest/2024/abc358/g/g.rs"
+
+
+# [[bin]]
+# name = "abc357_a"
+# path = "src/contest/2024/abc357/a/a.rs"
+
+# [[bin]]
+# name = "abc357_b"
+# path = "src/contest/2024/abc357/b/b.rs"
+
+# [[bin]]
+# name = "abc357_c"
+# path = "src/contest/2024/abc357/c/c.rs"
+
+# [[bin]]
+# name = "abc357_d"
+# path = "src/contest/2024/abc357/d/d.rs"
+
+# [[bin]]
+# name = "abc357_e"
+# path = "src/contest/2024/abc357/e/e.rs"
+
+# [[bin]]
+# name = "abc357_f"
+# path = "src/contest/2024/abc357/f/f.rs"
+
+# [[bin]]
+# name = "abc357_g"
+# path = "src/contest/2024/abc357/g/g.rs"
+
+
+# [[bin]]
+# name = "arc179_a"
+# path = "src/contest/2024/arc179/a/a.rs"
+
+# [[bin]]
+# name = "arc179_b"
+# path = "src/contest/2024/arc179/b/b.rs"
+
+# [[bin]]
+# name = "arc179_c"
+# path = "src/contest/2024/arc179/c/c.rs"
+
+# [[bin]]
+# name = "arc179_d"
+# path = "src/contest/2024/arc179/d/d.rs"
+
+# [[bin]]
+# name = "arc179_e"
+# path = "src/contest/2024/arc179/e/e.rs"
+
+# [[bin]]
+# name = "arc179_f"
+# path = "src/contest/2024/arc179/f/f.rs"
+
+
+# [[bin]]
+# name = "abc356_a"
+# path = "src/contest/2024/abc356/a/a.rs"
+
+# [[bin]]
+# name = "abc356_b"
+# path = "src/contest/2024/abc356/b/b.rs"
+
+# [[bin]]
+# name = "abc356_c"
+# path = "src/contest/2024/abc356/c/c.rs"
+
+# [[bin]]
+# name = "abc356_d"
+# path = "src/contest/2024/abc356/d/d.rs"
+
+# [[bin]]
+# name = "abc356_e"
+# path = "src/contest/2024/abc356/e/e.rs"
+
+# [[bin]]
+# name = "abc356_f"
+# path = "src/contest/2024/abc356/f/f.rs"
+
+# [[bin]]
+# name = "abc356_g"
+# path = "src/contest/2024/abc356/g/g.rs"
+
+
+# [[bin]]
+# name = "abc355_a"
+# path = "src/contest/2024/abc355/a/a.rs"
+
+# [[bin]]
+# name = "abc355_b"
+# path = "src/contest/2024/abc355/b/b.rs"
+
+# [[bin]]
+# name = "abc355_c"
+# path = "src/contest/2024/abc355/c/c.rs"
+
+# [[bin]]
+# name = "abc355_d"
+# path = "src/contest/2024/abc355/d/d.rs"
+
+# [[bin]]
+# name = "abc355_e"
+# path = "src/contest/2024/abc355/e/e.rs"
+
+# [[bin]]
+# name = "abc355_f"
+# path = "src/contest/2024/abc355/f/f.rs"
+
+# [[bin]]
+# name = "abc355_g"
+# path = "src/contest/2024/abc355/g/g.rs"
+
+# [[bin]]
+# name = "misc_abc269_e"
+# path = "src/contest/2024/_misc/abc269_e.rs"
+
+# [[bin]]
+# name = "misc_abc330_e"
+# path = "src/contest/2024/_misc/abc330_e.rs"
+
+# [[bin]]
+# name = "misc_tenka1_2019_d"
+# path = "src/contest/2024/_misc/tenka1_2019_d.rs"
+
+
+# [[bin]]
+# name = "misc_abc237_e"
+# path = "src/contest/2024/_misc/abc237_e.rs"
+
+
+# [[bin]]
+# name = "misc_arc037_c"
+# path = "src/contest/2024/_misc/arc037_c.rs"
+
+
+# [[bin]]
+# name = "arc178_a"
+# path = "src/contest/2024/arc178/a/a.rs"
+
+# [[bin]]
+# name = "arc178_b"
+# path = "src/contest/2024/arc178/b/b.rs"
+
+# [[bin]]
+# name = "arc178_c"
+# path = "src/contest/2024/arc178/c/c.rs"
+
+# [[bin]]
+# name = "arc178_d"
+# path = "src/contest/2024/arc178/d/d.rs"
+
+# [[bin]]
+# name = "arc178_e"
+# path = "src/contest/2024/arc178/e/e.rs"
+
+# [[bin]]
+# name = "arc178_f"
+# path = "src/contest/2024/arc178/f/f.rs"
+
+
+# [[bin]]
+# name = "abc354_a"
+# path = "src/contest/2024/abc354/a/a.rs"
+
+# [[bin]]
+# name = "abc354_b"
+# path = "src/contest/2024/abc354/b/b.rs"
+
+# [[bin]]
+# name = "abc354_c"
+# path = "src/contest/2024/abc354/c/c.rs"
+
+# [[bin]]
+# name = "abc354_d"
+# path = "src/contest/2024/abc354/d/d.rs"
+
+# [[bin]]
+# name = "abc354_e"
+# path = "src/contest/2024/abc354/e/e.rs"
+
+# [[bin]]
+# name = "abc354_f"
+# path = "src/contest/2024/abc354/f/f.rs"
+
+# [[bin]]
+# name = "abc354_g"
+# path = "src/contest/2024/abc354/g/g.rs"
+
+
+# [[bin]]
+# name = "arc177_a"
+# path = "src/contest/2024/arc177/a/a.rs"
+
+# [[bin]]
+# name = "arc177_b"
+# path = "src/contest/2024/arc177/b/b.rs"
+
+# [[bin]]
+# name = "arc177_c"
+# path = "src/contest/2024/arc177/c/c.rs"
+
+# [[bin]]
+# name = "arc177_d"
+# path = "src/contest/2024/arc177/d/d.rs"
+
+# [[bin]]
+# name = "arc177_e"
+# path = "src/contest/2024/arc177/e/e.rs"
+
+# [[bin]]
+# name = "arc177_f"
+# path = "src/contest/2024/arc177/f/f.rs"
+
+
+# [[bin]]
+# name = "abc353_a"
+# path = "src/contest/2024/abc353/a/a.rs"
+
+# [[bin]]
+# name = "abc353_b"
+# path = "src/contest/2024/abc353/b/b.rs"
+
+# [[bin]]
+# name = "abc353_c"
+# path = "src/contest/2024/abc353/c/c.rs"
+
+# [[bin]]
+# name = "abc353_d"
+# path = "src/contest/2024/abc353/d/d.rs"
+
+# [[bin]]
+# name = "abc353_e"
+# path = "src/contest/2024/abc353/e/e.rs"
+
+# [[bin]]
+# name = "abc353_f"
+# path = "src/contest/2024/abc353/f/f.rs"
+
+# [[bin]]
+# name = "abc353_g"
+# path = "src/contest/2024/abc353/g/g.rs"
+
+
+# [[bin]]
+# name = "misc_abc307_c"
+# path = "src/contest/2024/_misc/abc307_c.rs"
+
+# [[bin]]
+# name = "abc352_a"
+# path = "src/contest/2024/abc352/a/a.rs"
+
+# [[bin]]
+# name = "abc352_b"
+# path = "src/contest/2024/abc352/b/b.rs"
+
+# [[bin]]
+# name = "abc352_c"
+# path = "src/contest/2024/abc352/c/c.rs"
+
+# [[bin]]
+# name = "abc352_d"
+# path = "src/contest/2024/abc352/d/d.rs"
+
+# [[bin]]
+# name = "abc352_e"
+# path = "src/contest/2024/abc352/e/e.rs"
+
+# [[bin]]
+# name = "abc352_f"
+# path = "src/contest/2024/abc352/f/f.rs"
+
+# [[bin]]
+# name = "abc352_g"
+# path = "src/contest/2024/abc352/g/g.rs"
+
+
+# [[bin]]
+# name = "abc351_a"
+# path = "src/contest/2024/abc351/a/a.rs"
+
+# [[bin]]
+# name = "abc351_b"
+# path = "src/contest/2024/abc351/b/b.rs"
+
+# [[bin]]
+# name = "abc351_c"
+# path = "src/contest/2024/abc351/c/c.rs"
+
+# [[bin]]
+# name = "abc351_d"
+# path = "src/contest/2024/abc351/d/d.rs"
+
+# [[bin]]
+# name = "abc351_e"
+# path = "src/contest/2024/abc351/e/e.rs"
+
+# [[bin]]
+# name = "abc351_f"
+# path = "src/contest/2024/abc351/f/f.rs"
+
+# [[bin]]
+# name = "abc351_g"
+# path = "src/contest/2024/abc351/g/g.rs"
+
+
+# [[bin]]
+# name = "arc176_a"
+# path = "src/contest/2024/arc176/a/a.rs"
+
+# [[bin]]
+# name = "arc176_b"
+# path = "src/contest/2024/arc176/b/b.rs"
+
+# [[bin]]
+# name = "arc176_c"
+# path = "src/contest/2024/arc176/c/c.rs"
+
+# [[bin]]
+# name = "arc176_d"
+# path = "src/contest/2024/arc176/d/d.rs"
+
+# [[bin]]
+# name = "arc176_e"
+# path = "src/contest/2024/arc176/e/e.rs"
+
+# [[bin]]
+# name = "arc176_f"
+# path = "src/contest/2024/arc176/f/f.rs"
+
+
+# [[bin]]
+# name = "abc350_a"
+# path = "src/contest/2024/abc350/a/a.rs"
+
+# [[bin]]
+# name = "abc350_b"
+# path = "src/contest/2024/abc350/b/b.rs"
+
+# [[bin]]
+# name = "abc350_c"
+# path = "src/contest/2024/abc350/c/c.rs"
+
+# [[bin]]
+# name = "abc350_d"
+# path = "src/contest/2024/abc350/d/d.rs"
+
+# [[bin]]
+# name = "abc350_e"
+# path = "src/contest/2024/abc350/e/e.rs"
+
+# [[bin]]
+# name = "abc350_f"
+# path = "src/contest/2024/abc350/f/f.rs"
+
+# [[bin]]
+# name = "abc350_g"
+# path = "src/contest/2024/abc350/g/g.rs"
+
+
+# [[bin]]
+# name = "misc_abc143_d"
+# path = "src/contest/2024/_misc/abc143_d.rs"
+
+# [[bin]]
+# name = "misc_exawizards2019_d"
+# path = "src/contest/2024/_misc/exawizards2019_d.rs"
+
+
+# [[bin]]
+# name = "abc349_a"
+# path = "src/contest/2024/abc349/a/a.rs"
+
+# [[bin]]
+# name = "abc349_b"
+# path = "src/contest/2024/abc349/b/b.rs"
+
+# [[bin]]
+# name = "abc349_c"
+# path = "src/contest/2024/abc349/c/c.rs"
+
+# [[bin]]
+# name = "abc349_d"
+# path = "src/contest/2024/abc349/d/d.rs"
+
+# [[bin]]
+# name = "abc349_e"
+# path = "src/contest/2024/abc349/e/e.rs"
+
+# [[bin]]
+# name = "abc349_f"
+# path = "src/contest/2024/abc349/f/f.rs"
+
+# [[bin]]
+# name = "abc349_g"
+# path = "src/contest/2024/abc349/g/g.rs"
+
+
+# [[bin]]
+# name = "abc348_a"
+# path = "src/contest/2024/abc348/a/a.rs"
+
+# [[bin]]
+# name = "abc348_b"
+# path = "src/contest/2024/abc348/b/b.rs"
+
+# [[bin]]
+# name = "abc348_c"
+# path = "src/contest/2024/abc348/c/c.rs"
+
+# [[bin]]
+# name = "abc348_d"
+# path = "src/contest/2024/abc348/d/d.rs"
+
+# [[bin]]
+# name = "abc348_e"
+# path = "src/contest/2024/abc348/e/e.rs"
+
+# [[bin]]
+# name = "abc348_f"
+# path = "src/contest/2024/abc348/f/f.rs"
+
+# [[bin]]
+# name = "abc348_g"
+# path = "src/contest/2024/abc348/g/g.rs"
+
+
+# [[bin]]
+# name = "abc347_a"
+# path = "src/contest/2024/abc347/a/a.rs"
+
+# [[bin]]
+# name = "abc347_b"
+# path = "src/contest/2024/abc347/b/b.rs"
+
+# [[bin]]
+# name = "abc347_c"
+# path = "src/contest/2024/abc347/c/c.rs"
+
+# [[bin]]
+# name = "abc347_d"
+# path = "src/contest/2024/abc347/d/d.rs"
+
+# [[bin]]
+# name = "abc347_e"
+# path = "src/contest/2024/abc347/e/e.rs"
+
+# [[bin]]
+# name = "abc347_f"
+# path = "src/contest/2024/abc347/f/f.rs"
+
+# [[bin]]
+# name = "abc347_g"
+# path = "src/contest/2024/abc347/g/g.rs"
+
+
+# [[bin]]
+# name = "misc_abc141_e"
+# path = "src/contest/2024/_misc/abc141_e.rs"
+
+# [[bin]]
+# name = "lpc_lazy_segtree"
+# path = "src/contest/2024/_misc/lazy_segtree.rs"
+
+
+# [[bin]]
+# name = "arc175_a"
+# path = "src/contest/2024/arc175/a/a.rs"
+
+# [[bin]]
+# name = "arc175_b"
+# path = "src/contest/2024/arc175/b/b.rs"
+
+# [[bin]]
+# name = "arc175_c"
+# path = "src/contest/2024/arc175/c/c.rs"
+
+# [[bin]]
+# name = "arc175_d"
+# path = "src/contest/2024/arc175/d/d.rs"
+
+# [[bin]]
+# name = "arc175_e"
+# path = "src/contest/2024/arc175/e/e.rs"
+
+
+# [[bin]]
+# name = "abc346_a"
+# path = "src/contest/2024/abc346/a/a.rs"
+
+# [[bin]]
+# name = "abc346_b"
+# path = "src/contest/2024/abc346/b/b.rs"
+
+# [[bin]]
+# name = "abc346_c"
+# path = "src/contest/2024/abc346/c/c.rs"
+
+# [[bin]]
+# name = "abc346_d"
+# path = "src/contest/2024/abc346/d/d.rs"
+
+# [[bin]]
+# name = "abc346_e"
+# path = "src/contest/2024/abc346/e/e.rs"
+
+# [[bin]]
+# name = "abc346_f"
+# path = "src/contest/2024/abc346/f/f.rs"
+
+# [[bin]]
+# name = "abc346_g"
+# path = "src/contest/2024/abc346/g/g.rs"
+
+
+# [[bin]]
+# name = "arc174_a"
+# path = "src/contest/2024/arc174/a/a.rs"
+
+# [[bin]]
+# name = "arc174_b"
+# path = "src/contest/2024/arc174/b/b.rs"
+
+# [[bin]]
+# name = "arc174_c"
+# path = "src/contest/2024/arc174/c/c.rs"
+
+# [[bin]]
+# name = "arc174_d"
+# path = "src/contest/2024/arc174/d/d.rs"
+
+# [[bin]]
+# name = "arc174_e"
+# path = "src/contest/2024/arc174/e/e.rs"
+
+
+# [[bin]]
+# name = "misc_abc198_f"
+# path = "src/contest/2024/_misc/abc198_f.rs"
+
+
+# [[bin]]
+# name = "abc345_a"
+# path = "src/contest/2024/abc345/a/a.rs"
+
+# [[bin]]
+# name = "abc345_b"
+# path = "src/contest/2024/abc345/b/b.rs"
+
+# [[bin]]
+# name = "abc345_c"
+# path = "src/contest/2024/abc345/c/c.rs"
+
+# [[bin]]
+# name = "abc345_d"
+# path = "src/contest/2024/abc345/d/d.rs"
+
+# [[bin]]
+# name = "abc345_e"
+# path = "src/contest/2024/abc345/e/e.rs"
+
+# [[bin]]
+# name = "abc345_f"
+# path = "src/contest/2024/abc345/f/f.rs"
+
+
+# [[bin]]
+# name = "abc299_d"
+# path = "src/contest/2024/_misc/abc299_d.rs"
+
+# [[bin]]
+# name = "arc173_a"
+# path = "src/contest/2024/arc173/a/a.rs"
+
+# [[bin]]
+# name = "arc173_b"
+# path = "src/contest/2024/arc173/b/b.rs"
+
+# [[bin]]
+# name = "arc173_c"
+# path = "src/contest/2024/arc173/c/c.rs"
+
+# [[bin]]
+# name = "arc173_d"
+# path = "src/contest/2024/arc173/d/d.rs"
+
+# [[bin]]
+# name = "arc173_e"
+# path = "src/contest/2024/arc173/e/e.rs"
+
+
+# [[bin]]
+# name = "abc344_a"
+# path = "src/contest/2024/abc344/a/a.rs"
+
+# [[bin]]
+# name = "abc344_b"
+# path = "src/contest/2024/abc344/b/b.rs"
+
+# [[bin]]
+# name = "abc344_c"
+# path = "src/contest/2024/abc344/c/c.rs"
+
+# [[bin]]
+# name = "abc344_d"
+# path = "src/contest/2024/abc344/d/d.rs"
+
+# [[bin]]
+# name = "abc344_e"
+# path = "src/contest/2024/abc344/e/e.rs"
+
+# [[bin]]
+# name = "abc344_f"
+# path = "src/contest/2024/abc344/f/f.rs"
+
+
+# [[bin]]
+# name = "misc_segment_with_maximum_sum"
+# path = "src/contest/2024/_misc/segment_with_maximum_sum.rs"
+
+# [[bin]]
+# name = "misc_abc343_f"
+# path = "src/contest/2024/_misc/abc343_f.rs"
+
+# [[bin]]
+# name = "arc172_a"
+# path = "src/contest/2024/arc172/a/a.rs"
+
+# [[bin]]
+# name = "arc172_b"
+# path = "src/contest/2024/arc172/b/b.rs"
+
+# [[bin]]
+# name = "arc172_c"
+# path = "src/contest/2024/arc172/c/c.rs"
+
+# [[bin]]
+# name = "arc172_d"
+# path = "src/contest/2024/arc172/d/d.rs"
+
+# [[bin]]
+# name = "arc172_e"
+# path = "src/contest/2024/arc172/e/e.rs"
+
+
+# [[bin]]
+# name = "abc334_a"
+# path = "src/contest/2023/abc334/a/a.rs"
+
+# [[bin]]
+# name = "abc334_b"
+# path = "src/contest/2023/abc334/b/b.rs"
+
+# [[bin]]
+# name = "abc334_c"
+# path = "src/contest/2023/abc334/c/c.rs"
+
+# [[bin]]
+# name = "abc334_d"
+# path = "src/contest/2023/abc334/d/d.rs"
+
+# [[bin]]
+# name = "abc334_e"
+# path = "src/contest/2023/abc334/e/e.rs"
+
+# [[bin]]
+# name = "abc334_f"
+# path = "src/contest/2023/abc334/f/f.rs"
+
+
+# [[bin]]
+# name = "abc333_a"
+# path = "src/contest/2023/abc333/a/a.rs"
+
+# [[bin]]
+# name = "abc333_b"
+# path = "src/contest/2023/abc333/b/b.rs"
+
+# [[bin]]
+# name = "abc333_c"
+# path = "src/contest/2023/abc333/c/c.rs"
+
+# [[bin]]
+# name = "abc333_d"
+# path = "src/contest/2023/abc333/d/d.rs"
+
+# [[bin]]
+# name = "abc333_e"
+# path = "src/contest/2023/abc333/e/e.rs"
+
+# [[bin]]
+# name = "abc333_f"
+# path = "src/contest/2023/abc333/f/f.rs"
+
+
+# [[bin]]
+# name = "abc332_a"
+# path = "src/contest/2023/abc332/a/a.rs"
+
+# [[bin]]
+# name = "abc332_b"
+# path = "src/contest/2023/abc332/b/b.rs"
+
+# [[bin]]
+# name = "abc332_c"
+# path = "src/contest/2023/abc332/c/c.rs"
+
+# [[bin]]
+# name = "abc332_d"
+# path = "src/contest/2023/abc332/d/d.rs"
+
+# [[bin]]
+# name = "abc332_e"
+# path = "src/contest/2023/abc332/e/e.rs"
+
+# [[bin]]
+# name = "abc332_f"
+# path = "src/contest/2023/abc332/f/f.rs"
+
+
+# [[bin]]
+# name = "arc169_a"
+# path = "src/contest/2023/arc169/a/a.rs"
+
+# [[bin]]
+# name = "arc169_b"
+# path = "src/contest/2023/arc169/b/b.rs"
+
+# [[bin]]
+# name = "arc169_c"
+# path = "src/contest/2023/arc169/c/c.rs"
+
+# [[bin]]
+# name = "arc169_d"
+# path = "src/contest/2023/arc169/d/d.rs"
+
+
+# [[bin]]
+# name = "abc331_a"
+# path = "src/contest/2023/abc331/a/a.rs"
+
+# [[bin]]
+# name = "abc331_b"
+# path = "src/contest/2023/abc331/b/b.rs"
+
+# [[bin]]
+# name = "abc331_c"
+# path = "src/contest/2023/abc331/c/c.rs"
+
+# [[bin]]
+# name = "abc331_d"
+# path = "src/contest/2023/abc331/d/d.rs"
+
+# [[bin]]
+# name = "abc331_e"
+# path = "src/contest/2023/abc331/e/e.rs"
+
+# [[bin]]
+# name = "abc331_f"
+# path = "src/contest/2023/abc331/f/f.rs"
+
+
+# [[bin]]
+# name = "2023_12_02_midori_ika_a"
+# path = "src/contest/2023/_misc/1202_midori_ika/a.rs"
+
+
+# [[bin]]
+# name = "2023_12_02_midori_ika_b"
+# path = "src/contest/2023/_misc/1202_midori_ika/b.rs"
+
+
+# [[bin]]
+# name = "2023_12_02_midori_ika_c"
+# path = "src/contest/2023/_misc/1202_midori_ika/c.rs"
+
+
+# [[bin]]
+# name = "2023_12_02_midori_ika_d"
+# path = "src/contest/2023/_misc/1202_midori_ika/d.rs"
+
+
+# [[bin]]
+# name = "2023_12_02_midori_ika_e"
+# path = "src/contest/2023/_misc/1202_midori_ika/e.rs"
+
+
+# [[bin]]
+# name = "2023_12_02_midori_ika_f"
+# path = "src/contest/2023/_misc/1202_midori_ika/f.rs"
+
+
+# [[bin]]
+# name = "2023_12_02_midori_ika_g"
+# path = "src/contest/2023/_misc/1202_midori_ika/g.rs"
+
+
+# [[bin]]
+# name = "2023_12_02_midori_ika_h"
+# path = "src/contest/2023/_misc/1202_midori_ika/h.rs"
+
+
+# [[bin]]
+# name = "2023_12_02_midori_ika_i"
+# path = "src/contest/2023/_misc/1202_midori_ika/i.rs"
+
+
+# [[bin]]
+# name = "2023_12_02_midori_ika_j"
+# path = "src/contest/2023/_misc/1202_midori_ika/j.rs"
+
+
+# [[bin]]
+# name = "2023_12_02_midori_ika_k"
+# path = "src/contest/2023/_misc/1202_midori_ika/k.rs"
+
+
+# [[bin]]
+# name = "2023_12_02_midori_ika_l"
+# path = "src/contest/2023/_misc/1202_midori_ika/l.rs"
+
+
+# [[bin]]
+# name = "2023_12_02_midori_ika_hello"
+# path = "src/contest/2023/_misc/1202_midori_ika/_hello.rs"
+
+
+# [[bin]]
+# name = "abc297_g"
+# path = "src/contest/2023/_misc/abc297_g.rs"
+
+# [[bin]]
+# name = "arc168_a"
+# path = "src/contest/2023/arc168/a/a.rs"
+
+# [[bin]]
+# name = "arc168_b"
+# path = "src/contest/2023/arc168/b/b.rs"
+
+# [[bin]]
+# name = "arc168_c"
+# path = "src/contest/2023/arc168/c/c.rs"
+
+# [[bin]]
+# name = "abc329_a"
+# path = "src/contest/2023/abc329/a/a.rs"
+
+# [[bin]]
+# name = "abc329_b"
+# path = "src/contest/2023/abc329/b/b.rs"
+
+# [[bin]]
+# name = "abc329_c"
+# path = "src/contest/2023/abc329/c/c.rs"
+
+# [[bin]]
+# name = "abc329_d"
+# path = "src/contest/2023/abc329/d/d.rs"
+
+# [[bin]]
+# name = "abc329_e"
+# path = "src/contest/2023/abc329/e/e.rs"
+
+# [[bin]]
+# name = "abc329_f"
+# path = "src/contest/2023/abc329/f/f.rs"
+
+
+# [[bin]]
+# name = "abc328_a"
+# path = "src/contest/2023/abc328/a/a.rs"
+
+# [[bin]]
+# name = "abc328_b"
+# path = "src/contest/2023/abc328/b/b.rs"
+
+# [[bin]]
+# name = "abc328_c"
+# path = "src/contest/2023/abc328/c/c.rs"
+
+# [[bin]]
+# name = "abc328_d"
+# path = "src/contest/2023/abc328/d/d.rs"
+
+# [[bin]]
+# name = "abc328_e"
+# path = "src/contest/2023/abc328/e/e.rs"
+
+# [[bin]]
+# name = "abc328_f"
+# path = "src/contest/2023/abc328/f/f.rs"
+
+# [[bin]]
+# name = "abc327_a"
+# path = "src/contest/2023/abc327/a/a.rs"
+
+# [[bin]]
+# name = "abc327_b"
+# path = "src/contest/2023/abc327/b/b.rs"
+
+# [[bin]]
+# name = "abc327_c"
+# path = "src/contest/2023/abc327/c/c.rs"
+
+# [[bin]]
+# name = "abc327_d"
+# path = "src/contest/2023/abc327/d/d.rs"
+
+# [[bin]]
+# name = "abc327_e"
+# path = "src/contest/2023/abc327/e/e.rs"
+
+# [[bin]]
+# name = "abc327_f"
+# path = "src/contest/2023/abc327/f/f.rs"
+
+# [[bin]]
+# name = "abc326_a"
+# path = "src/contest/2023/abc326/a/a.rs"
+
+# [[bin]]
+# name = "abc326_b"
+# path = "src/contest/2023/abc326/b/b.rs"
+
+# [[bin]]
+# name = "abc326_c"
+# path = "src/contest/2023/abc326/c/c.rs"
+
+# [[bin]]
+# name = "abc326_d"
+# path = "src/contest/2023/abc326/d/d.rs"
+
+# [[bin]]
+# name = "abc326_e"
+# path = "src/contest/2023/abc326/e/e.rs"
+
+# [[bin]]
+# name = "abc326_f"
+# path = "src/contest/2023/abc326/f/f.rs"
+
+# [[bin]]
+# name = "abc325_a"
+# path = "src/contest/2023/abc325/a/a.rs"
+
+# [[bin]]
+# name = "abc325_b"
+# path = "src/contest/2023/abc325/b/b.rs"
+
+# [[bin]]
+# name = "abc325_c"
+# path = "src/contest/2023/abc325/c/c.rs"
+
+# [[bin]]
+# name = "abc325_d"
+# path = "src/contest/2023/abc325/d/d.rs"
+
+# [[bin]]
+# name = "abc325_e"
+# path = "src/contest/2023/abc325/e/e.rs"
+
+
+# [[bin]]
+# name = "arc167_a"
+# path = "src/contest/2023/arc167/a/a.rs"
+
+# [[bin]]
+# name = "arc167_b"
+# path = "src/contest/2023/arc167/b/b.rs"
+
+
+# [[bin]]
+# name = "abc324_a"
+# path = "src/contest/2023/abc324/a/a.rs"
+
+# [[bin]]
+# name = "abc324_b"
+# path = "src/contest/2023/abc324/b/b.rs"
+
+# [[bin]]
+# name = "abc324_c"
+# path = "src/contest/2023/abc324/c/c.rs"
+
+# [[bin]]
+# name = "abc324_d"
+# path = "src/contest/2023/abc324/d/d.rs"
+
+# [[bin]]
+# name = "abc324_e"
+# path = "src/contest/2023/abc324/e/e.rs"
+
+# [[bin]]
+# name = "abc324_f"
+# path = "src/contest/2023/abc324/f/f.rs"
+
+
+# [[bin]]
+# name = "arc166_a"
+# path = "src/contest/2023/arc166/a/a.rs"
+
+# [[bin]]
+# name = "arc166_b"
+# path = "src/contest/2023/arc166/b/b.rs"
+
+
+# [[bin]]
+# name = "abc323_a"
+# path = "src/contest/2023/abc323/a/a.rs"
+
+# [[bin]]
+# name = "abc323_b"
+# path = "src/contest/2023/abc323/b/b.rs"
+
+# [[bin]]
+# name = "abc323_c"
+# path = "src/contest/2023/abc323/c/c.rs"
+
+# [[bin]]
+# name = "abc323_d"
+# path = "src/contest/2023/abc323/d/d.rs"
+
+# [[bin]]
+# name = "abc323_e"
+# path = "src/contest/2023/abc323/e/e.rs"
+
+
+# [[bin]]
+# name = "abc322_a"
+# path = "src/contest/2023/abc322/a/a.rs"
+
+# [[bin]]
+# name = "abc322_b"
+# path = "src/contest/2023/abc322/b/b.rs"
+
+# [[bin]]
+# name = "abc322_c"
+# path = "src/contest/2023/abc322/c/c.rs"
+
+# [[bin]]
+# name = "abc322_d"
+# path = "src/contest/2023/abc322/d/d.rs"
+
+# [[bin]]
+# name = "abc322_e"
+# path = "src/contest/2023/abc322/e/e.rs"
+
+# [[bin]]
+# name = "abc321_a"
+# path = "src/contest/2023/abc321/a/a.rs"
+
+# [[bin]]
+# name = "abc321_b"
+# path = "src/contest/2023/abc321/b/b.rs"
+
+# [[bin]]
+# name = "abc321_c"
+# path = "src/contest/2023/abc321/c/c.rs"
+
+# [[bin]]
+# name = "abc321_d"
+# path = "src/contest/2023/abc321/d/d.rs"
+
+# [[bin]]
+# name = "abc321_e"
+# path = "src/contest/2023/abc321/e/e.rs"
+
+# [[bin]]
+# name = "abc321_f"
+# path = "src/contest/2023/abc321/f/f.rs"
+
+
+# [[bin]]
+# name = "midori_a"
+# path = "src/contest/2023/_misc/0917_midori_ika/a.rs"
+
+# [[bin]]
+# name = "midori_b"
+# path = "src/contest/2023/_misc/0917_midori_ika/b.rs"
+
+# [[bin]]
+# name = "midori_c"
+# path = "src/contest/2023/_misc/0917_midori_ika/c.rs"
+
+# [[bin]]
+# name = "midori_d"
+# path = "src/contest/2023/_misc/0917_midori_ika/d.rs"
+
+# [[bin]]
+# name = "midori_e"
+# path = "src/contest/2023/_misc/0917_midori_ika/e.rs"
+
+# [[bin]]
+# name = "midori_f"
+# path = "src/contest/2023/_misc/0917_midori_ika/f.rs"
+
+
+# [[bin]]
+# name = "abc320_a"
+# path = "src/contest/2023/abc320/a/a.rs"
+
+# [[bin]]
+# name = "abc320_b"
+# path = "src/contest/2023/abc320/b/b.rs"
+
+# [[bin]]
+# name = "abc320_c"
+# path = "src/contest/2023/abc320/c/c.rs"
+
+# [[bin]]
+# name = "abc320_d"
+# path = "src/contest/2023/abc320/d/d.rs"
+
+# [[bin]]
+# name = "abc320_e"
+# path = "src/contest/2023/abc320/e/e.rs"
+
+# [[bin]]
+# name = "abc319_a"
+# path = "src/contest/2023/abc319/a/a.rs"
+
+# [[bin]]
+# name = "abc319_b"
+# path = "src/contest/2023/abc319/b/b.rs"
+
+# [[bin]]
+# name = "abc319_c"
+# path = "src/contest/2023/abc319/c/c.rs"
+
+# [[bin]]
+# name = "abc319_d"
+# path = "src/contest/2023/abc319/d/d.rs"
+
+# [[bin]]
+# name = "abc319_e"
+# path = "src/contest/2023/abc319/e/e.rs"
+
+
+# [[bin]]
+# name = "abc317_a"
+# path = "src/contest/2023/abc317/a/a.rs"
+
+# [[bin]]
+# name = "abc317_b"
+# path = "src/contest/2023/abc317/b/b.rs"
+
+# [[bin]]
+# name = "abc317_c"
+# path = "src/contest/2023/abc317/c/c.rs"
+
+# [[bin]]
+# name = "abc317_d"
+# path = "src/contest/2023/abc317/d/d.rs"
+
+# [[bin]]
+# name = "abc317_e"
+# path = "src/contest/2023/abc317/e/e.rs"
+
+
+# [[bin]]
+# name = "abc2xx_b_280"
+# path = "src/contest/2023/abc2xx/b/280/280.rs"
+
+# [[bin]]
+# name = "abc2xx_b_281"
+# path = "src/contest/2023/abc2xx/b/281/281.rs"
+
+# [[bin]]
+# name = "abc2xx_b_282"
+# path = "src/contest/2023/abc2xx/b/282/282.rs"
+
+# [[bin]]
+# name = "abc2xx_b_283"
+# path = "src/contest/2023/abc2xx/b/283/283.rs"
+
+# [[bin]]
+# name = "abc2xx_b_284"
+# path = "src/contest/2023/abc2xx/b/284/284.rs"
+
+# [[bin]]
+# name = "abc2xx_b_285"
+# path = "src/contest/2023/abc2xx/b/285/285.rs"
+
+# [[bin]]
+# name = "abc2xx_b_286"
+# path = "src/contest/2023/abc2xx/b/286/286.rs"
+
+# [[bin]]
+# name = "abc2xx_b_287"
+# path = "src/contest/2023/abc2xx/b/287/287.rs"
+
+# [[bin]]
+# name = "abc2xx_b_288"
+# path = "src/contest/2023/abc2xx/b/288/288.rs"
+
+# [[bin]]
+# name = "abc2xx_b_289"
+# path = "src/contest/2023/abc2xx/b/289/289.rs"
+
+# [[bin]]
+# name = "abc2xx_b_270"
+# path = "src/contest/2023/abc2xx/b/270/270.rs"
+
+# [[bin]]
+# name = "abc2xx_b_271"
+# path = "src/contest/2023/abc2xx/b/271/271.rs"
+
+# [[bin]]
+# name = "abc2xx_b_272"
+# path = "src/contest/2023/abc2xx/b/272/272.rs"
+
+# [[bin]]
+# name = "abc2xx_b_273"
+# path = "src/contest/2023/abc2xx/b/273/273.rs"
+
+# [[bin]]
+# name = "abc2xx_b_274"
+# path = "src/contest/2023/abc2xx/b/274/274.rs"
+
+# [[bin]]
+# name = "abc2xx_b_275"
+# path = "src/contest/2023/abc2xx/b/275/275.rs"
+
+# [[bin]]
+# name = "abc2xx_b_276"
+# path = "src/contest/2023/abc2xx/b/276/276.rs"
+
+# [[bin]]
+# name = "abc2xx_b_277"
+# path = "src/contest/2023/abc2xx/b/277/277.rs"
+
+# [[bin]]
+# name = "abc2xx_b_278"
+# path = "src/contest/2023/abc2xx/b/278/278.rs"
+
+# [[bin]]
+# name = "abc2xx_b_279"
+# path = "src/contest/2023/abc2xx/b/279/279.rs"
+
+# [[bin]]
+# name = "abc2xx_b_260"
+# path = "src/contest/2023/abc2xx/b/260/260.rs"
+
+# [[bin]]
+# name = "abc2xx_b_261"
+# path = "src/contest/2023/abc2xx/b/261/261.rs"
+
+# [[bin]]
+# name = "abc2xx_b_262"
+# path = "src/contest/2023/abc2xx/b/262/262.rs"
+
+# [[bin]]
+# name = "abc2xx_b_263"
+# path = "src/contest/2023/abc2xx/b/263/263.rs"
+
+# [[bin]]
+# name = "abc2xx_b_264"
+# path = "src/contest/2023/abc2xx/b/264/264.rs"
+
+# [[bin]]
+# name = "abc2xx_b_265"
+# path = "src/contest/2023/abc2xx/b/265/265.rs"
+
+# [[bin]]
+# name = "abc2xx_b_266"
+# path = "src/contest/2023/abc2xx/b/266/266.rs"
+
+# [[bin]]
+# name = "abc2xx_b_267"
+# path = "src/contest/2023/abc2xx/b/267/267.rs"
+
+# [[bin]]
+# name = "abc2xx_b_268"
+# path = "src/contest/2023/abc2xx/b/268/268.rs"
+
+# [[bin]]
+# name = "abc2xx_b_269"
+# path = "src/contest/2023/abc2xx/b/269/269.rs"
+
+# [[bin]]
+# name = "abc2xx_b_250"
+# path = "src/contest/2023/abc2xx/b/250/250.rs"
+
+# [[bin]]
+# name = "abc2xx_b_251"
+# path = "src/contest/2023/abc2xx/b/251/251.rs"
+
+# [[bin]]
+# name = "abc2xx_b_252"
+# path = "src/contest/2023/abc2xx/b/252/252.rs"
+
+# [[bin]]
+# name = "abc2xx_b_253"
+# path = "src/contest/2023/abc2xx/b/253/253.rs"
+
+# [[bin]]
+# name = "abc2xx_b_254"
+# path = "src/contest/2023/abc2xx/b/254/254.rs"
+
+# [[bin]]
+# name = "abc2xx_b_255"
+# path = "src/contest/2023/abc2xx/b/255/255.rs"
+
+# [[bin]]
+# name = "abc2xx_b_256"
+# path = "src/contest/2023/abc2xx/b/256/256.rs"
+
+# [[bin]]
+# name = "abc2xx_b_257"
+# path = "src/contest/2023/abc2xx/b/257/257.rs"
+
+# [[bin]]
+# name = "abc2xx_b_258"
+# path = "src/contest/2023/abc2xx/b/258/258.rs"
+
+# [[bin]]
+# name = "abc2xx_b_259"
+# path = "src/contest/2023/abc2xx/b/259/259.rs"
+
+
+# [[bin]]
+# name = "abc2xx_b_240"
+# path = "src/contest/2023/abc2xx/b/240/240.rs"
+
+# [[bin]]
+# name = "abc2xx_b_241"
+# path = "src/contest/2023/abc2xx/b/241/241.rs"
+
+# [[bin]]
+# name = "abc2xx_b_242"
+# path = "src/contest/2023/abc2xx/b/242/242.rs"
+
+# [[bin]]
+# name = "abc2xx_b_243"
+# path = "src/contest/2023/abc2xx/b/243/243.rs"
+
+# [[bin]]
+# name = "abc2xx_b_244"
+# path = "src/contest/2023/abc2xx/b/244/244.rs"
+
+# [[bin]]
+# name = "abc2xx_b_245"
+# path = "src/contest/2023/abc2xx/b/245/245.rs"
+
+# [[bin]]
+# name = "abc2xx_b_246"
+# path = "src/contest/2023/abc2xx/b/246/246.rs"
+
+# [[bin]]
+# name = "abc2xx_b_247"
+# path = "src/contest/2023/abc2xx/b/247/247.rs"
+
+# [[bin]]
+# name = "abc2xx_b_248"
+# path = "src/contest/2023/abc2xx/b/248/248.rs"
+
+# [[bin]]
+# name = "abc2xx_b_249"
+# path = "src/contest/2023/abc2xx/b/249/249.rs"
+
+
+# [[bin]]
+# name = "abc2xx_b_230"
+# path = "src/contest/2023/abc2xx/b/230/230.rs"
+
+# [[bin]]
+# name = "abc2xx_b_231"
+# path = "src/contest/2023/abc2xx/b/231/231.rs"
+
+# [[bin]]
+# name = "abc2xx_b_232"
+# path = "src/contest/2023/abc2xx/b/232/232.rs"
+
+# [[bin]]
+# name = "abc2xx_b_233"
+# path = "src/contest/2023/abc2xx/b/233/233.rs"
+
+# [[bin]]
+# name = "abc2xx_b_234"
+# path = "src/contest/2023/abc2xx/b/234/234.rs"
+
+# [[bin]]
+# name = "abc2xx_b_235"
+# path = "src/contest/2023/abc2xx/b/235/235.rs"
+
+# [[bin]]
+# name = "abc2xx_b_236"
+# path = "src/contest/2023/abc2xx/b/236/236.rs"
+
+# [[bin]]
+# name = "abc2xx_b_237"
+# path = "src/contest/2023/abc2xx/b/237/237.rs"
+
+# [[bin]]
+# name = "abc2xx_b_238"
+# path = "src/contest/2023/abc2xx/b/238/238.rs"
+
+# [[bin]]
+# name = "abc2xx_b_239"
+# path = "src/contest/2023/abc2xx/b/239/239.rs"
+
+# [[bin]]
+# name = "abc2xx_b_221"
+# path = "src/contest/2023/abc2xx/b/221/221.rs"
+
+# [[bin]]
+# name = "abc2xx_b_222"
+# path = "src/contest/2023/abc2xx/b/222/222.rs"
+
+# [[bin]]
+# name = "abc2xx_b_223"
+# path = "src/contest/2023/abc2xx/b/223/223.rs"
+
+# [[bin]]
+# name = "abc2xx_b_224"
+# path = "src/contest/2023/abc2xx/b/224/224.rs"
+
+# [[bin]]
+# name = "abc2xx_b_225"
+# path = "src/contest/2023/abc2xx/b/225/225.rs"
+
+# [[bin]]
+# name = "abc2xx_b_226"
+# path = "src/contest/2023/abc2xx/b/226/226.rs"
+
+# [[bin]]
+# name = "abc2xx_b_227"
+# path = "src/contest/2023/abc2xx/b/227/227.rs"
+
+# [[bin]]
+# name = "abc2xx_b_228"
+# path = "src/contest/2023/abc2xx/b/228/228.rs"
+
+# [[bin]]
+# name = "abc2xx_b_229"
+# path = "src/contest/2023/abc2xx/b/229/229.rs"
+
+# [[bin]]
+# name = "abc2xx_b_215"
+# path = "src/contest/2023/abc2xx/b/215.rs"
+
+# [[bin]]
+# name = "abc312_a"
+# path = "src/contest/2023/abc312/a.rs"
+
+# [[bin]]
+# name = "abc312_b"
+# path = "src/contest/2023/abc312/b.rs"
+
+# [[bin]]
+# name = "abc312_c"
+# path = "src/contest/2023/abc312/c.rs"
+
+# [[bin]]
+# name = "abc312_d"
+# path = "src/contest/2023/abc312/d.rs"
+
+# [[bin]]
+# name = "abc312_f"
+# path = "src/contest/2023/abc312/f.rs"
+
+# [[bin]]
+# name = "abc311_b"
+# path = "src/contest/2023/abc311/b.rs"
+
+
+# [[bin]]
+# name = "template"
+# path = "src/contest/template.rs"
+
 
 hoge = """
-
-[[bin]]
-name = "abc359_a"
-path = "src/contest/2024/abc359/a/a.rs"
-
-[[bin]]
-name = "abc359_b"
-path = "src/contest/2024/abc359/b/b.rs"
-
-[[bin]]
-name = "abc359_c"
-path = "src/contest/2024/abc359/c/c.rs"
-
-[[bin]]
-name = "abc359_d"
-path = "src/contest/2024/abc359/d/d.rs"
-
-[[bin]]
-name = "abc359_e"
-path = "src/contest/2024/abc359/e/e.rs"
-
-[[bin]]
-name = "abc359_f"
-path = "src/contest/2024/abc359/f/f.rs"
-
-[[bin]]
-name = "abc359_g"
-path = "src/contest/2024/abc359/g/g.rs"
-
-
-[[bin]]
-name = "abc358_a"
-path = "src/contest/2024/abc358/a/a.rs"
-
-[[bin]]
-name = "abc358_b"
-path = "src/contest/2024/abc358/b/b.rs"
-
-[[bin]]
-name = "abc358_c"
-path = "src/contest/2024/abc358/c/c.rs"
-
-[[bin]]
-name = "abc358_d"
-path = "src/contest/2024/abc358/d/d.rs"
-
-[[bin]]
-name = "abc358_e"
-path = "src/contest/2024/abc358/e/e.rs"
-
-[[bin]]
-name = "abc358_f"
-path = "src/contest/2024/abc358/f/f.rs"
-
-[[bin]]
-name = "abc358_g"
-path = "src/contest/2024/abc358/g/g.rs"
-
-
-[[bin]]
-name = "abc357_a"
-path = "src/contest/2024/abc357/a/a.rs"
-
-[[bin]]
-name = "abc357_b"
-path = "src/contest/2024/abc357/b/b.rs"
-
-[[bin]]
-name = "abc357_c"
-path = "src/contest/2024/abc357/c/c.rs"
-
-[[bin]]
-name = "abc357_d"
-path = "src/contest/2024/abc357/d/d.rs"
-
-[[bin]]
-name = "abc357_e"
-path = "src/contest/2024/abc357/e/e.rs"
-
-[[bin]]
-name = "abc357_f"
-path = "src/contest/2024/abc357/f/f.rs"
-
-[[bin]]
-name = "abc357_g"
-path = "src/contest/2024/abc357/g/g.rs"
-
-
-[[bin]]
-name = "arc179_a"
-path = "src/contest/2024/arc179/a/a.rs"
-
-[[bin]]
-name = "arc179_b"
-path = "src/contest/2024/arc179/b/b.rs"
-
-[[bin]]
-name = "arc179_c"
-path = "src/contest/2024/arc179/c/c.rs"
-
-[[bin]]
-name = "arc179_d"
-path = "src/contest/2024/arc179/d/d.rs"
-
-[[bin]]
-name = "arc179_e"
-path = "src/contest/2024/arc179/e/e.rs"
-
-[[bin]]
-name = "arc179_f"
-path = "src/contest/2024/arc179/f/f.rs"
-
-
-[[bin]]
-name = "abc356_a"
-path = "src/contest/2024/abc356/a/a.rs"
-
-[[bin]]
-name = "abc356_b"
-path = "src/contest/2024/abc356/b/b.rs"
-
-[[bin]]
-name = "abc356_c"
-path = "src/contest/2024/abc356/c/c.rs"
-
-[[bin]]
-name = "abc356_d"
-path = "src/contest/2024/abc356/d/d.rs"
-
-[[bin]]
-name = "abc356_e"
-path = "src/contest/2024/abc356/e/e.rs"
-
-[[bin]]
-name = "abc356_f"
-path = "src/contest/2024/abc356/f/f.rs"
-
-[[bin]]
-name = "abc356_g"
-path = "src/contest/2024/abc356/g/g.rs"
-
-
-[[bin]]
-name = "abc355_a"
-path = "src/contest/2024/abc355/a/a.rs"
-
-[[bin]]
-name = "abc355_b"
-path = "src/contest/2024/abc355/b/b.rs"
-
-[[bin]]
-name = "abc355_c"
-path = "src/contest/2024/abc355/c/c.rs"
-
-[[bin]]
-name = "abc355_d"
-path = "src/contest/2024/abc355/d/d.rs"
-
-[[bin]]
-name = "abc355_e"
-path = "src/contest/2024/abc355/e/e.rs"
-
-[[bin]]
-name = "abc355_f"
-path = "src/contest/2024/abc355/f/f.rs"
-
-[[bin]]
-name = "abc355_g"
-path = "src/contest/2024/abc355/g/g.rs"
-
-[[bin]]
-name = "misc_abc330_e"
-path = "src/contest/2024/_misc/abc330_e.rs"
-
-[[bin]]
-name = "misc_tenka1_2019_d"
-path = "src/contest/2024/_misc/tenka1_2019_d.rs"
-
-
-[[bin]]
-name = "misc_abc237_e"
-path = "src/contest/2024/_misc/abc237_e.rs"
-
-
-[[bin]]
-name = "misc_arc037_c"
-path = "src/contest/2024/_misc/arc037_c.rs"
-
-
-[[bin]]
-name = "arc178_a"
-path = "src/contest/2024/arc178/a/a.rs"
-
-[[bin]]
-name = "arc178_b"
-path = "src/contest/2024/arc178/b/b.rs"
-
-[[bin]]
-name = "arc178_c"
-path = "src/contest/2024/arc178/c/c.rs"
-
-[[bin]]
-name = "arc178_d"
-path = "src/contest/2024/arc178/d/d.rs"
-
-[[bin]]
-name = "arc178_e"
-path = "src/contest/2024/arc178/e/e.rs"
-
-[[bin]]
-name = "arc178_f"
-path = "src/contest/2024/arc178/f/f.rs"
-
-
-[[bin]]
-name = "abc354_a"
-path = "src/contest/2024/abc354/a/a.rs"
-
-[[bin]]
-name = "abc354_b"
-path = "src/contest/2024/abc354/b/b.rs"
-
-[[bin]]
-name = "abc354_c"
-path = "src/contest/2024/abc354/c/c.rs"
-
-[[bin]]
-name = "abc354_d"
-path = "src/contest/2024/abc354/d/d.rs"
-
-[[bin]]
-name = "abc354_e"
-path = "src/contest/2024/abc354/e/e.rs"
-
-[[bin]]
-name = "abc354_f"
-path = "src/contest/2024/abc354/f/f.rs"
-
-[[bin]]
-name = "abc354_g"
-path = "src/contest/2024/abc354/g/g.rs"
-
-
-[[bin]]
-name = "arc177_a"
-path = "src/contest/2024/arc177/a/a.rs"
-
-[[bin]]
-name = "arc177_b"
-path = "src/contest/2024/arc177/b/b.rs"
-
-[[bin]]
-name = "arc177_c"
-path = "src/contest/2024/arc177/c/c.rs"
-
-[[bin]]
-name = "arc177_d"
-path = "src/contest/2024/arc177/d/d.rs"
-
-[[bin]]
-name = "arc177_e"
-path = "src/contest/2024/arc177/e/e.rs"
-
-[[bin]]
-name = "arc177_f"
-path = "src/contest/2024/arc177/f/f.rs"
-
-
-[[bin]]
-name = "abc353_a"
-path = "src/contest/2024/abc353/a/a.rs"
-
-[[bin]]
-name = "abc353_b"
-path = "src/contest/2024/abc353/b/b.rs"
-
-[[bin]]
-name = "abc353_c"
-path = "src/contest/2024/abc353/c/c.rs"
-
-[[bin]]
-name = "abc353_d"
-path = "src/contest/2024/abc353/d/d.rs"
-
-[[bin]]
-name = "abc353_e"
-path = "src/contest/2024/abc353/e/e.rs"
-
-[[bin]]
-name = "abc353_f"
-path = "src/contest/2024/abc353/f/f.rs"
-
-[[bin]]
-name = "abc353_g"
-path = "src/contest/2024/abc353/g/g.rs"
-
-
-[[bin]]
-name = "misc_abc307_c"
-path = "src/contest/2024/_misc/abc307_c.rs"
-
-[[bin]]
-name = "abc352_a"
-path = "src/contest/2024/abc352/a/a.rs"
-
-[[bin]]
-name = "abc352_b"
-path = "src/contest/2024/abc352/b/b.rs"
-
-[[bin]]
-name = "abc352_c"
-path = "src/contest/2024/abc352/c/c.rs"
-
-[[bin]]
-name = "abc352_d"
-path = "src/contest/2024/abc352/d/d.rs"
-
-[[bin]]
-name = "abc352_e"
-path = "src/contest/2024/abc352/e/e.rs"
-
-[[bin]]
-name = "abc352_f"
-path = "src/contest/2024/abc352/f/f.rs"
-
-[[bin]]
-name = "abc352_g"
-path = "src/contest/2024/abc352/g/g.rs"
-
-
-[[bin]]
-name = "abc351_a"
-path = "src/contest/2024/abc351/a/a.rs"
-
-[[bin]]
-name = "abc351_b"
-path = "src/contest/2024/abc351/b/b.rs"
-
-[[bin]]
-name = "abc351_c"
-path = "src/contest/2024/abc351/c/c.rs"
-
-[[bin]]
-name = "abc351_d"
-path = "src/contest/2024/abc351/d/d.rs"
-
-[[bin]]
-name = "abc351_e"
-path = "src/contest/2024/abc351/e/e.rs"
-
-[[bin]]
-name = "abc351_f"
-path = "src/contest/2024/abc351/f/f.rs"
-
-[[bin]]
-name = "abc351_g"
-path = "src/contest/2024/abc351/g/g.rs"
-
-
-[[bin]]
-name = "arc176_a"
-path = "src/contest/2024/arc176/a/a.rs"
-
-[[bin]]
-name = "arc176_b"
-path = "src/contest/2024/arc176/b/b.rs"
-
-[[bin]]
-name = "arc176_c"
-path = "src/contest/2024/arc176/c/c.rs"
-
-[[bin]]
-name = "arc176_d"
-path = "src/contest/2024/arc176/d/d.rs"
-
-[[bin]]
-name = "arc176_e"
-path = "src/contest/2024/arc176/e/e.rs"
-
-[[bin]]
-name = "arc176_f"
-path = "src/contest/2024/arc176/f/f.rs"
-
-
-[[bin]]
-name = "abc350_a"
-path = "src/contest/2024/abc350/a/a.rs"
-
-[[bin]]
-name = "abc350_b"
-path = "src/contest/2024/abc350/b/b.rs"
-
-[[bin]]
-name = "abc350_c"
-path = "src/contest/2024/abc350/c/c.rs"
-
-[[bin]]
-name = "abc350_d"
-path = "src/contest/2024/abc350/d/d.rs"
-
-[[bin]]
-name = "abc350_e"
-path = "src/contest/2024/abc350/e/e.rs"
-
-[[bin]]
-name = "abc350_f"
-path = "src/contest/2024/abc350/f/f.rs"
-
-[[bin]]
-name = "abc350_g"
-path = "src/contest/2024/abc350/g/g.rs"
-
-
-[[bin]]
-name = "misc_abc143_d"
-path = "src/contest/2024/_misc/abc143_d.rs"
-
-[[bin]]
-name = "misc_exawizards2019_d"
-path = "src/contest/2024/_misc/exawizards2019_d.rs"
-
-
-[[bin]]
-name = "abc349_a"
-path = "src/contest/2024/abc349/a/a.rs"
-
-[[bin]]
-name = "abc349_b"
-path = "src/contest/2024/abc349/b/b.rs"
-
-[[bin]]
-name = "abc349_c"
-path = "src/contest/2024/abc349/c/c.rs"
-
-[[bin]]
-name = "abc349_d"
-path = "src/contest/2024/abc349/d/d.rs"
-
-[[bin]]
-name = "abc349_e"
-path = "src/contest/2024/abc349/e/e.rs"
-
-[[bin]]
-name = "abc349_f"
-path = "src/contest/2024/abc349/f/f.rs"
-
-[[bin]]
-name = "abc349_g"
-path = "src/contest/2024/abc349/g/g.rs"
-
-
-[[bin]]
-name = "abc348_a"
-path = "src/contest/2024/abc348/a/a.rs"
-
-[[bin]]
-name = "abc348_b"
-path = "src/contest/2024/abc348/b/b.rs"
-
-[[bin]]
-name = "abc348_c"
-path = "src/contest/2024/abc348/c/c.rs"
-
-[[bin]]
-name = "abc348_d"
-path = "src/contest/2024/abc348/d/d.rs"
-
-[[bin]]
-name = "abc348_e"
-path = "src/contest/2024/abc348/e/e.rs"
-
-[[bin]]
-name = "abc348_f"
-path = "src/contest/2024/abc348/f/f.rs"
-
-[[bin]]
-name = "abc348_g"
-path = "src/contest/2024/abc348/g/g.rs"
-
-
-[[bin]]
-name = "abc347_a"
-path = "src/contest/2024/abc347/a/a.rs"
-
-[[bin]]
-name = "abc347_b"
-path = "src/contest/2024/abc347/b/b.rs"
-
-[[bin]]
-name = "abc347_c"
-path = "src/contest/2024/abc347/c/c.rs"
-
-[[bin]]
-name = "abc347_d"
-path = "src/contest/2024/abc347/d/d.rs"
-
-[[bin]]
-name = "abc347_e"
-path = "src/contest/2024/abc347/e/e.rs"
-
-[[bin]]
-name = "abc347_f"
-path = "src/contest/2024/abc347/f/f.rs"
-
-[[bin]]
-name = "abc347_g"
-path = "src/contest/2024/abc347/g/g.rs"
-
-
-[[bin]]
-name = "misc_abc141_e"
-path = "src/contest/2024/_misc/abc141_e.rs"
-
-[[bin]]
-name = "lpc_lazy_segtree"
-path = "src/contest/2024/_misc/lazy_segtree.rs"
-
-
-[[bin]]
-name = "arc175_a"
-path = "src/contest/2024/arc175/a/a.rs"
-
-[[bin]]
-name = "arc175_b"
-path = "src/contest/2024/arc175/b/b.rs"
-
-[[bin]]
-name = "arc175_c"
-path = "src/contest/2024/arc175/c/c.rs"
-
-[[bin]]
-name = "arc175_d"
-path = "src/contest/2024/arc175/d/d.rs"
-
-[[bin]]
-name = "arc175_e"
-path = "src/contest/2024/arc175/e/e.rs"
-
-
-[[bin]]
-name = "abc346_a"
-path = "src/contest/2024/abc346/a/a.rs"
-
-[[bin]]
-name = "abc346_b"
-path = "src/contest/2024/abc346/b/b.rs"
-
-[[bin]]
-name = "abc346_c"
-path = "src/contest/2024/abc346/c/c.rs"
-
-[[bin]]
-name = "abc346_d"
-path = "src/contest/2024/abc346/d/d.rs"
-
-[[bin]]
-name = "abc346_e"
-path = "src/contest/2024/abc346/e/e.rs"
-
-[[bin]]
-name = "abc346_f"
-path = "src/contest/2024/abc346/f/f.rs"
-
-[[bin]]
-name = "abc346_g"
-path = "src/contest/2024/abc346/g/g.rs"
-
-
-[[bin]]
-name = "arc174_a"
-path = "src/contest/2024/arc174/a/a.rs"
-
-[[bin]]
-name = "arc174_b"
-path = "src/contest/2024/arc174/b/b.rs"
-
-[[bin]]
-name = "arc174_c"
-path = "src/contest/2024/arc174/c/c.rs"
-
-[[bin]]
-name = "arc174_d"
-path = "src/contest/2024/arc174/d/d.rs"
-
-[[bin]]
-name = "arc174_e"
-path = "src/contest/2024/arc174/e/e.rs"
-
-
-[[bin]]
-name = "misc_abc198_f"
-path = "src/contest/2024/_misc/abc198_f.rs"
-
-
-[[bin]]
-name = "abc345_a"
-path = "src/contest/2024/abc345/a/a.rs"
-
-[[bin]]
-name = "abc345_b"
-path = "src/contest/2024/abc345/b/b.rs"
-
-[[bin]]
-name = "abc345_c"
-path = "src/contest/2024/abc345/c/c.rs"
-
-[[bin]]
-name = "abc345_d"
-path = "src/contest/2024/abc345/d/d.rs"
-
-[[bin]]
-name = "abc345_e"
-path = "src/contest/2024/abc345/e/e.rs"
-
-[[bin]]
-name = "abc345_f"
-path = "src/contest/2024/abc345/f/f.rs"
-
-
-[[bin]]
-name = "abc299_d"
-path = "src/contest/2024/_misc/abc299_d.rs"
-
-[[bin]]
-name = "arc173_a"
-path = "src/contest/2024/arc173/a/a.rs"
-
-[[bin]]
-name = "arc173_b"
-path = "src/contest/2024/arc173/b/b.rs"
-
-[[bin]]
-name = "arc173_c"
-path = "src/contest/2024/arc173/c/c.rs"
-
-[[bin]]
-name = "arc173_d"
-path = "src/contest/2024/arc173/d/d.rs"
-
-[[bin]]
-name = "arc173_e"
-path = "src/contest/2024/arc173/e/e.rs"
-
-
-[[bin]]
-name = "abc344_a"
-path = "src/contest/2024/abc344/a/a.rs"
-
-[[bin]]
-name = "abc344_b"
-path = "src/contest/2024/abc344/b/b.rs"
-
-[[bin]]
-name = "abc344_c"
-path = "src/contest/2024/abc344/c/c.rs"
-
-[[bin]]
-name = "abc344_d"
-path = "src/contest/2024/abc344/d/d.rs"
-
-[[bin]]
-name = "abc344_e"
-path = "src/contest/2024/abc344/e/e.rs"
-
-[[bin]]
-name = "abc344_f"
-path = "src/contest/2024/abc344/f/f.rs"
-
-
-[[bin]]
-name = "misc_segment_with_maximum_sum"
-path = "src/contest/2024/_misc/segment_with_maximum_sum.rs"
-
-[[bin]]
-name = "misc_abc343_f"
-path = "src/contest/2024/_misc/abc343_f.rs"
-
-[[bin]]
-name = "arc172_a"
-path = "src/contest/2024/arc172/a/a.rs"
-
-[[bin]]
-name = "arc172_b"
-path = "src/contest/2024/arc172/b/b.rs"
-
-[[bin]]
-name = "arc172_c"
-path = "src/contest/2024/arc172/c/c.rs"
-
-[[bin]]
-name = "arc172_d"
-path = "src/contest/2024/arc172/d/d.rs"
-
-[[bin]]
-name = "arc172_e"
-path = "src/contest/2024/arc172/e/e.rs"
-
-
-[[bin]]
-name = "abc334_a"
-path = "src/contest/2023/abc334/a/a.rs"
-
-[[bin]]
-name = "abc334_b"
-path = "src/contest/2023/abc334/b/b.rs"
-
-[[bin]]
-name = "abc334_c"
-path = "src/contest/2023/abc334/c/c.rs"
-
-[[bin]]
-name = "abc334_d"
-path = "src/contest/2023/abc334/d/d.rs"
-
-[[bin]]
-name = "abc334_e"
-path = "src/contest/2023/abc334/e/e.rs"
-
-[[bin]]
-name = "abc334_f"
-path = "src/contest/2023/abc334/f/f.rs"
-
-
-[[bin]]
-name = "abc333_a"
-path = "src/contest/2023/abc333/a/a.rs"
-
-[[bin]]
-name = "abc333_b"
-path = "src/contest/2023/abc333/b/b.rs"
-
-[[bin]]
-name = "abc333_c"
-path = "src/contest/2023/abc333/c/c.rs"
-
-[[bin]]
-name = "abc333_d"
-path = "src/contest/2023/abc333/d/d.rs"
-
-[[bin]]
-name = "abc333_e"
-path = "src/contest/2023/abc333/e/e.rs"
-
-[[bin]]
-name = "abc333_f"
-path = "src/contest/2023/abc333/f/f.rs"
-
-
-[[bin]]
-name = "abc332_a"
-path = "src/contest/2023/abc332/a/a.rs"
-
-[[bin]]
-name = "abc332_b"
-path = "src/contest/2023/abc332/b/b.rs"
-
-[[bin]]
-name = "abc332_c"
-path = "src/contest/2023/abc332/c/c.rs"
-
-[[bin]]
-name = "abc332_d"
-path = "src/contest/2023/abc332/d/d.rs"
-
-[[bin]]
-name = "abc332_e"
-path = "src/contest/2023/abc332/e/e.rs"
-
-[[bin]]
-name = "abc332_f"
-path = "src/contest/2023/abc332/f/f.rs"
-
-
-[[bin]]
-name = "arc169_a"
-path = "src/contest/2023/arc169/a/a.rs"
-
-[[bin]]
-name = "arc169_b"
-path = "src/contest/2023/arc169/b/b.rs"
-
-[[bin]]
-name = "arc169_c"
-path = "src/contest/2023/arc169/c/c.rs"
-
-[[bin]]
-name = "arc169_d"
-path = "src/contest/2023/arc169/d/d.rs"
-
-
-[[bin]]
-name = "abc331_a"
-path = "src/contest/2023/abc331/a/a.rs"
-
-[[bin]]
-name = "abc331_b"
-path = "src/contest/2023/abc331/b/b.rs"
-
-[[bin]]
-name = "abc331_c"
-path = "src/contest/2023/abc331/c/c.rs"
-
-[[bin]]
-name = "abc331_d"
-path = "src/contest/2023/abc331/d/d.rs"
-
-[[bin]]
-name = "abc331_e"
-path = "src/contest/2023/abc331/e/e.rs"
-
-[[bin]]
-name = "abc331_f"
-path = "src/contest/2023/abc331/f/f.rs"
-
-
-[[bin]]
-name = "2023_12_02_midori_ika_a"
-path = "src/contest/2023/_misc/1202_midori_ika/a.rs"
-
-
-[[bin]]
-name = "2023_12_02_midori_ika_b"
-path = "src/contest/2023/_misc/1202_midori_ika/b.rs"
-
-
-[[bin]]
-name = "2023_12_02_midori_ika_c"
-path = "src/contest/2023/_misc/1202_midori_ika/c.rs"
-
-
-[[bin]]
-name = "2023_12_02_midori_ika_d"
-path = "src/contest/2023/_misc/1202_midori_ika/d.rs"
-
-
-[[bin]]
-name = "2023_12_02_midori_ika_e"
-path = "src/contest/2023/_misc/1202_midori_ika/e.rs"
-
-
-[[bin]]
-name = "2023_12_02_midori_ika_f"
-path = "src/contest/2023/_misc/1202_midori_ika/f.rs"
-
-
-[[bin]]
-name = "2023_12_02_midori_ika_g"
-path = "src/contest/2023/_misc/1202_midori_ika/g.rs"
-
-
-[[bin]]
-name = "2023_12_02_midori_ika_h"
-path = "src/contest/2023/_misc/1202_midori_ika/h.rs"
-
-
-[[bin]]
-name = "2023_12_02_midori_ika_i"
-path = "src/contest/2023/_misc/1202_midori_ika/i.rs"
-
-
-[[bin]]
-name = "2023_12_02_midori_ika_j"
-path = "src/contest/2023/_misc/1202_midori_ika/j.rs"
-
-
-[[bin]]
-name = "2023_12_02_midori_ika_k"
-path = "src/contest/2023/_misc/1202_midori_ika/k.rs"
-
-
-[[bin]]
-name = "2023_12_02_midori_ika_l"
-path = "src/contest/2023/_misc/1202_midori_ika/l.rs"
-
-
-[[bin]]
-name = "2023_12_02_midori_ika_hello"
-path = "src/contest/2023/_misc/1202_midori_ika/_hello.rs"
-
-
-[[bin]]
-name = "abc297_g"
-path = "src/contest/2023/_misc/abc297_g.rs"
-
-[[bin]]
-name = "arc168_a"
-path = "src/contest/2023/arc168/a/a.rs"
-
-[[bin]]
-name = "arc168_b"
-path = "src/contest/2023/arc168/b/b.rs"
-
-[[bin]]
-name = "arc168_c"
-path = "src/contest/2023/arc168/c/c.rs"
-
-[[bin]]
-name = "abc329_a"
-path = "src/contest/2023/abc329/a/a.rs"
-
-[[bin]]
-name = "abc329_b"
-path = "src/contest/2023/abc329/b/b.rs"
-
-[[bin]]
-name = "abc329_c"
-path = "src/contest/2023/abc329/c/c.rs"
-
-[[bin]]
-name = "abc329_d"
-path = "src/contest/2023/abc329/d/d.rs"
-
-[[bin]]
-name = "abc329_e"
-path = "src/contest/2023/abc329/e/e.rs"
-
-[[bin]]
-name = "abc329_f"
-path = "src/contest/2023/abc329/f/f.rs"
-
-
-[[bin]]
-name = "abc328_a"
-path = "src/contest/2023/abc328/a/a.rs"
-
-[[bin]]
-name = "abc328_b"
-path = "src/contest/2023/abc328/b/b.rs"
-
-[[bin]]
-name = "abc328_c"
-path = "src/contest/2023/abc328/c/c.rs"
-
-[[bin]]
-name = "abc328_d"
-path = "src/contest/2023/abc328/d/d.rs"
-
-[[bin]]
-name = "abc328_e"
-path = "src/contest/2023/abc328/e/e.rs"
-
-[[bin]]
-name = "abc328_f"
-path = "src/contest/2023/abc328/f/f.rs"
-
-[[bin]]
-name = "abc327_a"
-path = "src/contest/2023/abc327/a/a.rs"
-
-[[bin]]
-name = "abc327_b"
-path = "src/contest/2023/abc327/b/b.rs"
-
-[[bin]]
-name = "abc327_c"
-path = "src/contest/2023/abc327/c/c.rs"
-
-[[bin]]
-name = "abc327_d"
-path = "src/contest/2023/abc327/d/d.rs"
-
-[[bin]]
-name = "abc327_e"
-path = "src/contest/2023/abc327/e/e.rs"
-
-[[bin]]
-name = "abc327_f"
-path = "src/contest/2023/abc327/f/f.rs"
-
-[[bin]]
-name = "abc326_a"
-path = "src/contest/2023/abc326/a/a.rs"
-
-[[bin]]
-name = "abc326_b"
-path = "src/contest/2023/abc326/b/b.rs"
-
-[[bin]]
-name = "abc326_c"
-path = "src/contest/2023/abc326/c/c.rs"
-
-[[bin]]
-name = "abc326_d"
-path = "src/contest/2023/abc326/d/d.rs"
-
-[[bin]]
-name = "abc326_e"
-path = "src/contest/2023/abc326/e/e.rs"
-
-[[bin]]
-name = "abc326_f"
-path = "src/contest/2023/abc326/f/f.rs"
-
-[[bin]]
-name = "abc325_a"
-path = "src/contest/2023/abc325/a/a.rs"
-
-[[bin]]
-name = "abc325_b"
-path = "src/contest/2023/abc325/b/b.rs"
-
-[[bin]]
-name = "abc325_c"
-path = "src/contest/2023/abc325/c/c.rs"
-
-[[bin]]
-name = "abc325_d"
-path = "src/contest/2023/abc325/d/d.rs"
-
-[[bin]]
-name = "abc325_e"
-path = "src/contest/2023/abc325/e/e.rs"
-
-
-[[bin]]
-name = "arc167_a"
-path = "src/contest/2023/arc167/a/a.rs"
-
-[[bin]]
-name = "arc167_b"
-path = "src/contest/2023/arc167/b/b.rs"
-
-
-[[bin]]
-name = "abc324_a"
-path = "src/contest/2023/abc324/a/a.rs"
-
-[[bin]]
-name = "abc324_b"
-path = "src/contest/2023/abc324/b/b.rs"
-
-[[bin]]
-name = "abc324_c"
-path = "src/contest/2023/abc324/c/c.rs"
-
-[[bin]]
-name = "abc324_d"
-path = "src/contest/2023/abc324/d/d.rs"
-
-[[bin]]
-name = "abc324_e"
-path = "src/contest/2023/abc324/e/e.rs"
-
-[[bin]]
-name = "abc324_f"
-path = "src/contest/2023/abc324/f/f.rs"
-
-
-[[bin]]
-name = "arc166_a"
-path = "src/contest/2023/arc166/a/a.rs"
-
-[[bin]]
-name = "arc166_b"
-path = "src/contest/2023/arc166/b/b.rs"
-
-
-[[bin]]
-name = "abc323_a"
-path = "src/contest/2023/abc323/a/a.rs"
-
-[[bin]]
-name = "abc323_b"
-path = "src/contest/2023/abc323/b/b.rs"
-
-[[bin]]
-name = "abc323_c"
-path = "src/contest/2023/abc323/c/c.rs"
-
-[[bin]]
-name = "abc323_d"
-path = "src/contest/2023/abc323/d/d.rs"
-
-[[bin]]
-name = "abc323_e"
-path = "src/contest/2023/abc323/e/e.rs"
-
-
-[[bin]]
-name = "abc322_a"
-path = "src/contest/2023/abc322/a/a.rs"
-
-[[bin]]
-name = "abc322_b"
-path = "src/contest/2023/abc322/b/b.rs"
-
-[[bin]]
-name = "abc322_c"
-path = "src/contest/2023/abc322/c/c.rs"
-
-[[bin]]
-name = "abc322_d"
-path = "src/contest/2023/abc322/d/d.rs"
-
-[[bin]]
-name = "abc322_e"
-path = "src/contest/2023/abc322/e/e.rs"
-
-[[bin]]
-name = "abc321_a"
-path = "src/contest/2023/abc321/a/a.rs"
-
-[[bin]]
-name = "abc321_b"
-path = "src/contest/2023/abc321/b/b.rs"
-
-[[bin]]
-name = "abc321_c"
-path = "src/contest/2023/abc321/c/c.rs"
-
-[[bin]]
-name = "abc321_d"
-path = "src/contest/2023/abc321/d/d.rs"
-
-[[bin]]
-name = "abc321_e"
-path = "src/contest/2023/abc321/e/e.rs"
-
-[[bin]]
-name = "abc321_f"
-path = "src/contest/2023/abc321/f/f.rs"
-
-
-[[bin]]
-name = "midori_a"
-path = "src/contest/2023/_misc/0917_midori_ika/a.rs"
-
-[[bin]]
-name = "midori_b"
-path = "src/contest/2023/_misc/0917_midori_ika/b.rs"
-
-[[bin]]
-name = "midori_c"
-path = "src/contest/2023/_misc/0917_midori_ika/c.rs"
-
-[[bin]]
-name = "midori_d"
-path = "src/contest/2023/_misc/0917_midori_ika/d.rs"
-
-[[bin]]
-name = "midori_e"
-path = "src/contest/2023/_misc/0917_midori_ika/e.rs"
-
-[[bin]]
-name = "midori_f"
-path = "src/contest/2023/_misc/0917_midori_ika/f.rs"
-
-
-[[bin]]
-name = "abc320_a"
-path = "src/contest/2023/abc320/a/a.rs"
-
-[[bin]]
-name = "abc320_b"
-path = "src/contest/2023/abc320/b/b.rs"
-
-[[bin]]
-name = "abc320_c"
-path = "src/contest/2023/abc320/c/c.rs"
-
-[[bin]]
-name = "abc320_d"
-path = "src/contest/2023/abc320/d/d.rs"
-
-[[bin]]
-name = "abc320_e"
-path = "src/contest/2023/abc320/e/e.rs"
-
-[[bin]]
-name = "abc319_a"
-path = "src/contest/2023/abc319/a/a.rs"
-
-[[bin]]
-name = "abc319_b"
-path = "src/contest/2023/abc319/b/b.rs"
-
-[[bin]]
-name = "abc319_c"
-path = "src/contest/2023/abc319/c/c.rs"
-
-[[bin]]
-name = "abc319_d"
-path = "src/contest/2023/abc319/d/d.rs"
-
-[[bin]]
-name = "abc319_e"
-path = "src/contest/2023/abc319/e/e.rs"
-
-
-[[bin]]
-name = "abc317_a"
-path = "src/contest/2023/abc317/a/a.rs"
-
-[[bin]]
-name = "abc317_b"
-path = "src/contest/2023/abc317/b/b.rs"
-
-[[bin]]
-name = "abc317_c"
-path = "src/contest/2023/abc317/c/c.rs"
-
-[[bin]]
-name = "abc317_d"
-path = "src/contest/2023/abc317/d/d.rs"
-
-[[bin]]
-name = "abc317_e"
-path = "src/contest/2023/abc317/e/e.rs"
-
-
-[[bin]]
-name = "abc2xx_b_280"
-path = "src/contest/2023/abc2xx/b/280/280.rs"
-
-[[bin]]
-name = "abc2xx_b_281"
-path = "src/contest/2023/abc2xx/b/281/281.rs"
-
-[[bin]]
-name = "abc2xx_b_282"
-path = "src/contest/2023/abc2xx/b/282/282.rs"
-
-[[bin]]
-name = "abc2xx_b_283"
-path = "src/contest/2023/abc2xx/b/283/283.rs"
-
-[[bin]]
-name = "abc2xx_b_284"
-path = "src/contest/2023/abc2xx/b/284/284.rs"
-
-[[bin]]
-name = "abc2xx_b_285"
-path = "src/contest/2023/abc2xx/b/285/285.rs"
-
-[[bin]]
-name = "abc2xx_b_286"
-path = "src/contest/2023/abc2xx/b/286/286.rs"
-
-[[bin]]
-name = "abc2xx_b_287"
-path = "src/contest/2023/abc2xx/b/287/287.rs"
-
-[[bin]]
-name = "abc2xx_b_288"
-path = "src/contest/2023/abc2xx/b/288/288.rs"
-
-[[bin]]
-name = "abc2xx_b_289"
-path = "src/contest/2023/abc2xx/b/289/289.rs"
-
-[[bin]]
-name = "abc2xx_b_270"
-path = "src/contest/2023/abc2xx/b/270/270.rs"
-
-[[bin]]
-name = "abc2xx_b_271"
-path = "src/contest/2023/abc2xx/b/271/271.rs"
-
-[[bin]]
-name = "abc2xx_b_272"
-path = "src/contest/2023/abc2xx/b/272/272.rs"
-
-[[bin]]
-name = "abc2xx_b_273"
-path = "src/contest/2023/abc2xx/b/273/273.rs"
-
-[[bin]]
-name = "abc2xx_b_274"
-path = "src/contest/2023/abc2xx/b/274/274.rs"
-
-[[bin]]
-name = "abc2xx_b_275"
-path = "src/contest/2023/abc2xx/b/275/275.rs"
-
-[[bin]]
-name = "abc2xx_b_276"
-path = "src/contest/2023/abc2xx/b/276/276.rs"
-
-[[bin]]
-name = "abc2xx_b_277"
-path = "src/contest/2023/abc2xx/b/277/277.rs"
-
-[[bin]]
-name = "abc2xx_b_278"
-path = "src/contest/2023/abc2xx/b/278/278.rs"
-
-[[bin]]
-name = "abc2xx_b_279"
-path = "src/contest/2023/abc2xx/b/279/279.rs"
-
-[[bin]]
-name = "abc2xx_b_260"
-path = "src/contest/2023/abc2xx/b/260/260.rs"
-
-[[bin]]
-name = "abc2xx_b_261"
-path = "src/contest/2023/abc2xx/b/261/261.rs"
-
-[[bin]]
-name = "abc2xx_b_262"
-path = "src/contest/2023/abc2xx/b/262/262.rs"
-
-[[bin]]
-name = "abc2xx_b_263"
-path = "src/contest/2023/abc2xx/b/263/263.rs"
-
-[[bin]]
-name = "abc2xx_b_264"
-path = "src/contest/2023/abc2xx/b/264/264.rs"
-
-[[bin]]
-name = "abc2xx_b_265"
-path = "src/contest/2023/abc2xx/b/265/265.rs"
-
-[[bin]]
-name = "abc2xx_b_266"
-path = "src/contest/2023/abc2xx/b/266/266.rs"
-
-[[bin]]
-name = "abc2xx_b_267"
-path = "src/contest/2023/abc2xx/b/267/267.rs"
-
-[[bin]]
-name = "abc2xx_b_268"
-path = "src/contest/2023/abc2xx/b/268/268.rs"
-
-[[bin]]
-name = "abc2xx_b_269"
-path = "src/contest/2023/abc2xx/b/269/269.rs"
-
-[[bin]]
-name = "abc2xx_b_250"
-path = "src/contest/2023/abc2xx/b/250/250.rs"
-
-[[bin]]
-name = "abc2xx_b_251"
-path = "src/contest/2023/abc2xx/b/251/251.rs"
-
-[[bin]]
-name = "abc2xx_b_252"
-path = "src/contest/2023/abc2xx/b/252/252.rs"
-
-[[bin]]
-name = "abc2xx_b_253"
-path = "src/contest/2023/abc2xx/b/253/253.rs"
-
-[[bin]]
-name = "abc2xx_b_254"
-path = "src/contest/2023/abc2xx/b/254/254.rs"
-
-[[bin]]
-name = "abc2xx_b_255"
-path = "src/contest/2023/abc2xx/b/255/255.rs"
-
-[[bin]]
-name = "abc2xx_b_256"
-path = "src/contest/2023/abc2xx/b/256/256.rs"
-
-[[bin]]
-name = "abc2xx_b_257"
-path = "src/contest/2023/abc2xx/b/257/257.rs"
-
-[[bin]]
-name = "abc2xx_b_258"
-path = "src/contest/2023/abc2xx/b/258/258.rs"
-
-[[bin]]
-name = "abc2xx_b_259"
-path = "src/contest/2023/abc2xx/b/259/259.rs"
-
-
-[[bin]]
-name = "abc2xx_b_240"
-path = "src/contest/2023/abc2xx/b/240/240.rs"
-
-[[bin]]
-name = "abc2xx_b_241"
-path = "src/contest/2023/abc2xx/b/241/241.rs"
-
-[[bin]]
-name = "abc2xx_b_242"
-path = "src/contest/2023/abc2xx/b/242/242.rs"
-
-[[bin]]
-name = "abc2xx_b_243"
-path = "src/contest/2023/abc2xx/b/243/243.rs"
-
-[[bin]]
-name = "abc2xx_b_244"
-path = "src/contest/2023/abc2xx/b/244/244.rs"
-
-[[bin]]
-name = "abc2xx_b_245"
-path = "src/contest/2023/abc2xx/b/245/245.rs"
-
-[[bin]]
-name = "abc2xx_b_246"
-path = "src/contest/2023/abc2xx/b/246/246.rs"
-
-[[bin]]
-name = "abc2xx_b_247"
-path = "src/contest/2023/abc2xx/b/247/247.rs"
-
-[[bin]]
-name = "abc2xx_b_248"
-path = "src/contest/2023/abc2xx/b/248/248.rs"
-
-[[bin]]
-name = "abc2xx_b_249"
-path = "src/contest/2023/abc2xx/b/249/249.rs"
-
-
-[[bin]]
-name = "abc2xx_b_230"
-path = "src/contest/2023/abc2xx/b/230/230.rs"
-
-[[bin]]
-name = "abc2xx_b_231"
-path = "src/contest/2023/abc2xx/b/231/231.rs"
-
-[[bin]]
-name = "abc2xx_b_232"
-path = "src/contest/2023/abc2xx/b/232/232.rs"
-
-[[bin]]
-name = "abc2xx_b_233"
-path = "src/contest/2023/abc2xx/b/233/233.rs"
-
-[[bin]]
-name = "abc2xx_b_234"
-path = "src/contest/2023/abc2xx/b/234/234.rs"
-
-[[bin]]
-name = "abc2xx_b_235"
-path = "src/contest/2023/abc2xx/b/235/235.rs"
-
-[[bin]]
-name = "abc2xx_b_236"
-path = "src/contest/2023/abc2xx/b/236/236.rs"
-
-[[bin]]
-name = "abc2xx_b_237"
-path = "src/contest/2023/abc2xx/b/237/237.rs"
-
-[[bin]]
-name = "abc2xx_b_238"
-path = "src/contest/2023/abc2xx/b/238/238.rs"
-
-[[bin]]
-name = "abc2xx_b_239"
-path = "src/contest/2023/abc2xx/b/239/239.rs"
-
-[[bin]]
-name = "abc2xx_b_221"
-path = "src/contest/2023/abc2xx/b/221/221.rs"
-
-[[bin]]
-name = "abc2xx_b_222"
-path = "src/contest/2023/abc2xx/b/222/222.rs"
-
-[[bin]]
-name = "abc2xx_b_223"
-path = "src/contest/2023/abc2xx/b/223/223.rs"
-
-[[bin]]
-name = "abc2xx_b_224"
-path = "src/contest/2023/abc2xx/b/224/224.rs"
-
-[[bin]]
-name = "abc2xx_b_225"
-path = "src/contest/2023/abc2xx/b/225/225.rs"
-
-[[bin]]
-name = "abc2xx_b_226"
-path = "src/contest/2023/abc2xx/b/226/226.rs"
-
-[[bin]]
-name = "abc2xx_b_227"
-path = "src/contest/2023/abc2xx/b/227/227.rs"
-
-[[bin]]
-name = "abc2xx_b_228"
-path = "src/contest/2023/abc2xx/b/228/228.rs"
-
-[[bin]]
-name = "abc2xx_b_229"
-path = "src/contest/2023/abc2xx/b/229/229.rs"
-
-[[bin]]
-name = "abc2xx_b_215"
-path = "src/contest/2023/abc2xx/b/215.rs"
-
-[[bin]]
-name = "abc312_a"
-path = "src/contest/2023/abc312/a.rs"
-
-[[bin]]
-name = "abc312_b"
-path = "src/contest/2023/abc312/b.rs"
-
-[[bin]]
-name = "abc312_c"
-path = "src/contest/2023/abc312/c.rs"
-
-[[bin]]
-name = "abc312_d"
-path = "src/contest/2023/abc312/d.rs"
-
-[[bin]]
-name = "abc312_f"
-path = "src/contest/2023/abc312/f.rs"
-
-[[bin]]
-name = "abc311_b"
-path = "src/contest/2023/abc311/b.rs"
-
-
-[[bin]]
-name = "template"
-path = "src/contest/template.rs"
-
-
 
 """
 
