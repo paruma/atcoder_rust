@@ -23,8 +23,11 @@ pub mod pos {
     }
 
     impl<T: Add<Output = T> + Mul<Output = T> + Copy> Pos<T> {
+        pub fn inner_product(self, rhs: Self) -> T {
+            self.x * rhs.x + self.y * rhs.y
+        }
         pub fn norm_square(self) -> T {
-            self.x * self.x + self.y * self.y
+            self.inner_product(self)
         }
     }
 
@@ -178,6 +181,13 @@ mod tests_pos {
     fn test_pos_scala_mul() {
         let p: Pos<usize> = Pos::new(2, 3);
         assert_eq!(p.scala_mul(4), Pos::new(8, 12));
+    }
+
+    #[test]
+    fn test_pos_inner_product() {
+        let p1: Pos<usize> = Pos::new(2, 3);
+        let p2: Pos<usize> = Pos::new(4, 5);
+        assert_eq!(p1.inner_product(p2), 23);
     }
 
     #[test]
