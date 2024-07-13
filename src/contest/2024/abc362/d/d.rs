@@ -1,18 +1,95 @@
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Edge {
+    from: usize,
+    to: usize,
+    cost: i64,
+}
+
+impl Edge {
+    fn rev(&self) -> Edge {
+        Edge {
+            from: self.to,
+            to: self.from,
+            cost: self.cost,
+        }
+    }
+}
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n_vertex: usize,
+    n_edge: usize,
+    v_weights: Vec<i64>,
+    edges: Vec<Edge>,
+}
+
+macro_rules! chmin {
+    ($a: expr, $b: expr) => {
+        if $a > $b {
+            $a = $b;
+            true
+        } else {
+            false
+        }
+    };
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n_vertex: usize,
+            n_edge: usize,
+            v_weights: [i64; n_vertex],
+            edges: [(Usize1, Usize1, i64); n_edge],
         }
-        Problem { _a }
+
+        let edges = edges
+            .iter()
+            .copied()
+            .map(|(from, to, cost)| Edge { from, to, cost })
+            .collect_vec();
+        Problem {
+            n_vertex,
+            n_edge,
+            v_weights,
+            edges,
+        }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n_vertex = self.n_vertex;
+        let v_weights = &self.v_weights;
+        let edges = self.edges.iter().flat_map(|e| [*e, e.rev()]).collect_vec();
+        let start = 0;
+
+        let adj: Vec<Vec<Edge>> = edges.iter().fold(vec![vec![]; n_vertex], |mut acc, e| {
+            acc[e.from].push(*e);
+            acc
+        });
+
+        let mut pq: BinaryHeap<(Reverse<ExtInt>, usize)> = BinaryHeap::new();
+        let mut dist = vec![Inf; n_vertex];
+        dist[start] = Fin(v_weights[start]);
+        pq.push((Reverse(dist[start]), start));
+
+        while let Some((Reverse(d), current)) = pq.pop() {
+            if dist[current] < d {
+                continue;
+            }
+            for e in &adj[current] {
+                if chmin!(
+                    dist[e.to],
+                    dist[e.from] + Fin(e.cost) + Fin(v_weights[e.to])
+                ) {
+                    pq.push((Reverse(dist[e.to]), e.to));
+                }
+            }
+        }
+        let ans = dist[1..]
+            .to_vec()
+            .iter()
+            .copied()
+            .map(|x| x.get_fin())
+            .collect_vec();
         Answer { ans }
     }
 
@@ -26,12 +103,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec_1line(&self.ans);
     }
 }
 
@@ -123,6 +200,7 @@ use proconio::{
     derive_readable, fastout, input,
     marker::{Bytes, Chars, Usize1},
 };
+use std::cmp::Reverse;
 #[allow(unused_imports)]
 use std::collections::{BinaryHeap, HashMap, HashSet};
 
@@ -171,3 +249,138 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use mod_ext_int::ExtInt::{self, *};
+pub mod mod_ext_int {
+    use ac_library::Monoid;
+    use std::{
+        cmp::Ordering,
+        convert::Infallible,
+        iter::Sum,
+        ops::{Add, AddAssign},
+    };
+    use ExtInt::*;
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub enum ExtInt {
+        Inf,
+        Fin(i64),
+    }
+    impl ExtInt {
+        pub fn get_fin(self) -> i64 {
+            match self {
+                Fin(val) => val,
+                Inf => panic!("called `ExtInt::get_fin()` on a `Fin` value"),
+            }
+        }
+        pub fn get_fin_or(self, default: i64) -> i64 {
+            match self {
+                Fin(val) => val,
+                Inf => default,
+            }
+        }
+        pub fn is_fin(self) -> bool {
+            matches!(self, Fin(_))
+        }
+        pub fn is_inf(self) -> bool {
+            matches!(self, Inf)
+        }
+        pub fn to_option(self) -> Option<i64> {
+            match self {
+                Inf => None,
+                Fin(a) => Some(a),
+            }
+        }
+        pub fn from_option(opt: Option<i64>) -> ExtInt {
+            match opt {
+                Some(a) => Fin(a),
+                None => Inf,
+            }
+        }
+        pub fn times(self, t: i64) -> Self {
+            match t.cmp(&0) {
+                Ordering::Less => panic!("t must be non-negative."),
+                Ordering::Equal => Fin(0),
+                Ordering::Greater => match self {
+                    Inf => Inf,
+                    Fin(a) => Fin(a * t),
+                },
+            }
+        }
+    }
+    impl Add for ExtInt {
+        type Output = ExtInt;
+        fn add(self, rhs: Self) -> Self::Output {
+            match (self, rhs) {
+                (Inf, Inf) => Inf,
+                (Inf, Fin(_)) => Inf,
+                (Fin(_), Inf) => Inf,
+                (Fin(a), Fin(b)) => Fin(a + b),
+            }
+        }
+    }
+    impl AddAssign for ExtInt {
+        fn add_assign(&mut self, rhs: Self) {
+            *self = *self + rhs;
+        }
+    }
+    impl Add<i64> for ExtInt {
+        type Output = ExtInt;
+        fn add(self, rhs: i64) -> Self::Output {
+            match self {
+                Inf => Inf,
+                Fin(a) => Fin(a + rhs),
+            }
+        }
+    }
+    impl AddAssign<i64> for ExtInt {
+        fn add_assign(&mut self, rhs: i64) {
+            *self = *self + rhs;
+        }
+    }
+    impl Sum for ExtInt {
+        fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+            let mut s = 0;
+            for x in iter {
+                match x {
+                    Inf => return Inf,
+                    Fin(x) => s += x,
+                }
+            }
+            Fin(s)
+        }
+    }
+    impl PartialOrd for ExtInt {
+        fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+            match (self, other) {
+                (Inf, Inf) => Some(Ordering::Equal),
+                (Inf, Fin(_)) => Some(Ordering::Greater),
+                (Fin(_), Inf) => Some(Ordering::Less),
+                (Fin(a), Fin(b)) => PartialOrd::partial_cmp(a, b),
+            }
+        }
+    }
+    impl Ord for ExtInt {
+        fn cmp(&self, other: &Self) -> Ordering {
+            self.partial_cmp(other).unwrap()
+        }
+    }
+    pub struct ExtIntAdditive(Infallible);
+    impl Monoid for ExtIntAdditive {
+        type S = ExtInt;
+        fn identity() -> Self::S {
+            Fin(0)
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            *a + *b
+        }
+    }
+    pub struct ExtIntMin(Infallible);
+    impl Monoid for ExtIntMin {
+        type S = ExtInt;
+        fn identity() -> Self::S {
+            Inf
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            *a.min(b)
+        }
+    }
+}

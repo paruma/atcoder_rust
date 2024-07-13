@@ -1,18 +1,55 @@
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct CRange {
+    min: i64,
+    max: i64,
+}
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    ranges: Vec<CRange>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            ranges: [CRange; n],
         }
-        Problem { _a }
+        Problem { n, ranges }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ranges = &self.ranges;
+
+        let min_sum = ranges.iter().copied().map(|r| r.min).sum::<i64>();
+        let max_sum = ranges.iter().copied().map(|r| r.max).sum::<i64>();
+
+        let ans = if !(min_sum..=max_sum).contains(&0) {
+            None
+        } else {
+            let mut sum = -min_sum;
+
+            let mut ans: Vec<i64> = vec![];
+
+            for r in ranges {
+                //
+                if sum == 0 {
+                    ans.push(r.min);
+                } else if r.max - r.min < sum {
+                    ans.push(r.max);
+                    sum -= r.max - r.min;
+                } else {
+                    // r.max - r.min >= sum
+                    ans.push(r.min + sum);
+                    sum = 0;
+                }
+            }
+
+            assert_eq!(ans.iter().copied().sum::<i64>(), 0);
+
+            Some(ans)
+        };
         Answer { ans }
     }
 
@@ -26,12 +63,17 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Option<Vec<i64>>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        if let Some(ans) = &self.ans {
+            println!("Yes");
+            print_vec_1line(ans);
+        } else {
+            println!("No");
+        }
     }
 }
 

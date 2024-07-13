@@ -1,18 +1,89 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    xs: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            xs: [i64; n],
         }
-        Problem { _a }
+        Problem { n, xs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        use ac_library::ModInt998244353 as Mint;
+        let n = self.n;
+        let xs = &self.xs;
+        // TODO: n = 1がコーナーケース
+
+        // dp[i][k][p][q] = xs[0..i] で 長さk の部分文字列を取って、初項がxs[p]で2項目がxs[q] であるようなものの数
+        let mut dp = vec![vec![vec![vec![Mint::new(0); n]; n]; n + 1]; n + 1];
+
+        // k=0 の初期化
+        for i in 0..=n {
+            for p in 0..n {
+                for q in 0..n {
+                    dp[i][0][p][q] = Mint::new(1);
+                }
+            }
+        }
+
+        // k=1 の初期化
+        for i in 0..=n {
+            for p in 0..i {
+                for q in 0..n {
+                    dp[i][1][p][q] = Mint::new(1);
+                }
+            }
+        }
+
+        for i in 1..n {
+            for k in 1..n {
+                for p in 0..n {
+                    for q in 0..n {
+                        let term1 = if xs[i] == xs[p] + (k as i64) * (xs[q] - xs[p]) {
+                            dp[i][k][p][q]
+                        } else {
+                            Mint::new(0)
+                        };
+                        let term2 = dp[i][k + 1][p][q];
+                        dp[i + 1][k + 1][p][q] = term1 + term2;
+                    }
+                }
+            }
+        }
+
+        let uniq_idx = xs
+            .iter()
+            .copied()
+            .enumerate()
+            .unique_by(|(_, x)| *x)
+            .map(|(i, _)| i)
+            .collect_vec();
+
+        //ans[l] = k = l + 1  のときの答え
+        let mut ans = vec![0; n];
+        ans[0] = n as i64; //k = 1の答え
+        for l in 1..n {
+            let k = l + 1;
+            ans[l] = iproduct!(0..n, uniq_idx.iter().copied())
+                .map(|(p, q)| dp[n][k][p][q])
+                .sum::<Mint>()
+                .val() as i64
+        }
+
+        // for i in 0..=n {
+        //     for k in 0..=n {
+        //         eprintln!("i={}, k={}", i, k);
+        //         for p in 0..n {
+        //             eprintln!("{}", dp[i][k][p].iter().join(" "));
+        //         }
+        //     }
+        // }
+
         Answer { ans }
     }
 
@@ -26,12 +97,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec_1line(&self.ans);
     }
 }
 
@@ -76,11 +147,11 @@ mod tests {
 
     #[allow(dead_code)]
     fn make_random_problem(rng: &mut SmallRng) -> Problem {
-        todo!()
-        // let n = rng.gen_range(1..=10);
-        // let p = Problem { _a: n };
-        // println!("{:?}", &p);
-        // p
+        let n = rng.gen_range(1..=10);
+        let xs = (0..n).map(|_| rng.gen_range(1..6)).collect_vec();
+        let p = Problem { n, xs };
+        println!("{:?}", &p);
+        p
     }
 
     #[allow(unreachable_code)]

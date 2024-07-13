@@ -1,18 +1,30 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    r: usize,
+    g: usize,
+    b: usize,
+    c: String,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            r: usize,
+            g: usize,
+            b: usize,
+            c: String,
         }
-        Problem { _a }
+        Problem { r, g, b, c }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = match self.c.as_str() {
+            "Red" => self.b.min(self.g),
+            "Green" => self.r.min(self.b),
+            "Blue" => self.r.min(self.g),
+            _ => panic!(),
+        };
+
         Answer { ans }
     }
 
@@ -26,7 +38,7 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: usize,
 }
 
 impl Answer {
