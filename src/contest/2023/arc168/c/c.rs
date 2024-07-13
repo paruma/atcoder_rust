@@ -48,7 +48,38 @@ impl Problem {
         Problem { n, k, s }
     }
     fn solve(&self) -> Answer {
-        todo!()
+        // まだ解けてない
+        let cnt_ch = |target: u8| self.s.iter().copied().filter(|&ch| ch == target).count();
+        let n = self.n;
+        let k = self.k;
+        let na = cnt_ch(b'A');
+        let nb = cnt_ch(b'B');
+        let nc = cnt_ch(b'C');
+        let comb = Comb::new(usize::max(n, k));
+
+        let c = |x, y| {
+            if x < y {
+                Mint::new(0)
+            } else {
+                comb.comb(x, y)
+            }
+        };
+
+        let ans = (0..=k)
+            .map(|i| {
+                dbg!((0..=i)
+                    .map(move |j| c(nb, j) * c(nc, j) * c(na, i - j) * c(nb + nc, i - j))
+                    .sum::<Mint>())
+            })
+            .sum::<Mint>();
+
+        // let ans = (0..=k)
+        //     .flat_map(|i| {
+        //         (0..=i).map(move |j| c(nb, i) * c(nc, i) * c(na, i - j) * c(nb + nc, i - j))
+        //     })
+        //     .sum::<Mint>();
+        let ans = ans.val() as i64;
+        Answer { ans }
     }
 
     fn solve_wrong3(&self) -> Answer {
