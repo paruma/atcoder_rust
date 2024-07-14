@@ -634,8 +634,13 @@ path = "src/contest/2024/abc356/e/e.rs"
 # path = "src/contest/2024/_misc/abc141_e.rs"
 
 # [[bin]]
-# name = "lpc_lazy_segtree"
-# path = "src/contest/2024/_misc/lazy_segtree.rs"
+# name = "acl_lcp"
+# path = "src/contest/2024/_misc/acl_lcp.rs"
+
+
+# [[bin]]
+# name = "acl_lazy_segtree"
+# path = "src/contest/2024/_misc/acl_lazy_segtree.rs"
 
 
 # [[bin]]
