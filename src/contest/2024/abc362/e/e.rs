@@ -13,11 +13,11 @@ impl Problem {
         }
         Problem { n, xs }
     }
+    #[allow(clippy::vec_init_then_push)]
     fn solve(&self) -> Answer {
         use ac_library::ModInt998244353 as Mint;
         let n = self.n;
         let xs = &self.xs;
-        // TODO: n = 1がコーナーケース
 
         // dp[i][k][p][q] = xs[0..i] で 長さk の部分文字列を取って、初項がxs[p]で2項目がxs[q] であるようなものの数
         let mut dp = vec![vec![vec![vec![Mint::new(0); n]; n]; n + 1]; n + 1];
@@ -64,15 +64,15 @@ impl Problem {
             .map(|(i, _)| i)
             .collect_vec();
 
-        //ans[l] = k = l + 1  のときの答え
-        let mut ans = vec![0; n];
-        ans[0] = n as i64; //k = 1の答え
-        for l in 1..n {
-            let k = l + 1;
-            ans[l] = iproduct!(0..n, uniq_idx.iter().copied())
+        let mut ans = vec![];
+
+        ans.push(n as i64); // k = 1の答え
+        for k in 2..=n {
+            let sub_ans = iproduct!(0..n, uniq_idx.iter().copied())
                 .map(|(p, q)| dp[n][k][p][q])
                 .sum::<Mint>()
-                .val() as i64
+                .val() as i64;
+            ans.push(sub_ans);
         }
 
         // for i in 0..=n {
@@ -83,6 +83,84 @@ impl Problem {
         //         }
         //     }
         // }
+
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // HashMap を使った DP の実装
+        // defaultdict に相当するものがないとかなり厳しい。
+        use ac_library::ModInt998244353 as Mint;
+        let n = self.n;
+        let xs = &self.xs;
+
+        // dp[i][k][c][d] = xs[0..i] で 長さk の部分文字列を取って、初項がcで公差がdとなる場合の数
+        let mut dp = vec![vec![HashMap::<i64, HashMap<i64, Mint>>::new(); n + 1]; n + 1];
+
+        // diff_list[i] = 初項がxs[i] のときのありえる公差
+        let diff_list = {
+            let mut diff_list = vec![HashSet::<i64>::new(); n];
+            for i in 0..n {
+                for j in i + 1..n {
+                    diff_list[i].insert(xs[j] - xs[i]);
+                }
+            }
+            diff_list
+        };
+
+        // k=1 の初期化
+        for i in 0..=n {
+            for p in 0..i {
+                for &d in &diff_list[p] {
+                    *dp[i][1]
+                        .entry(xs[p])
+                        .or_insert(HashMap::new())
+                        .entry(d)
+                        .or_insert(Mint::new(0)) += 1;
+                }
+            }
+        }
+
+        for i in 1..n {
+            for k in 1..n {
+                let mut next_dp = HashMap::new();
+                // 初項
+                for &c in dp[i][k].keys() {
+                    // 公差
+                    for &d in dp[i][k][&c].keys() {
+                        let term1 = if xs[i] == c + (k as i64) * d {
+                            dp[i][k][&c][&d]
+                        } else {
+                            Mint::new(0)
+                        };
+                        let term2 = dp[i][k + 1]
+                            .get(&c)
+                            .unwrap_or(&HashMap::new())
+                            .get(&d)
+                            .copied()
+                            .unwrap_or(Mint::new(0));
+                        *next_dp
+                            .entry(c)
+                            .or_insert(HashMap::new())
+                            .entry(d)
+                            .or_insert(Mint::new(0)) = term1 + term2;
+                    }
+                }
+                dp[i + 1][k + 1] = next_dp;
+            }
+        }
+
+        let mut ans = vec![];
+
+        ans.push(n as i64); // k = 1の答え
+        for k in 2..=n {
+            let sub_ans = dp[n][k]
+                .values()
+                .flat_map(|dp_sub| dp_sub.values())
+                .sum::<Mint>()
+                .val() as i64;
+            ans.push(sub_ans);
+        }
 
         Answer { ans }
     }
@@ -107,7 +185,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]

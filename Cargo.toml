@@ -1637,9 +1637,9 @@ path = "src/contest/2024/abc356/e/e.rs"
 # path = "src/contest/2023/abc311/b.rs"
 
 
-# [[bin]]
-# name = "template"
-# path = "src/contest/template.rs"
+[[bin]]
+name = "template"
+path = "src/contest/template.rs"
 
 
 hoge = """

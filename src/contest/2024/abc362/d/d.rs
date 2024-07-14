@@ -84,12 +84,7 @@ impl Problem {
                 }
             }
         }
-        let ans = dist[1..]
-            .to_vec()
-            .iter()
-            .copied()
-            .map(|x| x.get_fin())
-            .collect_vec();
+        let ans = dist[1..].iter().copied().map(|x| x.get_fin()).collect_vec();
         Answer { ans }
     }
 

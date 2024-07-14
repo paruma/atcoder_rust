@@ -33,7 +33,6 @@ impl Problem {
             let mut ans: Vec<i64> = vec![];
 
             for r in ranges {
-                //
                 if sum == 0 {
                     ans.push(r.min);
                 } else if r.max - r.min < sum {

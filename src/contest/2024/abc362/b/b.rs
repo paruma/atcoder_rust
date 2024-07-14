@@ -35,6 +35,14 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        let ans = [self.p1, self.p2, self.p3]
+            .iter()
+            .circular_tuple_windows()
+            .any(|(p1, p2, p3)| is_right_triangle(*p1, *p2, *p3));
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -55,7 +63,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
