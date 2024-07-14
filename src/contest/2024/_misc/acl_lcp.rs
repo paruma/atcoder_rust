@@ -57,19 +57,6 @@ fn main() {
     Problem::read().solve().print();
 }
 
-#[cfg(test)]
-mod tests {
-    #[allow(unused_imports)]
-    use super::*;
-    #[allow(unused_imports)]
-    use rand::{rngs::SmallRng, seq::SliceRandom, *};
-
-    #[test]
-    fn test_problem() {
-        assert_eq!(1 + 1, 2);
-    }
-}
-
 use ac_library::{lcp_array_arbitrary, suffix_array_arbitrary};
 // ====== import ======
 #[allow(unused_imports)]
