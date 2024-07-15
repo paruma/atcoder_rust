@@ -3290,7 +3290,7 @@
     "prefix": "monoid_matrix_mul",
     "body": [
       "use dynamic_monoid::*;",
-      "use monoid_transform::*;",
+      "use monoid_matrix_mul::*;",
       "pub mod dynamic_monoid {",
       "    pub trait DynamicMonoid {",
       "        type S: Clone;",

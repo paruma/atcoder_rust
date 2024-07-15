@@ -383,7 +383,7 @@ pub mod monoid_transform {
     }
 }
 
-#[snippet(prefix = "use monoid_transform::*;", include = "dynamic_monoid")]
+#[snippet(prefix = "use monoid_matrix_mul::*;", include = "dynamic_monoid")]
 pub mod monoid_matrix_mul {
     use itertools::Itertools;
 
