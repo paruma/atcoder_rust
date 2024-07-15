@@ -1,4 +1,4 @@
-use crate::mylib::{bitset::bitset::BitSet, ext_int::mod_ext_int::ExtInt};
+use crate::mylib::{data_structure::bitset::bitset::BitSet, ext_int::mod_ext_int::ExtInt};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct Edge {

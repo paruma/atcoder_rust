@@ -1,6 +1,6 @@
 use cargo_snippet::snippet;
 
-use super::queue0::mod_queue::Queue;
+use super::data_structure::queue0::mod_queue::Queue;
 
 #[snippet]
 pub fn make_adj_from_directed(n_vertex: usize, edges: &[(usize, usize)]) -> Vec<Vec<usize>> {

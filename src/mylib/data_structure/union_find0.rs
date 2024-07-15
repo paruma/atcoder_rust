@@ -323,7 +323,7 @@ pub mod grid_union_find {
     use cargo_snippet::snippet;
     use itertools::Itertools;
 
-    use super::super::pos0::pos::Pos;
+    use super::super::super::pos0::pos::Pos;
 
     use super::super::union_find0::simple_union_find::UnionFind;
     #[snippet(name = "GridUnionFind")]

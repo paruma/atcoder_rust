@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::mylib::stack0::mod_stack::Stack;
+use crate::mylib::data_structure::stack0::mod_stack::Stack;
 
 struct DfsGraph<'a> {
     adj: &'a [Vec<usize>],

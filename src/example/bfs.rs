@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::mylib::queue0::mod_queue::Queue;
+use crate::mylib::data_structure::queue0::mod_queue::Queue;
 
 /// init から行ける頂点を全探索する
 /// 計算量: O(頂点の数 + 辺の数)
