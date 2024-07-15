@@ -1,6 +1,3 @@
-use cargo_snippet::snippet;
-
-#[snippet(prefix = "use scan_iter::*;")]
 pub mod scan_iter {
     #[derive(Clone)]
     pub struct Scanl<I, B, F> {
@@ -11,7 +8,11 @@ pub mod scan_iter {
 
     impl<I, B, F> Scanl<I, B, F> {
         fn new(iter: I, init: B, f: F) -> Scanl<I, B, F> {
-            Scanl { iter, state: Some(init), f }
+            Scanl {
+                iter,
+                state: Some(init),
+                f,
+            }
         }
     }
 
@@ -28,7 +29,9 @@ pub mod scan_iter {
             let retval = self.state?;
             let a_opt = self.iter.next();
 
-            self.state = self.state.and_then(|mut s| a_opt.map(|a| (self.f)(&mut s, a)));
+            self.state = self
+                .state
+                .and_then(|mut s| a_opt.map(|a| (self.f)(&mut s, a)));
 
             Some(retval)
         }

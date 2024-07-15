@@ -1,6 +1,3 @@
-use cargo_snippet::snippet;
-
-#[snippet("fn_guard")]
 pub fn guard(p: bool) -> Option<()> {
     if p {
         Some(())
