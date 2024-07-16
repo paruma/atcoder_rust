@@ -9,19 +9,19 @@ mod tests {
 
     #[test]
     fn test_suffix_string() {
-        let s = "missisippi".chars().collect_vec();
+        let s = "mississippi".chars().collect_vec();
         let n = s.len();
         let sa = suffix_array_arbitrary(&s);
         for i in 0..n {
             let suffix = &s[sa[i]..];
             let suffix_string = suffix.iter().collect::<String>();
-            println!("{} {}", i, suffix_string);
+            println!("{:>2} {}", sa[i], suffix_string);
         }
     }
 
     #[test]
     fn test_lcp_array() {
-        let s = "missisippi".chars().collect_vec();
+        let s = "mississippi".chars().collect_vec();
         let n = s.len();
         let sa = suffix_array_arbitrary(&s);
         let lcp_array = lcp_array_arbitrary(&s, &sa);
@@ -38,7 +38,7 @@ mod tests {
 
     #[test]
     fn test_z_algorithm() {
-        let s = "missisippi".chars().collect_vec();
+        let s = "mississippi".chars().collect_vec();
         let n = s.len();
         let lcp_len = z_algorithm_arbitrary(&s);
         for i in 0..n {
