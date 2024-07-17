@@ -5,6 +5,7 @@ pub mod coordinate_compression0;
 pub mod cumsum0;
 pub mod data_structure;
 pub mod debug;
+pub mod doubling;
 pub mod ext_int;
 pub mod graph;
 pub mod grid;
