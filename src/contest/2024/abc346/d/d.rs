@@ -43,6 +43,63 @@ impl Problem {
         let ans = i64::min(dp[n][1][0], dp[n][1][1]);
         Answer { ans }
     }
+
+    fn solve2(&self) -> Answer {
+        // 累積和を使う
+        // 良い文字はたかだか2(N-1)通りくらいしかないので、全部のコストを計算する。
+        let n = self.n;
+        let s = &self.s;
+        let cs = &self.cs;
+
+        let cost01 = (0..n)
+            .map(|i| {
+                // i % 2 にする
+                if s[i] != i % 2 {
+                    cs[i]
+                } else {
+                    0
+                }
+            })
+            .collect_vec();
+
+        let cost10 = (0..n)
+            .map(|i| {
+                // (i + 1) % 2 にする
+                if s[i] != (i + 1) % 2 {
+                    cs[i]
+                } else {
+                    0
+                }
+            })
+            .collect_vec();
+
+        let cost01_cumsum = CumSum::new(&cost01);
+        let cost10_cumsum = CumSum::new(&cost10);
+
+        // 前半01, 後半10
+        let score0 = (0..(n - 1))
+            .map(|i| {
+                // 0..=i は cost01
+                // (i+1)..n は cost10 を使う
+                cost01_cumsum.range_sum(0..=i) + cost10_cumsum.range_sum((i + 1)..n)
+            })
+            .min()
+            .unwrap();
+
+        // 前半10, 後半01
+        let score1 = (0..(n - 1))
+            .map(|i| {
+                // 0..=i は cost01
+                // (i+1)..n は cost10 を使う
+                cost10_cumsum.range_sum(0..=i) + cost01_cumsum.range_sum((i + 1)..n)
+            })
+            .min()
+            .unwrap();
+
+        let ans = i64::min(score0, score1);
+
+        Answer { ans }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -57,7 +114,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -124,3 +181,54 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use cumsum::*;
+pub mod cumsum {
+    pub fn prefix_sum(xs: &[i64]) -> Vec<i64> {
+        let mut prefix_sum = vec![0; xs.len() + 1];
+        for i in 1..xs.len() + 1 {
+            prefix_sum[i] = prefix_sum[i - 1] + xs[i - 1];
+        }
+        prefix_sum
+    }
+    use std::ops::{Bound, Range, RangeBounds};
+    pub struct CumSum {
+        pub cumsum: Vec<i64>,
+    }
+    impl CumSum {
+        /// 計算量: O(|xs|)
+        pub fn new(xs: &[i64]) -> CumSum {
+            let mut cumsum = vec![0; xs.len() + 1];
+            for i in 1..xs.len() + 1 {
+                cumsum[i] = cumsum[i - 1] + xs[i - 1];
+            }
+            CumSum { cumsum }
+        }
+        fn open(&self, range: impl RangeBounds<usize>) -> Range<usize> {
+            use Bound::Excluded;
+            use Bound::Included;
+            use Bound::Unbounded;
+            let begin = match range.start_bound() {
+                Unbounded => 0,
+                Included(&x) => x,
+                Excluded(&x) => x + 1,
+            };
+            let end = match range.end_bound() {
+                Excluded(&x) => x,
+                Included(&x) => x + 1,
+                Unbounded => self.cumsum.len() - 1,
+            };
+            begin..end
+        }
+        /// 計算量: O(1)
+        pub fn range_sum(&self, range: impl RangeBounds<usize>) -> i64 {
+            let range = self.open(range);
+            self.cumsum[range.end] - self.cumsum[range.start]
+        }
+        pub fn prefix_sum(&self, end: usize) -> i64 {
+            self.cumsum[end]
+        }
+        pub fn suffix_sum(&self, begin: usize) -> i64 {
+            self.cumsum[self.cumsum.len() - 1] - self.cumsum[begin]
+        }
+    }
+}
