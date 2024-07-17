@@ -27,7 +27,7 @@ fn bfs(adj: &[Vec<usize>], init: usize) -> Vec<bool> {
 #[cfg(test)]
 mod tests {
 
-    use crate::mylib::graph::make_adj_from_directed;
+    use crate::mylib::graph::graph::make_adj_from_directed;
 
     use super::*;
 

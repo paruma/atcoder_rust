@@ -62,7 +62,7 @@ fn dfs_by_stack(adj: &[Vec<usize>]) -> Vec<bool> {
 
 #[cfg(test)]
 mod tests {
-    use crate::mylib::graph::make_adj_from_directed;
+    use crate::mylib::graph::graph::make_adj_from_directed;
 
     use super::*;
 
