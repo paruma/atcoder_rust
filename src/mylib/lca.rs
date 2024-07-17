@@ -41,8 +41,8 @@ pub mod lca {
             };
 
             let ancestor = {
-                // 2^k >= nv となる最小のk
-                let k = (0..).find(|&i| (1 << i) >= nv).unwrap();
+                // nv の２進展開の桁数
+                let k = (usize::BITS - nv.leading_zeros()) as usize;
                 let mut ancestor = vec![vec![0; nv]; k];
                 ancestor[0] = tree_parent.to_vec();
                 for i in 1..k {
@@ -148,14 +148,49 @@ mod tests {
         let n = tree_parent.len();
         let lca = Lca::new(&tree_parent);
 
+        // 使用例
         assert_eq!(lca.lca(6, 9), 1);
         assert_eq!(lca.lca(9, 10), 0);
         assert_eq!(lca.lca(1, 6), 1);
         assert_eq!(lca.lca(3, 3), 3);
 
+        // 網羅テスト
         for u in 0..n {
             for v in 0..n {
                 assert_eq!(lca.lca(u, v), lca_naive(&tree_parent, u, v));
+            }
+        }
+    }
+
+    #[test]
+    fn test_lca2() {
+        // ルートが0以外の木でテスト
+        // 1
+        // ├ 2
+        // └ 0
+        //   └ 3
+        let tree_parent = vec![1, 1, 1, 0];
+        let n = tree_parent.len();
+        let lca = Lca::new(&tree_parent);
+
+        for u in 0..n {
+            for v in 0..n {
+                assert_eq!(lca.lca(u, v), lca_naive(&tree_parent, u, v));
+            }
+        }
+    }
+
+    #[test]
+    fn test_lca3() {
+        // 複数のサイズの木でテスト
+        for n in 1..=8 {
+            // 直線的な木 0 - 1 - ... - (n-1)
+            let tree_parent = (0..n).map(|i| if i == 0 { 0 } else { i - 1 }).collect_vec();
+            let lca = Lca::new(&tree_parent);
+            for u in 0..n {
+                for v in 0..n {
+                    assert_eq!(lca.lca(u, v), lca_naive(&tree_parent, u, v));
+                }
             }
         }
     }

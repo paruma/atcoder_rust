@@ -2025,7 +2025,7 @@
       "                dist",
       "            };",
       "            let ancestor = {",
-      "                let k = (0..).find(|&i| (1 << i) >= nv).unwrap();",
+      "                let k = (usize::BITS - nv.leading_zeros()) as usize;",
       "                let mut ancestor = vec![vec![0; nv]; k];",
       "                ancestor[0] = tree_parent.to_vec();",
       "                for i in 1..k {",
