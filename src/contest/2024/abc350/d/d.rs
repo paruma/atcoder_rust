@@ -56,13 +56,23 @@ impl Problem {
         //     })
         //     .sum::<usize>();
 
-        let mut sum = 0;
-        for v in 0..nv {
-            if uf.root(v) == v {
-                let cnt = uf.same_count(v);
-                sum += nc2(cnt);
-            }
-        }
+        let sum = (0..nv)
+            .filter_map(|v| {
+                if uf.root(v) == v {
+                    let cnt = uf.same_count(v);
+                    Some(nc2(cnt))
+                } else {
+                    None
+                }
+            })
+            .sum::<usize>();
+        // let mut sum = 0;
+        // for v in 0..nv {
+        //     if uf.root(v) == v {
+        //         let cnt = uf.same_count(v);
+        //         sum += nc2(cnt);
+        //     }
+        // }
 
         let ans = sum - self.ne;
         let ans = ans as i64;
@@ -89,6 +99,18 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve3(&self) -> Answer {
+        let mut uf: UnionFind = UnionFind::new(self.nv);
+
+        for &e in &self.edges {
+            uf.unite(e.u, e.v);
+        }
+        // 各グループの個数を求める
+        let sum = uf.groups().iter().map(|g| g.len()).map(nc2).sum::<usize>();
+        let ans = sum - self.ne;
+        let ans = ans as i64;
+        Answer { ans }
+    }
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -109,7 +131,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve3().print();
 }
 
 #[cfg(test)]
@@ -227,11 +249,13 @@ pub mod simple_union_find {
     #[derive(Clone, Debug)]
     pub struct UnionFind {
         nodes: Vec<Node>,
+        cnt_groups: usize,
     }
     impl UnionFind {
         pub fn new(n: usize) -> UnionFind {
             UnionFind {
                 nodes: vec![Node::Root(RootInfo { count: 1 }); n],
+                cnt_groups: n,
             }
         }
         fn root_node(&mut self, index: usize) -> RootAndIndex {
@@ -256,18 +280,16 @@ pub mod simple_union_find {
             self.root(x) == self.root(y)
         }
         pub fn num_groups(&self) -> usize {
-            self.nodes
-                .iter()
-                .filter(|&node| matches!(node, Node::Root { .. }))
-                .count()
+            self.cnt_groups
         }
-        pub fn unite(&mut self, x: usize, y: usize) {
+        pub fn unite(&mut self, x: usize, y: usize) -> bool {
             if self.same(x, y) {
-                return;
+                return false;
             }
+            self.cnt_groups -= 1;
             let x_root_node = self.root_node(x);
             let y_root_node = self.root_node(y);
-            let (smaller_root, larger_root) = if x_root_node.info.count < y_root_node.info.count {
+            let (smaller_root, larger_root) = if x_root_node.info.count <= y_root_node.info.count {
                 (x_root_node, y_root_node)
             } else {
                 (y_root_node, x_root_node)
@@ -278,6 +300,7 @@ pub mod simple_union_find {
             self.nodes[larger_root.index] = Node::Root(RootInfo {
                 count: smaller_root.info.count + larger_root.info.count,
             });
+            true
         }
         pub fn groups(&mut self) -> Vec<Vec<usize>> {
             let n = self.nodes.len();
