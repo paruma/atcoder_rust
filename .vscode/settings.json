@@ -31,8 +31,13 @@
         "sympy",
         "yesno"
     ],
-    "rust-analyzer.check.command": "clippy",
-    "rust-analyzer.check.extraArgs": [
+    "rust-analyzer.cargo.buildScripts.overrideCommand": [
+        "cargo",
+        "clippy",
+        "--quiet",
+        "--workspace",
+        "--message-format=json",
+        "--all-targets",
         "--",
         "-A",
         "clippy::needless_range_loop",
@@ -45,4 +50,22 @@
         "-A",
         "clippy::int_plus_one"
     ],
+    "rust-analyzer.check.overrideCommand": [
+        "cargo",
+        "clippy",
+        "--workspace",
+        "--message-format=json",
+        "--all-targets",
+        "--",
+        "-A",
+        "clippy::needless_range_loop",
+        "-A",
+        "clippy::too_many_arguments",
+        "-A",
+        "clippy::collapsible_else_if",
+        "-A",
+        "clippy::if_same_then_else",
+        "-A",
+        "clippy::int_plus_one"
+    ]
 }
