@@ -23,6 +23,7 @@ pub mod lca_euler_tour {
         dist: Vec<i64>,                        // dist[v]: ルートから v までの距離
         euler_tour_dist: Segtree<MinI64Usize>, // 根からの距離を euler tour の順に並べたもの
         euler_tour_in_time: Vec<usize>,
+        #[allow(dead_code)]
         euler_tour_out_time: Vec<usize>,
     }
 

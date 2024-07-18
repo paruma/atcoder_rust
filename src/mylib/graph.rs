@@ -1,3 +1,4 @@
+pub mod euler_tour;
 #[allow(clippy::module_inception)]
 pub mod graph;
 pub mod lca;
