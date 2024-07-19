@@ -104,42 +104,9 @@ impl Problem {
             let end = begin + k;
             set.insert(ps_inv[end - 1]);
 
-            let min = set.iter().copied().next().unwrap();
-            let max = set.iter().copied().next_back().unwrap();
-
-            cand.push(max - min);
-
-            set.remove(&ps_inv[begin]);
-        }
-
-        let ans = cand.iter().copied().min().unwrap() as i64;
-
-        Answer { ans }
-    }
-
-    fn solve3(&self) -> Answer {
-        // BTreeSetを使った解法 (拡張ライブラリ使用)
-        let n = self.n;
-        let k = self.k;
-        let ps = &self.ps;
-        let ps_inv = {
-            let mut ps_inv = vec![0; n];
-            for (i, &p) in ps.iter().enumerate() {
-                ps_inv[p] = i;
-            }
-            ps_inv
-        };
-
-        let mut set = ps_inv[0..k - 1].iter().copied().collect::<BTreeSet<_>>();
-
-        let mut cand = vec![];
-
-        for begin in 0..n - k + 1 {
-            let end = begin + k;
-            set.insert(ps_inv[end - 1]);
-
-            let min = set.all_min().unwrap();
-            let max = set.all_max().unwrap();
+            // let min = set.iter().copied().min().unwrap(); と書くと TLE なので注意
+            let min = set.iter().min().unwrap();
+            let max = set.iter().max().unwrap();
 
             cand.push(max - min);
 
@@ -197,7 +164,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve_naive().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -334,35 +301,3 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
-use btree_set_ext::*;
-#[allow(clippy::module_inception)]
-pub mod btree_set_ext {
-    use easy_ext::ext;
-    use std::{collections::BTreeSet, ops::RangeBounds};
-    #[ext(BTreeSetExt)]
-    impl<T> BTreeSet<T>
-    where
-        T: Ord,
-    {
-        pub fn all_min(&self) -> Option<&T> {
-            self.iter().next()
-        }
-        pub fn all_max(&self) -> Option<&T> {
-            self.iter().next_back()
-        }
-        /// range との共通部分の中での最小値を返す
-        pub fn range_min<R>(&self, range: R) -> Option<&T>
-        where
-            R: RangeBounds<T>,
-        {
-            self.range(range).next()
-        }
-        /// range との共通部分の中での最大値を返す
-        pub fn range_max<R>(&self, range: R) -> Option<&T>
-        where
-            R: RangeBounds<T>,
-        {
-            self.range(range).next_back()
-        }
-    }
-}
