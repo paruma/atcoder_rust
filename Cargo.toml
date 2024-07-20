@@ -1747,7 +1747,7 @@ regex = "=1.9.1"
 # ascii = "=1.1.0"
 
 # permutation
-# permutohedron = "=0.2.4"
+permutohedron = "=0.2.4"
 
 # スライスの拡張
 superslice = "=1.0.0"

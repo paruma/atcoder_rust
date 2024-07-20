@@ -5,6 +5,7 @@ mod dfs_multi_loop;
 mod dp;
 mod integer;
 mod kruskal;
+mod next_permutation;
 mod random;
 mod shakutori;
 mod shortest_path;
