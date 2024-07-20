@@ -16,7 +16,7 @@ fn rev_number(k: i64) -> i64 {
 }
 
 fn contains0(k: i64) -> bool {
-    let s = to_base_n_value(k, 10);
+    let mut s = to_base_n_value(k, 10);
     s.contains(&0)
 }
 
@@ -30,25 +30,12 @@ impl Problem {
     fn solve(&self) -> Answer {
         let n = self.n;
 
-        if n == 1 {
-            return Answer {
-                ans: Some("1".to_string()),
-            };
-        }
-
-        // 0が入っている数字は除く（問題文）
-        let mut divisors = divisors(n)
+        // 0が入っている数字は除く（問題文）a
+        let divisors = divisors(n)
             .iter()
             .copied()
-            .filter(|x| !contains0(*x) && *x != 1)
-            .flat_map(|x| {
-                std::iter::successors(Some(x), move |acc| {
-                    acc.checked_mul(x).filter(|x| (n % x == 0))
-                })
-            })
-            .collect_vec();
-
-        divisors.push(1);
+            .filter(|x| !contains0(*x))
+            .collect::<HashSet<_>>();
 
         let palindrome_set = divisors
             .iter()
@@ -66,76 +53,27 @@ impl Problem {
         // dbg!(having_pair_num);
 
         for &mid in &palindrome_set {
-            let mut dp = vec![HashMap::<i64, i64>::new(); having_pair_num.len() + 1];
-            dp[0].insert(mid, 0); // 0 はダミー
+            let mut dp = vec![HashSet::<i64>::new(); having_pair_num.len() + 1];
+            dp[0].insert(mid);
 
             for i in 0..having_pair_num.len() {
                 // having_pair_num[i] を選ぶ or 選ばない
-                let mut next_dp = HashMap::new();
-                for &x in dp[i].keys() {
-                    *next_dp.entry(x).or_insert(0) = x;
-                    //next_dp.insert(x, x);
-                    //let next = x * having_pair_num[i] * rev_number(having_pair_num[i]);
-                    let next = x
-                        .checked_mul(having_pair_num[i])
-                        .and_then(|y| y.checked_mul(rev_number(having_pair_num[i])));
+                let mut next_dp = HashSet::new();
+                for &x in &dp[i] {
+                    next_dp.insert(x);
+                    let next = x * having_pair_num[i];
                     // n は next の倍数である必要がある
-                    if let Some(next) = next {
-                        if n % next == 0 {
-                            *next_dp.entry(next).or_insert(0) = x;
-                        }
+                    if n % next == 0 {
+                        next_dp.insert(next);
                     }
                 }
                 dp[i + 1] = next_dp;
             }
 
-            //dbg!(&dp[having_pair_num.len()]);
-            if dp[having_pair_num.len()].contains_key(&n) {
-                // dp の復元
-                let mut current = n;
-                let mut buf = vec![];
-                for i in (0..having_pair_num.len()).rev() {
-                    let prev = dp[i + 1][&current];
-                    if current != prev {
-                        buf.push(i);
-                        current = prev;
-                    }
-                }
-
-                // dbg!(buf);
-                // dbg!(&having_pair_num);
-                // dbg!(&having_pair_num.len());
-
-                let mut factor = vec![];
-
-                for &i in &buf {
-                    if having_pair_num[i] == 1 {
-                        continue;
-                    }
-                    factor.push(having_pair_num[i]);
-                }
-                if mid != 1 {
-                    factor.push(mid);
-                }
-
-                for i in buf.iter().copied().rev() {
-                    if having_pair_num[i] == 1 {
-                        continue;
-                    }
-                    factor.push(rev_number(having_pair_num[i]));
-                }
-
-                // dbg!(&factor);
-
-                let ans = factor.iter().copied().map(|x| x.to_string()).join("*");
-
-                // dbg!(&ans);
-
-                return Answer { ans: Some(ans) };
-            }
+            dbg!(&dp[having_pair_num.len()]);
         }
 
-        let ans = None;
+        let ans = 0;
         Answer { ans }
     }
 
@@ -149,16 +87,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: Option<String>,
+    ans: i64,
 }
 
 impl Answer {
     fn print(&self) {
-        if let Some(ans) = &self.ans {
-            println!("{}", ans);
-        } else {
-            println!("-1");
-        }
+        println!("{}", self.ans);
     }
 }
 
@@ -175,10 +109,6 @@ mod tests {
 
     #[test]
     fn test_problem() {
-        for i in 1..=1000 {
-            let p = Problem { n: i };
-            println!("{}, {:?}", i, p.solve());
-        }
         assert_eq!(1 + 1, 2);
     }
 

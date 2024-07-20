@@ -1,18 +1,43 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    k: usize,
+    s: Vec<char>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            k: usize,
+            s: Chars
         }
-        Problem { _a }
+        Problem { n, k, s }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let k = self.k;
+        use permutohedron::LexicalPermutation;
+
+        let mut cnt = 0;
+
+        let mut s = self.s.clone();
+        s.sort();
+
+        while {
+            let is_ok = s.windows(k).all(|t_sub| {
+                // t_sub が回文でないことを調べる
+                t_sub != t_sub.iter().copied().rev().collect_vec()
+            });
+
+            cnt += is_ok as i64;
+
+            s.next_permutation()
+        } {}
+
+        let ans = cnt;
+
         Answer { ans }
     }
 

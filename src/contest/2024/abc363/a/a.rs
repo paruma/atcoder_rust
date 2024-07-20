@@ -1,18 +1,25 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    r: usize,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            r: usize,
         }
-        Problem { _a }
+        Problem { r }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let r = self.r;
+        let ans = if (1..=99).contains(&r) {
+            100 - r
+        } else if (100..=199).contains(&r) {
+            200 - r
+        } else {
+            300 - r
+        };
         Answer { ans }
     }
 
@@ -26,7 +33,7 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: usize,
 }
 
 impl Answer {

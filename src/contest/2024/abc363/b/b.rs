@@ -1,18 +1,40 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    t: i64,
+    p: usize,
+    ls: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            t: i64,
+            p: usize,
+            ls: [i64; n],
         }
-        Problem { _a }
+        Problem { n, t, p, ls }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let t = self.t;
+        let p = self.p;
+        let mut ls = self.ls.clone();
+
+        let mut time = 0;
+
+        loop {
+            if ls.iter().copied().filter(|x| *x >= t).count() >= p {
+                break;
+            }
+
+            ls.iter_mut().for_each(|x| *x += 1);
+            time += 1;
+        }
+
+        let ans = time;
         Answer { ans }
     }
 
