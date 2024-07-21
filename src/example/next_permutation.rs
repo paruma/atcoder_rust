@@ -6,7 +6,8 @@ mod tests {
     #[test]
     fn test_next_permutation() {
         // 同じものを含む順列を全列挙
-        let mut xs = vec![0, 0, 1, 1, 2];
+        let mut xs = vec![0, 1, 1, 0, 2];
+        xs.sort(); // ソートが必要
         let mut buf = vec![];
         while {
             buf.push(xs.clone());
