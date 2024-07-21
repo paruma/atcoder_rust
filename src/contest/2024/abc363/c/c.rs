@@ -16,6 +16,7 @@ impl Problem {
         Problem { n, k, s }
     }
     fn solve(&self) -> Answer {
+        // 解法: next_permutation を使う
         let n = self.n;
         let k = self.k;
         use permutohedron::LexicalPermutation;
@@ -28,7 +29,98 @@ impl Problem {
         while {
             let is_ok = s.windows(k).all(|t_sub| {
                 // t_sub が回文でないことを調べる
-                t_sub != t_sub.iter().copied().rev().collect_vec()
+                //t_sub != t_sub.iter().copied().rev().collect_vec() // こう書くと実行時間500ms
+                !t_sub.iter().eq(t_sub.iter().rev()) // こう書くと実行時間50ms
+            });
+
+            cnt += is_ok as i64;
+
+            s.next_permutation()
+        } {}
+
+        let ans = cnt;
+
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // permutations & 重複カウントを階乗で割る
+        let s = &self.s;
+        let k = self.k;
+        let numerator = s
+            .iter()
+            .copied()
+            .permutations(s.len())
+            .filter(|t| {
+                t.windows(k).all(|t_sub| {
+                    // t_sub が回文でないことを調べる
+                    t_sub != t_sub.iter().copied().rev().collect_vec()
+                })
+            })
+            .count();
+
+        let denominator = {
+            let cnts = s.iter().copied().counts().values().copied().collect_vec();
+
+            cnts.iter()
+                .map(|c| (1..=*c).product::<usize>())
+                .product::<usize>()
+        };
+
+        let ans = numerator / denominator;
+        let ans = ans as i64;
+
+        Answer { ans }
+    }
+
+    fn solve3(&self) -> Answer {
+        // permutations & unique (1500ms)
+        // unique 内部では HashMap を使っているので、O(n) で unique は計算できるが、
+        // 動的メモリ確保をしているので定数倍が重い
+        let s = &self.s;
+        let k = self.k;
+        let ans = s
+            .iter()
+            .copied()
+            .permutations(s.len())
+            .filter(|t| {
+                t.windows(k).all(|t_sub| {
+                    // t_sub が回文でないことを調べる
+                    !t_sub.iter().eq(t_sub.iter().rev())
+                })
+            })
+            .unique()
+            .count();
+
+        let ans = ans as i64;
+        Answer { ans }
+    }
+
+    fn solve4(&self) -> Answer {
+        // next_permutations & ロリハ
+        // 794ms O(N! N) なのにとても遅い (愚直の O(N! NK) は 50ms)
+        // N! 回動的に配列確保しているのが遅い原因ぽさそう。
+        let n = self.n;
+        let k = self.k;
+        use permutohedron::LexicalPermutation;
+
+        let mut cnt = 0;
+
+        let mut s = self.s.clone();
+        s.sort();
+
+        while {
+            let s_i64 = s
+                .iter()
+                .copied()
+                .map(|ch| (ch as i64) - ('a' as i64))
+                .collect_vec();
+            let s_rev = s_i64.iter().copied().rev().collect_vec();
+            let s_rh = RollingHash::new(&s_i64, 363);
+            let s_rev_rh = RollingHash::new(&s_rev, 363);
+            let is_ok = (0..=n - k).all(|begin| {
+                let end = begin + k;
+                s_rh.hash(begin, end) != s_rev_rh.hash(n - end, n - begin)
             });
 
             cnt += is_ok as i64;
@@ -66,6 +158,7 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
+
     #[allow(unused_imports)]
     use super::*;
     #[allow(unused_imports)]
@@ -198,3 +291,85 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use rolling_hash::*;
+pub mod rolling_hash {
+    const MOD: i64 = (1 << 61) - 1;
+    const MOD_I128: i128 = (1 << 61) - 1;
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    struct ModInt261M1 {
+        val: i64,
+    }
+    impl ModInt261M1 {
+        #[inline]
+        pub fn new(val: i64) -> Self {
+            Self { val }
+        }
+    }
+    impl std::ops::Add for ModInt261M1 {
+        type Output = Self;
+        #[inline]
+        fn add(self, rhs: Self) -> Self::Output {
+            let mut x = self.val + rhs.val;
+            if x >= MOD {
+                x -= MOD;
+            }
+            Self::new(x)
+        }
+    }
+    impl std::ops::Sub for ModInt261M1 {
+        type Output = Self;
+        #[inline]
+        fn sub(self, rhs: Self) -> Self::Output {
+            let mut x = MOD + self.val - rhs.val;
+            if x >= MOD {
+                x -= MOD;
+            }
+            Self::new(x)
+        }
+    }
+    impl std::ops::Mul for ModInt261M1 {
+        type Output = Self;
+        #[inline]
+        fn mul(self, rhs: Self) -> Self::Output {
+            let x = (self.val as i128) * (rhs.val as i128);
+            let mut x = ((x >> 61) + (x & MOD_I128)) as i64;
+            if x >= MOD {
+                x -= MOD;
+            }
+            Self::new(x)
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct RollingHash {
+        hash_list: Vec<ModInt261M1>,
+        pow_list: Vec<ModInt261M1>,
+        length: usize,
+    }
+    impl RollingHash {
+        pub fn new(xs: &[i64], base: i64) -> Self {
+            let base = ModInt261M1::new(base);
+            let mut hash_list = vec![ModInt261M1::new(0); xs.len() + 1];
+            let mut pow_list = vec![ModInt261M1::new(1); xs.len() + 1];
+            for i in 0..xs.len() {
+                hash_list[i + 1] = hash_list[i] * base + ModInt261M1::new(xs[i]);
+                pow_list[i + 1] = pow_list[i] * base;
+            }
+            let length = xs.len();
+            Self {
+                hash_list,
+                pow_list,
+                length,
+            }
+        }
+        pub fn hash(&self, begin: usize, end: usize) -> i64 {
+            let x = self.hash_list[end] - self.hash_list[begin] * self.pow_list[end - begin];
+            x.val
+        }
+        pub fn len(&self) -> usize {
+            self.length
+        }
+        pub fn is_empty(&self) -> bool {
+            self.length == 0
+        }
+    }
+}
