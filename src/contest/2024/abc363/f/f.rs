@@ -42,11 +42,15 @@ impl Problem {
             .copied()
             .filter(|x| !contains0(*x) && *x != 1)
             .flat_map(|x| {
-                std::iter::successors(Some(x), move |acc| {
+                let cnt = std::iter::successors(Some(x), move |acc| {
                     acc.checked_mul(x).filter(|x| (n % x == 0))
                 })
+                .count();
+                std::iter::repeat(x).take(cnt)
             })
             .collect_vec();
+
+        //dbg!(divisors.iter().copied().sorted().collect_vec());
 
         divisors.push(1);
 
@@ -139,6 +143,56 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        // 解法: メモ化再帰
+        let n = self.n;
+        let divisors = divisors(n);
+        let having_pair_num = divisors
+            .iter()
+            .copied()
+            .filter(|x| divisors.contains(&rev_number(*x)) && !contains0(*x))
+            .collect_vec();
+
+        fn rec(
+            k: i64,
+            memo: &mut HashMap<i64, Option<VecDeque<i64>>>,
+            having_pair_num: &[i64],
+        ) -> Option<VecDeque<i64>> {
+            if let Some(ans) = memo.get(&k) {
+                return ans.clone();
+            }
+            let ans = if is_palindrome(k) && !contains0(k) {
+                Some(VecDeque::from([k]))
+            } else {
+                let mut ans = None;
+                for &x in having_pair_num {
+                    if x == 1 {
+                        continue;
+                    }
+                    let rev_x = rev_number(x);
+                    if k % x == 0 && (k / x) % rev_x == 0 {
+                        let sub_opt = rec(k / x / rev_x, memo, having_pair_num);
+                        if let Some(sub) = sub_opt {
+                            let mut sub = sub;
+                            sub.push_front(x);
+                            sub.push_back(rev_x);
+                            ans = Some(sub);
+                            break;
+                        }
+                    }
+                }
+
+                ans
+            };
+            memo.insert(k, ans.clone());
+            ans
+        }
+
+        let ans = rec(n, &mut HashMap::new(), &having_pair_num);
+        let ans = ans.map(|ans| ans.iter().copied().map(|x| x.to_string()).join("*"));
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -163,7 +217,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -173,11 +227,41 @@ mod tests {
     #[allow(unused_imports)]
     use rand::{rngs::SmallRng, seq::SliceRandom, *};
 
+    fn verify(p: &Problem, ans: &Answer) {
+        let ans = if let Some(ans) = &ans.ans {
+            ans
+        } else {
+            return;
+        };
+
+        let is_palindrome = {
+            let ans = ans.bytes().collect_vec();
+            Iterator::eq(ans.iter(), ans.iter().rev())
+        };
+        assert!(is_palindrome);
+
+        let x = ans
+            .split('*')
+            .map(|s| s.parse::<i64>().unwrap())
+            .product::<i64>();
+
+        assert_eq!(p.n, x);
+    }
+
     #[test]
     fn test_problem() {
-        for i in 1..=1000 {
-            let p = Problem { n: i };
-            println!("{}, {:?}", i, p.solve());
+        // for i in 1..=100000 {
+        //     let p = Problem { n: i };
+        //     let ans = p.solve();
+        //     println!("{}, {:?}", i, ans);
+        //     verify(&p, &ans);
+        // }
+        for i in 0..50 {
+            let n = 1 << i;
+            let p = Problem { n };
+            let ans = p.solve();
+            println!("{}, {:?}", n, ans);
+            verify(&p, &ans);
         }
         assert_eq!(1 + 1, 2);
     }
@@ -257,6 +341,7 @@ use proconio::{
 };
 #[allow(unused_imports)]
 use std::cmp::Reverse;
+use std::collections::VecDeque;
 #[allow(unused_imports)]
 use std::collections::{BinaryHeap, HashMap, HashSet};
 
