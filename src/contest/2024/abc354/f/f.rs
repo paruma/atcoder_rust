@@ -1,18 +1,86 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    t: usize,
+    ts: Vec<SubProblem>,
+}
+
+pub fn segtree_to_vec<M: ac_library::Monoid>(
+    seg: &ac_library::Segtree<M>,
+    len: usize,
+) -> Vec<M::S> {
+    (0..len).map(|i| seg.get(i)).collect()
+}
+
+#[derive(Debug, Clone)]
+struct SubProblem {
+    n: usize,
+    xs: Vec<i64>,
+}
+
+impl SubProblem {
+    fn read() -> SubProblem {
+        input! {
+            n: usize,
+            xs: [i64; n]
+        }
+
+        SubProblem { n, xs }
+    }
+    fn solve(&self) -> SubAnswer {
+        let n = self.n;
+        let xs = &self.xs;
+        let cc = CoordinateCompression::new(xs);
+        let xs_cc = cc.compress_vec(xs);
+        let mut dp = vec![0; n];
+
+        let mut seg = Segtree::<Max<i64>>::from(vec![0; xs_cc.len()]);
+
+        for (i, x) in xs_cc.iter().copied().enumerate() {
+            dp[i] = i64::max(0, seg.prod(0..x)) + 1;
+            seg.set(x, i64::max(dp[i], seg.get(x)));
+        }
+
+        let mut cur = dp.iter().copied().max().unwrap();
+        let mut ans = vec![];
+        dbg!(&dp);
+
+        for (i, len) in dp.iter().copied().enumerate().rev() {
+            dbg!(cur);
+            if len >= cur {
+                ans.push(i);
+            }
+            if len == cur {
+                cur -= 1;
+            }
+        }
+
+        ans.sort();
+        dbg!();
+
+        SubAnswer {
+            n: ans.len(),
+            is: ans,
+        }
+    }
+}
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct SubAnswer {
+    n: usize,
+    is: Vec<usize>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            t: usize,
         }
-        Problem { _a }
+        let ts = (0..t).map(|_| SubProblem::read()).collect_vec();
+
+        Problem { t, ts }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = self.ts.iter().map(|x| x.solve()).collect_vec();
         Answer { ans }
     }
 
@@ -26,12 +94,16 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<SubAnswer>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        for s in &self.ans {
+            println!("{}", s.n);
+            // 1オリジンにする
+            print_vec_1line(&s.is.iter().copied().map(|x| x + 1).collect_vec());
+        }
     }
 }
 
@@ -115,6 +187,7 @@ mod tests {
     }
 }
 
+use ac_library::{FenwickTree, Max, Segtree};
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
@@ -171,3 +244,43 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use coordinate_compression::*;
+pub mod coordinate_compression {
+    use itertools::Itertools;
+    use superslice::Ext;
+    pub struct CoordinateCompression {
+        space: Vec<i64>,
+    }
+    impl CoordinateCompression {
+        /// 計算量: O(|space|log(|space|))
+        pub fn new(space: &[i64]) -> Self {
+            let space = space.iter().copied().sorted().dedup().collect_vec();
+            Self { space }
+        }
+        /// 計算量: O(log(|space|))
+        pub fn compress(&self, x: i64) -> usize {
+            self.space.binary_search(&x).unwrap()
+        }
+        /// 座標圧縮前の空間のうち x 以上である最小の値を座標圧縮したものを返す
+        /// 計算量: O(log(|space|))
+        pub fn compress_floor(&self, x: i64) -> usize {
+            self.space.upper_bound(&x) - 1
+        }
+        /// 座標圧縮前の空間のうち x 以下である最大の値を座標圧縮したものを返す
+        /// 計算量: O(log(|space|))
+        pub fn compress_ceil(&self, x: i64) -> usize {
+            self.space.lower_bound(&x)
+        }
+        /// 計算量: O(|xs|log(|space|))
+        pub fn compress_vec(&self, xs: &[i64]) -> Vec<usize> {
+            xs.iter().copied().map(|x| self.compress(x)).collect_vec()
+        }
+        /// 計算量: O(1)
+        pub fn decompress(&self, i: usize) -> i64 {
+            self.space[i]
+        }
+        pub fn space_size(&self) -> usize {
+            self.space.len()
+        }
+    }
+}
