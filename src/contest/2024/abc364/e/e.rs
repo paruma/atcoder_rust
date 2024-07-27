@@ -1,18 +1,56 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    max: Pos<i64>,
+    dishes: Vec<Pos<i64>>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            max_x: i64,
+            max_y: i64,
+            dishes: [(i64, i64); n],
         }
-        Problem { _a }
+
+        let max = Pos::new(max_x, max_y);
+        let dishes = dishes
+            .iter()
+            .copied()
+            .map(|(x, y)| Pos::new(x, y))
+            .collect_vec();
+        Problem { n, max, dishes }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let max = self.max;
+        let dishes = &self.dishes;
+
+        let mut dp = vec![HashMap::<Pos<i64>, i64>::new(); n + 1];
+
+        dp[0].insert(Pos::new(0, 0), 0);
+
+        for (i, dish) in dishes.iter().copied().enumerate() {
+            let mut next_dp = HashMap::<Pos<i64>, i64>::new();
+            for (k, v) in dp[i].iter() {
+                // 選ぶ
+                if k.x <= max.x && k.y <= max.y {
+                    let next = *k + dish;
+                    //next_dp.insert(next, *v + 1);
+
+                    next_dp.entry(next).or_insert(0);
+                    *next_dp.get_mut(&next).unwrap() = i64::max(next_dp[&next], *v + 1);
+                }
+                // 選ばない
+                next_dp.entry(*k).or_insert(0);
+                *next_dp.get_mut(k).unwrap() = i64::max(next_dp[k], *v);
+            }
+            dp[i + 1] = next_dp;
+        }
+
+        let ans = dp[n].values().copied().max().unwrap();
         Answer { ans }
     }
 
@@ -173,3 +211,90 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use pos::*;
+pub mod pos {
+    use std::ops::{Add, AddAssign, Mul, Neg, Sub, SubAssign};
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    pub struct Pos<T> {
+        pub x: T,
+        pub y: T,
+    }
+    impl<T> Pos<T> {
+        pub fn new(x: T, y: T) -> Pos<T> {
+            Pos { x, y }
+        }
+    }
+    impl<T: Mul<Output = T> + Copy> Pos<T> {
+        pub fn scala_mul(self, rhs: T) -> Pos<T> {
+            Pos::new(self.x * rhs, self.y * rhs)
+        }
+    }
+    impl<T: Add<Output = T> + Mul<Output = T> + Copy> Pos<T> {
+        pub fn inner_product(self, rhs: Self) -> T {
+            self.x * rhs.x + self.y * rhs.y
+        }
+        pub fn norm_square(self) -> T {
+            self.inner_product(self)
+        }
+    }
+    impl<T: Add<Output = T> + Copy> Add for Pos<T> {
+        type Output = Pos<T>;
+        fn add(self, rhs: Self) -> Self::Output {
+            Pos::new(self.x + rhs.x, self.y + rhs.y)
+        }
+    }
+    impl<T: Sub<Output = T> + Copy> Sub for Pos<T> {
+        type Output = Pos<T>;
+        fn sub(self, rhs: Self) -> Self::Output {
+            Pos::new(self.x - rhs.x, self.y - rhs.y)
+        }
+    }
+    impl<T: Neg<Output = T>> Neg for Pos<T> {
+        type Output = Self;
+        fn neg(self) -> Self::Output {
+            Pos::new(-self.x, -self.y)
+        }
+    }
+    impl<T: num_traits::Zero + Copy> num_traits::Zero for Pos<T> {
+        fn zero() -> Self {
+            Pos::new(T::zero(), T::zero())
+        }
+        fn is_zero(&self) -> bool {
+            self.x.is_zero() && self.y.is_zero()
+        }
+    }
+    impl<T: Add<Output = T> + Copy> AddAssign for Pos<T> {
+        fn add_assign(&mut self, rhs: Self) {
+            *self = *self + rhs
+        }
+    }
+    impl<T: Sub<Output = T> + Copy> SubAssign for Pos<T> {
+        fn sub_assign(&mut self, rhs: Self) {
+            *self = *self - rhs
+        }
+    }
+    pub const DIR8_LIST: [Pos<i64>; 8] = [
+        Pos { x: 0, y: 1 },
+        Pos { x: 1, y: 1 },
+        Pos { x: 1, y: 0 },
+        Pos { x: 1, y: -1 },
+        Pos { x: 0, y: -1 },
+        Pos { x: -1, y: -1 },
+        Pos { x: -1, y: 0 },
+        Pos { x: -1, y: 1 },
+    ];
+    pub const DIR4_LIST: [Pos<i64>; 4] = [
+        Pos { x: 0, y: 1 },
+        Pos { x: 1, y: 0 },
+        Pos { x: 0, y: -1 },
+        Pos { x: -1, y: 0 },
+    ];
+    impl Pos<i64> {
+        pub fn around4_pos_iter(self) -> impl Iterator<Item = Pos<i64>> {
+            DIR4_LIST.iter().copied().map(move |d| d + self)
+        }
+        pub fn around8_pos_iter(self) -> impl Iterator<Item = Pos<i64>> {
+            DIR8_LIST.iter().copied().map(move |d| d + self)
+        }
+    }
+}

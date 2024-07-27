@@ -1,18 +1,66 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    sweet_max: i64,
+    salty_max: i64,
+    sweet_list: Vec<i64>,
+    salty_list: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            sweet_max: i64,
+            salty_max: i64,
+            sweet_list: [i64; n],
+            salty_list: [i64; n],
         }
-        Problem { _a }
+        Problem {
+            n,
+            sweet_max,
+            salty_max,
+            sweet_list,
+            salty_list,
+        }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let sweet_max = self.sweet_max;
+        let salty_max = self.salty_max;
+        let sweet_list = &self
+            .sweet_list
+            .iter()
+            .copied()
+            .sorted_by_key(|x| Reverse(*x))
+            .collect_vec();
+        let salty_list = &self
+            .salty_list
+            .iter()
+            .copied()
+            .sorted_by_key(|x| Reverse(*x))
+            .collect_vec();
+
+        // prefix_sum
+        let sweet_list_cumsum = prefix_sum(sweet_list);
+        let salty_list_cumsum = prefix_sum(salty_list);
+
+        let sweet_ans = sweet_list_cumsum
+            .iter()
+            .copied()
+            .position(|x| x > sweet_max)
+            //.map(|i| i - 1)
+            .unwrap_or(n);
+
+        let salty_ans = salty_list_cumsum
+            .iter()
+            .copied()
+            .position(|x| x > salty_max)
+            //.map(|i| i - 1)
+            .unwrap_or(n);
+
+        let ans = usize::min(sweet_ans, salty_ans) as i64;
         Answer { ans }
     }
 
@@ -173,3 +221,55 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+
+use cumsum::*;
+pub mod cumsum {
+    pub fn prefix_sum(xs: &[i64]) -> Vec<i64> {
+        let mut prefix_sum = vec![0; xs.len() + 1];
+        for i in 1..xs.len() + 1 {
+            prefix_sum[i] = prefix_sum[i - 1] + xs[i - 1];
+        }
+        prefix_sum
+    }
+    use std::ops::{Bound, Range, RangeBounds};
+    pub struct CumSum {
+        pub cumsum: Vec<i64>,
+    }
+    impl CumSum {
+        /// 計算量: O(|xs|)
+        pub fn new(xs: &[i64]) -> CumSum {
+            let mut cumsum = vec![0; xs.len() + 1];
+            for i in 1..xs.len() + 1 {
+                cumsum[i] = cumsum[i - 1] + xs[i - 1];
+            }
+            CumSum { cumsum }
+        }
+        fn open(&self, range: impl RangeBounds<usize>) -> Range<usize> {
+            use Bound::Excluded;
+            use Bound::Included;
+            use Bound::Unbounded;
+            let begin = match range.start_bound() {
+                Unbounded => 0,
+                Included(&x) => x,
+                Excluded(&x) => x + 1,
+            };
+            let end = match range.end_bound() {
+                Excluded(&x) => x,
+                Included(&x) => x + 1,
+                Unbounded => self.cumsum.len() - 1,
+            };
+            begin..end
+        }
+        /// 計算量: O(1)
+        pub fn range_sum(&self, range: impl RangeBounds<usize>) -> i64 {
+            let range = self.open(range);
+            self.cumsum[range.end] - self.cumsum[range.start]
+        }
+        pub fn prefix_sum(&self, end: usize) -> i64 {
+            self.cumsum[end]
+        }
+        pub fn suffix_sum(&self, begin: usize) -> i64 {
+            self.cumsum[self.cumsum.len() - 1] - self.cumsum[begin]
+        }
+    }
+}

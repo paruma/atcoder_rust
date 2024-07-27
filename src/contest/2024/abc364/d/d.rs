@@ -1,18 +1,51 @@
-//#[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Query {
+    x: i64,
+    k: i64,
+}
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    nq: usize,
+    xs: Vec<i64>,
+    qs: Vec<Query>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            nq: usize,
+            xs: [i64; n],
+            qs: [Query; nq],
         }
-        Problem { _a }
+        Problem { n, nq, xs, qs }
+    }
+    // [c-r, c+r] にある x in xs の数
+    fn solve_sub(xs: &[i64], c: i64, r: i64) -> i64 {
+        let min = c - r;
+        let max = c + r;
+
+        let ret = lower_bound(xs, max + 1) - lower_bound(xs, min);
+        ret as i64
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let nq = self.nq;
+        let xs = &self.xs.iter().copied().sorted().collect_vec();
+        let qs = &self.qs;
+        let d = 1_000_000_000_000_000;
+        let mut ans = vec![];
+
+        for q in qs {
+            // 0 から d+1 くらいまで二分探索
+            //
+
+            let sub_ans = bin_search(d + 1, -1, |z| Self::solve_sub(xs, q.x, z) >= q.k);
+            ans.push(sub_ans);
+        }
+
         Answer { ans }
     }
 
@@ -26,12 +59,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec(&self.ans);
     }
 }
 
@@ -173,3 +206,57 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+/// 二分探索をする
+/// ```text
+/// ng ng ng ok ok ok
+///          ↑ここの引数の値を返す
+/// ```
+/// 計算量: O(log(|ok - ng|))
+/// ## Arguments
+/// * ok != ng
+/// * |ok - ng| <= 2^63 - 1, |ok + ng| <= 2^63 - 1
+/// * p の定義域について
+///     * ng < ok の場合、p は区間 ng..ok で定義されている。
+///     * ok < ng の場合、p は区間 ok..ng で定義されている。
+/// * p の単調性について
+///     * ng < ok の場合、p は単調増加
+///     * ok < ng の場合、p は単調減少
+/// ## Return
+/// * ng < ok の場合: I = { i in ng..ok | p(i) == true } としたとき
+///     * I が空でなければ、min I を返す。
+///     * I が空ならば、ok を返す。
+/// * ok < ng の場合: I = { i in ok..ng | p(i) == true } としたとき
+///     * I が空でなければ、max I を返す。
+///     * I が空ならば、ok を返す。
+pub fn bin_search<F>(mut ok: i64, mut ng: i64, p: F) -> i64
+where
+    F: Fn(i64) -> bool,
+{
+    assert!(ok != ng);
+    assert!(ok.checked_sub(ng).is_some());
+    assert!(ok.checked_add(ng).is_some());
+    while num::abs(ok - ng) > 1 {
+        let mid = (ok + ng) / 2;
+        assert!(mid != ok);
+        assert!(mid != ng);
+        if p(mid) {
+            ok = mid;
+        } else {
+            ng = mid;
+        }
+    }
+    ok
+}
+/// 指定された要素以上の値が現れる最初の位置を返す。
+/// 計算量: O(log(|xs|))
+/// ## Arguments
+/// * xs: 単調増加
+///     * 単調増加でなくても、 `|i| xs[i] >= key` が単調ならOK
+/// ## Return
+/// `I = {i in 0..xs.len() | xs[i] >= key}` としたとき、`min I` を返す。
+/// ただし、`I` が空の場合は `xs.len()` を返す
+/// 戻り値は、区間 `0..=xs.len()` の間で返る。
+pub fn lower_bound<T: PartialOrd>(xs: &[T], key: T) -> usize {
+    let pred = |i: i64| xs[i as usize] >= key;
+    bin_search(xs.len() as i64, -1_i64, pred) as usize
+}

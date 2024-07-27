@@ -1,18 +1,27 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    ss: Vec<String>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            ss: [String; n]
         }
-        Problem { _a }
+        Problem { n, ss }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let i = self
+            .ss
+            .iter()
+            .tuple_windows()
+            .position(|(x, y)| x.as_str() == "sweet" && y.as_str() == "sweet");
+
+        let ans = i.is_none() || i.unwrap() == self.n - 2;
+
         Answer { ans }
     }
 
@@ -26,12 +35,13 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_yesno(self.ans);
+        //println!("{}", self.ans);
     }
 }
 
