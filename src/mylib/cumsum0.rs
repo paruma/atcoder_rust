@@ -12,6 +12,7 @@ pub mod cumsum {
 
     use std::ops::{Bound, Range, RangeBounds};
 
+    #[derive(Clone, Debug, PartialEq, Eq)]
     pub struct CumSum {
         pub cumsum: Vec<i64>,
     }
@@ -61,6 +62,7 @@ pub mod cumsum {
 
 #[snippet(prefix = "use cumsum_2d::*;")]
 pub mod cumsum_2d {
+    #[derive(Clone, Debug, PartialEq, Eq)]
     pub struct CumSum2D {
         pub cumsum: Vec<Vec<i64>>,
     }
