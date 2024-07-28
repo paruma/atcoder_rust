@@ -1,18 +1,89 @@
-//#[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Edge {
+    from: Usize1,
+    to: Usize1,
+    cost: i64,
+}
+
+impl Edge {
+    fn rev(&self) -> Edge {
+        Edge {
+            from: self.to,
+            to: self.from,
+            cost: self.cost,
+        }
+    }
+}
+
+struct Tree {
+    adj: Vec<Vec<Edge>>,
+}
+
+impl Tree {
+    fn new(edges: &[Edge]) -> Tree {
+        let n = edges.len() + 1;
+        let adj = edges.iter().copied().fold(vec![vec![]; n], |mut acc, e| {
+            acc[e.from].push(e);
+            acc[e.to].push(e.rev());
+            acc
+        });
+        Tree { adj }
+    }
+    pub fn dist(&self, start: usize) -> Vec<i64> {
+        let n_vertex = self.adj.len();
+        let mut pq: BinaryHeap<(Reverse<ExtInt>, usize)> = BinaryHeap::new();
+        let mut dist = vec![Inf; n_vertex];
+        dist[start] = Fin(0);
+        pq.push((Reverse(Fin(0)), start));
+
+        while let Some((Reverse(d), current)) = pq.pop() {
+            if dist[current] < d {
+                continue;
+            }
+            for e in &self.adj[current] {
+                if chmin!(dist[e.to], dist[e.from] + Fin(e.cost)) {
+                    pq.push((Reverse(dist[e.to]), e.to));
+                }
+            }
+        }
+        dist.iter().copied().map(|d| d.get_fin()).collect_vec()
+    }
+
+    /// 木の直径を求める
+    pub fn diam(&self) -> i64 {
+        let first_dist = self.dist(0);
+        let first_max_dist = first_dist.iter().copied().max().unwrap();
+        let first_farthest = first_dist
+            .iter()
+            .copied()
+            .position(|d| d == first_max_dist)
+            .unwrap();
+
+        let second_dist = self.dist(first_farthest);
+        second_dist.iter().copied().max().unwrap()
+    }
+}
+
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    edges: Vec<Edge>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            edges: [Edge; n-1]
         }
-        Problem { _a }
+        Problem { n, edges }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let graph = Tree::new(&self.edges);
+        let diam = graph.diam();
+        let cost_sum = self.edges.iter().copied().map(|e| e.cost).sum::<i64>();
+        let ans = cost_sum * 2 - diam;
         Answer { ans }
     }
 
@@ -123,6 +194,7 @@ use proconio::{
     derive_readable, fastout, input,
     marker::{Bytes, Chars, Usize1},
 };
+use std::cmp::Reverse;
 #[allow(unused_imports)]
 use std::collections::{BinaryHeap, HashMap, HashSet};
 
@@ -171,3 +243,166 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use mod_ext_int::ExtInt::{self, *};
+pub mod mod_ext_int {
+    use ac_library::Monoid;
+    use std::{
+        cmp::Ordering,
+        convert::Infallible,
+        iter::Sum,
+        ops::{Add, AddAssign},
+    };
+    use ExtInt::*;
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub enum ExtInt {
+        Inf,
+        Fin(i64),
+    }
+    impl ExtInt {
+        pub fn get_fin(self) -> i64 {
+            match self {
+                Fin(val) => val,
+                Inf => panic!("called `ExtInt::get_fin()` on a `Fin` value"),
+            }
+        }
+        pub fn get_fin_or(self, default: i64) -> i64 {
+            match self {
+                Fin(val) => val,
+                Inf => default,
+            }
+        }
+        pub fn is_fin(self) -> bool {
+            matches!(self, Fin(_))
+        }
+        pub fn is_inf(self) -> bool {
+            matches!(self, Inf)
+        }
+        pub fn to_option(self) -> Option<i64> {
+            match self {
+                Inf => None,
+                Fin(a) => Some(a),
+            }
+        }
+        pub fn from_option(opt: Option<i64>) -> ExtInt {
+            match opt {
+                Some(a) => Fin(a),
+                None => Inf,
+            }
+        }
+        pub fn times(self, t: i64) -> Self {
+            match t.cmp(&0) {
+                Ordering::Less => panic!("t must be non-negative."),
+                Ordering::Equal => Fin(0),
+                Ordering::Greater => match self {
+                    Inf => Inf,
+                    Fin(a) => Fin(a * t),
+                },
+            }
+        }
+    }
+    impl Add for ExtInt {
+        type Output = ExtInt;
+        fn add(self, rhs: Self) -> Self::Output {
+            match (self, rhs) {
+                (Inf, Inf) => Inf,
+                (Inf, Fin(_)) => Inf,
+                (Fin(_), Inf) => Inf,
+                (Fin(a), Fin(b)) => Fin(a + b),
+            }
+        }
+    }
+    impl AddAssign for ExtInt {
+        fn add_assign(&mut self, rhs: Self) {
+            *self = *self + rhs;
+        }
+    }
+    impl Add<i64> for ExtInt {
+        type Output = ExtInt;
+        fn add(self, rhs: i64) -> Self::Output {
+            match self {
+                Inf => Inf,
+                Fin(a) => Fin(a + rhs),
+            }
+        }
+    }
+    impl AddAssign<i64> for ExtInt {
+        fn add_assign(&mut self, rhs: i64) {
+            *self = *self + rhs;
+        }
+    }
+    impl Sum for ExtInt {
+        fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+            let mut s = 0;
+            for x in iter {
+                match x {
+                    Inf => return Inf,
+                    Fin(x) => s += x,
+                }
+            }
+            Fin(s)
+        }
+    }
+    impl PartialOrd for ExtInt {
+        fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+            match (self, other) {
+                (Inf, Inf) => Some(Ordering::Equal),
+                (Inf, Fin(_)) => Some(Ordering::Greater),
+                (Fin(_), Inf) => Some(Ordering::Less),
+                (Fin(a), Fin(b)) => PartialOrd::partial_cmp(a, b),
+            }
+        }
+    }
+    impl Ord for ExtInt {
+        fn cmp(&self, other: &Self) -> Ordering {
+            self.partial_cmp(other).unwrap()
+        }
+    }
+    pub struct ExtIntAdditive(Infallible);
+    impl Monoid for ExtIntAdditive {
+        type S = ExtInt;
+        fn identity() -> Self::S {
+            Fin(0)
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            *a + *b
+        }
+    }
+    pub struct ExtIntMin(Infallible);
+    impl Monoid for ExtIntMin {
+        type S = ExtInt;
+        fn identity() -> Self::S {
+            Inf
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            *a.min(b)
+        }
+    }
+}
+#[allow(clippy::module_inception)]
+#[macro_use]
+pub mod chminmax {
+    #[allow(unused_macros)]
+    #[macro_export]
+    macro_rules! chmin {
+        ($ a : expr , $ b : expr ) => {
+            if $a > $b {
+                $a = $b;
+                true
+            } else {
+                false
+            }
+        };
+    }
+    #[allow(unused_macros)]
+    #[macro_export]
+    macro_rules! chmax {
+        ($ a : expr , $ b : expr ) => {
+            if $a < $b {
+                $a = $b;
+                true
+            } else {
+                false
+            }
+        };
+    }
+}
