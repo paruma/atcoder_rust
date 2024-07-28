@@ -39,9 +39,6 @@ impl Problem {
         let mut ans = vec![];
 
         for q in qs {
-            // 0 から d+1 くらいまで二分探索
-            //
-
             let sub_ans = bin_search(d + 1, -1, |z| Self::solve_sub(xs, q.x, z) >= q.k);
             ans.push(sub_ans);
         }
