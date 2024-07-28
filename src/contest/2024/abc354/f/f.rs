@@ -28,35 +28,91 @@ impl SubProblem {
         SubProblem { n, xs }
     }
     fn solve(&self) -> SubAnswer {
+        // LIS の dp の復元を頑張る
         let n = self.n;
         let xs = &self.xs;
         let cc = CoordinateCompression::new(xs);
         let xs_cc = cc.compress_vec(xs);
-        let mut dp = vec![0; n];
+        let lis_len = {
+            // lis_len[i] = xs[0..=i] での LIS の長さ
+            let mut dp = vec![0; n];
 
-        let mut seg = Segtree::<Max<i64>>::from(vec![0; xs_cc.len()]);
+            let mut seg = Segtree::<Max<usize>>::from(vec![0; cc.space_size() + 1]);
 
-        for (i, x) in xs_cc.iter().copied().enumerate() {
-            dp[i] = i64::max(0, seg.prod(0..x)) + 1;
-            seg.set(x, i64::max(dp[i], seg.get(x)));
-        }
-
-        let mut cur = dp.iter().copied().max().unwrap();
-        let mut ans = vec![];
-        dbg!(&dp);
-
-        for (i, len) in dp.iter().copied().enumerate().rev() {
-            dbg!(cur);
-            if len >= cur {
-                ans.push(i);
+            for (i, x) in xs_cc.iter().copied().enumerate() {
+                dp[i] = seg.prod(0..x) + 1;
+                seg.set(x, usize::max(dp[i], seg.get(x)));
             }
-            if len == cur {
-                cur -= 1;
+            dp
+        };
+
+        let lis_len_max = lis_len.iter().copied().max().unwrap();
+        // xs_cc[i] < map[lis_len[i]]  だったら i は LIS に入り得る。
+        // もし xs_cc[i] >= map[lis_len[i]] だと、i は LIS に入れない。
+        let mut map = vec![0; lis_len_max + 1];
+        map[lis_len_max] = usize::MAX;
+        let mut ans = vec![];
+        for i in (0..n).rev() {
+            if xs_cc[i] < map[lis_len[i]] {
+                ans.push(i);
+                map[lis_len[i] - 1] = map[lis_len[i] - 1].max(xs_cc[i]);
             }
         }
 
         ans.sort();
-        dbg!();
+
+        SubAnswer {
+            n: ans.len(),
+            is: ans,
+        }
+    }
+
+    fn calc_lis(xs: &[i64]) -> Vec<usize> {
+        let n = xs.len();
+        let cc = CoordinateCompression::new(xs);
+        let xs_cc = cc.compress_vec(xs);
+
+        // lis_len[i] = xs[0..=i] での LIS の長さ
+        let mut dp = vec![0; n];
+
+        let mut seg = Segtree::<Max<usize>>::from(vec![0; cc.space_size() + 1]);
+
+        for (i, x) in xs_cc.iter().copied().enumerate() {
+            dp[i] = seg.prod(0..x) + 1;
+            seg.set(x, usize::max(dp[i], seg.get(x)));
+        }
+        dp
+    }
+
+    fn solve2(&self) -> SubAnswer {
+        // i を含む LIS が存在する
+        // ⟺ iを含むという制約化でのLIS長 が 普通のLIS長と一致している
+        // で判定する
+        // iを含むという制約化でのLIS長 = 「0..=i の LIS長」-「i..n の LIS長」 + 1
+        let n = self.n;
+        let xs = self.xs.clone();
+        let xs_rev = xs.iter().copied().rev().map(|x| -x).collect_vec();
+
+        let lis_normal = Self::calc_lis(&xs);
+        let lis_rev = Self::calc_lis(&xs_rev);
+
+        let max_lis = lis_normal.iter().copied().max().unwrap(); // 0..n での LIS
+
+        let ans = (0..n)
+            .filter(|&i| {
+                // i が LIS に含まれるか考える。
+                // 「0..=i の LIS長」-「i..n の LIS長」 + 1
+                // が i を含むという制約化での LIS
+
+                let lis_contains_i = {
+                    let prefix_lis = lis_normal[i]; // 0..=i での LIS 長
+                    let suffix_lis = lis_rev[n - i - 1]; // i..n での LIS長
+                    prefix_lis + suffix_lis - 1
+                };
+
+                lis_contains_i == max_lis
+            })
+            .collect_vec();
 
         SubAnswer {
             n: ans.len(),
@@ -80,7 +136,7 @@ impl Problem {
         Problem { t, ts }
     }
     fn solve(&self) -> Answer {
-        let ans = self.ts.iter().map(|x| x.solve()).collect_vec();
+        let ans = self.ts.iter().map(|x| x.solve2()).collect_vec();
         Answer { ans }
     }
 
