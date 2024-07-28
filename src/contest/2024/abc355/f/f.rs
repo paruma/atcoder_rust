@@ -1,18 +1,78 @@
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Edge {
+    u: Usize1,
+    v: Usize1,
+    cost: i64,
+}
+
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    nv: usize,
+    nq: usize,
+    init_edges: Vec<Edge>,
+    query_edges: Vec<Edge>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            nv: usize,
+            nq: usize,
+            init_edges: [Edge; nv - 1],
+            query_edges: [Edge; nq],
         }
-        Problem { _a }
+        Problem {
+            nv,
+            nq,
+            init_edges,
+            query_edges,
+        }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        // 解法: 辺を追加したときに MST として除かれる辺のコストを以下の方法で調べる。
+        // c=1,2,...,10 に対して、重みが c 以下の辺のみに限定した部分グラフを考える。
+        // 辺の追加で c=5 ではループができなかったが、c=6でループができたのであれば、コスト6の辺を取り除くと考える。
+        // (平行世界を10個作って差分を見ていく)
+        let nv = self.nv;
+        let nq = self.nq;
+        let init_edges = &self.init_edges;
+        let query_edges = &self.query_edges;
+
+        let max_cost = 10;
+        let mut costs = vec![0; max_cost + 1]; // costs[c] = コストc以下の辺のみがある場合のMST コスト
+        let mut ufs = vec![UnionFind::new(nv); max_cost + 1];
+
+        for &e in init_edges {
+            for c in 0..=max_cost {
+                if e.cost <= c as i64 {
+                    if ufs[c].unite(e.u, e.v) {
+                        costs[c] += e.cost;
+                    }
+                }
+            }
+        }
+
+        let mut ans = vec![];
+
+        for &e in query_edges {
+            let mut removed_cost = 0; // 0 は辺削除なし。非0は削除された辺のコスト
+            for c in 0..=max_cost {
+                if e.cost <= c as i64 {
+                    if ufs[c].unite(e.u, e.v) {
+                        costs[c] += e.cost;
+                    } else {
+                        if removed_cost == 0 {
+                            removed_cost = c as i64;
+                        }
+                        costs[c] += e.cost - removed_cost;
+                    }
+                }
+            }
+            ans.push(costs[max_cost]);
+        }
+
         Answer { ans }
     }
 
@@ -26,12 +86,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec(&self.ans);
     }
 }
 
@@ -171,3 +231,102 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+
+use simple_union_find::*;
+pub mod simple_union_find {
+    use itertools::Itertools;
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    struct RootInfo {
+        count: usize,
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    struct NonRootInfo {
+        parent_index: usize,
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    enum Node {
+        Root(RootInfo),
+        NonRoot(NonRootInfo),
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    struct RootAndIndex {
+        info: RootInfo,
+        index: usize,
+    }
+    #[derive(Clone, Debug)]
+    pub struct UnionFind {
+        nodes: Vec<Node>,
+        cnt_groups: usize,
+    }
+    impl UnionFind {
+        pub fn new(n: usize) -> UnionFind {
+            UnionFind {
+                nodes: vec![Node::Root(RootInfo { count: 1 }); n],
+                cnt_groups: n,
+            }
+        }
+        fn root_node(&mut self, index: usize) -> RootAndIndex {
+            match self.nodes[index] {
+                Node::Root(info) => RootAndIndex { info, index },
+                Node::NonRoot(info) => {
+                    let root_and_index = self.root_node(info.parent_index);
+                    self.nodes[index] = Node::NonRoot(NonRootInfo {
+                        parent_index: root_and_index.index,
+                    });
+                    root_and_index
+                }
+            }
+        }
+        pub fn root(&mut self, index: usize) -> usize {
+            self.root_node(index).index
+        }
+        pub fn same_count(&mut self, index: usize) -> usize {
+            self.root_node(index).info.count
+        }
+        pub fn same(&mut self, x: usize, y: usize) -> bool {
+            self.root(x) == self.root(y)
+        }
+        pub fn num_groups(&self) -> usize {
+            self.cnt_groups
+        }
+        pub fn unite(&mut self, x: usize, y: usize) -> bool {
+            if self.same(x, y) {
+                return false;
+            }
+            self.cnt_groups -= 1;
+            let x_root_node = self.root_node(x);
+            let y_root_node = self.root_node(y);
+            let (smaller_root, larger_root) = if x_root_node.info.count <= y_root_node.info.count {
+                (x_root_node, y_root_node)
+            } else {
+                (y_root_node, x_root_node)
+            };
+            self.nodes[smaller_root.index] = Node::NonRoot(NonRootInfo {
+                parent_index: larger_root.index,
+            });
+            self.nodes[larger_root.index] = Node::Root(RootInfo {
+                count: smaller_root.info.count + larger_root.info.count,
+            });
+            true
+        }
+        pub fn groups(&mut self) -> Vec<Vec<usize>> {
+            let n = self.nodes.len();
+            let roots = (0..n).map(|i| self.root(i)).collect_vec();
+            let group_size = (0..n).map(|i| roots[i]).fold(vec![0; n], |mut acc, x| {
+                acc[x] += 1;
+                acc
+            });
+            let result = {
+                let mut result = vec![Vec::new(); n];
+                for i in 0..n {
+                    result[i].reserve(group_size[i]);
+                }
+                for i in 0..n {
+                    result[roots[i]].push(i);
+                }
+                result
+            };
+            result.into_iter().filter(|x| !x.is_empty()).collect_vec()
+        }
+    }
+}
