@@ -80,12 +80,143 @@ impl TestCase {
     }
 
     fn solve(&self) -> i64 {
+        // 解法: 桁DP & 二分探索
         let prod = |x: i64| {
             // 答え(k番目のneq number) 以上かどうか
             Self::cnt_neq_num(x) >= self.k
         };
         // 10^17
         bin_search(100_000_000_000_000_000, 0, prod)
+    }
+
+    fn cnt_neq_num2(x: i64) -> i64 {
+        // [1, x] の neq number の数を求める
+        // コメントでは、x=382 を例にする
+
+        let ds = to_decimal(x + 1);
+        let ndigits = ds.len();
+
+        // [1, 100) での neq number の数
+        // = [1, 10) での neq number + [10, 100) での neq number
+        // = 9 + 9^2
+        let term1 = (1..ndigits).map(|i| i64::pow(9, i as u32)).sum::<i64>();
+
+        // [100, 383) での neq number の数
+        let term2 = {
+            let mut cnt = 0;
+
+            for i in 0..ndigits {
+                // i = 0 のときは、[100, 300) の neq number の数 (2 * 9^2)
+                // i = 1 のときは、[300, 380) の neq number の数 (7 * 9^1)
+                // i = 2 のときは、[380, 383) の neq number の数 (3 * 9^0)
+                // を求める
+                let pow9 = i64::pow(9, (ndigits - i - 1) as u32);
+
+                let addition = if i == 0 {
+                    (ds[i] - 1) * pow9
+                } else if ds[i - 1] < ds[i] {
+                    (ds[i] - 1) * pow9
+                } else {
+                    ds[i] * pow9
+                };
+
+                cnt += addition;
+
+                // 別ケースで x = 3325 のときは、i = 2 以降は 0通り (33の時点で neq number ではないので)
+                if i != 0 && ds[i - 1] == ds[i] {
+                    break;
+                }
+            }
+            cnt
+        };
+
+        term1 + term2
+    }
+
+    fn is_neq_number(x: i64) -> bool {
+        to_decimal(x)
+            .iter()
+            .copied()
+            .tuple_windows()
+            .all(|(a, b)| a != b)
+    }
+
+    fn cnt_neq_num_naive(x: i64) -> i64 {
+        (1..=x).filter(|&y| Self::is_neq_num(y)).count() as i64
+    }
+
+    fn solve2(&self) -> i64 {
+        // 解法: 二分探索 (x以下の neq number の数を頑張って数える)
+        let prod = |x: i64| {
+            // 答え(k番目のneq number) 以上かどうか
+            Self::cnt_neq_num2(x) >= self.k
+        };
+        // 10^17
+        bin_search(100_000_000_000_000_000, 0, prod)
+    }
+
+    fn solve3(&self) -> i64 {
+        // 解法: 答えを絞り込む (9分探索的な感じ)
+        // AC できていない
+
+        // 148 番目の neq number を求める場合は以下のように探索していけばよい。
+        // 1, 10, 100 (桁をあわせる)
+        // 100 (100の位をあわせる)
+        // 110, 120, 130, 140, 150, 160, 170 (10の位をあわせる)
+        // 170, 171, 172, 173, 174 (1の位をあわせる)
+        // これらの値に対して [0, x) での neq number の数は求めやすい。
+        // はじめて [0, x) での neq number の数が k になるような x を求めれば、
+        // x - 1 が k番目の neq number となる。
+
+        let ideal_k = self.k;
+
+        // 桁数を決める
+        // [1, 10) の neq number の数は 9個
+        // [10, 100) の neq number の数は 9^2個
+        // [100, 1000) の neq number の数は 9^3個
+        // つまり、
+        // [1, 1 + 9) 番目の neq number は 1桁
+        // [1 + 9, 1 + 9 + 9^2) 番目の neq number は 2桁
+        // [1 + 9 + 9^2, 1 + 9 + 9^2 + 9^3) 番目の neq number は 3桁
+        let n_digits = (1..)
+            .map(|i| {
+                // 1 + 9 + ... + 9^{i-1}
+                (0..i).map(|j| i64::pow(9, j)).sum::<i64>()
+            })
+            .position(|k| ideal_k < k)
+            .unwrap();
+
+        // [0, 10^n_digits) の neq number の数
+        let mut current_k = (1..n_digits).map(|k| i64::pow(9, k as u32)).sum::<i64>();
+        // 各桁の値を決める
+        // dbg!(current_k);
+        let mut digits = vec![0; n_digits];
+        for di in 0..n_digits {
+            // 上から di 桁目を考える
+            let pow9 = i64::pow(9, (n_digits - di - 1) as u32);
+            for i in 1..=9 {
+                lg!(format!("{} {} {}", di, i, current_k));
+                if di == 0 && i == 0 {
+                    continue;
+                }
+
+                if (current_k..current_k + pow9).contains(&ideal_k) {
+                    digits[di] = i;
+                    break;
+                }
+
+                // 例: [0, 300) から [0, 400) に進めると、neq number の数は 81 増える
+                // なぜならば [300, 400) に neq number は 81 あるので
+
+                if di == 0 || digits[di - 1] != i {
+                    current_k += pow9;
+                }
+            }
+        }
+
+        //assert_eq!(x_begin + 1, x_end);
+
+        eval_base_n_value(&digits, 10) - 1
     }
 }
 
@@ -100,7 +231,7 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
-        let ans = self.cases.iter().map(|case| case.solve()).collect_vec();
+        let ans = self.cases.iter().map(|case| case.solve3()).collect_vec();
         Answer { ans }
     }
 }
@@ -127,7 +258,54 @@ mod tests {
 
     #[test]
     fn test_problem() {
+        let cnt = (0..1000)
+            .filter(|x| {
+                let xd = to_decimal(*x);
+                xd.iter().copied().tuple_windows().all(|(p, q)| p != q)
+            })
+            .inspect(|x| {
+                dbg!(x);
+            })
+            .count();
+        dbg!(cnt);
+        dbg!(9 * 9 * 9);
         assert_eq!(1 + 1, 2);
+    }
+
+    #[test]
+    fn test_problem2_1() {
+        (1..100)
+            .map(|k| {
+                let p = TestCase { k };
+                p.solve2()
+            })
+            .for_each(|x| {
+                println!("{x}");
+            })
+    }
+
+    #[test]
+    fn test_problem2_2() {
+        assert_eq!(TestCase::cnt_neq_num2(173), 148);
+        assert_eq!(TestCase::cnt_neq_num2(110), 99);
+        for i in 1..10000 {
+            dbg!(i);
+            assert_eq!(TestCase::cnt_neq_num2(i), TestCase::cnt_neq_num_naive(i));
+        }
+    }
+
+    #[test]
+    fn test_problem3_1() {
+        // 0を含めたneq number を列挙する
+        let neq_numbers = (0..100).filter(|i| TestCase::is_neq_num(*i)).collect_vec();
+
+        for k in 1..100 {
+            let ans = TestCase { k }.solve3();
+            let expected = neq_numbers[k as usize];
+
+            dbg!(k);
+            assert_eq!(ans, expected);
+        }
     }
 }
 
@@ -413,4 +591,21 @@ where
         }
     }
     ok
+}
+use positional_notation::*;
+#[allow(clippy::module_inception)]
+pub mod positional_notation {
+    pub fn eval_base_n_value(xs: &[i64], base: i64) -> i64 {
+        xs.iter().fold(0, |acc, &x| acc * base + x)
+    }
+    pub fn to_base_n_value(x: i64, base: i64) -> Vec<i64> {
+        let mut ret = vec![];
+        let mut x = x;
+        while x > 0 {
+            ret.push(x % base);
+            x /= base;
+        }
+        ret.reverse();
+        ret
+    }
 }
