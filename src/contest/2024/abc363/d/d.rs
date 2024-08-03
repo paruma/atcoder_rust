@@ -1,19 +1,69 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: i64,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: i64,
         }
-        Problem { _a }
+        Problem { n }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
-        Answer { ans }
+        // 回文数を以下のようにパターン分けする。
+        // 0
+        // a
+        // aa
+        // aba
+        // abba
+        // abcba
+        // abccba
+        // ...
+        // a in [1, 9]
+        // b, c in [0, 9]
+
+        let n = self.n - 1; // 0オリジンにする
+
+        if n == 0 {
+            return Answer { ans: vec![0] };
+        };
+
+        let mut cnt = 1;
+
+        for i in 1.. {
+            // 例えば i=3のとき、abcba, abccba のパターンを考える
+
+            // 例えば
+            // a in [1, 9]
+            // b, c in [0, 9]
+            // となる (a,b,c) は 9 * 10 * 10 = 900 通り
+            let cnt_in_pattern = 9 * i64::pow(10, i - 1);
+
+            // abcba パターン
+            if (cnt..cnt + cnt_in_pattern).contains(&n) {
+                let abc = n - cnt + i64::pow(10, i - 1);
+                let abc_digits = to_base_n_value(abc, 10);
+                let ans = chain!(abc_digits.iter(), abc_digits.iter().rev().skip(1))
+                    .copied()
+                    .collect_vec();
+                return Answer { ans };
+            }
+            cnt += cnt_in_pattern;
+
+            // abccba パターン
+            if n < cnt + cnt_in_pattern {
+                let abc = n - cnt + i64::pow(10, i - 1);
+                let abc_digits = to_base_n_value(abc, 10);
+                let ans = chain!(abc_digits.iter(), abc_digits.iter().rev())
+                    .copied()
+                    .collect_vec();
+                return Answer { ans };
+            }
+            cnt += cnt_in_pattern
+        }
+        panic!()
     }
 
     #[allow(dead_code)]
@@ -26,12 +76,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        println!("{}", self.ans.iter().join(""));
     }
 }
 
@@ -43,11 +93,18 @@ fn main() {
 mod tests {
     #[allow(unused_imports)]
     use super::*;
+    use bstr::join;
     #[allow(unused_imports)]
     use rand::{rngs::SmallRng, seq::SliceRandom, *};
 
     #[test]
     fn test_problem() {
+        for n in 1..300 {
+            dbg!(n);
+            let p = Problem { n };
+            let msg = p.solve().ans.iter().join("");
+            dbg!(msg);
+        }
         assert_eq!(1 + 1, 2);
     }
 
@@ -173,3 +230,20 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use positional_notation::*;
+#[allow(clippy::module_inception)]
+pub mod positional_notation {
+    pub fn eval_base_n_value(xs: &[i64], base: i64) -> i64 {
+        xs.iter().fold(0, |acc, &x| acc * base + x)
+    }
+    pub fn to_base_n_value(x: i64, base: i64) -> Vec<i64> {
+        let mut ret = vec![];
+        let mut x = x;
+        while x > 0 {
+            ret.push(x % base);
+            x /= base;
+        }
+        ret.reverse();
+        ret
+    }
+}
