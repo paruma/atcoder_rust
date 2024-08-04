@@ -1,18 +1,29 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    xs: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            xs: [i64; n],
         }
-        Problem { _a }
+        Problem { n, xs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let first = self.xs.iter().copied().max().unwrap();
+        let second = self
+            .xs
+            .iter()
+            .copied()
+            .filter(|x| *x != first)
+            .max()
+            .unwrap();
+
+        let ans = self.xs.iter().copied().position(|x| x == second).unwrap() + 1;
         Answer { ans }
     }
 
@@ -26,7 +37,7 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: usize,
 }
 
 impl Answer {
