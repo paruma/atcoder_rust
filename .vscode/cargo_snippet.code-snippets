@@ -1741,6 +1741,18 @@
       "}"
     ]
   },
+  "fenwick_tree_to_vec": {
+    "scope": "rust",
+    "prefix": "fenwick_tree_to_vec",
+    "body": [
+      "pub fn fenwick_tree_to_vec<T>(fenwick_tree: &ac_library::FenwickTree<T>, len: usize) -> Vec<T>",
+      "where",
+      "    T: Clone + std::ops::AddAssign<T> + std::ops::Sub<Output = T>,",
+      "{",
+      "    (0..len).map(|i| fenwick_tree.sum(i..=i)).collect()",
+      "}"
+    ]
+  },
   "has_cycle_directed_by_topo_sort": {
     "scope": "rust",
     "prefix": "has_cycle_directed_by_topo_sort",
@@ -6122,6 +6134,22 @@
       "            &mut self[index as usize]",
       "        }",
       "    }",
+      "}"
+    ]
+  },
+  "vec_to_fenwick_tree": {
+    "scope": "rust",
+    "prefix": "vec_to_fenwick_tree",
+    "body": [
+      "pub fn vec_to_fenwick_tree<T>(xs: &[T], e: T) -> FenwickTree<T>",
+      "where",
+      "    T: Clone + std::ops::AddAssign<T>,",
+      "{",
+      "    let mut fenwick_tree = FenwickTree::new(xs.len(), e);",
+      "    for (i, x) in xs.iter().enumerate() {",
+      "        fenwick_tree.add(i, x.clone());",
+      "    }",
+      "    fenwick_tree",
       "}"
     ]
   },
