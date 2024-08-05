@@ -1,18 +1,195 @@
+#[derive(Debug, Clone)]
+struct SubProblem {
+    s: Vec<u8>,
+    xs: Vec<u8>,
+    ys: Vec<u8>,
+}
+
+impl SubProblem {
+    fn read() -> SubProblem {
+        input! {
+            s: Bytes,
+            xs: Bytes,
+            ys: Bytes,
+        }
+        SubProblem { s, xs, ys }
+    }
+    fn solve(&self) -> bool {
+        let base = ModInt261M1::new(50004);
+        let s = self
+            .s
+            .iter()
+            .copied()
+            .map(|x| {
+                let v = (x - b'a' + 1) as i64;
+                RollingHash::unit(50004)(v)
+            })
+            .collect_vec();
+
+        let s_len = s.len();
+
+        let t_len = {
+            let x_cnt_s = self.xs.iter().copied().filter(|x| *x == 0).count();
+            let x_cnt_t = self.xs.iter().copied().filter(|x| *x == 1).count();
+
+            let y_cnt_s = self.ys.iter().copied().filter(|x| *x == 0).count();
+            let y_cnt_t = self.ys.iter().copied().filter(|x| *x == 1).count();
+
+            let coef = x_cnt_t - y_cnt_t;
+            let cst = y_cnt_s - x_cnt_s;
+            if cst == 0 {
+                0
+            } else if coef == 0 || cst % coef != 0 {
+                return false;
+            } else {
+                cst / coef
+            }
+        };
+
+        // tの長さを求める
+
+        let x_lens = self
+            .xs
+            .iter()
+            .copied()
+            .map(|x| (if x == b'0' { s_len } else { t_len }) as i64)
+            .collect_vec();
+
+        let y_lens = self
+            .ys
+            .iter()
+            .copied()
+            .map(|x| (if x == b'0' { s_len } else { t_len }) as i64)
+            .collect_vec();
+
+        let x_len_cumsum = CumSum::new(&x_lens);
+        let y_len_cumsum = CumSum::new(&y_lens);
+
+        let s = Segtree::<RollingHashConcat>::from(s);
+
+        // s の最小周期を求める。
+        let s_loop = {
+            (1..=s_len)
+                .find(|&l| {
+                    if s_len % l != 0 {
+                        return false;
+                    }
+                    let e = s_len / l;
+                    let x = s.prod(0..l);
+
+                    RollingHashConcat::pow(&x, e) == s.all_prod()
+                })
+                .unwrap()
+        };
+
+        // rhs 係数
+        // rhs 定数
+        // lhs 係数
+        // lhs 係数
+
+        let lhs_coef = self
+            .xs
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(i, x)| {
+                if x == b'0' {
+                    // Sを使う
+                    ModInt261M1::new(0)
+                } else {
+                    // Tを使う
+                    ModInt261M1::pow(base, x_len_cumsum.range_sum(0..i) as usize)
+                        * s.all_prod().get_hash_m()
+                }
+            })
+            .fold(ModInt261M1::new(0), |acc, x| acc + x);
+
+        let lhs_const = self
+            .xs
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(i, x)| {
+                if x == b'0' {
+                    // Sを使う
+                    ModInt261M1::pow(base, x_len_cumsum.range_sum(0..i) as usize)
+                        * s.all_prod().get_hash_m()
+                } else {
+                    // Tを使う
+                    ModInt261M1::new(0)
+                }
+            })
+            .fold(ModInt261M1::new(0), |acc, x| acc + x);
+
+        let rhs_coef = self
+            .ys
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(i, x)| {
+                if x == b'0' {
+                    // Sを使う
+                    ModInt261M1::new(0)
+                } else {
+                    // Tを使う
+                    ModInt261M1::pow(base, y_len_cumsum.range_sum(0..i) as usize)
+                        * s.all_prod().get_hash_m()
+                }
+            })
+            .fold(ModInt261M1::new(0), |acc, x| acc + x);
+
+        let rhs_const = self
+            .ys
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(i, x)| {
+                if x == b'0' {
+                    // Sを使う
+                    ModInt261M1::pow(base, y_len_cumsum.range_sum(0..i) as usize)
+                        * s.all_prod().get_hash_m()
+                } else {
+                    // Tを使う
+                    ModInt261M1::new(0)
+                }
+            })
+            .fold(ModInt261M1::new(0), |acc, x| acc + x);
+
+        // t のロリハを求める
+
+        let trh =
+            (rhs_const - lhs_const) * ModInt261M1::pow(lhs_coef - rhs_coef, (MOD - 2) as usize);
+
+        let s_loop_rh = s.prod(0..s_loop);
+        dbg!(trh);
+        dbg!(s_loop_rh.get_hash());
+
+        (0..5 * 100_000).any(|l| RollingHashConcat::pow(&s_loop_rh, l).get_hash() == trh.val)
+    }
+
+    #[allow(dead_code)]
+    fn solve_naive(&self) -> usize {
+        todo!();
+    }
+}
+
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    ts: Vec<SubProblem>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
         }
-        Problem { _a }
+        let ts = (0..n).map(|_| SubProblem::read()).collect_vec();
+        Problem { n, ts }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = self.ts.iter().map(|t| t.solve()).collect_vec();
         Answer { ans }
     }
 
@@ -26,12 +203,14 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<bool>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        for &x in &self.ans {
+            print_yesno(x)
+        }
     }
 }
 
@@ -115,6 +294,7 @@ mod tests {
     }
 }
 
+use ac_library::{FenwickTree, Segtree};
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
@@ -173,3 +353,183 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use monoid_rolling_hash::*;
+pub mod monoid_rolling_hash {
+    use std::convert::Infallible;
+    pub const MOD: i64 = (1 << 61) - 1;
+    const MOD_I128: i128 = (1 << 61) - 1;
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub struct ModInt261M1 {
+        pub val: i64,
+    }
+    impl ModInt261M1 {
+        #[inline]
+        pub fn new(val: i64) -> Self {
+            Self { val }
+        }
+
+        pub fn pow(base: Self, n: usize) -> Self {
+            let mut base = base.clone();
+            let mut ans = Self::new(1);
+            let mut n = n;
+            while n > 0 {
+                if n & 1 == 1 {
+                    ans = ans * base;
+                }
+                base = base * base;
+                n >>= 1;
+            }
+            ans
+        }
+    }
+    impl std::ops::Add for ModInt261M1 {
+        type Output = Self;
+        #[inline]
+        fn add(self, rhs: Self) -> Self::Output {
+            let mut x = self.val + rhs.val;
+            if x >= MOD {
+                x -= MOD;
+            }
+            Self::new(x)
+        }
+    }
+    impl std::ops::Sub for ModInt261M1 {
+        type Output = Self;
+        #[inline]
+        fn sub(self, rhs: Self) -> Self::Output {
+            let mut x = MOD + self.val - rhs.val;
+            if x >= MOD {
+                x -= MOD;
+            }
+            Self::new(x)
+        }
+    }
+    impl std::ops::Mul for ModInt261M1 {
+        type Output = Self;
+        #[inline]
+        fn mul(self, rhs: Self) -> Self::Output {
+            let x = (self.val as i128) * (rhs.val as i128);
+            let mut x = ((x >> 61) + (x & MOD_I128)) as i64;
+            if x >= MOD {
+                x -= MOD;
+            }
+            Self::new(x)
+        }
+    }
+    use ac_library::Monoid;
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub struct RollingHash {
+        hash: ModInt261M1,
+        base: ModInt261M1,
+    }
+    impl RollingHash {
+        pub fn get_hash(&self) -> i64 {
+            self.hash.val
+        }
+        pub fn get_hash_m(&self) -> ModInt261M1 {
+            self.hash
+        }
+        pub fn unit(base: i64) -> impl (Fn(i64) -> RollingHash) {
+            move |x| RollingHash {
+                hash: ModInt261M1::new(x),
+                base: ModInt261M1::new(base),
+            }
+        }
+        pub fn new(hash: i64, base: i64) -> Self {
+            Self {
+                hash: ModInt261M1::new(hash),
+                base: ModInt261M1::new(base),
+            }
+        }
+    }
+    pub struct RollingHashConcat(Infallible);
+    impl Monoid for RollingHashConcat {
+        type S = RollingHash;
+        fn identity() -> Self::S {
+            RollingHash {
+                hash: ModInt261M1::new(0),
+                base: ModInt261M1::new(1),
+            }
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            RollingHash {
+                hash: a.hash * b.base + b.hash,
+                base: a.base * b.base,
+            }
+        }
+    }
+}
+
+use extend_acl_monoid::*;
+pub mod extend_acl_monoid {
+    use ac_library::Monoid;
+    pub trait MonoidExtPow: Monoid {
+        /// base^n を求める
+        fn pow(base: &Self::S, n: usize) -> Self::S {
+            let mut base = base.clone();
+            let mut ans = Self::identity();
+            let mut n = n;
+            while n > 0 {
+                if n & 1 == 1 {
+                    ans = Self::binary_operation(&ans, &base);
+                }
+                base = Self::binary_operation(&base, &base);
+                n >>= 1;
+            }
+            ans
+        }
+    }
+    impl<T> MonoidExtPow for T where T: Monoid {}
+}
+use cumsum::*;
+pub mod cumsum {
+    pub fn prefix_sum(xs: &[i64]) -> Vec<i64> {
+        let mut prefix_sum = vec![0; xs.len() + 1];
+        for i in 1..xs.len() + 1 {
+            prefix_sum[i] = prefix_sum[i - 1] + xs[i - 1];
+        }
+        prefix_sum
+    }
+    use std::ops::{Bound, Range, RangeBounds};
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct CumSum {
+        pub cumsum: Vec<i64>,
+    }
+    impl CumSum {
+        /// 計算量: O(|xs|)
+        pub fn new(xs: &[i64]) -> CumSum {
+            let mut cumsum = vec![0; xs.len() + 1];
+            for i in 1..xs.len() + 1 {
+                cumsum[i] = cumsum[i - 1] + xs[i - 1];
+            }
+            CumSum { cumsum }
+        }
+        fn open(&self, range: impl RangeBounds<usize>) -> Range<usize> {
+            use Bound::Excluded;
+            use Bound::Included;
+            use Bound::Unbounded;
+            let begin = match range.start_bound() {
+                Unbounded => 0,
+                Included(&x) => x,
+                Excluded(&x) => x + 1,
+            };
+            let end = match range.end_bound() {
+                Excluded(&x) => x,
+                Included(&x) => x + 1,
+                Unbounded => self.cumsum.len() - 1,
+            };
+            begin..end
+        }
+        /// 計算量: O(1)
+        pub fn range_sum(&self, range: impl RangeBounds<usize>) -> i64 {
+            let range = self.open(range);
+            self.cumsum[range.end] - self.cumsum[range.start]
+        }
+        pub fn prefix_sum(&self, end: usize) -> i64 {
+            self.cumsum[end]
+        }
+        pub fn suffix_sum(&self, begin: usize) -> i64 {
+            self.cumsum[self.cumsum.len() - 1] - self.cumsum[begin]
+        }
+    }
+}

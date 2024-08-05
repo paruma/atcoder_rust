@@ -1,18 +1,82 @@
+#[derive(Debug, Clone)]
+struct SubProblem {
+    n: usize,
+    xs: Vec<usize>,
+}
+
+fn fenwick_to_vec(f: &FenwickTree<usize>, n: usize) -> Vec<usize> {
+    (0..n).map(|i| f.sum(i..=i)).collect_vec()
+}
+
+impl SubProblem {
+    fn read() -> SubProblem {
+        input! {
+            n: usize,
+            xs: [Usize1; n],
+        }
+        SubProblem { n, xs }
+    }
+    fn solve(&self) -> usize {
+        let n = self.n;
+        let xs = &self.xs;
+        let is_sorted = xs.iter().tuple_windows().all(|(x, y)| x <= y);
+
+        let is_one = (|| {
+            let mut cnts = FenwickTree::new(n, 0);
+            for k in 0..n {
+                // 0..k, k+1..n
+                if xs[k] == k && cnts.sum(0..k) == k {
+                    return true;
+                }
+
+                cnts.add(xs[k], 1);
+                //dbg!(fenwick_to_vec(&cnts, n));
+            }
+            false
+        })();
+
+        let is_three = {
+            //
+            xs[0] == n - 1 && xs[n - 1] == 0
+        };
+
+        if is_sorted {
+            return 0;
+        }
+        if is_one {
+            return 1;
+        }
+
+        if is_three {
+            return 3;
+        }
+
+        2
+    }
+
+    #[allow(dead_code)]
+    fn solve_naive(&self) -> usize {
+        todo!();
+    }
+}
+
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    ts: Vec<SubProblem>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
         }
-        Problem { _a }
+        let ts = (0..n).map(|_| SubProblem::read()).collect_vec();
+        Problem { n, ts }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = self.ts.iter().map(|t| t.solve()).collect_vec();
         Answer { ans }
     }
 
@@ -26,12 +90,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<usize>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec(&self.ans);
     }
 }
 
@@ -115,6 +179,7 @@ mod tests {
     }
 }
 
+use ac_library::FenwickTree;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
