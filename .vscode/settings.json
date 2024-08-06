@@ -26,6 +26,7 @@
         "proconio",
         "Reroot",
         "rngs",
+        "scanl",
         "Segtree",
         "struct",
         "sympy",

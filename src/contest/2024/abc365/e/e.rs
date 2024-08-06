@@ -6,22 +6,24 @@ struct Problem {
 }
 
 fn solve_sub(n: usize, ys: &[i64]) -> i64 {
-    //ys の mod 2 cumsum を取る
+    // s[i] = ys[0] xor ... xor ys[i-1] とすると、
+    // ys[i] xor ... xor ys[j]
+    // = s[j+1] xor s[i]
 
-    let ys_cumsum_mod2 = CumSumMod2::new(ys).cumsum;
-    //let ys_cumsum_mod2_rev = ys_cumsum_mod2.iter().copied().map(|y| 1 - y).collect_vec();
+    let prefix_cumxor = ys.iter().scanl(0, |acc, x| *acc ^ *x).collect_vec();
+    let prefix_cumxor_neg = prefix_cumxor.iter().copied().map(|x| 1 - x).collect_vec();
 
-    dbg!(&ys_cumsum_mod2);
+    let cnt1s = CumSum::new(&prefix_cumxor);
+    let cnt0s = CumSum::new(&prefix_cumxor_neg);
 
-    //    dbg!(&ys_cumsum_mod2);
-    let ys_cumsum_mod2_cumsum = CumSum::new(&ys_cumsum_mod2);
-    dbg!(&ys_cumsum_mod2_cumsum.cumsum);
-
-    // let rev_ys = ys.iter().copied().map(|y| 1 - y).collect_vec();
-    // let ys_cumsum = CumSum::new(ys); // ys の 1をカウント
-    // let rev_ys_cumsum = CumSum::new(ys); // ys の 0をカウント
     (0..n - 1)
-        .map(|i| ys_cumsum_mod2_cumsum.range_sum(i + 2..))
+        .map(|i| {
+            if prefix_cumxor[i] == 0 {
+                cnt1s.range_sum(i + 2..)
+            } else {
+                cnt0s.range_sum(i + 2..)
+            }
+        })
         .sum::<i64>()
 }
 
@@ -42,7 +44,6 @@ impl Problem {
                 let ys = xs.iter().copied().map(|x| (x >> i) & 1).collect_vec();
 
                 let cnt = solve_sub(n, &ys);
-                dbg!(cnt);
                 (1 << i) * cnt
             })
             .sum::<i64>();
@@ -258,56 +259,48 @@ pub mod cumsum {
         }
     }
 }
-
-use cumsummod2::*;
-pub mod cumsummod2 {
-    pub fn prefix_sum(xs: &[i64]) -> Vec<i64> {
-        let mut prefix_sum = vec![0; xs.len() + 1];
-        for i in 1..xs.len() + 1 {
-            prefix_sum[i] = prefix_sum[i - 1] + xs[i - 1];
-        }
-        prefix_sum
+use scan_iter::*;
+pub mod scan_iter {
+    #[derive(Clone)]
+    pub struct Scanl<I, B, F> {
+        iter: I,
+        state: Option<B>,
+        f: F,
     }
-    use std::ops::{Bound, Range, RangeBounds};
-    #[derive(Clone, Debug, PartialEq, Eq)]
-    pub struct CumSumMod2 {
-        pub cumsum: Vec<i64>,
-    }
-    impl CumSumMod2 {
-        /// 計算量: O(|xs|)
-        pub fn new(xs: &[i64]) -> CumSumMod2 {
-            let mut cumsum = vec![0; xs.len() + 1];
-            for i in 1..xs.len() + 1 {
-                cumsum[i] = (cumsum[i - 1] + xs[i - 1]) % 2;
+    impl<I, B, F> Scanl<I, B, F> {
+        fn new(iter: I, init: B, f: F) -> Scanl<I, B, F> {
+            Scanl {
+                iter,
+                state: Some(init),
+                f,
             }
-            CumSumMod2 { cumsum }
-        }
-        fn open(&self, range: impl RangeBounds<usize>) -> Range<usize> {
-            use Bound::Excluded;
-            use Bound::Included;
-            use Bound::Unbounded;
-            let begin = match range.start_bound() {
-                Unbounded => 0,
-                Included(&x) => x,
-                Excluded(&x) => x + 1,
-            };
-            let end = match range.end_bound() {
-                Excluded(&x) => x,
-                Included(&x) => x + 1,
-                Unbounded => self.cumsum.len() - 1,
-            };
-            begin..end
-        }
-        /// 計算量: O(1)
-        pub fn range_sum(&self, range: impl RangeBounds<usize>) -> i64 {
-            let range = self.open(range);
-            (self.cumsum[range.end] + self.cumsum[range.start]) % 2
-        }
-        pub fn prefix_sum(&self, end: usize) -> i64 {
-            self.cumsum[end]
-        }
-        pub fn suffix_sum(&self, begin: usize) -> i64 {
-            (self.cumsum[self.cumsum.len() - 1] + self.cumsum[begin]) % 2
         }
     }
+    impl<I, B, F> Iterator for Scanl<I, B, F>
+    where
+        B: Copy,
+        I: Iterator,
+        F: FnMut(&mut B, I::Item) -> B,
+    {
+        type Item = B;
+        #[inline]
+        fn next(&mut self) -> Option<B> {
+            let retval = self.state?;
+            let a_opt = self.iter.next();
+            self.state = self
+                .state
+                .and_then(|mut s| a_opt.map(|a| (self.f)(&mut s, a)));
+            Some(retval)
+        }
+    }
+    pub trait IteratorExtScanLeft: Iterator + Sized {
+        fn scanl<B, F>(self, init: B, f: F) -> Scanl<Self, B, F>
+        where
+            Self: Sized,
+            F: FnMut(&mut B, Self::Item) -> B,
+        {
+            Scanl::new(self, init, f)
+        }
+    }
+    impl<T: Iterator> IteratorExtScanLeft for T {}
 }
