@@ -1,22 +1,18 @@
 #[derive(Debug, Clone)]
-struct SubProblem {
+struct Problem {
     n: usize,
     xs: Vec<usize>,
 }
 
-fn fenwick_to_vec(f: &FenwickTree<usize>, n: usize) -> Vec<usize> {
-    (0..n).map(|i| f.sum(i..=i)).collect_vec()
-}
-
-impl SubProblem {
-    fn read() -> SubProblem {
+impl Problem {
+    fn read() -> Problem {
         input! {
             n: usize,
             xs: [Usize1; n],
         }
-        SubProblem { n, xs }
+        Problem { n, xs }
     }
-    fn solve(&self) -> usize {
+    fn solve(&self) -> Answer {
         let n = self.n;
         let xs = &self.xs;
         let is_sorted = xs.iter().tuple_windows().all(|(x, y)| x <= y);
@@ -40,43 +36,15 @@ impl SubProblem {
             xs[0] == n - 1 && xs[n - 1] == 0
         };
 
-        if is_sorted {
-            return 0;
-        }
-        if is_one {
-            return 1;
-        }
-
-        if is_three {
-            return 3;
-        }
-
-        2
-    }
-
-    #[allow(dead_code)]
-    fn solve_naive(&self) -> usize {
-        todo!();
-    }
-}
-
-//#[derive_readable]
-#[derive(Debug, Clone)]
-struct Problem {
-    n: usize,
-    ts: Vec<SubProblem>,
-}
-
-impl Problem {
-    fn read() -> Problem {
-        input! {
-            n: usize,
-        }
-        let ts = (0..n).map(|_| SubProblem::read()).collect_vec();
-        Problem { n, ts }
-    }
-    fn solve(&self) -> Answer {
-        let ans = self.ts.iter().map(|t| t.solve()).collect_vec();
+        let ans = if is_sorted {
+            0
+        } else if is_one {
+            1
+        } else if is_three {
+            3
+        } else {
+            2
+        };
         Answer { ans }
     }
 
@@ -90,17 +58,22 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: Vec<usize>,
+    ans: usize,
 }
 
 impl Answer {
     fn print(&self) {
-        print_vec(&self.ans);
+        println!("{}", self.ans);
     }
 }
 
 fn main() {
-    Problem::read().solve().print();
+    input! {
+        t: usize,
+    }
+    for _ in 0..t {
+        Problem::read().solve().print();
+    }
 }
 
 #[cfg(test)]
