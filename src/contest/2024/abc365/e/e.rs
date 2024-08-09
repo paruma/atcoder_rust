@@ -5,6 +5,56 @@ struct Problem {
     xs: Vec<i64>,
 }
 
+use ac_library::segtree::Monoid;
+use ac_library::{lazysegtree::MapMonoid, LazySegtree};
+use std::convert::Infallible;
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Range01Sum {
+    pub len: usize,
+    pub sum: usize,
+}
+impl Range01Sum {
+    pub fn unit(x: i64) -> Self {
+        Self {
+            len: 1,
+            sum: x as usize,
+        }
+    }
+}
+pub struct Range01SumMonoid(Infallible);
+impl Monoid for Range01SumMonoid {
+    type S = Range01Sum;
+    fn identity() -> Self::S {
+        Range01Sum { len: 0, sum: 0 }
+    }
+    fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+        Range01Sum {
+            len: a.len + b.len,
+            sum: a.sum + b.sum,
+        }
+    }
+}
+pub struct RangeXorRange01Sum(Infallible);
+impl MapMonoid for RangeXorRange01Sum {
+    type M = Range01SumMonoid;
+    type F = bool;
+    fn identity_map() -> Self::F {
+        false
+    }
+    fn mapping(
+        f: &Self::F,
+        x: &<Self::M as ac_library::Monoid>::S,
+    ) -> <Self::M as ac_library::Monoid>::S {
+        Range01Sum {
+            len: x.len,
+            sum: if *f { x.len - x.sum } else { x.sum },
+        }
+    }
+    fn composition(f: &Self::F, g: &Self::F) -> Self::F {
+        f ^ g
+    }
+}
+
 fn solve_sub(n: usize, ys: &[i64]) -> i64 {
     // s[i] = ys[0] xor ... xor ys[i-1] とすると、
     // ys[i] xor ... xor ys[j]
@@ -27,6 +77,25 @@ fn solve_sub(n: usize, ys: &[i64]) -> i64 {
         .sum::<i64>()
 }
 
+fn solve_sub2(n: usize, ys: &[i64]) -> i64 {
+    // 0,1 列の range xor range sum 遅延セグ木を使う
+    let mut seg = LazySegtree::<RangeXorRange01Sum>::from(
+        ys.iter().copied().map(Range01Sum::unit).collect_vec(),
+    );
+
+    let term1 = {
+        let mut sum = 0;
+        for j in 0..n {
+            seg.apply_range(0..j, ys[j] == 1);
+            sum += seg.prod(0..=j).sum;
+        }
+        sum as i64
+    };
+    let term2 = ys.iter().sum::<i64>();
+
+    term1 - term2
+}
+
 impl Problem {
     fn read() -> Problem {
         input! {
@@ -39,11 +108,11 @@ impl Problem {
     fn solve(&self) -> Answer {
         let n = self.n;
         let xs = &self.xs;
-        let ans = (0..40)
+        let ans = (0..28)
             .map(|i| {
                 let ys = xs.iter().copied().map(|x| (x >> i) & 1).collect_vec();
 
-                let cnt = solve_sub(n, &ys);
+                let cnt = solve_sub2(n, &ys);
                 (1 << i) * cnt
             })
             .sum::<i64>();
