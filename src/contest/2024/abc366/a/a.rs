@@ -1,18 +1,23 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    t: usize,
+    a: usize,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            t: usize,
+            a: usize,
         }
-        Problem { _a }
+        Problem { n, t, a }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let x = num_integer::div_ceil(self.n, 2);
+        let ans = self.t >= x || self.a >= x;
         Answer { ans }
     }
 
@@ -26,12 +31,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_yesno(self.ans);
     }
 }
 

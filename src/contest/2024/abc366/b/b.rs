@@ -1,18 +1,36 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    lines: Vec<Vec<char>>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            lines: [Chars; n]
         }
-        Problem { _a }
+        Problem { n, lines }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let max = self.lines.iter().map(|l| l.len()).max().unwrap();
+        let mut ans = vec![vec!['*'; n]; max];
+
+        for y in 0..max {
+            for x in 0..n {
+                ans[y][x] = self.lines[n - 1 - x].get(y).copied().unwrap_or('*');
+            }
+        }
+
+        // 末尾の * を消す
+        for line in ans.iter_mut() {
+            while line.last() == Some(&'*') {
+                line.pop();
+            }
+        }
+
         Answer { ans }
     }
 
@@ -26,12 +44,14 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<Vec<char>>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        for l in &self.ans {
+            println!("{}", l.iter().copied().collect::<String>());
+        }
     }
 }
 

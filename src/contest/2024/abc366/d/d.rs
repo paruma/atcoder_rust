@@ -1,18 +1,98 @@
-//#[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Query {
+    x1: Usize1,
+    x2: Usize1,
+    y1: Usize1,
+    y2: Usize1,
+    z1: Usize1,
+    z2: Usize1,
+}
+
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    xsss: Vec<Vec<Vec<i64>>>,
+    nq: usize,
+    qs: Vec<Query>,
+}
+
+pub mod cumsum_3d {
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct CumSum3D {
+        pub cumsum: Vec<Vec<Vec<i64>>>,
+    }
+
+    impl CumSum3D {
+        pub fn new(xsss: &[Vec<Vec<i64>>]) -> CumSum3D {
+            let x_len = xsss.len();
+            let y_len = xsss[0].len();
+            let z_len = xsss[0][0].len();
+
+            let mut cumsum = vec![vec![vec![0; z_len + 1]; y_len + 1]; x_len + 1];
+            for x in 1..x_len + 1 {
+                for y in 1..y_len + 1 {
+                    for z in 1..z_len + 1 {
+                        cumsum[x][y][z] = xsss[x - 1][y - 1][z - 1]
+                            + cumsum[x - 1][y][z]
+                            + cumsum[x][y - 1][z]
+                            + cumsum[x][y][z - 1]
+                            - cumsum[x - 1][y - 1][z]
+                            - cumsum[x - 1][y][z - 1]
+                            - cumsum[x][y - 1][z - 1]
+                            + cumsum[x - 1][y - 1][z - 1];
+                    }
+                }
+            }
+            CumSum3D { cumsum }
+        }
+
+        pub fn sum(&self, x1: usize, x2: usize, y1: usize, y2: usize, z1: usize, z2: usize) -> i64 {
+            // [x1, x2) × [y1, y2) × [z1, z2) の範囲で総和を求める
+            self.cumsum[x2][y2][z2]
+                - self.cumsum[x1][y2][z2]
+                - self.cumsum[x2][y1][z2]
+                - self.cumsum[x2][y2][z1]
+                + self.cumsum[x1][y1][z2]
+                + self.cumsum[x1][y2][z1]
+                + self.cumsum[x2][y1][z1]
+                - self.cumsum[x1][y1][z1]
+        }
+    }
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            xsss: [[[i64; n]; n]; n],
+            nq: usize,
+            qs: [Query; nq],
         }
-        Problem { _a }
+        Problem { n, xsss, nq, qs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let c = CumSum3D::new(&self.xsss);
+        let ans = self
+            .qs
+            .iter()
+            .copied()
+            .map(
+                |Query {
+                     x1,
+                     x2,
+                     y1,
+                     y2,
+                     z1,
+                     z2,
+                 }| {
+                    let x2 = x2 + 1;
+                    let y2 = y2 + 1;
+                    let z2 = z2 + 1;
+                    c.sum(x1, x2, y1, y2, z1, z2)
+                },
+            )
+            .collect_vec();
         Answer { ans }
     }
 
@@ -26,12 +106,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec(&self.ans);
     }
 }
 
@@ -115,6 +195,7 @@ mod tests {
     }
 }
 
+use cumsum_3d::CumSum3D;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};

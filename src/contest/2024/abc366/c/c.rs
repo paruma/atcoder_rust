@@ -1,18 +1,93 @@
 //#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Query {
+    Put(usize),
+    Remove(usize),
+    Print,
+}
+
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    qs: Vec<Query>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
         }
-        Problem { _a }
+        let qs = (0..n)
+            .map(|_| {
+                input! {
+                    t: usize,
+                }
+
+                match t {
+                    1 => {
+                        input! {
+                            x: Usize1,
+                        }
+                        Query::Put(x)
+                    }
+                    2 => {
+                        input! {
+                            x: Usize1,
+                        }
+                        Query::Remove(x)
+                    }
+                    3 => Query::Print,
+                    _ => unreachable!(),
+                }
+            })
+            .collect_vec();
+        Problem { n, qs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let mut bag: HashBag<usize> = HashBag::new();
+
+        let mut cnt = 0;
+
+        let mut ans = vec![];
+
+        for &q in &self.qs {
+            match q {
+                Query::Put(x) => {
+                    if bag.insert(x) == 0 {
+                        cnt += 1;
+                    }
+                }
+                Query::Remove(x) => {
+                    if bag.remove(&x) == 1 {
+                        cnt -= 1;
+                    };
+                }
+                Query::Print => {
+                    ans.push(cnt);
+                }
+            }
+        }
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        let mut bag: HashBag<usize> = HashBag::new();
+
+        let mut ans = vec![];
+
+        for &q in &self.qs {
+            match q {
+                Query::Put(x) => {
+                    bag.insert(x);
+                }
+                Query::Remove(x) => {
+                    bag.remove(&x);
+                }
+                Query::Print => {
+                    ans.push(bag.set_len());
+                }
+            }
+        }
         Answer { ans }
     }
 
@@ -26,17 +101,17 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<usize>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec(&self.ans);
     }
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -115,6 +190,7 @@ mod tests {
     }
 }
 
+use hashbag::HashBag;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
