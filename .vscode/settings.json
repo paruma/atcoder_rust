@@ -30,6 +30,7 @@
         "Segtree",
         "struct",
         "sympy",
+        "xsss",
         "yesno"
     ],
     "rust-analyzer.cargo.buildScripts.overrideCommand": [

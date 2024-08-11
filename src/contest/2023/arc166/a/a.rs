@@ -14,7 +14,6 @@ fn count_ch(zs: &[u8], ch: u8) -> usize {
 
 fn solve_sub(xs: &[u8], ys: &[u8]) -> bool {
     // ABCの数の整合性があっている
-    // Aの最左位置とBの最右位置の比較
     let cnt_xa = count_ch(xs, b'A');
     let cnt_xb = count_ch(xs, b'B');
     let cnt_ya = count_ch(ys, b'A');
