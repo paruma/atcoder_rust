@@ -1,18 +1,41 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: i64,
+    k: i64,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: i64,
+            k: i64,
         }
-        Problem { _a }
+        Problem { n, k }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let k = self.k;
+        // 2^{k-1}個 作る。足りない分は1で埋める。
+
+        let n1 = n.min(2_i64.pow(k as u32 - 1)) as u64;
+
+        let mut ans = (0..n1)
+            .map(|i| {
+                //
+                let x = i.reverse_bits() >> (64 - k + 1);
+                let offset = 2_u64.pow(k as u32 - 1);
+                (x + offset) as i64
+            })
+            .collect_vec();
+
+        if n > n1 as i64 {
+            for _ in 0..(n - n1 as i64) {
+                ans.push(1);
+            }
+        }
+
+        assert_eq!(ans.len(), n as usize);
         Answer { ans }
     }
 
@@ -26,17 +49,22 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec_1line(&self.ans);
     }
 }
 
 fn main() {
-    Problem::read().solve().print();
+    input! {
+        t: usize
+    }
+    for _ in 0..t {
+        Problem::read().solve().print();
+    }
 }
 
 #[cfg(test)]

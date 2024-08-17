@@ -1,15 +1,17 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: i64,
+    m: i64,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: i64,
+            m: i64,
         }
-        Problem { _a }
+        Problem { n, m }
     }
     fn solve(&self) -> Answer {
         let ans = 0;
