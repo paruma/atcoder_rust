@@ -5,6 +5,34 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [[bin]]
+name = "abc367_a"
+path = "src/contest/2024/abc367/a/a.rs"
+
+[[bin]]
+name = "abc367_b"
+path = "src/contest/2024/abc367/b/b.rs"
+
+[[bin]]
+name = "abc367_c"
+path = "src/contest/2024/abc367/c/c.rs"
+
+[[bin]]
+name = "abc367_d"
+path = "src/contest/2024/abc367/d/d.rs"
+
+[[bin]]
+name = "abc367_e"
+path = "src/contest/2024/abc367/e/e.rs"
+
+[[bin]]
+name = "abc367_f"
+path = "src/contest/2024/abc367/f/f.rs"
+
+[[bin]]
+name = "abc367_g"
+path = "src/contest/2024/abc367/g/g.rs"
+
+[[bin]]
 name = "arc182_a"
 path = "src/contest/2024/arc182/a/a.rs"
 
@@ -141,91 +169,91 @@ name = "abc364_g"
 path = "src/contest/2024/abc364/g/g.rs"
 
 
-[[bin]]
-name = "abc363_a"
-path = "src/contest/2024/abc363/a/a.rs"
+# [[bin]]
+# name = "abc363_a"
+# path = "src/contest/2024/abc363/a/a.rs"
 
-[[bin]]
-name = "abc363_b"
-path = "src/contest/2024/abc363/b/b.rs"
+# [[bin]]
+# name = "abc363_b"
+# path = "src/contest/2024/abc363/b/b.rs"
 
-[[bin]]
-name = "abc363_c"
-path = "src/contest/2024/abc363/c/c.rs"
+# [[bin]]
+# name = "abc363_c"
+# path = "src/contest/2024/abc363/c/c.rs"
 
-[[bin]]
-name = "abc363_d"
-path = "src/contest/2024/abc363/d/d.rs"
+# [[bin]]
+# name = "abc363_d"
+# path = "src/contest/2024/abc363/d/d.rs"
 
-[[bin]]
-name = "abc363_e"
-path = "src/contest/2024/abc363/e/e.rs"
+# [[bin]]
+# name = "abc363_e"
+# path = "src/contest/2024/abc363/e/e.rs"
 
-[[bin]]
-name = "abc363_f"
-path = "src/contest/2024/abc363/f/f.rs"
+# [[bin]]
+# name = "abc363_f"
+# path = "src/contest/2024/abc363/f/f.rs"
 
-[[bin]]
-name = "abc363_g"
-path = "src/contest/2024/abc363/g/g.rs"
-
-
-[[bin]]
-name = "abc362_a"
-path = "src/contest/2024/abc362/a/a.rs"
-
-[[bin]]
-name = "abc362_b"
-path = "src/contest/2024/abc362/b/b.rs"
-
-[[bin]]
-name = "abc362_c"
-path = "src/contest/2024/abc362/c/c.rs"
-
-[[bin]]
-name = "abc362_d"
-path = "src/contest/2024/abc362/d/d.rs"
-
-[[bin]]
-name = "abc362_e"
-path = "src/contest/2024/abc362/e/e.rs"
-
-[[bin]]
-name = "abc362_f"
-path = "src/contest/2024/abc362/f/f.rs"
-
-[[bin]]
-name = "abc362_g"
-path = "src/contest/2024/abc362/g/g.rs"
+# [[bin]]
+# name = "abc363_g"
+# path = "src/contest/2024/abc363/g/g.rs"
 
 
-[[bin]]
-name = "abc361_a"
-path = "src/contest/2024/abc361/a/a.rs"
+# [[bin]]
+# name = "abc362_a"
+# path = "src/contest/2024/abc362/a/a.rs"
 
-[[bin]]
-name = "abc361_b"
-path = "src/contest/2024/abc361/b/b.rs"
+# [[bin]]
+# name = "abc362_b"
+# path = "src/contest/2024/abc362/b/b.rs"
 
-[[bin]]
-name = "abc361_c"
-path = "src/contest/2024/abc361/c/c.rs"
+# [[bin]]
+# name = "abc362_c"
+# path = "src/contest/2024/abc362/c/c.rs"
 
-[[bin]]
-name = "abc361_d"
-path = "src/contest/2024/abc361/d/d.rs"
+# [[bin]]
+# name = "abc362_d"
+# path = "src/contest/2024/abc362/d/d.rs"
 
-[[bin]]
-name = "abc361_e"
-path = "src/contest/2024/abc361/e/e.rs"
+# [[bin]]
+# name = "abc362_e"
+# path = "src/contest/2024/abc362/e/e.rs"
 
-[[bin]]
-name = "abc361_f"
-path = "src/contest/2024/abc361/f/f.rs"
+# [[bin]]
+# name = "abc362_f"
+# path = "src/contest/2024/abc362/f/f.rs"
 
-[[bin]]
-name = "abc361_g"
-path = "src/contest/2024/abc361/g/g.rs"
+# [[bin]]
+# name = "abc362_g"
+# path = "src/contest/2024/abc362/g/g.rs"
+
+
+# [[bin]]
+# name = "abc361_a"
+# path = "src/contest/2024/abc361/a/a.rs"
+
+# [[bin]]
+# name = "abc361_b"
+# path = "src/contest/2024/abc361/b/b.rs"
+
+# [[bin]]
+# name = "abc361_c"
+# path = "src/contest/2024/abc361/c/c.rs"
+
+# [[bin]]
+# name = "abc361_d"
+# path = "src/contest/2024/abc361/d/d.rs"
+
+# [[bin]]
+# name = "abc361_e"
+# path = "src/contest/2024/abc361/e/e.rs"
+
+# [[bin]]
+# name = "abc361_f"
+# path = "src/contest/2024/abc361/f/f.rs"
+
+# [[bin]]
+# name = "abc361_g"
+# path = "src/contest/2024/abc361/g/g.rs"
 
 
 # [[bin]]
