@@ -40,7 +40,7 @@ struct Answer {
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans.iter().copied().collect::<String>());
+        print_chars(&self.ans);
     }
 }
 
@@ -164,6 +164,10 @@ pub mod print_vec {
     }
     pub fn print_bytes(bytes: &[u8]) {
         let msg = String::from_utf8(bytes.to_vec()).unwrap();
+        println!("{}", msg);
+    }
+    pub fn print_chars(chars: &[char]) {
+        let msg = chars.iter().collect::<String>();
         println!("{}", msg);
     }
     #[fastout]

@@ -157,6 +157,10 @@ pub mod print_vec {
         let msg = String::from_utf8(bytes.to_vec()).unwrap();
         println!("{}", msg);
     }
+    pub fn print_chars(chars: &[char]) {
+        let msg = chars.iter().collect::<String>();
+        println!("{}", msg);
+    }
     #[fastout]
     pub fn print_vec_bytes(vec_bytes: &[Vec<u8>]) {
         for row in vec_bytes {
