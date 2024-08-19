@@ -1,18 +1,43 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    m: i64,
+    xs: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            m: i64,
+            xs: [i64; n],
         }
-        Problem { _a }
+        Problem { n, m, xs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let m = self.m;
+        let xs2 = chain!(&self.xs, &self.xs).copied().collect_vec();
+        let cumsum = prefix_sum(&xs2);
+        let mut cnts = vec![0_i64; m as usize];
+
+        let f = |x: i64| (x % m) as usize;
+
+        for i in 1..n {
+            cnts[f(cumsum[i])] += 1;
+        }
+
+        let mut ans = 0_i64;
+
+        for i in 0..n {
+            ans += cnts[f(cumsum[i])];
+            //
+
+            cnts[f(cumsum[i + 1])] -= 1;
+            cnts[f(cumsum[i + n])] += 1;
+        }
+
         Answer { ans }
     }
 
@@ -173,3 +198,55 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use cumsum::*;
+pub mod cumsum {
+    pub fn prefix_sum(xs: &[i64]) -> Vec<i64> {
+        let mut prefix_sum = vec![0; xs.len() + 1];
+        for i in 1..xs.len() + 1 {
+            prefix_sum[i] = prefix_sum[i - 1] + xs[i - 1];
+        }
+        prefix_sum
+    }
+    use std::ops::{Bound, Range, RangeBounds};
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct CumSum {
+        pub cumsum: Vec<i64>,
+    }
+    impl CumSum {
+        /// 計算量: O(|xs|)
+        pub fn new(xs: &[i64]) -> CumSum {
+            let mut cumsum = vec![0; xs.len() + 1];
+            for i in 1..xs.len() + 1 {
+                cumsum[i] = cumsum[i - 1] + xs[i - 1];
+            }
+            CumSum { cumsum }
+        }
+        fn open(&self, range: impl RangeBounds<usize>) -> Range<usize> {
+            use Bound::Excluded;
+            use Bound::Included;
+            use Bound::Unbounded;
+            let begin = match range.start_bound() {
+                Unbounded => 0,
+                Included(&x) => x,
+                Excluded(&x) => x + 1,
+            };
+            let end = match range.end_bound() {
+                Excluded(&x) => x,
+                Included(&x) => x + 1,
+                Unbounded => self.cumsum.len() - 1,
+            };
+            begin..end
+        }
+        /// 計算量: O(1)
+        pub fn range_sum(&self, range: impl RangeBounds<usize>) -> i64 {
+            let range = self.open(range);
+            self.cumsum[range.end] - self.cumsum[range.start]
+        }
+        pub fn prefix_sum(&self, end: usize) -> i64 {
+            self.cumsum[end]
+        }
+        pub fn suffix_sum(&self, begin: usize) -> i64 {
+            self.cumsum[self.cumsum.len() - 1] - self.cumsum[begin]
+        }
+    }
+}

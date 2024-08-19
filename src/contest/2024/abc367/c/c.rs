@@ -1,18 +1,30 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    k: i64,
+    rs: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            k: i64,
+            rs: [i64; n],
         }
-        Problem { _a }
+        Problem { n, k, rs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = self
+            .rs
+            .iter()
+            .copied()
+            .map(|r| 1..=r)
+            .multi_cartesian_product()
+            .filter(|xs| xs.iter().copied().sum::<i64>() % self.k == 0)
+            .sorted()
+            .collect_vec();
         Answer { ans }
     }
 
@@ -26,12 +38,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<Vec<i64>>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec2(&self.ans);
     }
 }
 

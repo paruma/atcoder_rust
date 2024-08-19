@@ -1,18 +1,95 @@
-//#[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Query {
+    xl: Usize1,
+    xr: Usize1,
+    yl: Usize1,
+    yr: Usize1,
+}
+
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    nq: usize,
+    xs: Vec<usize>,
+    ys: Vec<usize>,
+    qs: Vec<Query>,
+}
+
+fn pow(base: i64, n: i64, m: i64) -> i64 {
+    let mut base = base as i128;
+    let m = m as i128;
+    let mut ans = 1;
+    let mut n = n;
+
+    while n > 0 {
+        if n & 1 == 1 {
+            ans *= base;
+            ans %= m;
+        }
+        base = base * base;
+        ans %= m;
+        n >>= 1;
+    }
+    ans as i64
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            nq: usize,
+            xs: [Usize1; n],
+            ys: [Usize1; n],
+            qs: [Query; nq],
         }
-        Problem { _a }
+        Problem { n, nq, xs, ys, qs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n: usize = self.n;
+        let nq: usize = self.nq;
+        let xs: &Vec<usize> = &self.xs;
+        let ys: &Vec<usize> = &self.ys;
+        let qs: &Vec<Query> = &self.qs;
+        let m = 1_000_000_007;
+        //let m = 3;
+
+        let offset = 998244353_i64;
+
+        let xsh = xs
+            .iter()
+            .copied()
+            .map(|x| (pow(998244853_i64, x as i64, m) + offset) % m)
+            .collect_vec();
+
+        let ysh = ys
+            .iter()
+            .copied()
+            .map(|x| (pow(998244853_i64, x as i64, m) + offset) % m)
+            .collect_vec();
+
+        let xshc = xsh
+            .iter()
+            .copied()
+            .scanl(0_i64, |acc, x| (*acc + x) % m)
+            .collect_vec();
+
+        let yshc = ysh
+            .iter()
+            .copied()
+            .scanl(0_i64, |acc, x| (*acc + x) % m)
+            .collect_vec();
+
+        let ans = qs
+            .iter()
+            .copied()
+            .map(|q| {
+                let xsum = (xshc[q.xr + 1] - xshc[q.xl] + m) % m;
+                let ysum = (yshc[q.yr + 1] - yshc[q.yl] + m) % m;
+                xsum == ysum && q.xr - q.xl == q.yr - q.yl
+            })
+            .collect_vec();
+
         Answer { ans }
     }
 
@@ -26,12 +103,14 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<bool>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        for x in &self.ans {
+            print_yesno(*x);
+        }
     }
 }
 
@@ -115,6 +194,7 @@ mod tests {
     }
 }
 
+use ac_library::pow_mod;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
@@ -173,3 +253,49 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+
+use scan_iter::*;
+pub mod scan_iter {
+    #[derive(Clone)]
+    pub struct Scanl<I, B, F> {
+        iter: I,
+        state: Option<B>,
+        f: F,
+    }
+    impl<I, B, F> Scanl<I, B, F> {
+        fn new(iter: I, init: B, f: F) -> Scanl<I, B, F> {
+            Scanl {
+                iter,
+                state: Some(init),
+                f,
+            }
+        }
+    }
+    impl<I, B, F> Iterator for Scanl<I, B, F>
+    where
+        B: Copy,
+        I: Iterator,
+        F: FnMut(&mut B, I::Item) -> B,
+    {
+        type Item = B;
+        #[inline]
+        fn next(&mut self) -> Option<B> {
+            let retval = self.state?;
+            let a_opt = self.iter.next();
+            self.state = self
+                .state
+                .and_then(|mut s| a_opt.map(|a| (self.f)(&mut s, a)));
+            Some(retval)
+        }
+    }
+    pub trait IteratorExtScanLeft: Iterator + Sized {
+        fn scanl<B, F>(self, init: B, f: F) -> Scanl<Self, B, F>
+        where
+            Self: Sized,
+            F: FnMut(&mut B, Self::Item) -> B,
+        {
+            Scanl::new(self, init, f)
+        }
+    }
+    impl<T: Iterator> IteratorExtScanLeft for T {}
+}

@@ -1,18 +1,50 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    k: i64,
+    xs: Vec<usize>,
+    bs: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            k: i64,
+            xs: [Usize1; n],
+            bs: [i64; n]
         }
-        Problem { _a }
+        Problem { n, k, xs, bs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let k = self.k as usize;
+        let xs = &self.xs;
+        let bs = &self.bs;
+        let ans = if k == 0 {
+            bs.clone()
+        } else {
+            let d = Doubling::new(xs, k);
+            (0..n).map(|i| bs[d.eval(k, i)]).collect_vec()
+        };
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        let n = self.n;
+        let k = self.k as usize;
+        let xs = &self.xs;
+        let bs = &self.bs;
+
+        let ans = if k == 0 {
+            bs.clone()
+        } else {
+            let transform = Transform::new(n);
+            let xs_k = transform.pow(xs, k);
+
+            (0..n).map(|i| bs[xs_k[i]]).collect_vec()
+        };
         Answer { ans }
     }
 
@@ -26,17 +58,17 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec_1line(&self.ans);
     }
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -173,3 +205,92 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use doubling::*;
+#[allow(clippy::module_inception)]
+pub mod doubling {
+    pub struct Doubling {
+        n: usize,
+        log: usize,
+        dp: Vec<Vec<usize>>,
+    }
+    impl Doubling {
+        /// doubling 前処理の構築をする
+        /// k は 合成回数の最大値 (k>=1)
+        /// [計算量]
+        /// n = f.len() としたとき、O(n log k)
+        pub fn new(f: &[usize], k: usize) -> Doubling {
+            let n = f.len();
+            let log = (usize::BITS - k.leading_zeros()) as usize;
+            let mut dp = vec![vec![0; n]; log];
+            dp[0] = f.to_vec();
+            for i in 1..log {
+                for x in 0..n {
+                    let f = &dp[i - 1];
+                    dp[i][x] = f[f[x]];
+                }
+            }
+            Doubling { n, log, dp }
+        }
+        /// (f の k回合成)(x) を求める。
+        /// 計算量: O(log k)
+        pub fn eval(&self, k: usize, x: usize) -> usize {
+            assert!((0..self.n).contains(&x));
+            assert!(k < (1 << self.log));
+            if k == 0 {
+                return x;
+            }
+            self.dp
+                .iter()
+                .enumerate()
+                .filter(|(i, _)| (k >> i) & 1 == 1)
+                .map(|(_, f)| f)
+                .fold(x, |acc, f| f[acc])
+        }
+    }
+}
+
+use dynamic_monoid::*;
+use monoid_transform::*;
+pub mod dynamic_monoid {
+    pub trait DynamicMonoid {
+        type S: Clone;
+        fn identity(&self) -> Self::S;
+        fn binary_operation(&self, a: &Self::S, b: &Self::S) -> Self::S;
+        /// base^n を求める
+        fn pow(&self, base: &Self::S, n: usize) -> Self::S {
+            let mut base = base.clone();
+            let mut ans = self.identity();
+            let mut n = n;
+            while n > 0 {
+                if n & 1 == 1 {
+                    ans = self.binary_operation(&ans, &base);
+                }
+                base = self.binary_operation(&base, &base);
+                n >>= 1;
+            }
+            ans
+        }
+    }
+}
+pub mod monoid_transform {
+    use super::dynamic_monoid::DynamicMonoid;
+    use itertools::Itertools;
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub struct Transform {
+        n: usize,
+    }
+    impl Transform {
+        pub fn new(n: usize) -> Self {
+            Self { n }
+        }
+    }
+    impl DynamicMonoid for Transform {
+        type S = Vec<usize>;
+        fn identity(&self) -> Self::S {
+            (0..self.n).collect_vec()
+        }
+        fn binary_operation(&self, a: &Self::S, b: &Self::S) -> Self::S {
+            (0..self.n).map(|i| a[b[i]]).collect_vec()
+        }
+    }
+}

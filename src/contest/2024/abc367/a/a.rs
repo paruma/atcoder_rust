@@ -1,18 +1,30 @@
-//#[derive_readable]
+#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    a: usize,
+    b: usize,
+    c: usize,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            p: Problem
         }
-        Problem { _a }
+        p
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let begin = self.b;
+        let end_inc = if self.b >= self.c {
+            self.c + 24
+        } else {
+            self.c
+        };
+
+        let range = begin..=end_inc;
+
+        let ans_not = range.contains(&self.a) || range.contains(&(self.a + 24));
+        let ans = !ans_not;
         Answer { ans }
     }
 
@@ -26,12 +38,13 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_yesno(self.ans);
+        //println!("{}", self.ans);
     }
 }
 

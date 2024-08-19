@@ -1,18 +1,27 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    s: Vec<char>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            s: Chars,
         }
-        Problem { _a }
+        Problem { s }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let mut s = self.s.clone();
+
+        while s.last() == Some(&'0') {
+            s.pop();
+        }
+
+        if s.last() == Some(&'.') {
+            s.pop();
+        }
+        let ans = s;
         Answer { ans }
     }
 
@@ -26,12 +35,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<char>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        println!("{}", self.ans.iter().copied().collect::<String>());
     }
 }
 
