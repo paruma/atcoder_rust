@@ -20,7 +20,9 @@ pub mod doubling {
             let log = (usize::BITS - k.leading_zeros()) as usize;
             // dp[i][x] = (f の 2^i 回合成)(x)
             let mut dp = vec![vec![0; n]; log];
-            dp[0] = f.to_vec();
+            if k >= 1 {
+                dp[0] = f.to_vec();
+            }
             for i in 1..log {
                 for x in 0..n {
                     let f = &dp[i - 1];
@@ -68,7 +70,7 @@ mod test {
         let f = vec![1, 2, 0];
 
         // 網羅的にテスト
-        for max_k in 1..10 {
+        for max_k in 0..10 {
             let d = Doubling::new(&f, max_k);
             for k in 0..=max_k {
                 for x in 0..f.len() {
