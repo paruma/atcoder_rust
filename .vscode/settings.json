@@ -31,7 +31,8 @@
         "struct",
         "sympy",
         "xsss",
-        "yesno"
+        "yesno",
+        "Zobrist"
     ],
     "rust-analyzer.cargo.buildScripts.overrideCommand": [
         "cargo",

@@ -46,6 +46,7 @@ impl Problem {
         Problem { n, nq, xs, ys, qs }
     }
     fn solve(&self) -> Answer {
+        // 謎ハッシュ x ↦ (998244853^x + 998244353) mod 10^9 + 7 を使った
         let n: usize = self.n;
         let nq: usize = self.nq;
         let xs: &Vec<usize> = &self.xs;
@@ -93,6 +94,51 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        // Zobrist Hash を使う
+        let n: usize = self.n;
+        let nq: usize = self.nq;
+        let xs: &Vec<usize> = &self.xs;
+        let ys: &Vec<usize> = &self.ys;
+        let qs: &Vec<Query> = &self.qs;
+
+        use ac_library::ModInt998244353 as Mint;
+
+        use rand::{rngs::SmallRng, *};
+        // let mut rng = SmallRng::from_entropy();
+        let mut rng = SmallRng::seed_from_u64(42);
+
+        let rands = (0..n)
+            .map(|_| Mint::new(rng.gen_range(0..998244353)))
+            .collect_vec();
+
+        let xsh = xs.iter().copied().map(|x| rands[x]).collect_vec();
+        let ysh = ys.iter().copied().map(|x| rands[x]).collect_vec();
+
+        let xshc = xsh
+            .iter()
+            .copied()
+            .scanl(Mint::new(0), |acc, x| *acc + x)
+            .collect_vec();
+
+        let yshc = ysh
+            .iter()
+            .copied()
+            .scanl(Mint::new(0), |acc, x| *acc + x)
+            .collect_vec();
+
+        let ans = qs
+            .iter()
+            .copied()
+            .map(|q| {
+                let xsum = xshc[q.xr + 1] - xshc[q.xl];
+                let ysum = yshc[q.yr + 1] - yshc[q.yl];
+                xsum == ysum //&& q.xr - q.xl == q.yr - q.yl
+            })
+            .collect_vec();
+
+        Answer { ans }
+    }
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -115,7 +161,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
