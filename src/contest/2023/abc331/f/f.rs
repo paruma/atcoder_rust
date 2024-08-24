@@ -187,6 +187,7 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+
 use modint_u64::*;
 use monoid_rolling_hash::*;
 #[allow(clippy::module_inception)]
@@ -200,7 +201,10 @@ pub mod modint_u64 {
         ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
         str::FromStr,
     };
+    /// 2^61 -1
     pub type ModInt2305843009213693951 = StaticModInt<Mod2305843009213693951>;
+    /// 10^18 + 3
+    pub type ModInt1000000000000000003 = StaticModInt<Mod1000000000000000003>;
     pub type ModInt1000000007 = StaticModInt<Mod1000000007>;
     pub type ModInt998244353 = StaticModInt<Mod998244353>;
     /// Represents $\mathbb{Z}/m\mathbb{Z}$ where $m$ is a constant value.
@@ -337,6 +341,13 @@ pub mod modint_u64 {
     pub enum Mod2305843009213693951 {}
     impl Modulus for Mod2305843009213693951 {
         const VALUE: u64 = 2_305_843_009_213_693_951;
+        const HINT_VALUE_IS_PRIME: bool = true;
+    }
+    /// Represents $10^{18}+3 = 1000000000000000003$.
+    #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
+    pub enum Mod1000000000000000003 {}
+    impl Modulus for Mod1000000000000000003 {
+        const VALUE: u64 = 1_000_000_000_000_000_003;
         const HINT_VALUE_IS_PRIME: bool = true;
     }
     /// Represents $1000000007$.
