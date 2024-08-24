@@ -1,79 +1,26 @@
+use crate::mylib::math::modint_u64::modint_u64::ModInt2305843009213693951;
 use cargo_snippet::snippet;
 
-#[snippet(prefix = "use rolling_hash::*;")]
+#[snippet(prefix = "use rolling_hash::*;", include = "modint_u64")]
 pub mod rolling_hash {
-    const MOD: i64 = (1 << 61) - 1; // 2^61 -1
-    const MOD_I128: i128 = (1 << 61) - 1; // 2^61 -1
 
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-    struct ModInt261M1 {
-        val: i64,
-    }
-
-    impl ModInt261M1 {
-        #[inline]
-        pub fn new(val: i64) -> Self {
-            // require: 0 <= val < 2^61
-            Self { val }
-        }
-    }
-
-    impl std::ops::Add for ModInt261M1 {
-        type Output = Self;
-
-        #[inline]
-        fn add(self, rhs: Self) -> Self::Output {
-            let mut x = self.val + rhs.val;
-            if x >= MOD {
-                x -= MOD;
-            }
-            Self::new(x)
-        }
-    }
-
-    impl std::ops::Sub for ModInt261M1 {
-        type Output = Self;
-
-        #[inline]
-        fn sub(self, rhs: Self) -> Self::Output {
-            let mut x = MOD + self.val - rhs.val;
-            if x >= MOD {
-                x -= MOD;
-            }
-            Self::new(x)
-        }
-    }
-
-    impl std::ops::Mul for ModInt261M1 {
-        type Output = Self;
-
-        #[inline]
-        fn mul(self, rhs: Self) -> Self::Output {
-            let x = (self.val as i128) * (rhs.val as i128);
-            let mut x = ((x >> 61) + (x & MOD_I128)) as i64;
-
-            if x >= MOD {
-                x -= MOD;
-            }
-            Self::new(x)
-        }
-    }
+    type Mint = super::ModInt2305843009213693951;
 
     #[derive(Clone, Debug)]
     pub struct RollingHash {
-        hash_list: Vec<ModInt261M1>, // hash_list[i] = xs[0..i] のハッシュ値
-        pow_list: Vec<ModInt261M1>,  // pow_llst[i] = base^i
+        hash_list: Vec<Mint>, // hash_list[i] = xs[0..i] のハッシュ値
+        pow_list: Vec<Mint>,  // pow_list[i] = base^i
         length: usize,
     }
 
     impl RollingHash {
         pub fn new(xs: &[i64], base: i64) -> Self {
             // base > 0 とする
-            let base = ModInt261M1::new(base);
-            let mut hash_list = vec![ModInt261M1::new(0); xs.len() + 1];
-            let mut pow_list = vec![ModInt261M1::new(1); xs.len() + 1];
+            let base = Mint::new(base);
+            let mut hash_list = vec![Mint::new(0); xs.len() + 1];
+            let mut pow_list = vec![Mint::new(1); xs.len() + 1];
             for i in 0..xs.len() {
-                hash_list[i + 1] = hash_list[i] * base + ModInt261M1::new(xs[i]);
+                hash_list[i + 1] = hash_list[i] * base + Mint::new(xs[i]);
                 pow_list[i + 1] = pow_list[i] * base;
             }
             let length = xs.len();
@@ -84,9 +31,9 @@ pub mod rolling_hash {
             }
         }
 
-        pub fn hash(&self, begin: usize, end: usize) -> i64 {
+        pub fn hash(&self, begin: usize, end: usize) -> u64 {
             let x = self.hash_list[end] - self.hash_list[begin] * self.pow_list[end - begin];
-            x.val
+            x.val()
         }
 
         pub fn len(&self) -> usize {
@@ -99,89 +46,34 @@ pub mod rolling_hash {
     }
 }
 
-#[snippet(prefix = "use monoid_rolling_hash::*;")]
+#[snippet(prefix = "use monoid_rolling_hash::*;", include = "modint_u64")]
 pub mod monoid_rolling_hash {
+    use ac_library::Monoid;
     use std::convert::Infallible;
 
-    const MOD: i64 = (1 << 61) - 1; // 2^61 -1
-    const MOD_I128: i128 = (1 << 61) - 1; // 2^61 -1
-
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-    struct ModInt261M1 {
-        val: i64,
-    }
-
-    impl ModInt261M1 {
-        #[inline]
-        pub fn new(val: i64) -> Self {
-            // require: 0 <= val < 2^61
-            Self { val }
-        }
-    }
-
-    impl std::ops::Add for ModInt261M1 {
-        type Output = Self;
-
-        #[inline]
-        fn add(self, rhs: Self) -> Self::Output {
-            let mut x = self.val + rhs.val;
-            if x >= MOD {
-                x -= MOD;
-            }
-            Self::new(x)
-        }
-    }
-
-    impl std::ops::Sub for ModInt261M1 {
-        type Output = Self;
-
-        #[inline]
-        fn sub(self, rhs: Self) -> Self::Output {
-            let mut x = MOD + self.val - rhs.val;
-            if x >= MOD {
-                x -= MOD;
-            }
-            Self::new(x)
-        }
-    }
-
-    impl std::ops::Mul for ModInt261M1 {
-        type Output = Self;
-
-        #[inline]
-        fn mul(self, rhs: Self) -> Self::Output {
-            let x = (self.val as i128) * (rhs.val as i128);
-            let mut x = ((x >> 61) + (x & MOD_I128)) as i64;
-
-            if x >= MOD {
-                x -= MOD;
-            }
-            Self::new(x)
-        }
-    }
-    use ac_library::Monoid;
+    type Mint = super::ModInt2305843009213693951;
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
     pub struct RollingHash {
-        hash: ModInt261M1,
-        base: ModInt261M1,
+        hash: Mint,
+        base: Mint,
     }
     impl RollingHash {
-        pub fn get_hash(&self) -> i64 {
-            self.hash.val
+        pub fn get_hash(&self) -> u64 {
+            self.hash.val()
         }
 
         pub fn unit(base: i64) -> impl (Fn(i64) -> RollingHash) {
             move |x| RollingHash {
-                hash: ModInt261M1::new(x),
-                base: ModInt261M1::new(base),
+                hash: Mint::new(x),
+                base: Mint::new(base),
             }
         }
 
         pub fn new(hash: i64, base: i64) -> Self {
             Self {
-                hash: ModInt261M1::new(hash),
-                base: ModInt261M1::new(base),
+                hash: Mint::new(hash),
+                base: Mint::new(base),
             }
         }
     }
@@ -191,8 +83,8 @@ pub mod monoid_rolling_hash {
         type S = RollingHash;
         fn identity() -> Self::S {
             RollingHash {
-                hash: ModInt261M1::new(0),
-                base: ModInt261M1::new(1),
+                hash: Mint::new(0),
+                base: Mint::new(1),
             }
         }
         fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
