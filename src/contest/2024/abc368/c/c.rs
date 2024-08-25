@@ -1,18 +1,57 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    xs: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            xs: [i64; n],
         }
-        Problem { _a }
+        Problem { n, xs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let xs = &self.xs;
+
+        let mut t = 0;
+
+        for &x in xs {
+            // 1 1 3 1 1 3
+            // tが3の倍数でない場合は3の倍数になるまで進める。
+            let mut hp = x;
+            while t % 3 != 0 {
+                t += 1;
+                let dmg = if t % 3 == 0 { 3 } else { 1 };
+                hp -= dmg;
+                if dmg <= 0 {
+                    break;
+                }
+            }
+
+            //dbg!(t);
+
+            // 今 t は3の倍数
+            // floor(今のhp/5) 回ループ
+            t += (hp / 5) * 3;
+            hp %= 5;
+
+            //dbg!(t);
+
+            while hp > 0 {
+                t += 1;
+                let dmg = if t % 3 == 0 { 3 } else { 1 };
+                hp -= dmg;
+            }
+
+            //dbg!(t);
+            //dbg!();
+        }
+
+        let ans = t;
         Answer { ans }
     }
 

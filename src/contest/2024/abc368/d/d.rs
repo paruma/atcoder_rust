@@ -1,18 +1,94 @@
 //#[derive_readable]
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Edge {
+    u: usize,
+    v: usize,
+}
+
+impl Edge {
+    fn new(u: usize, v: usize) -> Self {
+        Edge { u, v }
+    }
+
+    fn read() -> Self {
+        input! {
+            u: Usize1, v: Usize1
+        }
+        Edge::new(u, v)
+    }
+}
+
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    k: usize,
+    edges: Vec<Edge>,
+    vs: Vec<usize>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            k: usize,
         }
-        Problem { _a }
+        let edges = (0..n - 1).map(|_| Edge::read()).collect_vec();
+        input! {
+            vs: [Usize1; k]
+        }
+
+        Problem { n, k, edges, vs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        // 根を一つ選ぶ
+        let vs = &self.vs;
+        let n = self.n;
+        let root = vs[0];
+
+        let adj = self
+            .edges
+            .iter()
+            .copied()
+            .fold(vec![vec![]; n], |mut acc, edge| {
+                acc[edge.u].push(edge.v);
+                acc[edge.v].push(edge.u);
+                acc
+            });
+
+        let prev = {
+            let mut prev = vec![n + 3; n];
+
+            prev[root] = root;
+
+            let mut open: Queue<usize> = Queue::new();
+            let mut visited = vec![false; n];
+            open.push(root);
+            visited[root] = true;
+
+            while let Some(current) = open.pop() {
+                for &to in &adj[current] {
+                    if !visited[to] {
+                        visited[to] = true;
+                        prev[to] = current;
+                        open.push(to);
+                    }
+                }
+            }
+            prev
+        };
+
+        let mut visited = vec![false; n];
+
+        for &v in vs {
+            let mut current = v;
+            while !visited[current] {
+                visited[current] = true;
+                current = prev[current];
+            }
+        }
+
+        let ans = visited.iter().copied().filter(|p| *p).count() as i64;
         Answer { ans }
     }
 
@@ -177,3 +253,38 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use mod_queue::*;
+pub mod mod_queue {
+    use std::collections::VecDeque;
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct Queue<T> {
+        raw: VecDeque<T>,
+    }
+    impl<T> Queue<T> {
+        pub fn new() -> Self {
+            Queue {
+                raw: VecDeque::new(),
+            }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push_front(value)
+        }
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop_back()
+        }
+        pub fn peek(&self) -> Option<&T> {
+            self.raw.back()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.raw.is_empty()
+        }
+    }
+    impl<T> Default for Queue<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+}
+
+
+

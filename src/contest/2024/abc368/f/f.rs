@@ -1,18 +1,39 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    xs: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            xs: [i64; n],
         }
-        Problem { _a }
+        Problem { n, xs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let xs = &self.xs;
+        let max = xs.iter().copied().max().unwrap();
+
+        let sieve = Eratosthenes::new(max as usize + 1);
+        let grundy = xs
+            .iter()
+            .copied()
+            .map(|x| {
+                // todo: grundy 数を計算する
+                let pf = sieve.prime_factorize(x as usize);
+                pf.values().sum::<usize>() as i64
+            })
+            .fold(0, |acc, x| acc ^ x);
+
+        let ans = if grundy != 0 {
+            String::from("Anna")
+        } else {
+            String::from("Bruno")
+        };
         Answer { ans }
     }
 
@@ -26,7 +47,7 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: String,
 }
 
 impl Answer {
@@ -177,3 +198,128 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use mod_number_thm::*;
+pub mod mod_number_thm {
+    use num::Integer;
+    use num_integer::Roots;
+    use std::collections::HashMap;
+    /// O(sqrt(n))
+    pub fn divisors(n: i64) -> Vec<i64> {
+        assert!(n >= 1);
+        let mut retval: Vec<i64> = Vec::new();
+        for i in 1..=n.sqrt() {
+            if n.is_multiple_of(&i) {
+                retval.push(i);
+                if i * i != n {
+                    retval.push(n / i);
+                }
+            }
+        }
+        retval
+    }
+    /// 計算量: O(sqrt(n))
+    pub fn is_prime(n: i64) -> bool {
+        if n <= 1 {
+            return false;
+        }
+        for i in 2..=n.sqrt() {
+            if n.is_multiple_of(&i) {
+                return false;
+            }
+        }
+        true
+    }
+    /// 計算量: O(sqrt(n))
+    pub fn prime_factorize(n: i64) -> HashMap<i64, i64> {
+        assert!(n >= 1);
+        let mut cnt_table: HashMap<i64, i64> = HashMap::new();
+        let mut n = n;
+        for i in 2..=n.sqrt() {
+            if n.is_multiple_of(&i) {
+                let mut cnt = 0;
+                while n.is_multiple_of(&i) {
+                    n /= i;
+                    cnt += 1;
+                }
+                cnt_table.insert(i, cnt);
+            }
+        }
+        if n != 1 {
+            cnt_table.insert(n, 1);
+        }
+        cnt_table
+    }
+    /// 計算量: O(sqrt(n))
+    pub fn euler_phi(n: i64) -> i64 {
+        assert!(n >= 1);
+        let pf = prime_factorize(n);
+        let mut res = n;
+        for p in pf.keys() {
+            res = res / p * (p - 1);
+        }
+        res
+    }
+    pub struct Eratosthenes {
+        is_prime_list: Vec<bool>,
+        min_factor_list: Vec<Option<usize>>,
+    }
+    impl Eratosthenes {
+        /// 計算量: O(n log(log(n)))
+        pub fn new(n: usize) -> Self {
+            let mut is_prime_list = vec![true; n + 1];
+            let mut min_factor_list = vec![None; n + 1];
+            is_prime_list[0] = false;
+            is_prime_list[1] = false;
+            for p in 2..=n {
+                if !is_prime_list[p] {
+                    continue;
+                }
+                min_factor_list[p] = Some(p);
+                for q in (p * 2..=n).step_by(p) {
+                    is_prime_list[q] = false;
+                    if min_factor_list[q].is_none() {
+                        min_factor_list[q] = Some(p);
+                    }
+                }
+            }
+            Self {
+                is_prime_list,
+                min_factor_list,
+            }
+        }
+        /// 計算量: O(1)
+        pub fn is_prime(&self, n: usize) -> bool {
+            self.is_prime_list[n]
+        }
+        /// 計算量: O(log n)
+        pub fn prime_factorize(&self, n: usize) -> HashMap<usize, usize> {
+            let mut n = n;
+            let mut cnt_table: HashMap<usize, usize> = HashMap::new();
+            while n > 1 {
+                let p = self.min_factor_list[n].unwrap();
+                let mut exp = 0;
+                while self.min_factor_list[n] == Some(p) {
+                    n /= p;
+                    exp += 1;
+                }
+                cnt_table.insert(p, exp);
+            }
+            cnt_table
+        }
+        /// 計算量: O(nの約数の個数)
+        pub fn divisors(&self, n: usize) -> Vec<usize> {
+            let mut res = vec![1];
+            let pf = self.prime_factorize(n);
+            for (p, e) in pf {
+                for i in 0..res.len() {
+                    let mut tmp = 1;
+                    for _ in 0..e {
+                        tmp *= p;
+                        res.push(res[i] * tmp);
+                    }
+                }
+            }
+            res
+        }
+    }
+}
