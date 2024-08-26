@@ -21,48 +21,42 @@ impl Problem {
             std::iter::repeat(1).take(n * k).collect_vec()
         } else if n % 2 == 0 {
             let mid = n / 2;
-            // mid 最大値 最大値 ... 最大値-1 ...
+            // n=4, k=2 の場合
+            // 2 | 4 4 3 3 2 1
 
-            let mut buf = vec![];
-            buf.push(mid);
-
-            for i in (1..=n).rev() {
-                let times = if i == mid { k - 1 } else { k };
-                for _ in 0..times {
-                    buf.push(i)
-                }
-            }
-            buf
+            chain!(
+                [mid],
+                (1..=n).rev().flat_map(|i| {
+                    let times = if i == mid { k - 1 } else { k };
+                    std::iter::repeat(i).take(times)
+                }),
+            )
+            .collect_vec()
         } else {
             // nが奇数
             let mid = (n + 1) / 2;
 
-            let mut buf = vec![];
-
-            for _ in 0..k {
-                buf.push(mid)
-            }
-
             let mid2 = mid - 1;
 
-            // mid mid mid2 (残り最大値)
+            // n=5, k=2 の場合
+            // 3 3 | 2 | 5 5 4 4 2 1 1
+            // (mid == 3, mid2 == 2)
 
-            buf.push(mid2);
-
-            for i in (1..=n).rev() {
-                let times = if i == mid {
-                    0
-                } else if i == mid2 {
-                    k - 1
-                } else {
-                    k
-                };
-                for _ in 0..times {
-                    buf.push(i)
-                }
-            }
-
-            buf
+            chain!(
+                std::iter::repeat(mid).take(k),
+                [mid2],
+                (1..=n).rev().flat_map(|i| {
+                    let times = if i == mid {
+                        0
+                    } else if i == mid2 {
+                        k - 1
+                    } else {
+                        k
+                    };
+                    std::iter::repeat(i).take(times)
+                })
+            )
+            .collect_vec()
         };
         Answer { ans }
     }
