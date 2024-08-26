@@ -1,84 +1,96 @@
 use cargo_snippet::snippet;
 
-#[snippet(prefix = "use mod_number_thm::*;")]
-pub mod mod_number_thm {
-    use std::collections::HashMap;
+use std::collections::HashMap;
 
+#[snippet]
+/// O(sqrt(n))
+pub fn divisors(n: i64) -> Vec<i64> {
     use num::Integer;
     use num_integer::Roots;
 
-    /// O(sqrt(n))
-    pub fn divisors(n: i64) -> Vec<i64> {
-        assert!(n >= 1);
-        let mut retval: Vec<i64> = Vec::new();
-        for i in 1..=n.sqrt() {
-            if n.is_multiple_of(&i) {
-                retval.push(i);
-                if i * i != n {
-                    retval.push(n / i);
-                }
+    assert!(n >= 1);
+    let mut retval: Vec<i64> = Vec::new();
+    for i in 1..=n.sqrt() {
+        if n.is_multiple_of(&i) {
+            retval.push(i);
+            if i * i != n {
+                retval.push(n / i);
             }
         }
-
-        retval
     }
 
-    /// 計算量: O(sqrt(n))
-    pub fn is_prime(n: i64) -> bool {
-        if n <= 1 {
+    retval
+}
+
+#[snippet]
+/// 計算量: O(sqrt(n))
+pub fn is_prime(n: i64) -> bool {
+    use num::Integer;
+    use num_integer::Roots;
+
+    if n <= 1 {
+        return false;
+    }
+    for i in 2..=n.sqrt() {
+        if n.is_multiple_of(&i) {
             return false;
         }
-        for i in 2..=n.sqrt() {
-            if n.is_multiple_of(&i) {
-                return false;
+    }
+    true
+}
+
+#[snippet]
+/// 計算量: O(sqrt(n))
+pub fn prime_factorize(n: i64) -> HashMap<i64, i64> {
+    use num::Integer;
+    use num_integer::Roots;
+
+    assert!(n >= 1);
+    let mut cnt_table: HashMap<i64, i64> = HashMap::new();
+    let mut n = n;
+    for i in 2..=n.sqrt() {
+        if n.is_multiple_of(&i) {
+            // n を i で割れるだけ割る
+            let mut cnt = 0;
+            while n.is_multiple_of(&i) {
+                n /= i;
+                cnt += 1;
             }
+            cnt_table.insert(i, cnt);
         }
-        true
+    }
+    if n != 1 {
+        cnt_table.insert(n, 1);
+    }
+    cnt_table
+}
+
+#[snippet(include = "prime_factorize")]
+/// 計算量: O(sqrt(n))
+pub fn euler_phi(n: i64) -> i64 {
+    // n = p[1]^{e[1]} * ... * p[k]^{e[k]} と素因数分解できるとき
+    // euler_phi(n) = n * ((p[1] - 1)/p[1]) * ... * ((p[k] - 1)/p[k]) で表せる。
+    assert!(n >= 1);
+    let pf = prime_factorize(n);
+    let mut res = n;
+    for p in pf.keys() {
+        res = res / p * (p - 1);
     }
 
-    /// 計算量: O(sqrt(n))
-    pub fn prime_factorize(n: i64) -> HashMap<i64, i64> {
-        assert!(n >= 1);
-        let mut cnt_table: HashMap<i64, i64> = HashMap::new();
-        let mut n = n;
-        for i in 2..=n.sqrt() {
-            if n.is_multiple_of(&i) {
-                // n を i で割れるだけ割る
-                let mut cnt = 0;
-                while n.is_multiple_of(&i) {
-                    n /= i;
-                    cnt += 1;
-                }
-                cnt_table.insert(i, cnt);
-            }
-        }
-        if n != 1 {
-            cnt_table.insert(n, 1);
-        }
-        cnt_table
-    }
+    res
+}
 
-    /// 計算量: O(sqrt(n))
-    pub fn euler_phi(n: i64) -> i64 {
-        // n = p[1]^{e[1]} * ... * p[k]^{e[k]} と素因数分解できるとき
-        // euler_phi(n) = n * ((p[1] - 1)/p[1]) * ... * ((p[k] - 1)/p[k]) で表せる。
-        assert!(n >= 1);
-        let pf = prime_factorize(n);
-        let mut res = n;
-        for p in pf.keys() {
-            res = res / p * (p - 1);
-        }
+#[snippet(prefix = "use eratosthenes_sieve::*;")]
+pub mod eratosthenes_sieve {
+    use std::collections::HashMap;
 
-        res
-    }
-
-    // エラトステネスの篩
-    pub struct Eratosthenes {
+    pub struct EratosthenesSieve {
         is_prime_list: Vec<bool>,
         min_factor_list: Vec<Option<usize>>,
     }
 
-    impl Eratosthenes {
+    impl EratosthenesSieve {
+        /// [0, n] の区間でエラトステネスのふるいをする
         /// 計算量: O(n log(log(n)))
         pub fn new(n: usize) -> Self {
             let mut is_prime_list = vec![true; n + 1];
@@ -151,7 +163,8 @@ mod tests {
     use itertools::Itertools;
     use maplit::hashmap;
 
-    use super::mod_number_thm::*;
+    use super::eratosthenes_sieve::EratosthenesSieve;
+    use super::*;
 
     #[test]
     fn test_divisor() {
@@ -254,48 +267,48 @@ mod tests {
 
     #[test]
     fn test_eratosthenes_is_prime() {
-        let er = Eratosthenes::new(12);
-        assert!(!er.is_prime(0));
-        assert!(!er.is_prime(1));
-        assert!(er.is_prime(2));
-        assert!(er.is_prime(3));
-        assert!(!er.is_prime(4));
-        assert!(er.is_prime(5));
-        assert!(!er.is_prime(6));
-        assert!(er.is_prime(7));
-        assert!(!er.is_prime(8));
-        assert!(!er.is_prime(9));
-        assert!(!er.is_prime(10));
-        assert!(er.is_prime(11));
-        assert!(!er.is_prime(12));
+        let sieve = EratosthenesSieve::new(12);
+        assert!(!sieve.is_prime(0));
+        assert!(!sieve.is_prime(1));
+        assert!(sieve.is_prime(2));
+        assert!(sieve.is_prime(3));
+        assert!(!sieve.is_prime(4));
+        assert!(sieve.is_prime(5));
+        assert!(!sieve.is_prime(6));
+        assert!(sieve.is_prime(7));
+        assert!(!sieve.is_prime(8));
+        assert!(!sieve.is_prime(9));
+        assert!(!sieve.is_prime(10));
+        assert!(sieve.is_prime(11));
+        assert!(!sieve.is_prime(12));
     }
 
     #[test]
     fn test_eratosthenes_prime_factorize() {
-        let er = Eratosthenes::new(100);
-        assert_eq!(er.prime_factorize(1), HashMap::new());
-        assert_eq!(er.prime_factorize(2), hashmap! {2 => 1});
-        assert_eq!(er.prime_factorize(3), hashmap! {3 => 1});
-        assert_eq!(er.prime_factorize(4), hashmap! {2 => 2});
-        assert_eq!(er.prime_factorize(12), hashmap! {2 => 2, 3 => 1});
-        assert_eq!(er.prime_factorize(84), hashmap! {2 => 2, 3 => 1, 7 => 1});
-        assert_eq!(er.prime_factorize(97), hashmap! {97 => 1});
+        let sieve = EratosthenesSieve::new(100);
+        assert_eq!(sieve.prime_factorize(1), HashMap::new());
+        assert_eq!(sieve.prime_factorize(2), hashmap! {2 => 1});
+        assert_eq!(sieve.prime_factorize(3), hashmap! {3 => 1});
+        assert_eq!(sieve.prime_factorize(4), hashmap! {2 => 2});
+        assert_eq!(sieve.prime_factorize(12), hashmap! {2 => 2, 3 => 1});
+        assert_eq!(sieve.prime_factorize(84), hashmap! {2 => 2, 3 => 1, 7 => 1});
+        assert_eq!(sieve.prime_factorize(97), hashmap! {97 => 1});
     }
     #[test]
     fn test_eratosthenes_divisors() {
-        let er = Eratosthenes::new(100);
+        let sieve = EratosthenesSieve::new(100);
         let sort = |xs: Vec<usize>| xs.iter().copied().sorted().collect_vec();
-        assert_eq!(sort(er.divisors(1)), vec![1]);
-        assert_eq!(sort(er.divisors(2)), vec![1, 2]);
-        assert_eq!(sort(er.divisors(3)), vec![1, 3]);
-        assert_eq!(sort(er.divisors(4)), vec![1, 2, 4]);
-        assert_eq!(sort(er.divisors(12)), vec![1, 2, 3, 4, 6, 12]);
-        assert_eq!(sort(er.divisors(27)), vec![1, 3, 9, 27]);
+        assert_eq!(sort(sieve.divisors(1)), vec![1]);
+        assert_eq!(sort(sieve.divisors(2)), vec![1, 2]);
+        assert_eq!(sort(sieve.divisors(3)), vec![1, 3]);
+        assert_eq!(sort(sieve.divisors(4)), vec![1, 2, 4]);
+        assert_eq!(sort(sieve.divisors(12)), vec![1, 2, 3, 4, 6, 12]);
+        assert_eq!(sort(sieve.divisors(27)), vec![1, 3, 9, 27]);
         assert_eq!(
-            sort(er.divisors(72)),
+            sort(sieve.divisors(72)),
             vec![1, 2, 3, 4, 6, 8, 9, 12, 18, 24, 36, 72]
         );
 
-        assert_eq!(sort(er.divisors(97)), vec![1, 97]);
+        assert_eq!(sort(sieve.divisors(97)), vec![1, 97]);
     }
 }
