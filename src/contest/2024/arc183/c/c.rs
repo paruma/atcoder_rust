@@ -1,26 +1,50 @@
-//#[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Condition {
+    l: Usize1,
+    r: Usize1,
+    x: Usize1,
+}
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    m: usize,
+    cs: Vec<Condition>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            m: usize,
+            cs: [Condition; m],
         }
-        Problem { _a }
+        Problem { n, m, cs }
     }
     fn solve(&self) -> Answer {
+        use ac_library::ModInt998244353 as Mint;
         let ans = 0;
         Answer { ans }
     }
 
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
-        todo!();
-        // let ans = 0;
-        // Answer { ans }
+        let n = self.n;
+        let cs = &self.cs;
+
+        let ans = (0..n)
+            .permutations(n)
+            .filter(|p| {
+                cs[1..=1].iter().all(|c| {
+                    let max = p[c.l..=c.r].iter().copied().max().unwrap();
+                    p.iter().position(|pi| *pi == max).unwrap() == c.x
+                })
+            })
+            .inspect(|p| {
+                eprintln!("{}", p.iter().join(" "));
+            })
+            .count() as i64;
+        Answer { ans }
     }
 }
 
@@ -36,7 +60,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve_naive().print();
 }
 
 #[cfg(test)]
@@ -48,6 +72,9 @@ mod tests {
 
     #[test]
     fn test_problem() {
+        for p in (1..=4).permutations(4) {
+            eprintln!("{}", p.iter().join(" "));
+        }
         assert_eq!(1 + 1, 2);
     }
 

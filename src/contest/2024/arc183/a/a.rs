@@ -1,37 +1,114 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    k: usize,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            k: usize,
         }
-        Problem { _a }
+        Problem { n, k }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let k = self.k;
+
+        let ans = if n == 1 {
+            std::iter::repeat(1).take(n * k).collect_vec()
+        } else if n % 2 == 0 {
+            let mid = n / 2;
+            // mid 最大値 最大値 ... 最大値-1 ...
+
+            let mut buf = vec![];
+            buf.push(mid);
+
+            for i in (1..=n).rev() {
+                let times = if i == mid { k - 1 } else { k };
+                for _ in 0..times {
+                    buf.push(i)
+                }
+            }
+            buf
+        } else {
+            // nが奇数
+            let mid = (n + 1) / 2;
+
+            let mut buf = vec![];
+
+            for _ in 0..k {
+                buf.push(mid)
+            }
+
+            let mid2 = mid - 1;
+
+            // mid mid mid2 (残り最大値)
+
+            buf.push(mid2);
+
+            for i in (1..=n).rev() {
+                let times = if i == mid {
+                    0
+                } else if i == mid2 {
+                    k - 1
+                } else {
+                    k
+                };
+                for _ in 0..times {
+                    buf.push(i)
+                }
+            }
+
+            buf
+        };
         Answer { ans }
     }
 
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
-        todo!();
-        // let ans = 0;
-        // Answer { ans }
+        use permutohedron::LexicalPermutation;
+
+        let n = self.n;
+        let k = self.k;
+
+        let mut xs = (1..=n)
+            .flat_map(|x| std::iter::repeat(x).take(k))
+            .collect_vec();
+
+        let f = |n: usize| (1..=n).product::<usize>();
+
+        let s = f(n * k) / (f(k).pow(n as u32));
+        dbg!(s);
+
+        // (s+1)/2番目 (1オリジン)
+
+        let times = (s + 1) / 2 - 1;
+
+        // for p in xs.iter().copied().permutations(n * k).sorted().dedup() {
+        //     eprintln!("{}", p.iter().join(" "));
+        // }
+        // dbg!();
+
+        for _ in 0..times {
+            xs.next_permutation();
+        }
+
+        let ans = xs;
+        Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<usize>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec_1line(&self.ans);
     }
 }
 
