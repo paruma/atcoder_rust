@@ -30,6 +30,7 @@
         "Segtree",
         "struct",
         "sympy",
+        "warshall",
         "xsss",
         "yesno",
         "Zobrist"

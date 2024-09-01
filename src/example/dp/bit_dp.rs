@@ -29,30 +29,35 @@ fn solve(n_vertex: usize, edges: &[Edge]) -> ExtInt {
             }
         }
 
-        // 0からスタートして available_set を訪問して to までたどり着く最短経路の手数を求める
-        fn rec(&self, available_set: BitSet, to: usize, dp: &mut [Vec<Option<ExtInt>>]) -> ExtInt {
-            if let Some(ans) = dp[available_set.to_bit()][to] {
+        // 0からスタートして planed_vertices を訪問して to までたどり着く最短経路の手数を求める
+        fn rec(
+            &self,
+            planed_vertices: BitSet,
+            to: usize,
+            dp: &mut [Vec<Option<ExtInt>>],
+        ) -> ExtInt {
+            if let Some(ans) = dp[planed_vertices.to_bit()][to] {
                 return ans;
             }
 
-            let ans = if available_set.is_empty() && to == 0 {
+            let ans = if planed_vertices.is_empty() && to == 0 {
                 ExtInt::Fin(0)
-            } else if !available_set.contains(to) {
+            } else if !planed_vertices.contains(to) {
                 // to に訪問できないので to にたどり着くことはできない。
                 ExtInt::Inf
             } else {
                 // to の直前の頂点 from で場合分け。
-                // 0 → from → to という経路を考える
+                // 0 →...→ from → to という経路を考える
                 (0..self.n_vertex)
                     .map(|from| {
-                        // 第1項が 0 → from
+                        // 第1項が 0 →...→ from
                         // 第2項が from → to
-                        self.rec(available_set.remove(to), from, dp) + self.adj_matrix[from][to]
+                        self.rec(planed_vertices.remove(to), from, dp) + self.adj_matrix[from][to]
                     })
                     .min()
                     .unwrap()
             };
-            dp[available_set.to_bit()][to] = Some(ans);
+            dp[planed_vertices.to_bit()][to] = Some(ans);
             ans
         }
     }

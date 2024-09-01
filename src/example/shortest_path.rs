@@ -95,7 +95,8 @@ fn warshall_floyd(edges: &[Edge], n_vertex: usize) -> Vec<Vec<ExtInt>> {
     for k in 0..n_vertex {
         for from in 0..n_vertex {
             for to in 0..n_vertex {
-                // from → (0..k の頂点を0回以上通る) → to というパスでの最短路を計算
+                // from → (0..=k の頂点を0回以上通る) → to というパスでの最短路を計算
+                // k を経由するかどうかで場合分けして計算
                 chmin!(dist[from][to], dist[from][k] + dist[k][to]);
             }
         }

@@ -1,32 +1,32 @@
 //#[derive_readable]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct Edge {
-    u: usize,
-    v: usize,
+    from: usize,
+    to: usize,
     t: i64,
 }
 
 impl Edge {
-    fn new(u: usize, v: usize, t: i64) -> Self {
-        Self { u, v, t }
+    fn new(from: usize, to: usize, t: i64) -> Self {
+        Self { from, to, t }
     }
 
     fn rev(self) -> Self {
         Self {
-            u: self.v,
-            v: self.u,
+            from: self.to,
+            to: self.from,
             t: self.t,
         }
     }
 
     fn read() -> Self {
         input! {
-            u: Usize1,
-            v: Usize1,
+            from: Usize1,
+            to: Usize1,
             t: i64,
         }
 
-        Self { u, v, t }
+        Self { from, to, t }
     }
 }
 
@@ -74,9 +74,300 @@ impl Problem {
             qs,
         }
     }
-
     fn solve(&self) -> Answer {
-        let ans = 0;
+        // 想定解法 (ワーシャル・フロイド法)
+        let nv = self.nv;
+        let ne = self.ne;
+        let edges = &self.edges;
+        let qs = &self.qs;
+
+        // 全点対間最短路問題
+        let dist = {
+            let mut dist = vec![vec![Inf; nv]; nv];
+            for e in edges {
+                // 今回の問題では多重辺が存在するので、こうするとコストが大きい辺が採用されてしまう可能性がある。
+                // dist[e.u][e.v] =Fin(e.t);
+                // dist[e.v][e.u] = Fin(e.t);
+                chmin!(dist[e.from][e.to], Fin(e.t));
+                chmin!(dist[e.to][e.from], Fin(e.t));
+            }
+            for v in 0..nv {
+                dist[v][v] = Fin(0);
+            }
+
+            for k in 0..nv {
+                for from in 0..nv {
+                    for to in 0..nv {
+                        // from → (0..=k の頂点を0回以上通る) → to というパスでの最短路を計算
+                        chmin!(dist[from][to], dist[from][k] + dist[k][to]);
+                    }
+                }
+            }
+            dist.iter()
+                .map(|row| row.iter().copied().map(|x| x.get_fin()).collect_vec())
+                .collect_vec()
+        };
+
+        let ans = qs
+            .iter()
+            .map(|q| {
+                let k = q.k;
+                let bs = &q.bs;
+                // 橋の順番と向きを全探索
+                iproduct!(
+                    bs.iter().copied().permutations(k),
+                    std::iter::repeat([false, true])
+                        .take(k)
+                        .multi_cartesian_product()
+                )
+                .map(|(bps, is_rev_list)| {
+                    // 0 →
+                    // bps[0] の始点 → bps[0]の終点
+                    // → ...
+                    // → bps[k-1]の始点→ bps[k-1]の終点
+                    // → n-1
+                    // (bits の値に応じて始点と終点は入れ替える)
+
+                    // izip と iproduct を間違えた
+                    let srcs = izip!(&bps, &is_rev_list)
+                        .map(|(&b, &is_rev)| if is_rev { edges[b].to } else { edges[b].from })
+                        .collect_vec();
+
+                    let dsts = izip!(&bps, &is_rev_list)
+                        .map(|(&b, &is_rev)| if is_rev { edges[b].from } else { edges[b].to })
+                        .collect_vec();
+
+                    // dbg!(&bps);
+                    // dbg!(&is_rev_list);
+                    // dbg!(&srcs);
+                    // dbg!(&dsts);
+
+                    dist[0][srcs[0]]
+                        + (0..k - 1)
+                            .map(|i| {
+                                // ここの第一項、dist[srcs[i]][dsts[i]] だとダメ
+                                // 別の早いルートが採用されてしまう可能性がある
+                                edges[bps[i]].t + dist[dsts[i]][srcs[i + 1]]
+                            })
+                            .sum::<i64>()
+                        + edges[bps[k - 1]].t
+                        + dist[dsts[k - 1]][nv - 1]
+                })
+                .min()
+                .unwrap()
+            })
+            .collect_vec();
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // 想定解法 (ワーシャル・フロイド法)
+        // solve のリファクタリング
+        let nv = self.nv;
+        let ne = self.ne;
+        let edges = &self.edges;
+        let qs = &self.qs;
+
+        // 全点対間最短路
+        let dist = {
+            let mut dist = vec![vec![Inf; nv]; nv];
+            for e in edges {
+                // 今回の問題では多重辺が存在するので、こうするとコストが大きい辺が採用されてしまう可能性がある。
+                // dist[e.u][e.v] =Fin(e.t);
+                // dist[e.v][e.u] = Fin(e.t);
+                chmin!(dist[e.from][e.to], Fin(e.t));
+                chmin!(dist[e.to][e.from], Fin(e.t));
+            }
+            for v in 0..nv {
+                dist[v][v] = Fin(0);
+            }
+
+            for k in 0..nv {
+                for from in 0..nv {
+                    for to in 0..nv {
+                        // from → (0..=k の頂点を0回以上通る) → to というパスでの最短路を計算
+                        // k を経由するかどうかで場合分けして計算
+                        chmin!(dist[from][to], dist[from][k] + dist[k][to]);
+                    }
+                }
+            }
+            dist.iter()
+                .map(|row| row.iter().copied().map(|x| x.get_fin()).collect_vec())
+                .collect_vec()
+        };
+
+        let ans = qs
+            .iter()
+            .map(|q| {
+                let k = q.k;
+                let bs = &q.bs;
+                // 橋の順番と向きを全探索
+                iproduct!(
+                    bs.iter().copied().permutations(k),
+                    std::iter::repeat([false, true])
+                        .take(k)
+                        .multi_cartesian_product()
+                )
+                .map(|(permuted_bs, is_rev_list)| {
+                    // permuted_edges の順番に辺（橋）を訪問する
+                    let permuted_edges = izip!(&permuted_bs, is_rev_list)
+                        .map(|(&b, is_rev)| {
+                            let e = edges[b];
+                            if is_rev {
+                                e.rev()
+                            } else {
+                                e
+                            }
+                        })
+                        .collect_vec();
+                    // 0
+                    // → permuted_edges[0] の始点 → permuted_edges[0]の終点
+                    // → permuted_edges[1] の始点 → permuted_edges[1]の終点
+                    // → ...
+                    // → permuted_edges[k-1] の始点 → permuted_edges[k-1]の終点
+                    // → n-1
+
+                    dist[0][permuted_edges[0].from]
+                        + (0..k - 1)
+                            .map(|i| {
+                                // ここの第一項、dist[permuted_edges[i].u][permuted_edges[i + 1].v]
+                                // 別の早いルートが採用されてしまう可能性がある
+                                permuted_edges[i].t
+                                    + dist[permuted_edges[i].to][permuted_edges[i + 1].from]
+                            })
+                            .sum::<i64>()
+                        + permuted_edges[k - 1].t
+                        + dist[permuted_edges[k - 1].to][nv - 1]
+                })
+                .min()
+                .unwrap()
+            })
+            .collect_vec();
+        Answer { ans }
+    }
+
+    fn solve3(&self) -> Answer {
+        // k!全探索の代わりに巡回セールスマン問題風のbitDPをする
+        // (kが小さいので bitDP してもたいして早くならない)
+        let nv = self.nv;
+        let ne = self.ne;
+        let edges = &self.edges;
+        let qs = &self.qs;
+
+        // 全点対間最短路
+        let dist = {
+            let mut dist = vec![vec![Inf; nv]; nv];
+            for e in edges {
+                // 今回の問題では多重辺が存在するので、こうするとコストが大きい辺が採用されてしまう可能性がある。
+                // dist[e.u][e.v] =Fin(e.t);
+                // dist[e.v][e.u] = Fin(e.t);
+                chmin!(dist[e.from][e.to], Fin(e.t));
+                chmin!(dist[e.to][e.from], Fin(e.t));
+            }
+            for v in 0..nv {
+                dist[v][v] = Fin(0);
+            }
+
+            for k in 0..nv {
+                for from in 0..nv {
+                    for to in 0..nv {
+                        // from → (0..=k の頂点を0回以上通る) → to というパスでの最短路を計算
+                        // k を経由するかどうかで場合分けして計算
+                        chmin!(dist[from][to], dist[from][k] + dist[k][to]);
+                    }
+                }
+            }
+            dist.iter()
+                .map(|row| row.iter().copied().map(|x| x.get_fin()).collect_vec())
+                .collect_vec()
+        };
+
+        let ans = qs
+            .iter()
+            .map(|q| {
+                let k = q.k;
+                let q_edges = &q.bs;
+                //頂点として、0(始点), n-1(終点), q_edges に現れる辺の始点と終点 のみを考える
+                let scoped_vertices = {
+                    let mut scoped_vertices = HashSet::new();
+                    scoped_vertices.insert(0);
+                    scoped_vertices.insert(nv - 1);
+
+                    for &ei in q_edges {
+                        let edge = edges[ei];
+                        scoped_vertices.insert(edge.from);
+                        scoped_vertices.insert(edge.to);
+                    }
+
+                    scoped_vertices.iter().copied().collect_vec()
+                };
+
+                let rev_scoped_vertices = scoped_vertices.iter().copied().enumerate().fold(
+                    vec![usize::MAX; nv],
+                    |mut acc, (i, x)| {
+                        acc[x] = i;
+                        acc
+                    },
+                );
+
+                // dp[S][i] = 頂点 0 から集合 S に含まれる辺をすべて通って rev_scoped_vertices[i] にたどり着いたときのコストの最小値
+                let mut dp = vec![vec![Inf; scoped_vertices.len()]; 1 << k];
+                for i in 0..scoped_vertices.len() {
+                    dp[BitSet::empty().to_bit()][i] = Fin(dist[0][scoped_vertices[i]]);
+                }
+
+                // 0..1<<k の更新順序でうまくいく。
+                for visited_q_edge_set in 0..1 << k {
+                    let visited_q_edge_set = BitSet::new(visited_q_edge_set);
+                    for (qei, ei) in q_edges.iter().copied().enumerate() {
+                        if visited_q_edge_set.contains(qei) {
+                            continue;
+                        }
+                        let next_visited_q_edge_set = visited_q_edge_set.insert(qei);
+
+                        let edge = edges[ei];
+                        let rev_edge = edge.rev();
+
+                        // 辺 edge を使う
+                        chmin!(
+                            dp[next_visited_q_edge_set.to_bit()][rev_scoped_vertices[edge.to]],
+                            dp[visited_q_edge_set.to_bit()][rev_scoped_vertices[edge.from]]
+                                + edge.t
+                        );
+
+                        // 辺 rev_edge を使う
+                        chmin!(
+                            dp[next_visited_q_edge_set.to_bit()][rev_scoped_vertices[rev_edge.to]],
+                            dp[visited_q_edge_set.to_bit()][rev_scoped_vertices[rev_edge.from]]
+                                + edge.t
+                        );
+
+                        // 辺 edge や 辺 rev_edge の終点から各頂点への遷移を考えて、各頂点のコストを更新する
+                        for i in 0..scoped_vertices.len() {
+                            let v = scoped_vertices[i];
+                            chmin!(
+                                dp[next_visited_q_edge_set.to_bit()][i],
+                                dp[next_visited_q_edge_set.to_bit()][rev_scoped_vertices[edge.to]]
+                                    + dist[edge.to][v]
+                            );
+                            chmin!(
+                                dp[next_visited_q_edge_set.to_bit()][i],
+                                dp[next_visited_q_edge_set.to_bit()]
+                                    [rev_scoped_vertices[rev_edge.to]]
+                                    + dist[rev_edge.to][v]
+                            );
+                        }
+                    }
+                }
+                dp[BitSet::universal_set(k).to_bit()][rev_scoped_vertices[nv - 1]].get_fin()
+            })
+            .collect_vec();
+        Answer { ans }
+    }
+
+    fn solve_tle(&self) -> Answer {
+        // TLE 解法
+        // 2^k頂点倍化 ダイクストラ法
         let nv = self.nv;
         let ne = self.ne;
         let edges = &self.edges;
@@ -87,8 +378,8 @@ impl Problem {
             .copied()
             .enumerate()
             .fold(vec![vec![]; nv], |mut acc, (i, e)| {
-                acc[e.u].push((i, e));
-                acc[e.v].push((i, e.rev()));
+                acc[e.from].push((i, e));
+                acc[e.to].push((i, e.rev()));
                 acc
             });
 
@@ -130,12 +421,12 @@ impl Problem {
                         //dbg!(k);
                         //dbg!(e);
                         if chmin!(
-                            dist[e.v][next_bits.to_bit()],
-                            dist[e.u][current_bits.to_bit()] + Fin(e.t)
+                            dist[e.to][next_bits.to_bit()],
+                            dist[e.from][current_bits.to_bit()] + Fin(e.t)
                         ) {
                             pq.push((
-                                Reverse(dist[e.v][next_bits.to_bit()]),
-                                e.v,
+                                Reverse(dist[e.to][next_bits.to_bit()]),
+                                e.to,
                                 next_bits.to_bit(),
                             ));
                         }
@@ -168,7 +459,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve3().print();
 }
 
 #[cfg(test)]
@@ -250,6 +541,7 @@ mod tests {
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
+use petgraph::visit;
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,
