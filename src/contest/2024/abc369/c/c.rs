@@ -13,26 +13,38 @@ impl Problem {
         }
         Problem { n, xs }
     }
-    // fn solve(&self) -> Answer {
-    //     let n = self.n;
-    //     let xs = &self.xs;
-    //     let diffs = self
-    //         .xs
-    //         .iter()
-    //         .copied()
-    //         .tuple_windows()
-    //         .map(|(x, y)| y - x)
-    //         .collect_vec();
-
-    //     let ans1 = diffs
-    //         .iter()
-    //         .dedup_with_count()
-    //         .map(|(cnt, _)| (cnt + 1) * (cnt + 2) / 2)
-    //         .sum::<usize>();
-    //     let ans = ans1 as i64 + 1;
-    //     Answer { ans }
-    // }
     fn solve(&self) -> Answer {
+        // [3, 6, 9, 3] の差分をとる: [3, 3, -6]
+        // 差分が同じ値でグループ分けする: [3, 3], [-6]
+        // [3, 3] は [3, 6, 9] が等差になっていることを表している。
+        // この部分のカウントは 3 + 2 + 1
+        let diffs = self
+            .xs
+            .iter()
+            .copied()
+            .tuple_windows()
+            .map(|(x, y)| y - x)
+            .collect_vec();
+
+        let cnts = diffs
+            .iter()
+            .dedup_with_count()
+            .map(|(cnt, _)| cnt)
+            .collect_vec();
+
+        let ans1 = cnts
+            .iter()
+            .copied()
+            .map(|cnt| (cnt + 1) * (cnt + 2) / 2)
+            .sum::<usize>();
+        let ans = (ans1 + 1 - cnts.len()) as i64;
+
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // [3, 6, 9, 3] を [3, 6, 9] と [9, 3] に分けて、それぞれのグループで数え上げの寄与を計算。
+        // 9 の部分はカウントがかぶるので適当に引き算する。
         let n = self.n;
         let xs = &self.xs;
 
