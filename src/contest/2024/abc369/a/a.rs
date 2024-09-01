@@ -1,18 +1,31 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    a: i64,
+    b: i64,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            a: i64,
+            b: i64,
         }
-        Problem { _a }
+        Problem { a, b }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let a = self.a;
+        let b = self.b;
+
+        let x1 = Some(2 * a - b);
+        let x2 = if (a + b) % 2 == 0 {
+            Some((a + b) / 2)
+        } else {
+            None
+        };
+        let x3 = Some(2 * b - a);
+
+        let ans = [x1, x2, x3].iter().copied().flatten().unique().count() as i64;
         Answer { ans }
     }
 

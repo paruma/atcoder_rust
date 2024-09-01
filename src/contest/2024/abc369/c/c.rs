@@ -1,18 +1,77 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    xs: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            xs: [i64; n]
         }
-        Problem { _a }
+        Problem { n, xs }
     }
+    // fn solve(&self) -> Answer {
+    //     let n = self.n;
+    //     let xs = &self.xs;
+    //     let diffs = self
+    //         .xs
+    //         .iter()
+    //         .copied()
+    //         .tuple_windows()
+    //         .map(|(x, y)| y - x)
+    //         .collect_vec();
+
+    //     let ans1 = diffs
+    //         .iter()
+    //         .dedup_with_count()
+    //         .map(|(cnt, _)| (cnt + 1) * (cnt + 2) / 2)
+    //         .sum::<usize>();
+    //     let ans = ans1 as i64 + 1;
+    //     Answer { ans }
+    // }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let xs = &self.xs;
+
+        let mut groups: Vec<Vec<i64>> = vec![];
+        let mut current_group: Vec<i64> = vec![];
+
+        for (i, x) in xs.iter().enumerate() {
+            let x = *x;
+            if current_group.len() <= 1 {
+                current_group.push(x);
+            } else {
+                let first = current_group[0];
+                let second = current_group[1];
+                let diff = second - first; // 等差
+                let last = current_group.last().unwrap();
+                if last + diff == x {
+                    current_group.push(x)
+                } else {
+                    groups.push(current_group.clone());
+                    current_group.clear();
+                    current_group.push(xs[i - 1]);
+                    current_group.push(x);
+                }
+            }
+        }
+
+        if !current_group.is_empty() {
+            groups.push(current_group);
+        }
+
+        let ans = groups
+            .iter()
+            .map(|g| {
+                let k = g.len();
+                k * (k + 1) / 2
+            })
+            .sum::<usize>()
+            - (groups.len() - 1);
+        let ans = ans as i64;
         Answer { ans }
     }
 

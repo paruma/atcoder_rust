@@ -1,18 +1,49 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    xs: Vec<(i64, char)>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            xs: [(i64, Chars); n]
         }
-        Problem { _a }
+
+        let xs = xs.iter().map(|(x, s)| (*x, s[0])).collect_vec();
+        Problem { n, xs }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let xs = &self.xs;
+
+        let rxs = xs
+            .iter()
+            .filter_map(|(x, s)| (*s == 'R').then_some(*x))
+            .collect_vec();
+
+        let lxs = xs
+            .iter()
+            .filter_map(|(x, s)| (*s == 'L').then_some(*x))
+            .collect_vec();
+
+        let cnt_r = rxs
+            .iter()
+            .copied()
+            .tuple_windows()
+            .map(|(x, y)| (x - y).abs())
+            .sum::<i64>();
+
+        let cnt_l = lxs
+            .iter()
+            .copied()
+            .tuple_windows()
+            .map(|(x, y)| (x - y).abs())
+            .sum::<i64>();
+
+        let ans = cnt_r + cnt_l;
         Answer { ans }
     }
 
