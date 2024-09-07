@@ -10,6 +10,7 @@ pub mod ext_int;
 pub mod graph;
 pub mod grid;
 pub mod imos;
+pub mod impartial_game;
 pub mod math;
 pub mod monoid;
 pub mod neg_ext_int;

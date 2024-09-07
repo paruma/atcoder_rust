@@ -3067,6 +3067,29 @@
       "}"
     ]
   },
+  "mex": {
+    "scope": "rust",
+    "prefix": "mex",
+    "body": [
+      "/// 計算量: O(xs.len())",
+      "pub fn mex(xs: &[usize]) -> usize {",
+      "    let contains = xs",
+      "        .iter()",
+      "        .copied()",
+      "        .fold(vec![false; xs.len()], |mut acc, x| {",
+      "            if x < xs.len() {",
+      "                acc[x] |= true;",
+      "            }",
+      "            acc",
+      "        });",
+      "    contains",
+      "        .iter()",
+      "        .copied()",
+      "        .position(|p| !p)",
+      "        .unwrap_or(xs.len())",
+      "}"
+    ]
+  },
   "mod_combinatorics": {
     "scope": "rust",
     "prefix": "mod_combinatorics",
@@ -7125,6 +7148,46 @@
       "        }",
       "    }",
       "    pub type ModInt2 = StaticModInt<Mod2>;",
+      "}"
+    ]
+  },
+  "subtraction_game": {
+    "scope": "rust",
+    "prefix": "subtraction_game",
+    "body": [
+      "use subtraction_game::*;",
+      "pub mod subtraction_game {",
+      "    use itertools::Itertools;",
+      "    fn mex(xs: &[usize]) -> usize {",
+      "        let contains = xs",
+      "            .iter()",
+      "            .copied()",
+      "            .fold(vec![false; xs.len()], |mut acc, x| {",
+      "                if x < xs.len() {",
+      "                    acc[x] |= true;",
+      "                }",
+      "                acc",
+      "            });",
+      "        contains",
+      "            .iter()",
+      "            .copied()",
+      "            .position(|p| !p)",
+      "            .unwrap_or(xs.len())",
+      "    }",
+      "    /// subtraction_game の 0 から n - 1 までの grundy 数を求める",
+      "    pub fn subtraction_game_grundy(subtractions: &[usize], n: usize) -> Vec<usize> {",
+      "        let mut grundy = vec![usize::MAX; n];",
+      "        for x in 0..n {",
+      "            let next_grundy_list = subtractions",
+      "                .iter()",
+      "                .copied()",
+      "                .filter(|sub| x >= *sub)",
+      "                .map(|sub| grundy[x - sub])",
+      "                .collect_vec();",
+      "            grundy[x] = mex(&next_grundy_list)",
+      "        }",
+      "        grundy",
+      "    }",
       "}"
     ]
   },
