@@ -1,3 +1,4 @@
+// solve メソッドがメイン実装の部分なので、solve メソッドを参照してください。
 #[derive_readable]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct Query {
@@ -508,6 +509,80 @@ impl GridSolve5 {
         self.wall.iter().flatten().filter(|x| **x).count()
     }
 }
+
+// 区間を sorted set で管理するテクニック
+struct GridSolve6 {
+    row_no_wall: Vec<RangeSet>,
+    col_no_wall: Vec<RangeSet>,
+    h: usize,
+    w: usize,
+}
+impl GridSolve6 {
+    fn new(h: usize, w: usize) -> Self {
+        let row_no_wall = (0..h).map(|_| RangeSet::new()).collect_vec();
+        let col_no_wall = (0..w).map(|_| RangeSet::new()).collect_vec();
+
+        GridSolve6 {
+            row_no_wall,
+            col_no_wall,
+            h,
+            w,
+        }
+    }
+
+    fn break_wall(&mut self, y: usize, x: usize) {
+        if !self.is_wall(y, x) {
+            return;
+        }
+        self.row_no_wall[y].insert(x as i64);
+        self.col_no_wall[x].insert(y as i64);
+    }
+    fn get_left_wall(&mut self, y: usize, x: usize) -> Option<usize> {
+        let left = self.row_no_wall[y].max_exclusive_leq(x as i64);
+
+        if left == -1 {
+            None
+        } else {
+            Some(left as usize)
+        }
+    }
+
+    fn get_right_wall(&mut self, y: usize, x: usize) -> Option<usize> {
+        let right = self.row_no_wall[y].min_exclusive_geq(x as i64);
+
+        if right == self.w as i64 {
+            None
+        } else {
+            Some(right as usize)
+        }
+    }
+    fn get_up_wall(&mut self, y: usize, x: usize) -> Option<usize> {
+        let up = self.col_no_wall[x].max_exclusive_leq(y as i64);
+
+        if up == -1 {
+            None
+        } else {
+            Some(up as usize)
+        }
+    }
+    fn get_down_wall(&mut self, y: usize, x: usize) -> Option<usize> {
+        let down = self.col_no_wall[x].min_exclusive_geq(y as i64);
+
+        if down == self.h as i64 {
+            None
+        } else {
+            Some(down as usize)
+        }
+    }
+
+    fn is_wall(&self, y: usize, x: usize) -> bool {
+        !self.row_no_wall[y].contains(x as i64)
+    }
+
+    fn count_wall(&self) -> usize {
+        self.w * self.h - self.row_no_wall.iter().map(|row| row.len()).sum::<usize>()
+    }
+}
 impl Problem {
     fn read() -> Problem {
         input! {
@@ -547,13 +622,17 @@ impl Problem {
         // (壁あり: 座標の値, 壁なし: +∞ または -∞)
         // range max や range min をすると、壁の位置が得られる。
 
+        // 解法6 (GridSolve6 を使った場合)
+        // 区間を sorted set で持つテクニック
+
         let h = self.h;
         let w = self.w;
         // let mut grid = GridSolve1::new(h, w);
         // let mut grid = GridSolve2::new(h, w);
         // let mut grid = GridSolve3::new(h, w);
         // let mut grid = GridSolve4::new(h, w);
-        let mut grid = GridSolve5::new(h, w);
+        // let mut grid = GridSolve5::new(h, w);
+        let mut grid = GridSolve6::new(h, w);
 
         for q in &self.qs {
             // table! {&grid.wall};
@@ -1052,6 +1131,118 @@ pub mod monoid_union_find {
                 result
             };
             result.into_iter().filter(|x| !x.is_empty()).collect_vec()
+        }
+    }
+}
+use range_set::*;
+#[allow(clippy::module_inception)]
+pub mod range_set {
+    use std::collections::BTreeSet;
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct RangeSet {
+        set: BTreeSet<(i64, i64)>,
+        count: usize,
+    }
+    impl Default for RangeSet {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+    impl RangeSet {
+        pub fn new() -> RangeSet {
+            RangeSet {
+                set: vec![(i64::MIN, i64::MIN), (i64::MAX, i64::MAX)]
+                    .into_iter()
+                    .collect(),
+                count: 0,
+            }
+        }
+        pub fn iter(&self) -> impl Iterator<Item = i64> + '_ {
+            self.set
+                .iter()
+                .copied()
+                .filter(|&(l, r)| (l, r) != (i64::MIN, i64::MIN) && (l, r) != (i64::MAX, i64::MAX))
+                .flat_map(|(left, right)| left..=right)
+        }
+        pub fn insert(&mut self, x: i64) -> bool {
+            if self.contains(x) {
+                return false;
+            }
+            let &(prev_l, prev_r) = self.set.range(..(x + 1, x + 1)).max().unwrap();
+            let &(next_l, next_r) = self.set.range((x + 1, x + 1)..).min().unwrap();
+            if prev_r + 1 == x && x == next_l - 1 {
+                self.set.remove(&(prev_l, prev_r));
+                self.set.remove(&(next_l, next_r));
+                self.set.insert((prev_l, next_r));
+            } else if prev_r + 1 == x {
+                self.set.remove(&(prev_l, prev_r));
+                self.set.insert((prev_l, x));
+            } else if x == next_l - 1 {
+                self.set.remove(&(next_l, next_r));
+                self.set.insert((x, next_r));
+            } else {
+                self.set.insert((x, x));
+            }
+            self.count += 1;
+            true
+        }
+        pub fn remove(&mut self, x: i64) -> bool {
+            if !self.contains(x) {
+                return false;
+            }
+            let &(current_l, current_r) = self.set.range(..(x + 1, x + 1)).max().unwrap();
+            if current_l == x && x == current_r {
+                self.set.remove(&(current_l, current_r));
+            } else if current_l == x {
+                self.set.remove(&(current_l, current_r));
+                self.set.insert((x + 1, current_r));
+            } else if x == current_r {
+                self.set.remove(&(current_l, current_r));
+                self.set.insert((current_l, x - 1));
+            } else {
+                self.set.remove(&(current_l, current_r));
+                self.set.insert((current_l, x - 1));
+                self.set.insert((x + 1, current_r));
+            }
+            self.count -= 1;
+            true
+        }
+        pub fn len(&self) -> usize {
+            self.count
+        }
+        pub fn is_empty(&self) -> bool {
+            self.count == 0
+        }
+        pub fn contains(&self, x: i64) -> bool {
+            let &(l, r) = self.set.range(..(x + 1, x + 1)).max().unwrap();
+            (l..=r).contains(&x)
+        }
+        /// x 以上で self に入っていない値の最小値を返す (いわゆる mex)
+        pub fn min_exclusive_geq(&self, x: i64) -> i64 {
+            let &(l, r) = self.set.range(..(x + 1, x + 1)).max().unwrap();
+            if (l..=r).contains(&x) {
+                r + 1
+            } else {
+                x
+            }
+        }
+        /// x 以下で self に入っていない値の最大値を返す
+        pub fn max_exclusive_leq(&self, x: i64) -> i64 {
+            let &(l, r) = self.set.range(..(x + 1, x + 1)).max().unwrap();
+            if (l..=r).contains(&x) {
+                l - 1
+            } else {
+                x
+            }
+        }
+    }
+    impl FromIterator<i64> for RangeSet {
+        fn from_iter<I: IntoIterator<Item = i64>>(iter: I) -> RangeSet {
+            let mut set = RangeSet::new();
+            for x in iter {
+                set.insert(x);
+            }
+            set
         }
     }
 }
