@@ -12,50 +12,502 @@ struct Problem {
     qs: Vec<Query>,
 }
 
-fn break_wall(
-    y: usize,
-    x: usize,
-    wall: &mut [Vec<bool>],
-    right_wall: &mut [RangeAffineRangeSumSegtree<i64>],
-    left_wall: &mut [RangeAffineRangeSumSegtree<i64>],
-    down_wall: &mut [RangeAffineRangeSumSegtree<i64>],
-    up_wall: &mut [RangeAffineRangeSumSegtree<i64>],
-    w: usize,
+// 各点の上下左右の壁の位置を range update 遅延セグ木で持つ
+// 壁を壊したら、range update で壁の位置を更新する
+struct GridSolve1 {
+    wall: Vec<Vec<bool>>,
+    right_wall: Vec<RangeAffineRangeSumSegtree<i64>>,
+    left_wall: Vec<RangeAffineRangeSumSegtree<i64>>,
+    down_wall: Vec<RangeAffineRangeSumSegtree<i64>>,
+    up_wall: Vec<RangeAffineRangeSumSegtree<i64>>,
     h: usize,
-) {
-    if !wall[y][x] {
-        return;
+    w: usize,
+}
+
+impl GridSolve1 {
+    fn new(h: usize, w: usize) -> Self {
+        let wall = vec![vec![true; w]; h];
+        let right_wall: Vec<RangeAffineRangeSumSegtree<i64>> = (0..h)
+            .map(|_| RangeAffineRangeSumSegtree::new(&(0..w).map(|i| i as i64).collect_vec()))
+            .collect_vec();
+
+        let left_wall = (0..h)
+            .map(|_| RangeAffineRangeSumSegtree::new(&(0..w).map(|i| i as i64).collect_vec()))
+            .collect_vec();
+
+        let up_wall = (0..w)
+            .map(|_| RangeAffineRangeSumSegtree::new(&(0..h).map(|i| i as i64).collect_vec()))
+            .collect_vec();
+
+        let down_wall = (0..w)
+            .map(|_| RangeAffineRangeSumSegtree::new(&(0..h).map(|i| i as i64).collect_vec()))
+            .collect_vec();
+
+        GridSolve1 {
+            wall,
+            right_wall,
+            left_wall,
+            down_wall,
+            up_wall,
+            h,
+            w,
+        }
     }
-    wall[y][x] = false;
-    {
-        let next_left_wall = if x == 0 { -1 } else { left_wall[y].get(x - 1) };
-        let next_right_wall = if x == w - 1 {
-            w as i64
-        } else {
-            right_wall[y].get(x + 1)
-        };
 
-        let range = (next_left_wall + 1) as usize..=(next_right_wall - 1) as usize;
-        left_wall[y].apply_range_update(range.clone(), next_left_wall);
-        right_wall[y].apply_range_update(range, next_right_wall);
+    fn break_wall(&mut self, y: usize, x: usize) {
+        if !self.wall[y][x] {
+            return;
+        }
+        self.wall[y][x] = false;
+        {
+            let next_left_wall = if x == 0 {
+                -1
+            } else {
+                self.left_wall[y].get(x - 1)
+            };
+            let next_right_wall = if x == self.w - 1 {
+                self.w as i64
+            } else {
+                self.right_wall[y].get(x + 1)
+            };
+
+            let range = (next_left_wall + 1) as usize..=(next_right_wall - 1) as usize;
+            self.left_wall[y].apply_range_update(range.clone(), next_left_wall);
+            self.right_wall[y].apply_range_update(range, next_right_wall);
+        }
+        {
+            let next_up_wall = if y == 0 {
+                -1
+            } else {
+                self.up_wall[x].get(y - 1)
+            };
+            let next_down_wall = if y == self.h - 1 {
+                self.h as i64
+            } else {
+                self.down_wall[x].get(y + 1)
+            };
+
+            let range = (next_up_wall + 1) as usize..=(next_down_wall - 1) as usize;
+
+            self.up_wall[x].apply_range_update(range.clone(), next_up_wall);
+            self.down_wall[x].apply_range_update(range, next_down_wall);
+        }
     }
-    {
-        let next_up_wall = if y == 0 { -1 } else { up_wall[x].get(y - 1) };
-        let next_down_wall = if y == h - 1 {
-            h as i64
+    fn get_left_wall(&mut self, y: usize, x: usize) -> Option<usize> {
+        let p = self.left_wall[y].get(x);
+        if p >= 0 {
+            Some(p as usize)
         } else {
-            down_wall[x].get(y + 1)
-        };
+            None
+        }
+    }
 
-        let range = (next_up_wall + 1) as usize..=(next_down_wall - 1) as usize;
-        //dbg!(next_down_wall);
-        //dbg!(range.clone());
+    fn get_right_wall(&mut self, y: usize, x: usize) -> Option<usize> {
+        let p = self.right_wall[y].get(x);
+        if p < self.w as i64 {
+            Some(p as usize)
+        } else {
+            None
+        }
+    }
+    fn get_up_wall(&mut self, y: usize, x: usize) -> Option<usize> {
+        let p = self.up_wall[x].get(y);
+        if p >= 0 {
+            Some(p as usize)
+        } else {
+            None
+        }
+    }
+    fn get_down_wall(&mut self, y: usize, x: usize) -> Option<usize> {
+        let p = self.down_wall[x].get(y);
+        if p < self.h as i64 {
+            Some(p as usize)
+        } else {
+            None
+        }
+    }
 
-        up_wall[x].apply_range_update(range.clone(), next_up_wall);
-        down_wall[x].apply_range_update(range, next_down_wall);
+    fn is_wall(&self, y: usize, x: usize) -> bool {
+        self.wall[y][x]
+    }
+
+    fn count_wall(&self) -> usize {
+        self.wall.iter().flatten().filter(|x| **x).count()
     }
 }
 
+use ac_library::{segtree::Monoid, Additive, Max, Min, Segtree};
+use std::{collections::BTreeSet, convert::Infallible, i64};
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct RangeMinMax {
+    pub min: i64,
+    pub max: i64,
+}
+impl RangeMinMax {
+    pub fn unit(x: i64) -> Self {
+        Self { min: x, max: x }
+    }
+}
+pub struct RangeMinMaxMonoid(Infallible);
+impl Monoid for RangeMinMaxMonoid {
+    type S = RangeMinMax;
+    fn identity() -> Self::S {
+        RangeMinMax {
+            min: i64::MAX,
+            max: i64::MIN,
+        }
+    }
+    fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+        RangeMinMax {
+            min: i64::min(a.min, b.min),
+            max: i64::max(a.max, b.max),
+        }
+    }
+}
+
+// 壁が壊れた区間を Union Find で持つ
+struct GridSolve2 {
+    wall: Vec<Vec<bool>>,
+    row_non_wall_range: Vec<MonoidUnionFind<RangeMinMaxMonoid>>,
+    col_non_wall_range: Vec<MonoidUnionFind<RangeMinMaxMonoid>>,
+    h: usize,
+    w: usize,
+}
+
+impl GridSolve2 {
+    fn new(h: usize, w: usize) -> Self {
+        let wall = vec![vec![true; w]; h];
+        let row_non_wall_range = (0..h)
+            .map(|_| {
+                MonoidUnionFind::new(&(0..w).map(|i| RangeMinMax::unit(i as i64)).collect_vec())
+            })
+            .collect_vec();
+
+        let col_non_wall_range = (0..w)
+            .map(|_| {
+                MonoidUnionFind::new(&(0..h).map(|i| RangeMinMax::unit(i as i64)).collect_vec())
+            })
+            .collect_vec();
+
+        GridSolve2 {
+            wall,
+            row_non_wall_range,
+            col_non_wall_range,
+            h,
+            w,
+        }
+    }
+
+    fn break_wall(&mut self, y: usize, x: usize) {
+        if !self.wall[y][x] {
+            return;
+        }
+        self.wall[y][x] = false;
+        // 左右をつなげる
+        if x < self.w - 1 && !self.wall[y][x + 1] {
+            self.row_non_wall_range[y].unite(x, x + 1);
+        }
+        if x > 0 && !self.wall[y][x - 1] {
+            self.row_non_wall_range[y].unite(x, x - 1);
+        }
+
+        // 上下をつなげる
+        if y < self.h - 1 && !self.wall[y + 1][x] {
+            self.col_non_wall_range[x].unite(y, y + 1);
+        }
+        if y > 0 && !self.wall[y - 1][x] {
+            self.col_non_wall_range[x].unite(y, y - 1);
+        }
+    }
+    fn get_left_wall(&mut self, y: usize, x: usize) -> Option<usize> {
+        let p = self.row_non_wall_range[y].same_prod(x).min - 1;
+        if p >= 0 {
+            Some(p as usize)
+        } else {
+            None
+        }
+    }
+
+    fn get_right_wall(&mut self, y: usize, x: usize) -> Option<usize> {
+        let p = self.row_non_wall_range[y].same_prod(x).max + 1;
+        if p < self.w as i64 {
+            Some(p as usize)
+        } else {
+            None
+        }
+    }
+    fn get_up_wall(&mut self, y: usize, x: usize) -> Option<usize> {
+        let p = self.col_non_wall_range[x].same_prod(y).min - 1;
+        if p >= 0 {
+            Some(p as usize)
+        } else {
+            None
+        }
+    }
+    fn get_down_wall(&mut self, y: usize, x: usize) -> Option<usize> {
+        let p = self.col_non_wall_range[x].same_prod(y).max + 1;
+        if p < self.h as i64 {
+            Some(p as usize)
+        } else {
+            None
+        }
+    }
+
+    fn is_wall(&self, y: usize, x: usize) -> bool {
+        self.wall[y][x]
+    }
+
+    fn count_wall(&self) -> usize {
+        self.wall.iter().flatten().filter(|x| **x).count()
+    }
+}
+
+// 壁を BTreeSet で持つ
+struct GridSolve3 {
+    wall: Vec<Vec<bool>>,
+    row_wall: Vec<BTreeSet<usize>>,
+    col_wall: Vec<BTreeSet<usize>>,
+    h: usize,
+    w: usize,
+}
+impl GridSolve3 {
+    fn new(h: usize, w: usize) -> Self {
+        let wall = vec![vec![true; w]; h];
+        let row_wall = (0..h)
+            .map(|_| (0..w).collect::<BTreeSet<_>>())
+            .collect_vec();
+
+        let col_wall = (0..w)
+            .map(|_| (0..h).collect::<BTreeSet<_>>())
+            .collect_vec();
+
+        GridSolve3 {
+            wall,
+            row_wall,
+            col_wall,
+            h,
+            w,
+        }
+    }
+
+    fn break_wall(&mut self, y: usize, x: usize) {
+        if !self.wall[y][x] {
+            return;
+        }
+        self.wall[y][x] = false;
+        self.row_wall[y].remove(&x);
+        self.col_wall[x].remove(&y);
+    }
+    fn get_left_wall(&mut self, y: usize, x: usize) -> Option<usize> {
+        if x == 0 {
+            None
+        } else {
+            self.row_wall[y].range(..=x - 1).max().copied()
+        }
+    }
+
+    fn get_right_wall(&mut self, y: usize, x: usize) -> Option<usize> {
+        self.row_wall[y].range(x + 1..).min().copied()
+    }
+    fn get_up_wall(&mut self, y: usize, x: usize) -> Option<usize> {
+        if y == 0 {
+            None
+        } else {
+            self.col_wall[x].range(..=y - 1).max().copied()
+        }
+    }
+    fn get_down_wall(&mut self, y: usize, x: usize) -> Option<usize> {
+        self.col_wall[x].range(y + 1..).min().copied()
+    }
+
+    fn is_wall(&self, y: usize, x: usize) -> bool {
+        self.wall[y][x]
+    }
+
+    fn count_wall(&self) -> usize {
+        self.wall.iter().flatten().filter(|x| **x).count()
+    }
+}
+
+// 壁を range sum セグ木で持つ（壁あり: 1, 壁なし: 0）
+struct GridSolve4 {
+    wall: Vec<Vec<bool>>,
+    row_wall: Vec<Segtree<Additive<i64>>>,
+    col_wall: Vec<Segtree<Additive<i64>>>,
+    h: usize,
+    w: usize,
+}
+impl GridSolve4 {
+    fn new(h: usize, w: usize) -> Self {
+        let wall = vec![vec![true; w]; h];
+
+        let row_wall = (0..h)
+            .map(|_| Segtree::from(std::iter::repeat(1).take(w).collect_vec()))
+            .collect_vec();
+
+        let col_wall = (0..w)
+            .map(|_| Segtree::from(std::iter::repeat(1).take(h).collect_vec()))
+            .collect_vec();
+
+        GridSolve4 {
+            wall,
+            row_wall,
+            col_wall,
+            h,
+            w,
+        }
+    }
+
+    fn break_wall(&mut self, y: usize, x: usize) {
+        if !self.wall[y][x] {
+            return;
+        }
+        self.wall[y][x] = false;
+        self.row_wall[y].set(x, 0);
+        self.col_wall[x].set(y, 0);
+    }
+    fn get_left_wall(&mut self, y: usize, x: usize) -> Option<usize> {
+        let p = self.row_wall[y].min_left(x, |sum| *sum == 0);
+        if p == 0 {
+            None
+        } else {
+            Some(p - 1)
+        }
+    }
+
+    fn get_right_wall(&mut self, y: usize, x: usize) -> Option<usize> {
+        let p = self.row_wall[y].max_right(x + 1, |sum| *sum == 0);
+        if p == self.w {
+            None
+        } else {
+            Some(p)
+        }
+    }
+    fn get_up_wall(&mut self, y: usize, x: usize) -> Option<usize> {
+        let p = self.col_wall[x].min_left(y, |sum| *sum == 0);
+        if p == 0 {
+            None
+        } else {
+            Some(p - 1)
+        }
+    }
+    fn get_down_wall(&mut self, y: usize, x: usize) -> Option<usize> {
+        let p = self.col_wall[x].max_right(y + 1, |sum| *sum == 0);
+        if p == self.h {
+            None
+        } else {
+            Some(p)
+        }
+    }
+
+    fn is_wall(&self, y: usize, x: usize) -> bool {
+        self.wall[y][x]
+    }
+
+    fn count_wall(&self) -> usize {
+        self.wall.iter().flatten().filter(|x| **x).count()
+    }
+}
+
+// 壁を range min セグ木や range max セグ木で持つ（壁あり: 座標, 壁なし: +∞ または -∞）
+struct GridSolve5 {
+    wall: Vec<Vec<bool>>,
+    row_wall_min: Vec<Segtree<Min<i64>>>,
+    row_wall_max: Vec<Segtree<Max<i64>>>,
+    col_wall_min: Vec<Segtree<Min<i64>>>,
+    col_wall_max: Vec<Segtree<Max<i64>>>,
+    h: usize,
+    w: usize,
+}
+impl GridSolve5 {
+    fn new(h: usize, w: usize) -> Self {
+        let wall = vec![vec![true; w]; h];
+
+        let row_wall_min = (0..h)
+            .map(|_| Segtree::from((0..(w as i64)).collect_vec()))
+            .collect_vec();
+
+        let row_wall_max = (0..h)
+            .map(|_| Segtree::from((0..(w as i64)).collect_vec()))
+            .collect_vec();
+
+        let col_wall_min = (0..w)
+            .map(|_| Segtree::from((0..(h as i64)).collect_vec()))
+            .collect_vec();
+
+        let col_wall_max = (0..w)
+            .map(|_| Segtree::from((0..(h as i64)).collect_vec()))
+            .collect_vec();
+
+        GridSolve5 {
+            wall,
+            row_wall_min,
+            row_wall_max,
+            col_wall_min,
+            col_wall_max,
+            h,
+            w,
+        }
+    }
+
+    fn break_wall(&mut self, y: usize, x: usize) {
+        if !self.wall[y][x] {
+            return;
+        }
+        self.wall[y][x] = false;
+        self.row_wall_min[y].set(x, i64::MAX);
+        self.row_wall_max[y].set(x, i64::MIN);
+        self.col_wall_min[x].set(y, i64::MAX);
+        self.col_wall_max[x].set(y, i64::MIN);
+    }
+    fn get_left_wall(&mut self, y: usize, x: usize) -> Option<usize> {
+        if x == 0 {
+            return None;
+        }
+        let p = self.row_wall_max[y].prod(..=x - 1);
+        if p == i64::MIN {
+            None
+        } else {
+            Some(p as usize)
+        }
+    }
+
+    fn get_right_wall(&mut self, y: usize, x: usize) -> Option<usize> {
+        let p = self.row_wall_min[y].prod(x + 1..);
+        if p == i64::MAX {
+            None
+        } else {
+            Some(p as usize)
+        }
+    }
+    fn get_up_wall(&mut self, y: usize, x: usize) -> Option<usize> {
+        if y == 0 {
+            return None;
+        }
+        let p = self.col_wall_max[x].prod(..=y - 1);
+        if p == i64::MIN {
+            None
+        } else {
+            Some(p as usize)
+        }
+    }
+    fn get_down_wall(&mut self, y: usize, x: usize) -> Option<usize> {
+        let p = self.col_wall_min[x].prod(y + 1..);
+        if p == i64::MAX {
+            None
+        } else {
+            Some(p as usize)
+        }
+    }
+
+    fn is_wall(&self, y: usize, x: usize) -> bool {
+        self.wall[y][x]
+    }
+
+    fn count_wall(&self) -> usize {
+        self.wall.iter().flatten().filter(|x| **x).count()
+    }
+}
 impl Problem {
     fn read() -> Problem {
         input! {
@@ -75,176 +527,65 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
+        // 解法1 (GridSolve1 を使った場合)
+        // 各点に対して、その点の上下左右にある壁の位置を保持する
+        // （range update をしたいので、range update 遅延セグ木を持つ）
+
+        // 解法2 (GridSolve2 を使った場合)
+        // 壁を壊した区間を Union Find で管理する
+        // 壁を壊したら両隣の区間をくっつける
+
+        // 解法3 (GridSolve3 を使った場合)
+        // 各行・各列の壁の位置を BTreeSet で管理する
+
+        // 解法4 (GridSolve4 を使った場合)
+        // 各行・各列の壁の位置を range sum セグ木で管理する(壁あり: 1 壁なし: 0)
+        // 右側にある一番近い壁などはセグ木の二分探索を使う
+
+        // 解法5 (GridSolve5 を使った場合)
+        // 各行・各列の壁の位置を range min セグ木や range max セグ木で管理する
+        // (壁あり: 座標の値, 壁なし: +∞ または -∞)
+        // range max や range min をすると、壁の位置が得られる。
+
         let h = self.h;
         let w = self.w;
-        let mut wall = vec![vec![true; w]; h];
-
-        let mut right_wall: Vec<RangeAffineRangeSumSegtree<i64>> = (0..h)
-            .map(|_| RangeAffineRangeSumSegtree::new(&(0..w).map(|i| i as i64).collect_vec()))
-            .collect_vec();
-
-        let mut left_wall = (0..h)
-            .map(|_| RangeAffineRangeSumSegtree::new(&(0..w).map(|i| i as i64).collect_vec()))
-            .collect_vec();
-
-        let mut up_wall = (0..w)
-            .map(|_| RangeAffineRangeSumSegtree::new(&(0..h).map(|i| i as i64).collect_vec()))
-            .collect_vec();
-
-        let mut down_wall = (0..w)
-            .map(|_| RangeAffineRangeSumSegtree::new(&(0..h).map(|i| i as i64).collect_vec()))
-            .collect_vec();
+        // let mut grid = GridSolve1::new(h, w);
+        // let mut grid = GridSolve2::new(h, w);
+        // let mut grid = GridSolve3::new(h, w);
+        // let mut grid = GridSolve4::new(h, w);
+        let mut grid = GridSolve5::new(h, w);
 
         for q in &self.qs {
-            //table! {&wall};
-            // let r = right_wall.iter_mut().map(|xs| xs.to_vec()).collect_vec();
-            // let l = left_wall.iter_mut().map(|xs| xs.to_vec()).collect_vec();
-            // let d = down_wall.iter_mut().map(|xs| xs.to_vec()).collect_vec();
-            // let u = up_wall.iter_mut().map(|xs| xs.to_vec()).collect_vec();
-            //table! {r};
-            //table! {l};
-            // table! {d};
-            // table! {u};
+            // table! {&grid.wall};
+            // dbg!(q);
 
-            //dbg!(q);
-
-            if wall[q.y][q.x] {
-                break_wall(
-                    q.y,
-                    q.x,
-                    &mut wall,
-                    &mut right_wall,
-                    &mut left_wall,
-                    &mut down_wall,
-                    &mut up_wall,
-                    w,
-                    h,
-                );
-                //wall[q.y][q.x] = false;
-                //// TODO :修正する
-                //right_wall[q.y].set(q.x, q.x as i64 + 1);
-                //left_wall[q.y].set(q.x, q.x as i64 - 1);
-                //down_wall[q.x].set(q.y, q.y as i64 + 1);
-                //up_wall[q.x].set(q.y, q.y as i64 - 1);
+            if grid.is_wall(q.y, q.x) {
+                grid.break_wall(q.y, q.x);
             } else {
                 // 壁がすでにない
                 // 左側/右側/上側/下側の壊すブロックを求める（あれば）
 
-                // let current_left_wall = left_wall[q.y].get(q.x);
-                // // (q.y, current_left_wall) を壊す
-                // if current_left_wall >= 0 {
-                //     wall[q.y][current_left_wall as usize] = false;
-                // }
-
-                // let current_right_wall = right_wall[q.y].get(q.x);
-                // if current_right_wall < w as i64 {
-                //     wall[q.y][current_right_wall as usize] = false;
-                // }
-
-                // let current_up_wall = up_wall[q.x].get(q.y);
-                // if current_up_wall >= 0 {
-                //     wall[current_up_wall as usize][q.x] = false;
-                // }
-
-                // let current_down_wall = down_wall[q.x].get(q.y);
-                // if current_down_wall < h as i64 {
-                //     wall[current_down_wall as usize][q.x] = false;
-                // }
-
-                let current_left_wall = left_wall[q.y].get(q.x);
-                // (q.y, current_left_wall) を壊す
-                if current_left_wall >= 0 {
-                    break_wall(
-                        q.y,
-                        current_left_wall as usize,
-                        &mut wall,
-                        &mut right_wall,
-                        &mut left_wall,
-                        &mut down_wall,
-                        &mut up_wall,
-                        w,
-                        h,
-                    );
+                if let Some(left) = grid.get_left_wall(q.y, q.x) {
+                    grid.break_wall(q.y, left);
                 }
 
-                let current_right_wall = right_wall[q.y].get(q.x);
-                if current_right_wall < w as i64 {
-                    break_wall(
-                        q.y,
-                        current_right_wall as usize,
-                        &mut wall,
-                        &mut right_wall,
-                        &mut left_wall,
-                        &mut down_wall,
-                        &mut up_wall,
-                        w,
-                        h,
-                    );
+                if let Some(right) = grid.get_right_wall(q.y, q.x) {
+                    grid.break_wall(q.y, right);
                 }
 
-                let current_up_wall = up_wall[q.x].get(q.y);
-                if current_up_wall >= 0 {
-                    break_wall(
-                        current_up_wall as usize,
-                        q.x,
-                        &mut wall,
-                        &mut right_wall,
-                        &mut left_wall,
-                        &mut down_wall,
-                        &mut up_wall,
-                        w,
-                        h,
-                    );
+                if let Some(up) = grid.get_up_wall(q.y, q.x) {
+                    grid.break_wall(up, q.x);
                 }
 
-                let current_down_wall = down_wall[q.x].get(q.y);
-                if current_down_wall < h as i64 {
-                    //wall[current_down_wall as usize][q.x] = false;
-                    break_wall(
-                        current_down_wall as usize,
-                        q.x,
-                        &mut wall,
-                        &mut right_wall,
-                        &mut left_wall,
-                        &mut down_wall,
-                        &mut up_wall,
-                        w,
-                        h,
-                    );
+                if let Some(down) = grid.get_down_wall(q.y, q.x) {
+                    grid.break_wall(down, q.x);
                 }
-
-                // right_wall たちを更新する
-
-                // let next_left_wall = (current_left_wall - 1).max(-1);
-                // let next_right_wall = (current_right_wall + 1).min(w as i64);
-                // let next_up_wall = (current_up_wall - 1).max(-1);
-                // let next_down_wall = (current_down_wall + 1).min(h as i64);
-
-                // let range_row = {
-                //     let left = current_left_wall.max(0);
-                //     let right = current_right_wall.min(w as i64 - 1);
-                //     (left as usize)..=(right as usize)
-                // };
-
-                // let range_col = {
-                //     let up = current_up_wall.max(0);
-                //     let down = current_down_wall.min(h as i64 - 1);
-                //     (up as usize)..=(down as usize)
-                // };
-
-                // right_wall[q.y].apply_range_update(range_row.clone(), next_right_wall);
-
-                // left_wall[q.y].apply_range_update(range_row.clone(), next_left_wall);
-
-                // down_wall[q.x].apply_range_update(range_col.clone(), next_down_wall);
-
-                // up_wall[q.x].apply_range_update(range_col.clone(), next_up_wall);
             }
         }
 
-        //table! {&wall};
+        // table! {&grid.wall};
 
-        let ans = wall.iter().flatten().filter(|x| **x).count() as i64;
+        let ans = grid.count_wall();
         Answer { ans }
     }
 
@@ -279,14 +620,14 @@ impl Problem {
                 }
             }
         }
-        let ans = wall.iter().flatten().filter(|x| **x).count() as i64;
+        let ans = wall.iter().flatten().filter(|x| **x).count();
         Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: usize,
 }
 
 impl Answer {
@@ -600,287 +941,117 @@ pub mod range_affine_range_sum {
         }
     }
 }
-use lg::*;
-pub mod lg {
-    use std::borrow::Borrow;
-    use std::fmt;
-    use std::iter::once;
-    /// Print the values with the line number.
-    /// # Examples
-    /// ```rust
-    /// # use lg::*;
-    /// let x = 42;
-    /// let y = 43;
-    /// lg!(x);
-    /// lg!(x, y);
-    /// lg!(42, x, 43, y);
-    /// ```
-    #[macro_export]
-    macro_rules ! lg {(@ contents $ head : expr $ (, $ tail : expr ) * ) => {{$ crate :: __lg_internal ! ($ head ) ; $ (eprint ! ("," ) ; $ crate :: __lg_internal ! ($ tail ) ; ) * eprintln ! () ; } } ; ($ ($ expr : expr ) ,* $ (, ) ? ) => {{eprint ! ("{}\u{276f}" , line ! () ) ; $ crate :: lg ! (@ contents $ ($ expr ) ,* ) } } ; }
-    #[doc(hidden)]
-    #[macro_export]
-    macro_rules! __lg_internal {
-        ($ value : expr ) => {{
-            match $value {
-                head => {
-                    eprint!(
-                        " {} = {}",
-                        stringify!($value),
-                        $crate::__quiet(format!("{:?}", &head))
-                    );
-                }
-            }
-        }};
+use monoid_union_find::*;
+/// 可換モノイドをのっけた Union Find
+pub mod monoid_union_find {
+    use ac_library::Monoid;
+    use itertools::Itertools;
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    struct RootInfo<S: Clone> {
+        count: usize,
+        prod: S,
     }
-    /// Print many 1D arrays side-by-side with the line number.
-    /// # Examples
-    /// ```rust
-    /// # use lg::*;
-    /// let a = [1, 2, 3];
-    /// let b = [4, 5, 6];
-    /// let c = [7, 8, 9];
-    /// rows! {
-    ///   "id", // the name of the index
-    ///   @"a" => a,
-    ///   b,
-    ///   @"c" => c,
-    /// }
-    /// ```
-    #[macro_export]
-    macro_rules ! rows {{$ index_label : literal , $ (@ offset $ offset : expr , ) ? $ (@ verticalbar $ verticalbar : expr , ) * $ ($ (@$ label : literal => ) ? $ values : expr ) ,* $ (, ) ? } => {{#! [allow (unused_assignments ) ] let mut rows = $ crate :: Rows :: default () ; rows . line_number (line ! () ) ; $ (rows . offset ($ offset ) ; ) ? $ (rows . verticalbar ($ verticalbar ) ; ) * rows . index_label ($ index_label ) ; $ ({let mut label = stringify ! ($ values ) . to_string () ; if label . starts_with ("&" ) {label = label [1 .. ] . to_string () ; } $ ({let label_ : &'static str = $ label ; label = label_ . to_string () ; } ) ? rows . row (label , $ values ) ; } ) * eprintln ! ("{}" , rows . to_string_table () ) ; } } ; }
-    /// Print the 2D array with the line number.
-    /// # Examples
-    /// ```rust
-    /// # use lg::*;
-    /// let a = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
-    /// table! {
-    ///    @"a" => a,
-    /// }
-    /// table! {
-    ///   a,
-    /// }
-    /// ```
-    #[macro_export]
-    macro_rules ! table {{$ (@$ name : literal => ) ? $ values : expr $ (, ) ? } => {{#! [allow (unused_assignments ) ] let mut name = stringify ! ($ values ) . to_string () ; if name . starts_with ("&" ) {name = name [1 .. ] . to_string () ; } $ ({let name_ : &'static str = $ name ; name = name_ . to_string () ; } ) ? let mut rows = $ crate :: Rows :: default () ; rows . line_number (line ! () ) ; rows . table_name (name ) ; # [allow (array_into_iter ) ] for (i , row ) in $ values . into_iter () . enumerate () {rows . row (i . to_string () , row ) ; } eprintln ! ("{}" , rows . to_string_table () ) ; } } ; }
-    #[doc(hidden)]
-    pub fn __quiet(s: impl AsRef<str>) -> String {
-        s.as_ref()
-            .replace("340282366920938463463374607431768211455", "*")
-            .replace("170141183460469231731687303715884105727", "*")
-            .replace("18446744073709551615", "*")
-            .replace("9223372036854775807", "*")
-            .replace("-9223372036854775808", "*")
-            .replace("4294967295", "*")
-            .replace("2147483647", "*")
-            .replace("-2147483648", "*")
-            .replace("None", "*")
-            .replace("Some", "")
-            .replace("true", "#")
-            .replace("false", ".")
-            .replace(['"', '\''], "")
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    struct NonRootInfo {
+        parent_index: usize,
     }
-    #[doc(hidden)]
-    #[derive(Default)]
-    pub struct Rows {
-        line_number: String,
-        index_label: String,
-        offset: usize,
-        verticalbars: Vec<usize>,
-        table_name: String,
-        rows: Vec<Row>,
+    #[derive(Clone)]
+    enum Node<S: Clone> {
+        Root(RootInfo<S>),
+        NonRoot(NonRootInfo),
     }
-    impl Rows {
-        pub fn line_number(&mut self, line_number: u32) -> &mut Self {
-            self.line_number = format!("{}", line_number);
-            self
-        }
-        pub fn index_label(&mut self, index_label: impl Into<String>) -> &mut Self {
-            self.index_label = index_label.into();
-            self
-        }
-        pub fn offset(&mut self, offset: usize) -> &mut Self {
-            self.offset = offset;
-            self
-        }
-        pub fn verticalbar(&mut self, verticalbar: impl IntoIterator<Item = usize>) -> &mut Self {
-            self.verticalbars.extend(verticalbar);
-            self
-        }
-        pub fn table_name(&mut self, table_name: impl Into<String>) -> &mut Self {
-            self.table_name = table_name.into();
-            self
-        }
-        pub fn row(
-            &mut self,
-            label: impl Into<String>,
-            values: impl IntoIterator<Item = impl fmt::Debug>,
-        ) -> &mut Self {
-            self.rows.push(Row {
-                label: label.into(),
-                values: values
-                    .into_iter()
-                    .map(|value| __quiet(format!("{:?}", value)))
-                    .collect(),
-            });
-            self
-        }
-        pub fn to_string_table(self) -> StringTable {
-            let Self {
-                line_number,
-                index_label,
-                offset,
-                verticalbars,
-                table_name,
-                rows,
-            } = self;
-            let w = rows
+    #[derive(Clone)]
+    struct RootAndIndex<S: Clone> {
+        info: RootInfo<S>,
+        index: usize,
+    }
+    #[derive(Clone)]
+    pub struct MonoidUnionFind<M: Monoid> {
+        nodes: Vec<Node<M::S>>,
+        cnt_groups: usize,
+    }
+    impl<M: Monoid> MonoidUnionFind<M> {
+        pub fn new(data: &[M::S]) -> MonoidUnionFind<M> {
+            let nodes = data
                 .iter()
-                .map(|row| row.values.len())
-                .max()
-                .unwrap_or_default();
-            let mut verticalbar_count = vec![0; w + 1];
-            for &v in &verticalbars {
-                if (offset..=offset + w).contains(&v) {
-                    verticalbar_count[v - offset] += 1;
-                }
-            }
-            StringTable {
-                head: StringRow {
-                    label: format!(
-                        "{line_number}❯ {table_name}{index_label}",
-                        index_label = if index_label.is_empty() {
-                            String::new()
-                        } else {
-                            format!("[{}]", index_label)
-                        }
-                    ),
-                    values: (offset..offset + w)
-                        .map(|index| index.to_string())
-                        .collect(),
-                },
-                body: rows
-                    .iter()
-                    .map(|row| StringRow {
-                        label: row.label.clone(),
-                        values: row.values.clone(),
+                .map(|d| {
+                    Node::Root(RootInfo {
+                        count: 1,
+                        prod: d.clone(),
                     })
-                    .collect(),
-                verticalbar_count,
-            }
-        }
-    }
-    struct Row {
-        label: String,
-        values: Vec<String>,
-    }
-    #[doc(hidden)]
-    pub struct StringTable {
-        head: StringRow,
-        body: Vec<StringRow>,
-        verticalbar_count: Vec<usize>,
-    }
-    impl fmt::Display for StringTable {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            let Self {
-                head,
-                body,
-                verticalbar_count,
-            } = self;
-            let w = body
-                .iter()
-                .map(|row| row.values.len())
-                .max()
-                .unwrap_or_default();
-            let label_width = once(head.label.chars().count())
-                .chain(body.iter().map(|row| row.label.chars().count()))
-                .max()
-                .unwrap();
-            let value_width = (0..w)
-                .map(|j| {
-                    once(j.to_string().len())
-                        .chain(
-                            body.iter()
-                                .map(|row| row.values.get(j).map_or(0, |s| s.chars().count())),
-                        )
-                        .max()
-                        .unwrap()
                 })
-                .collect::<Vec<_>>();
-            gray(f)?;
-            write!(
-                f,
-                "{}",
-                head.to_string(label_width, &value_width, verticalbar_count, true)
-            )?;
-            resetln(f)?;
-            for row in body {
-                write!(
-                    f,
-                    "{}",
-                    row.to_string(label_width, &value_width, verticalbar_count, false)
-                )?;
-                writeln!(f)?;
+                .collect_vec();
+            MonoidUnionFind {
+                nodes,
+                cnt_groups: data.len(),
             }
-            Ok(())
         }
-    }
-    struct StringRow {
-        label: String,
-        values: Vec<String>,
-    }
-    impl StringRow {
-        fn to_string(
-            &self,
-            label_width: usize,
-            value_width: &[usize],
-            varticalbars_count: &[usize],
-            label_align_left: bool,
-        ) -> String {
-            let Self { label, values } = self;
-            let w = value_width.len();
-            let mut s = String::new();
-            s.push_str(&if label_align_left {
-                format!("{label:<label_width$} |")
+        fn root_node(&mut self, index: usize) -> RootAndIndex<M::S> {
+            match self.nodes[index].clone() {
+                Node::Root(info) => RootAndIndex { info, index },
+                Node::NonRoot(info) => {
+                    let root_and_index = self.root_node(info.parent_index);
+                    self.nodes[index] = Node::NonRoot(NonRootInfo {
+                        parent_index: root_and_index.index,
+                    });
+                    root_and_index
+                }
+            }
+        }
+        pub fn root(&mut self, index: usize) -> usize {
+            self.root_node(index).index
+        }
+        pub fn same_count(&mut self, index: usize) -> usize {
+            self.root_node(index).info.count
+        }
+        pub fn same_prod(&mut self, index: usize) -> M::S {
+            self.root_node(index).info.prod
+        }
+        pub fn same(&mut self, x: usize, y: usize) -> bool {
+            self.root(x) == self.root(y)
+        }
+        pub fn num_groups(&self) -> usize {
+            self.cnt_groups
+        }
+        pub fn unite(&mut self, x: usize, y: usize) -> bool {
+            if self.same(x, y) {
+                return false;
+            }
+            self.cnt_groups -= 1;
+            let x_root_node = self.root_node(x);
+            let y_root_node = self.root_node(y);
+            let (smaller_root, larger_root) = if x_root_node.info.count <= y_root_node.info.count {
+                (x_root_node, y_root_node)
             } else {
-                format!("{label:^label_width$} |")
+                (y_root_node, x_root_node)
+            };
+            self.nodes[smaller_root.index] = Node::NonRoot(NonRootInfo {
+                parent_index: larger_root.index,
             });
-            for j in 0..w {
-                let value_width = value_width[j];
-                s.push_str("|".repeat(varticalbars_count[j]).as_str());
-                if varticalbars_count[j] == 0 && j != 0 && value_width <= 1 {
-                    s.push(' ');
-                }
-                match values.get(j) {
-                    Some(value) => {
-                        s.push_str(&format!(" {value:>value_width$}",));
-                    }
-                    None => {
-                        s.push_str(" ".repeat(value_width + 1).as_str());
-                    }
-                }
-            }
-            s
+            self.nodes[larger_root.index] = Node::Root(RootInfo {
+                count: smaller_root.info.count + larger_root.info.count,
+                prod: M::binary_operation(&smaller_root.info.prod, &larger_root.info.prod),
+            });
+            true
         }
-    }
-    const GRAY: &str = "\x1b[48;2;127;127;127;37m";
-    const RESET: &str = "\x1b[0m";
-    fn gray(f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{GRAY}")
-    }
-    fn resetln(f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "{RESET}")
-    }
-    /// Format a iterator of [`bool`]s.
-    pub fn bools<B, I>(iter: I) -> String
-    where
-        B: Borrow<bool>,
-        I: IntoIterator<Item = B>,
-    {
-        format!(
-            "[{}]",
-            iter.into_iter()
-                .map(|b| ['.', '#'][usize::from(*(b.borrow()))])
-                .collect::<String>(),
-        )
+        pub fn groups(&mut self) -> Vec<Vec<usize>> {
+            let n = self.nodes.len();
+            let roots = (0..n).map(|i| self.root(i)).collect_vec();
+            let group_size = (0..n).map(|i| roots[i]).fold(vec![0; n], |mut acc, x| {
+                acc[x] += 1;
+                acc
+            });
+            let result = {
+                let mut result = vec![Vec::new(); n];
+                for i in 0..n {
+                    result[i].reserve(group_size[i]);
+                }
+                for i in 0..n {
+                    result[roots[i]].push(i);
+                }
+                result
+            };
+            result.into_iter().filter(|x| !x.is_empty()).collect_vec()
+        }
     }
 }
