@@ -1,18 +1,29 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    l: usize,
+    r: usize,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            l: usize,
+            r: usize,
         }
-        Problem { _a }
+        Problem { l, r }
     }
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let l = self.l;
+        let r = self.r;
+        let ans = if (l, r) == (0, 0) || (l, r) == (1, 1) {
+            "Invalid"
+        } else if (l, r) == (1, 0) {
+            "Yes"
+        } else {
+            "No"
+        };
+        let ans = ans.to_string();
         Answer { ans }
     }
 
@@ -26,7 +37,7 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: String,
 }
 
 impl Answer {

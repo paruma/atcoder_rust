@@ -1,18 +1,48 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    s: Vec<char>,
+    t: Vec<char>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            s: Chars,
+            t: Chars
         }
-        Problem { _a }
+        Problem { s, t }
     }
+
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let mut s = self.s.clone();
+        let t = self.t.clone();
+
+        let mut inc_idx_list = vec![];
+        let mut dec_idx_list = vec![];
+
+        let n = s.len();
+
+        for i in 0..n {
+            if s[i] < t[i] {
+                inc_idx_list.push(i)
+            }
+            if s[i] > t[i] {
+                dec_idx_list.push(i)
+            }
+        }
+
+        let mut ans = vec![];
+
+        for &i in dec_idx_list.iter() {
+            s[i] = t[i];
+            ans.push(s.clone());
+        }
+
+        for &i in inc_idx_list.iter().rev() {
+            s[i] = t[i];
+            ans.push(s.clone());
+        }
         Answer { ans }
     }
 
@@ -26,12 +56,15 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<Vec<char>>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        println!("{}", self.ans.len());
+        for line in &self.ans {
+            print_chars(line)
+        }
     }
 }
 

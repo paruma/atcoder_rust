@@ -1,18 +1,43 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    xss: Vec<Vec<usize>>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
         }
-        Problem { _a }
+        let xss = (0..n)
+            .map(|i| {
+                input! {
+                    xs: [Usize1; i+1]
+                }
+                xs
+            })
+            .collect_vec();
+        Problem { n, xss }
     }
+
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let xss = &self.xss;
+        let next = |i: usize, j: usize| {
+            if i >= j {
+                xss[i][j]
+            } else {
+                xss[j][i]
+            }
+        };
+        let mut current = 0;
+
+        for i in 0..n {
+            current = next(i, current);
+        }
+
+        let ans = current + 1;
         Answer { ans }
     }
 
@@ -26,7 +51,7 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: usize,
 }
 
 impl Answer {
