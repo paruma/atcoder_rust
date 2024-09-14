@@ -1,16 +1,19 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    _a: usize,
+    n: usize,
+    xs: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            _a: usize,
+            n: usize,
+            xs: [i64; n],
         }
-        Problem { _a }
+        Problem { n, xs }
     }
+
     fn solve(&self) -> Answer {
         let ans = 0;
         Answer { ans }
