@@ -1,8 +1,16 @@
-//#[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Query {
+    l: i64,
+    r: i64,
+}
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
     xs: Vec<i64>,
+    ps: Vec<i64>,
+    nq: usize,
+    qs: Vec<Query>,
 }
 
 impl Problem {
@@ -10,12 +18,39 @@ impl Problem {
         input! {
             n: usize,
             xs: [i64; n],
+            ps: [i64; n],
+            nq: usize,
+            qs: [Query; nq],
         }
-        Problem { n, xs }
+
+        Problem { n, xs, ps, nq, qs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let xs = &self.xs;
+        let ps = &self.ps;
+        let qs = &self.qs;
+        let space = chain!(xs.iter().copied(), qs.iter().flat_map(|q| [q.l, q.r])).collect_vec();
+        let cc = CoordinateCompression::new(&space);
+
+        let mut cnts = vec![0; cc.space_size()];
+
+        for i in 0..self.n {
+            cnts[cc.compress(xs[i])] += ps[i];
+        }
+
+        let cnts_cumsum = CumSum::new(&cnts);
+
+        let ans = qs
+            .iter()
+            .copied()
+            .map(|q| {
+                let left = cc.compress(q.l);
+                let right = cc.compress(q.r);
+                cnts_cumsum.range_sum(left..=right)
+            })
+            .collect_vec();
+
         Answer { ans }
     }
 
@@ -29,12 +64,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec(&self.ans);
     }
 }
 
@@ -180,3 +215,95 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use coordinate_compression::*;
+pub mod coordinate_compression {
+    use itertools::Itertools;
+    use superslice::Ext;
+    pub struct CoordinateCompression {
+        space: Vec<i64>,
+    }
+    impl CoordinateCompression {
+        /// 計算量: O(|space|log(|space|))
+        pub fn new(space: &[i64]) -> Self {
+            let space = space.iter().copied().sorted().dedup().collect_vec();
+            Self { space }
+        }
+        /// 計算量: O(log(|space|))
+        pub fn compress(&self, x: i64) -> usize {
+            self.space.binary_search(&x).unwrap()
+        }
+        /// 座標圧縮前の空間のうち x 以上である最小の値を座標圧縮したものを返す
+        /// 計算量: O(log(|space|))
+        pub fn compress_floor(&self, x: i64) -> usize {
+            self.space.upper_bound(&x) - 1
+        }
+        /// 座標圧縮前の空間のうち x 以下である最大の値を座標圧縮したものを返す
+        /// 計算量: O(log(|space|))
+        pub fn compress_ceil(&self, x: i64) -> usize {
+            self.space.lower_bound(&x)
+        }
+        /// 計算量: O(|xs|log(|space|))
+        pub fn compress_vec(&self, xs: &[i64]) -> Vec<usize> {
+            xs.iter().copied().map(|x| self.compress(x)).collect_vec()
+        }
+        /// 計算量: O(1)
+        pub fn decompress(&self, i: usize) -> i64 {
+            self.space[i]
+        }
+        pub fn space_size(&self) -> usize {
+            self.space.len()
+        }
+    }
+}
+use cumsum::*;
+pub mod cumsum {
+    pub fn prefix_sum(xs: &[i64]) -> Vec<i64> {
+        let mut prefix_sum = vec![0; xs.len() + 1];
+        for i in 1..xs.len() + 1 {
+            prefix_sum[i] = prefix_sum[i - 1] + xs[i - 1];
+        }
+        prefix_sum
+    }
+    use std::ops::{Bound, Range, RangeBounds};
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct CumSum {
+        pub cumsum: Vec<i64>,
+    }
+    impl CumSum {
+        /// 計算量: O(|xs|)
+        pub fn new(xs: &[i64]) -> CumSum {
+            let mut cumsum = vec![0; xs.len() + 1];
+            for i in 1..xs.len() + 1 {
+                cumsum[i] = cumsum[i - 1] + xs[i - 1];
+            }
+            CumSum { cumsum }
+        }
+        fn open(&self, range: impl RangeBounds<usize>) -> Range<usize> {
+            use Bound::Excluded;
+            use Bound::Included;
+            use Bound::Unbounded;
+            let begin = match range.start_bound() {
+                Unbounded => 0,
+                Included(&x) => x,
+                Excluded(&x) => x + 1,
+            };
+            let end = match range.end_bound() {
+                Excluded(&x) => x,
+                Included(&x) => x + 1,
+                Unbounded => self.cumsum.len() - 1,
+            };
+            begin..end
+        }
+        /// 計算量: O(1)
+        pub fn range_sum(&self, range: impl RangeBounds<usize>) -> i64 {
+            let range = self.open(range);
+            self.cumsum[range.end] - self.cumsum[range.start]
+        }
+        pub fn prefix_sum(&self, end: usize) -> i64 {
+            self.cumsum[end]
+        }
+        pub fn suffix_sum(&self, begin: usize) -> i64 {
+            self.cumsum[self.cumsum.len() - 1] - self.cumsum[begin]
+        }
+    }
+}

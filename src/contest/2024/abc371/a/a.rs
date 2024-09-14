@@ -1,21 +1,66 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    s: Vec<char>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            s: [Chars; 3]
         }
-        Problem { n, xs }
+        let s = s.iter().map(|x| x[0]).collect_vec();
+        Problem { s }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let s = &self.s;
+        let perm = [0, 1, 2]
+            .iter()
+            .copied()
+            .permutations(3)
+            .find(|perm| {
+                // perm[0]: Aさんの年の順番
+                // perm[1]: Bさん
+                // perm[2]: Cさん
+                // s[0] == '<' だったら、perm[0] < perm[1] であって欲しい
+
+                if s[0] == '<' && perm[0] > perm[1] {
+                    return false;
+                }
+
+                if s[0] == '>' && perm[0] < perm[1] {
+                    return false;
+                }
+
+                if s[1] == '<' && perm[0] > perm[2] {
+                    return false;
+                }
+
+                if s[1] == '>' && perm[0] < perm[2] {
+                    return false;
+                }
+
+                if s[2] == '<' && perm[1] > perm[2] {
+                    return false;
+                }
+
+                if s[2] == '>' && perm[1] < perm[2] {
+                    return false;
+                }
+
+                true
+            })
+            .unwrap();
+
+        let ans = if perm[0] == 1 {
+            "A"
+        } else if perm[1] == 1 {
+            "B"
+        } else {
+            "C"
+        };
+        let ans = ans.to_string();
         Answer { ans }
     }
 
@@ -29,7 +74,7 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: String,
 }
 
 impl Answer {

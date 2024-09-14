@@ -1,21 +1,51 @@
 //#[derive_readable]
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Baby {
+    family: usize,
+    gender: char,
+}
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    m: usize,
+    bs: Vec<Baby>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            m: usize,
+            abs: [(Usize1, char); m],
         }
-        Problem { n, xs }
+        let bs = abs
+            .iter()
+            .map(|(a, b)| Baby {
+                family: *a,
+                gender: *b,
+            })
+            .collect_vec();
+        Problem { n, m, bs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let mut exists_taro = vec![false; n];
+
+        let mut ans = vec![];
+        for &b in &self.bs {
+            if b.gender == 'F' {
+                ans.push(false);
+                continue;
+            }
+            if exists_taro[b.family] {
+                ans.push(false);
+            } else {
+                ans.push(true);
+                exists_taro[b.family] = true;
+            }
+        }
         Answer { ans }
     }
 
@@ -29,12 +59,14 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<bool>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        for &p in &self.ans {
+            print_yesno(p);
+        }
     }
 }
 
