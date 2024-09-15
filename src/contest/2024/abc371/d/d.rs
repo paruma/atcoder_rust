@@ -27,6 +27,7 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
+        // 解法: 座標圧縮して累積和
         let xs = &self.xs;
         let ps = &self.ps;
         let qs = &self.qs;
@@ -54,6 +55,27 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        // 解法2: 座標圧縮せずに累積和をとって二分探索
+        use superslice::*;
+        let xs = &self.xs;
+        let ps = &self.ps;
+        let qs = &self.qs;
+        let ps_cumsum = CumSum::new(ps);
+
+        let ans = qs
+            .iter()
+            .copied()
+            .map(|q| {
+                let begin = xs.lower_bound(&q.l);
+                let end = xs.upper_bound(&q.r);
+                ps_cumsum.range_sum(begin..end)
+            })
+            .collect_vec();
+
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -74,7 +96,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]

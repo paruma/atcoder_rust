@@ -67,6 +67,8 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
+        // H を permutation させたものを H' として、G と H' を比較する
+        // （あまり意味が通った解法ではない）
         let nv = self.nv;
         let g_edges = &self.g_edges;
         let h_edges = &self.h_edges;
@@ -114,6 +116,50 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        // G を permutation させたものを G' として、G' と H を比較する
+        let nv = self.nv;
+        let g_edges = &self.g_edges;
+        let h_edges = &self.h_edges;
+
+        let g_edge_set = g_edges
+            .iter()
+            .copied()
+            .flat_map(|e| [e, e.rev()])
+            .collect::<HashSet<Edge>>();
+
+        let h_edge_set = h_edges
+            .iter()
+            .copied()
+            .flat_map(|e| [e, e.rev()])
+            .collect::<HashSet<Edge>>();
+
+        let ans = (0..nv)
+            .permutations(nv)
+            .map(|perm| {
+                // G に perm を作用させて新しくグラフを作る
+                let new_g_edge_set = g_edge_set
+                    .iter()
+                    .copied()
+                    .map(|e| Edge {
+                        u: perm[e.u],
+                        v: perm[e.v],
+                    })
+                    .collect::<HashSet<Edge>>();
+
+                let cost_sum = new_g_edge_set
+                    .symmetric_difference(&h_edge_set)
+                    .map(|e| self.costs[e.u][e.v])
+                    .sum::<i64>()
+                    / 2;
+                cost_sum
+            })
+            .min()
+            .unwrap();
+
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -134,7 +180,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]

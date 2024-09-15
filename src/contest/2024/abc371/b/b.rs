@@ -49,6 +49,23 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        // リファクタリング
+        let n = self.n;
+        let mut exists_taro = vec![false; n];
+
+        let mut ans = vec![];
+        for &b in &self.bs {
+            let name_is_taro = b.gender == 'M' && !exists_taro[b.family];
+            ans.push(name_is_taro);
+
+            if name_is_taro {
+                exists_taro[b.family] = true;
+            }
+        }
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -71,7 +88,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
