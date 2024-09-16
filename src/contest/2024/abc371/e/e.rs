@@ -15,62 +15,105 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
+        // 解法: 寄与
+        // A=[10,10,20,10] の場合、A[0] = A[1] = A[3] = 10, A[2] = 20 で、
+        // 「0と1を両方含む区間の数」と「1と3を両方含む区間」の数
+        // を求めて全体から引くノリ。
+
         let n = self.n;
-        let mut adj = vec![vec![]; n];
         let xs = &self.xs;
 
+        // indices[x] = [i | xs[i] = x]
+        let mut indices = vec![vec![]; n];
+
         for (i, x) in xs.iter().copied().enumerate() {
-            adj[x].push(i);
+            indices[x].push(i);
         }
 
-        let pairs = adj
+        let pairs = indices
             .iter()
             .flat_map(|ys| ys.iter().copied().tuple_windows::<(usize, usize)>())
             .sorted()
             .collect_vec();
 
-        lg!(&pairs);
-
-        // let mut adj2 = vec![vec![]; n];
-
-        // for (p, q) in pairs {
-        //     adj2[p].push(q);
-        // }
-
-        // let mut cnt = 0;
-
-        // let mut ci = 0;
-
-        // table!(&adj2);
-
-        // for (i, ys) in
-
-        // for (p, qs) in adj2.iter().enumerate() {
-        //     if qs.is_empty() {
-        //         continue;
-        //     }
-
-        //     while p >= ci {
-        //         for &q in qs {
-        //             cnt += n - q;
-        //         }
-        //         ci += 1;
-        //     }
-        //     //
-        // }
-
         let cnt = pairs
             .iter()
             .copied()
-            .map(|(p, q)| (p + 1) * (n - q))
+            .map(|(p, q)| (p + 1) * (n - q)) // p と q を両方含む区間の数
             .sum::<usize>();
 
+        // Σ (1/2)k(k+1)
         let all = ((n * (n + 1) * (2 * n + 1)) + 3 * n * (n + 1)) / 12;
-
-        dbg!(all);
 
         let ans = all - cnt;
         let ans = ans as i64;
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // 解法: double counting (解説解法)
+        // 各k に対して、kを含む連続部分列の個数を求めて足し合わせる
+
+        let n = self.n;
+        let xs = &self.xs;
+
+        // indices[x] = [i | xs[i] = x]
+        let mut indices = vec![vec![]; n];
+
+        for (i, x) in xs.iter().copied().enumerate() {
+            indices[x].push(i);
+        }
+
+        let indices_with_sentinel = indices
+            .iter()
+            .map(|row| {
+                chain!(
+                    std::iter::once(0),
+                    row.iter().map(|x| x + 1),
+                    std::iter::once(n + 1)
+                )
+                .collect_vec()
+            })
+            .collect_vec();
+
+        // 各 k に対して、k が現れない連続部分列の個数を求めて全体から引く
+        let ans = indices_with_sentinel
+            .iter()
+            .map(|row| {
+                let all = n * (n + 1) / 2;
+                let comp_cnt = row
+                    .iter()
+                    .tuple_windows()
+                    .map(|(p, q)| {
+                        let len = q - p - 1;
+                        len * (len + 1) / 2
+                    })
+                    .sum::<usize>();
+
+                all - comp_cnt
+            })
+            .sum::<usize>();
+        let ans = ans as i64;
+        Answer { ans }
+    }
+
+    fn solve3(&self) -> Answer {
+        // 解法: 漸化式みたいなの (jを固定して、jごとに計算する)
+
+        let n = self.n;
+        let xs = &self.xs;
+
+        let mut cnts = vec![0; n];
+        let mut dp = vec![usize::MAX; n];
+        dp[0] = 1;
+        cnts[xs[0]] += 1;
+
+        for i in 1..n {
+            dp[i] = dp[i - 1] + (i + 1) - cnts[xs[i]];
+            cnts[xs[i]] += i + 1 - cnts[xs[i]];
+        }
+        let ans = dp.iter().sum::<usize>() as i64;
+
         Answer { ans }
     }
 
@@ -94,7 +137,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve3().print();
 }
 
 #[cfg(test)]
