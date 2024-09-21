@@ -1,8 +1,8 @@
-//#[derive_readable]
+#[derive_readable]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 struct Edge {
-    u: usize,
-    v: usize,
+    u: Usize1,
+    v: Usize1,
 }
 
 impl Edge {
@@ -29,22 +29,10 @@ impl Problem {
         input! {
             nv: usize,
             ne_g: usize,
-            g_edges: [(Usize1, Usize1); ne_g],
+            g_edges: [Edge; ne_g],
             ne_h: usize,
-            h_edges: [(Usize1, Usize1); ne_h],
+            h_edges: [Edge; ne_h],
         }
-
-        let g_edges = g_edges
-            .iter()
-            .copied()
-            .map(|(u, v)| Edge { u, v })
-            .collect_vec();
-
-        let h_edges = h_edges
-            .iter()
-            .copied()
-            .map(|(u, v)| Edge { u, v })
-            .collect_vec();
 
         let mut costs = vec![vec![i64::MAX; nv]; nv];
 
