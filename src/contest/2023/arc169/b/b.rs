@@ -49,6 +49,34 @@ impl Problem {
             .sum::<i64>();
         Answer { ans }
     }
+
+    fn solve2(&self) -> Answer {
+        // 解法: DP
+        let xs_cumsum = CumSum::new(&self.xs);
+        let n = self.n;
+        let s = self.s;
+
+        // 各 begin に対して xs[begin..end]の和が s 以下となる最大の end を求める
+        let end_list = (0..n)
+            .map(|begin| {
+                //
+                let end = bin_search(begin as i64, (n + 1) as i64, |x| {
+                    xs_cumsum.range_sum(begin..x as usize) <= s
+                });
+                end as usize
+            })
+            .collect_vec();
+
+        let mut dp = vec![0; n + 1];
+        dp[n] = 0;
+
+        for i in (0..n).rev() {
+            dp[i] = dp[end_list[i]] + (n - i) as i64;
+        }
+
+        let ans = dp[0..n].iter().sum::<i64>();
+        Answer { ans }
+    }
     fn solve_wrong(&self) -> Answer {
         // コンテスト中の実装(WA)
         let Problem { n, s, xs } = self;
@@ -89,7 +117,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
