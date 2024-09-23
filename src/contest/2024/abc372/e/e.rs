@@ -42,6 +42,8 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
+        use modified_union_find::*;
+
         let n = self.n;
         let qs = &self.qs;
 
@@ -233,71 +235,82 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
-use simple_union_find::*;
-pub mod simple_union_find {
+pub mod modified_union_find {
     use std::collections::BTreeSet;
 
     use itertools::Itertools;
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    #[derive(Clone, Debug)]
     struct RootInfo {
         count: usize,
+        set: BTreeSet<usize>,
     }
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    #[derive(Clone, Debug)]
     struct NonRootInfo {
         parent_index: usize,
     }
-    #[derive(Clone, Debug, PartialEq, Eq)]
+    #[derive(Clone, Debug)]
     enum Node {
         Root(RootInfo),
         NonRoot(NonRootInfo),
     }
-    #[derive(Clone, Debug, PartialEq, Eq)]
-    struct RootAndIndex {
-        info: RootInfo,
-        index: usize,
+    impl Node {
+        fn as_root(&self) -> &RootInfo {
+            match self {
+                Node::Root(info) => info,
+                Node::NonRoot(_) => panic!(),
+            }
+        }
+
+        fn as_root_mut(&mut self) -> &mut RootInfo {
+            match self {
+                Node::Root(info) => info,
+                Node::NonRoot(_) => panic!(),
+            }
+        }
     }
     #[derive(Clone, Debug)]
     pub struct UnionFind {
         nodes: Vec<Node>,
         cnt_groups: usize,
-        sets: Vec<BTreeSet<usize>>,
     }
     impl UnionFind {
         pub fn new(n: usize) -> UnionFind {
             let nodes = (0..n)
-                .map(|i| Node::Root(RootInfo { count: 1 }))
+                .map(|i| {
+                    Node::Root(RootInfo {
+                        count: 1,
+                        set: BTreeSet::from([i]),
+                    })
+                })
                 .collect_vec();
             UnionFind {
                 nodes,
                 cnt_groups: n,
-                sets: (0..n).map(|i| BTreeSet::from([i])).collect_vec(),
             }
         }
-        fn root_node(&mut self, index: usize) -> RootAndIndex {
-            match self.nodes[index] {
-                Node::Root(info) => RootAndIndex { info, index },
+        pub fn root_index(&mut self, index: usize) -> usize {
+            match &self.nodes[index] {
+                Node::Root(_) => index,
                 Node::NonRoot(info) => {
-                    let root_and_index = self.root_node(info.parent_index);
+                    let root_index = self.root_index(info.parent_index);
                     self.nodes[index] = Node::NonRoot(NonRootInfo {
-                        parent_index: root_and_index.index,
+                        parent_index: root_index,
                     });
-                    root_and_index
+                    root_index
                 }
             }
         }
-        pub fn root(&mut self, index: usize) -> usize {
-            self.root_node(index).index
-        }
         pub fn same_count(&mut self, index: usize) -> usize {
-            self.root_node(index).info.count
+            let root_index = self.root_index(index);
+            self.nodes[root_index].as_root().count
         }
 
         pub fn set(&mut self, index: usize) -> &BTreeSet<usize> {
-            let root = self.root(index);
-            &self.sets[root]
+            let root_index = self.root_index(index);
+            &self.nodes[root_index].as_root().set
         }
         pub fn same(&mut self, x: usize, y: usize) -> bool {
-            self.root(x) == self.root(y)
+            self.root_index(x) == self.root_index(y)
         }
         pub fn num_groups(&self) -> usize {
             self.cnt_groups
@@ -307,31 +320,35 @@ pub mod simple_union_find {
                 return false;
             }
             self.cnt_groups -= 1;
-            let x_root_node = self.root_node(x);
-            let y_root_node = self.root_node(y);
-            let (smaller_root, larger_root) = if x_root_node.info.count <= y_root_node.info.count {
-                (x_root_node, y_root_node)
-            } else {
-                (y_root_node, x_root_node)
+            let ((smaller_root_idx, smaller_root), (larger_root_idx, larger_root)) = {
+                let x_root_idx = self.root_index(x);
+                let y_root_idx = self.root_index(y);
+                let x_root = self.nodes[x_root_idx].as_root();
+                let y_root = self.nodes[y_root_idx].as_root();
+                if x_root.count <= y_root.count {
+                    ((x_root_idx, x_root), (y_root_idx, y_root))
+                } else {
+                    ((y_root_idx, y_root), (x_root_idx, x_root))
+                }
             };
-
-            // 小さいのを大きい方に入れる
-            for x in std::mem::take(&mut self.sets[smaller_root.index]) {
-                self.sets[larger_root.index].insert(x);
+            let count_sum = smaller_root.count + larger_root.count;
+            let mut set = std::mem::take(&mut self.nodes[larger_root_idx].as_root_mut().set);
+            for x in std::mem::take(&mut self.nodes[smaller_root_idx].as_root_mut().set) {
+                set.insert(x);
             }
 
-            self.nodes[smaller_root.index] = Node::NonRoot(NonRootInfo {
-                parent_index: larger_root.index,
+            self.nodes[smaller_root_idx] = Node::NonRoot(NonRootInfo {
+                parent_index: larger_root_idx,
             });
-
-            self.nodes[larger_root.index] = Node::Root(RootInfo {
-                count: smaller_root.info.count + larger_root.info.count,
+            self.nodes[larger_root_idx] = Node::Root(RootInfo {
+                count: count_sum,
+                set,
             });
             true
         }
         pub fn groups(&mut self) -> Vec<Vec<usize>> {
             let n = self.nodes.len();
-            let roots = (0..n).map(|i| self.root(i)).collect_vec();
+            let roots = (0..n).map(|i| self.root_index(i)).collect_vec();
             let group_size = (0..n).map(|i| roots[i]).fold(vec![0; n], |mut acc, x| {
                 acc[x] += 1;
                 acc
