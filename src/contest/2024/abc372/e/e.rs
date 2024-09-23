@@ -64,6 +64,29 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        use monoid_union_find::*;
+
+        let n = self.n;
+        let qs = &self.qs;
+
+        let mut uf = MonoidUnionFind::<Top10Monoid>::new(&(0..n).map(|i| vec![i]).collect_vec());
+        let mut ans = vec![];
+
+        for &q in qs {
+            match q {
+                Query::Insert { u, v } => {
+                    uf.unite(u, v);
+                }
+                Query::GetKth { v, k } => {
+                    let sub_ans = uf.same_prod(v).get(k - 1).copied();
+                    ans.push(sub_ans);
+                }
+            }
+        }
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -93,7 +116,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -342,6 +365,148 @@ pub mod modified_union_find {
 
             self.nodes[smaller_root] = Node::non_root(larger_root);
             self.nodes[larger_root] = Node::root(count_sum, set);
+            true
+        }
+        pub fn groups(&mut self) -> Vec<Vec<usize>> {
+            let n = self.nodes.len();
+            let roots = (0..n).map(|i| self.root(i)).collect_vec();
+            let group_size = (0..n).map(|i| roots[i]).fold(vec![0; n], |mut acc, x| {
+                acc[x] += 1;
+                acc
+            });
+            let result = {
+                let mut result = vec![Vec::new(); n];
+                for i in 0..n {
+                    result[i].reserve(group_size[i]);
+                }
+                for i in 0..n {
+                    result[roots[i]].push(i);
+                }
+                result
+            };
+            result.into_iter().filter(|x| !x.is_empty()).collect_vec()
+        }
+    }
+}
+
+use monoid_top10::*;
+#[allow(unused_variables)]
+pub mod monoid_top10 {
+    use ac_library::segtree::Monoid;
+    use itertools::{chain, Itertools};
+    use std::{cmp::Reverse, convert::Infallible};
+
+    pub struct Top10Monoid(Infallible);
+    impl Monoid for Top10Monoid {
+        type S = Vec<usize>;
+        fn identity() -> Self::S {
+            vec![]
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            chain!(a, b)
+                .sorted_by_key(|x| Reverse(**x))
+                .take(10)
+                .copied()
+                .collect_vec()
+        }
+    }
+}
+
+/// 可換モノイドをのっけた Union Find
+pub mod monoid_union_find {
+    use ac_library::Monoid;
+    use itertools::Itertools;
+    #[derive(Clone, Debug)]
+    struct RootInfo<S: Clone> {
+        count: usize,
+        prod: S,
+    }
+    #[derive(Clone, Debug)]
+    struct NonRootInfo {
+        parent: usize,
+    }
+    #[derive(Clone, Debug)]
+    enum Node<S: Clone> {
+        Root(RootInfo<S>),
+        NonRoot(NonRootInfo),
+    }
+    impl<S: Clone> Node<S> {
+        fn root(count: usize, prod: S) -> Node<S> {
+            Node::Root(RootInfo { count, prod })
+        }
+        fn non_root(parent: usize) -> Node<S> {
+            Node::NonRoot(NonRootInfo { parent })
+        }
+        fn as_root(&self) -> &RootInfo<S> {
+            match self {
+                Node::Root(info) => info,
+                Node::NonRoot(_) => panic!(),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct MonoidUnionFind<M: Monoid> {
+        nodes: Vec<Node<M::S>>,
+        cnt_groups: usize,
+    }
+    impl<M: Monoid> MonoidUnionFind<M> {
+        pub fn new(data: &[M::S]) -> MonoidUnionFind<M> {
+            let nodes = data.iter().map(|d| Node::root(1, d.clone())).collect_vec();
+            MonoidUnionFind {
+                nodes,
+                cnt_groups: data.len(),
+            }
+        }
+        pub fn root(&mut self, index: usize) -> usize {
+            match &self.nodes[index] {
+                Node::Root(_) => index,
+                Node::NonRoot(info) => {
+                    let root = self.root(info.parent);
+                    self.nodes[index] = Node::non_root(root);
+                    root
+                }
+            }
+        }
+        pub fn same_count(&mut self, index: usize) -> usize {
+            let root_index = self.root(index);
+            self.nodes[root_index].as_root().count
+        }
+        pub fn same_prod(&mut self, index: usize) -> M::S {
+            let root_index = self.root(index);
+            self.nodes[root_index].as_root().prod.clone()
+        }
+        pub fn same_prod_ref(&mut self, index: usize) -> &M::S {
+            let root_index = self.root(index);
+            &self.nodes[root_index].as_root().prod
+        }
+        pub fn same(&mut self, x: usize, y: usize) -> bool {
+            self.root(x) == self.root(y)
+        }
+        pub fn num_groups(&self) -> usize {
+            self.cnt_groups
+        }
+        pub fn unite(&mut self, x: usize, y: usize) -> bool {
+            if self.same(x, y) {
+                return false;
+            }
+            self.cnt_groups -= 1;
+            let (smaller_root, larger_root) = {
+                let x_root = self.root(x);
+                let y_root = self.root(y);
+                let x_count = self.nodes[x_root].as_root().count;
+                let y_count = self.nodes[y_root].as_root().count;
+                if x_count < y_count {
+                    (x_root, y_root)
+                } else {
+                    (y_root, x_root)
+                }
+            };
+            let smaller_root_info = self.nodes[smaller_root].as_root();
+            let larger_root_info = self.nodes[larger_root].as_root();
+            let count = smaller_root_info.count + larger_root_info.count;
+            let prod = M::binary_operation(&smaller_root_info.prod, &larger_root_info.prod);
+            self.nodes[smaller_root] = Node::non_root(larger_root);
+            self.nodes[larger_root] = Node::root(count, prod);
             true
         }
         pub fn groups(&mut self) -> Vec<Vec<usize>> {
