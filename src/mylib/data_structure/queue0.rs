@@ -11,7 +11,9 @@ pub mod mod_queue {
 
     impl<T> Queue<T> {
         pub fn new() -> Self {
-            Queue { raw: VecDeque::new() }
+            Queue {
+                raw: VecDeque::new(),
+            }
         }
         pub fn push(&mut self, value: T) {
             self.raw.push_front(value)
@@ -27,6 +29,10 @@ pub mod mod_queue {
 
         pub fn is_empty(&self) -> bool {
             self.raw.is_empty()
+        }
+
+        pub fn len(&self) -> usize {
+            self.raw.len()
         }
     }
 
@@ -47,18 +53,28 @@ mod tests {
         let mut s = Queue::<i64>::default();
         assert_eq!(s.peek(), None);
         assert!(s.is_empty());
+        assert_eq!(s.len(), 0);
+
         s.push(1);
         assert_eq!(s.peek(), Some(&1));
         assert!(!s.is_empty());
+        assert_eq!(s.len(), 1);
+
         s.push(2);
         assert_eq!(s.peek(), Some(&1));
         assert!(!s.is_empty());
+        assert_eq!(s.len(), 2);
+
         assert_eq!(s.pop(), Some(1));
         assert_eq!(s.peek(), Some(&2));
         assert!(!s.is_empty());
+        assert_eq!(s.len(), 1);
+
         assert_eq!(s.pop(), Some(2));
         assert_eq!(s.peek(), None);
         assert!(s.is_empty());
+        assert_eq!(s.len(), 0);
+
         assert_eq!(s.pop(), None);
     }
 }
