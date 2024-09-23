@@ -4,26 +4,29 @@ use cargo_snippet::snippet;
 pub mod simple_union_find {
     use itertools::Itertools;
 
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    #[derive(Clone, Debug)]
     struct RootInfo {
         count: usize,
     }
 
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    #[derive(Clone, Debug)]
     struct NonRootInfo {
         parent_index: usize,
     }
 
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    #[derive(Clone, Debug)]
     enum Node {
         Root(RootInfo),
         NonRoot(NonRootInfo),
     }
 
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-    struct RootAndIndex {
-        info: RootInfo,
-        index: usize,
+    impl Node {
+        fn as_root(&self) -> &RootInfo {
+            match self {
+                Node::Root(info) => info,
+                Node::NonRoot(_) => panic!(),
+            }
+        }
     }
 
     #[derive(Clone, Debug)]
@@ -40,37 +43,35 @@ pub mod simple_union_find {
             }
         }
 
-        fn root_node(&mut self, index: usize) -> RootAndIndex {
-            match self.nodes[index] {
-                Node::Root(info) => RootAndIndex { info, index },
+        pub fn root_index(&mut self, index: usize) -> usize {
+            match &self.nodes[index] {
+                Node::Root(_) => index,
                 Node::NonRoot(info) => {
-                    let root_and_index = self.root_node(info.parent_index);
+                    let root_index = self.root_index(info.parent_index);
                     // 経路圧縮
                     self.nodes[index] = Node::NonRoot(NonRootInfo {
-                        parent_index: root_and_index.index,
+                        parent_index: root_index,
                     });
-                    root_and_index
+                    root_index
                 }
             }
         }
-        // 経路圧縮しないバージョン
-        // fn root_node(&self, index: usize) -> RootAndIndex {
-        //     match self.nodes[index] {
-        //         Node::Root(info) => RootAndIndex { info, index },
-        //         Node::NonRoot(info) => self.root_node(info.parent_index),
+
+        //経路圧縮しないバージョン
+        // fn root_index2(&self, index: usize) -> usize {
+        //     match &self.nodes[index] {
+        //         Node::Root(_) => index,
+        //         Node::NonRoot(info) => self.root_index2(info.parent_index),
         //     }
         // }
 
-        pub fn root(&mut self, index: usize) -> usize {
-            self.root_node(index).index
-        }
-
         pub fn same_count(&mut self, index: usize) -> usize {
-            self.root_node(index).info.count
+            let root_index = self.root_index(index);
+            self.nodes[root_index].as_root().count
         }
 
         pub fn same(&mut self, x: usize, y: usize) -> bool {
-            self.root(x) == self.root(y)
+            self.root_index(x) == self.root_index(y)
         }
 
         pub fn num_groups(&self) -> usize {
@@ -84,29 +85,35 @@ pub mod simple_union_find {
 
             self.cnt_groups -= 1;
 
-            let x_root_node = self.root_node(x);
-            let y_root_node = self.root_node(y);
+            let ((smaller_root_idx, smaller_root), (larger_root_idx, larger_root)) = {
+                let x_root_idx = self.root_index(x);
+                let y_root_idx = self.root_index(y);
 
-            let (smaller_root, larger_root) = if x_root_node.info.count <= y_root_node.info.count {
-                (x_root_node, y_root_node)
-            } else {
-                (y_root_node, x_root_node)
+                let x_root = self.nodes[x_root_idx].as_root();
+                let y_root = self.nodes[y_root_idx].as_root();
+
+                if x_root.count <= y_root.count {
+                    ((x_root_idx, x_root), (y_root_idx, y_root))
+                } else {
+                    ((y_root_idx, y_root), (x_root_idx, x_root))
+                }
             };
 
+            let count_sum = smaller_root.count + larger_root.count;
+
             // larger_root に smaller_root をくっつける
-            self.nodes[smaller_root.index] = Node::NonRoot(NonRootInfo {
-                parent_index: larger_root.index,
+            self.nodes[smaller_root_idx] = Node::NonRoot(NonRootInfo {
+                parent_index: larger_root_idx,
             });
-            self.nodes[larger_root.index] = Node::Root(RootInfo {
-                count: smaller_root.info.count + larger_root.info.count,
-            });
+            self.nodes[larger_root_idx] = Node::Root(RootInfo { count: count_sum });
+
             true
         }
 
         pub fn groups(&mut self) -> Vec<Vec<usize>> {
             let n = self.nodes.len();
 
-            let roots = (0..n).map(|i| self.root(i)).collect_vec();
+            let roots = (0..n).map(|i| self.root_index(i)).collect_vec();
 
             let group_size = (0..n).map(|i| roots[i]).fold(vec![0; n], |mut acc, x| {
                 acc[x] += 1;
