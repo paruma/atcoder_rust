@@ -28,9 +28,7 @@ pub mod simple_union_find {
         fn non_root(parent: usize) -> Node {
             Node::NonRoot(NonRootInfo { parent })
         }
-    }
 
-    impl Node {
         fn as_root(&self) -> &RootInfo {
             match self {
                 Node::Root(info) => info,
@@ -172,9 +170,7 @@ pub mod monoid_union_find {
         fn non_root(parent: usize) -> Node<S> {
             Node::NonRoot(NonRootInfo { parent })
         }
-    }
 
-    impl<S: Clone> Node<S> {
         fn as_root(&self) -> &RootInfo<S> {
             match self {
                 Node::Root(info) => info,
@@ -302,26 +298,45 @@ pub mod monoid_union_find {
 pub mod potentialized_union_find {
     use itertools::Itertools;
 
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    #[derive(Clone, Debug)]
     struct RootInfo {
         count: usize,
     }
 
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    #[derive(Clone, Debug)]
     struct NonRootInfo {
-        parent_index: usize,
+        parent: usize,
         potential_diff: i64, // 親のポテンシャル - 自分のポテンシャル
     }
 
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    #[derive(Clone, Debug)]
     enum Node {
         Root(RootInfo),
         NonRoot(NonRootInfo),
     }
 
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    impl Node {
+        fn root(count: usize) -> Node {
+            Node::Root(RootInfo { count })
+        }
+
+        fn non_root(parent: usize, potential_diff: i64) -> Node {
+            Node::NonRoot(NonRootInfo {
+                parent,
+                potential_diff,
+            })
+        }
+
+        fn as_root(&self) -> &RootInfo {
+            match self {
+                Node::Root(info) => info,
+                Node::NonRoot(_) => panic!(),
+            }
+        }
+    }
+
+    #[derive(Clone, Debug)]
     struct ToRoot {
-        root_info: RootInfo,
         root_index: usize,
         potential_diff: i64, // root のポテンシャル - 自分のポテンシャル
     }
@@ -360,43 +375,38 @@ pub mod potentialized_union_find {
         }
 
         fn root_node(&mut self, index: usize) -> ToRoot {
-            match self.nodes[index] {
-                Node::Root(info) => ToRoot {
-                    root_info: info,
+            match &self.nodes[index] {
+                Node::Root(_) => ToRoot {
                     root_index: index,
                     potential_diff: 0,
                 },
-                Node::NonRoot(current_info) => {
-                    let parent_to_root = self.root_node(current_info.parent_index);
+                Node::NonRoot(my_info) => {
+                    let to_parent_potential_diff = my_info.potential_diff;
+                    let parent_to_root = self.root_node(my_info.parent);
+
+                    //       to_parent_potential_diff     parent_to_root.potential_diff
+                    // 自分 -------------------------> 親 ------------------------------> root
+                    let new_potential_diff =
+                        to_parent_potential_diff + parent_to_root.potential_diff;
+
                     // 経路圧縮
-                    let potential_diff =
-                        current_info.potential_diff + parent_to_root.potential_diff;
-                    self.nodes[index] = Node::NonRoot(NonRootInfo {
-                        parent_index: parent_to_root.root_index,
-                        potential_diff,
-                    });
+                    self.nodes[index] =
+                        Node::non_root(parent_to_root.root_index, new_potential_diff);
                     ToRoot {
-                        root_info: parent_to_root.root_info,
                         root_index: parent_to_root.root_index,
-                        potential_diff,
+                        potential_diff: new_potential_diff,
                     }
                 }
             }
         }
-        // 経路圧縮しないバージョン
-        // fn root_node(&self, index: usize) -> RootAndIndex {
-        //     match self.nodes[index] {
-        //         Node::Root(info) => RootAndIndex { info, index },
-        //         Node::NonRoot(info) => self.root_node(info.parent_index),
-        //     }
-        // }
 
         pub fn root(&mut self, index: usize) -> usize {
             self.root_node(index).root_index
         }
 
         pub fn same_count(&mut self, index: usize) -> usize {
-            self.root_node(index).root_info.count
+            let root_index = self.root(index);
+            self.nodes[root_index].as_root().count
         }
 
         pub fn same(&mut self, x: usize, y: usize) -> bool {
@@ -433,21 +443,24 @@ pub mod potentialized_union_find {
             let root_diff = -src_root_node.potential_diff + diff + dst_root_node.potential_diff;
 
             // src_root_node が小さくなるように、必要に応じて swap する
-            let (src_root_node, dst_root_node, root_diff) =
-                if src_root_node.root_info.count <= dst_root_node.root_info.count {
+            let (src_root_node, dst_root_node, root_diff) = {
+                let src_cnt = self.nodes[src_root_node.root_index].as_root().count;
+                let dst_cnt = self.nodes[dst_root_node.root_index].as_root().count;
+
+                if src_cnt <= dst_cnt {
                     (src_root_node, dst_root_node, root_diff)
                 } else {
                     (dst_root_node, src_root_node, -root_diff)
-                };
+                }
+            };
+
+            let count_sum = self.nodes[src_root_node.root_index].as_root().count
+                + self.nodes[dst_root_node.root_index].as_root().count;
 
             // dst に src をくっつける
-            self.nodes[src_root_node.root_index] = Node::NonRoot(NonRootInfo {
-                parent_index: dst_root_node.root_index,
-                potential_diff: root_diff,
-            });
-            self.nodes[dst_root_node.root_index] = Node::Root(RootInfo {
-                count: src_root_node.root_info.count + dst_root_node.root_info.count,
-            });
+            self.nodes[src_root_node.root_index] =
+                Node::non_root(dst_root_node.root_index, root_diff);
+            self.nodes[dst_root_node.root_index] = Node::root(count_sum);
 
             UnionResult::Consistent { updated: true }
         }
