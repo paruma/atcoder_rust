@@ -15,6 +15,7 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
+        // 解法: j を動かして、条件を満たす i の区間をセグ木上二分探索で求め、range add で更新する
         let n = self.n;
 
         let mut height_seg = Segtree::<Max<usize>>::from(vec![0; n]);
@@ -30,17 +31,40 @@ impl Problem {
                 cnts.apply_range_add(0..i_end, -1);
             }
 
-            // let xi = set.range(xj + 1..).max().copied();
-            // dbg!(xi);
-            // if let Some(xi) = xi {
-            //     let i_end = inv_xs[xi];
-            //     // 0..i_end に対して range add -1 をする
-            //     cnts.apply_range_add(0..i_end, -1);
-            // }
-
             height_seg.set(j, xj);
         }
         let ans = (0..n).map(|i| cnts.get(i)).collect_vec();
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // 解法: i を動かして、条件を満たすjの列挙を差分更新していく。
+
+        let xs = &self.xs;
+        let n = self.n;
+
+        // 条件を満たす j たち
+        let mut ok_js: Stack<usize> = Stack::new();
+
+        let mut ans = vec![-1; n];
+        ans[n - 1] = 0;
+
+        for i in (0..n - 1).rev() {
+            // xs[i+1] より小さいのは ok_js から drop する
+            while ok_js
+                .peek()
+                .copied()
+                .map(|j| xs[j] < xs[i + 1])
+                .unwrap_or(false)
+            {
+                ok_js.pop();
+            }
+
+            ok_js.push(i + 1);
+
+            ans[i] = ok_js.len() as i64;
+        }
+
         Answer { ans }
     }
 
@@ -64,7 +88,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -356,6 +380,39 @@ pub mod range_affine_range_sum {
         }
         pub fn to_vec(&mut self) -> Vec<T> {
             (0..self.len).map(|i| self.get(i)).collect_vec()
+        }
+    }
+}
+
+use mod_stack::*;
+pub mod mod_stack {
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct Stack<T> {
+        raw: Vec<T>,
+    }
+    impl<T> Stack<T> {
+        pub fn new() -> Self {
+            Stack { raw: Vec::new() }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push(value)
+        }
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop()
+        }
+        pub fn peek(&self) -> Option<&T> {
+            self.raw.last()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.raw.is_empty()
+        }
+        pub fn len(&self) -> usize {
+            self.raw.len()
+        }
+    }
+    impl<T> Default for Stack<T> {
+        fn default() -> Self {
+            Self::new()
         }
     }
 }
