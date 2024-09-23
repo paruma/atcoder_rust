@@ -11,13 +11,23 @@ pub mod simple_union_find {
 
     #[derive(Clone, Debug)]
     struct NonRootInfo {
-        parent_index: usize,
+        parent: usize,
     }
 
     #[derive(Clone, Debug)]
     enum Node {
         Root(RootInfo),
         NonRoot(NonRootInfo),
+    }
+
+    impl Node {
+        fn root(count: usize) -> Node {
+            Node::Root(RootInfo { count })
+        }
+
+        fn non_root(parent: usize) -> Node {
+            Node::NonRoot(NonRootInfo { parent })
+        }
     }
 
     impl Node {
@@ -37,22 +47,21 @@ pub mod simple_union_find {
 
     impl UnionFind {
         pub fn new(n: usize) -> UnionFind {
+            let nodes = (0..n).map(|_| Node::root(1)).collect_vec();
             UnionFind {
-                nodes: vec![Node::Root(RootInfo { count: 1 }); n],
+                nodes,
                 cnt_groups: n,
             }
         }
 
-        pub fn root_index(&mut self, index: usize) -> usize {
+        pub fn root(&mut self, index: usize) -> usize {
             match &self.nodes[index] {
                 Node::Root(_) => index,
                 Node::NonRoot(info) => {
-                    let root_index = self.root_index(info.parent_index);
+                    let root = self.root(info.parent);
                     // 経路圧縮
-                    self.nodes[index] = Node::NonRoot(NonRootInfo {
-                        parent_index: root_index,
-                    });
-                    root_index
+                    self.nodes[index] = Node::non_root(root);
+                    root
                 }
             }
         }
@@ -66,12 +75,12 @@ pub mod simple_union_find {
         // }
 
         pub fn same_count(&mut self, index: usize) -> usize {
-            let root_index = self.root_index(index);
+            let root_index = self.root(index);
             self.nodes[root_index].as_root().count
         }
 
         pub fn same(&mut self, x: usize, y: usize) -> bool {
-            self.root_index(x) == self.root_index(y)
+            self.root(x) == self.root(y)
         }
 
         pub fn num_groups(&self) -> usize {
@@ -85,27 +94,24 @@ pub mod simple_union_find {
 
             self.cnt_groups -= 1;
 
-            let ((smaller_root_idx, smaller_root), (larger_root_idx, larger_root)) = {
-                let x_root_idx = self.root_index(x);
-                let y_root_idx = self.root_index(y);
-
-                let x_root = self.nodes[x_root_idx].as_root();
-                let y_root = self.nodes[y_root_idx].as_root();
-
-                if x_root.count <= y_root.count {
-                    ((x_root_idx, x_root), (y_root_idx, y_root))
+            let (smaller_root, larger_root) = {
+                let x_root = self.root(x);
+                let y_root = self.root(y);
+                let x_count = self.nodes[x_root].as_root().count;
+                let y_count = self.nodes[y_root].as_root().count;
+                if x_count < y_count {
+                    (x_root, y_root)
                 } else {
-                    ((y_root_idx, y_root), (x_root_idx, x_root))
+                    (y_root, x_root)
                 }
             };
 
-            let count_sum = smaller_root.count + larger_root.count;
+            let count_sum =
+                self.nodes[smaller_root].as_root().count + self.nodes[larger_root].as_root().count;
 
             // larger_root に smaller_root をくっつける
-            self.nodes[smaller_root_idx] = Node::NonRoot(NonRootInfo {
-                parent_index: larger_root_idx,
-            });
-            self.nodes[larger_root_idx] = Node::Root(RootInfo { count: count_sum });
+            self.nodes[smaller_root] = Node::non_root(larger_root);
+            self.nodes[larger_root] = Node::root(count_sum);
 
             true
         }
@@ -113,7 +119,7 @@ pub mod simple_union_find {
         pub fn groups(&mut self) -> Vec<Vec<usize>> {
             let n = self.nodes.len();
 
-            let roots = (0..n).map(|i| self.root_index(i)).collect_vec();
+            let roots = (0..n).map(|i| self.root(i)).collect_vec();
 
             let group_size = (0..n).map(|i| roots[i]).fold(vec![0; n], |mut acc, x| {
                 acc[x] += 1;
