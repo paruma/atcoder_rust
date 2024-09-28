@@ -261,7 +261,8 @@ fn solve<T: IInteractive>(asker: &mut T, _n: usize, xs: &[u64]) {
     loop {
         // 最適な操作（操作する山と操作後のコインの数）を求める
         let (mountain, after_grundy) = nim_sum_manager.find_to_zero().unwrap();
-        let after = after_grundy; // 石の数 = grundy 数
+        // 石の数 = grundy 数 (個数制限 Nim などの場合は、今の局面と目標の grundy 数から次の局面が求められる構造体を作ると良さそう)
+        let after = after_grundy;
         let n_subtraction = xs[mountain] - after;
 
         xs[mountain] = after;
