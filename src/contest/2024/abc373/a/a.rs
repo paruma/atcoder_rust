@@ -1,21 +1,20 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    xs: Vec<Vec<char>>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            xs: [Chars; 12],
         }
-        Problem { n, xs }
+        Problem { xs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = (0..12).filter(|&i| self.xs[i].len() == i + 1).count();
+
         Answer { ans }
     }
 
@@ -29,7 +28,7 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: usize,
 }
 
 impl Answer {

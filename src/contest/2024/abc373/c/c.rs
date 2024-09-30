@@ -3,6 +3,7 @@
 struct Problem {
     n: usize,
     xs: Vec<i64>,
+    ys: Vec<i64>,
 }
 
 impl Problem {
@@ -10,12 +11,16 @@ impl Problem {
         input! {
             n: usize,
             xs: [i64; n],
+            ys: [i64; n],
         }
-        Problem { n, xs }
+        Problem { n, xs, ys }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        self.xs.iter().copied().max().unwrap();
+
+
+        let ans = self.xs.iter().max().unwrap() + self.ys.iter().max().unwrap();
         Answer { ans }
     }
 

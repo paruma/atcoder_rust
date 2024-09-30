@@ -1,17 +1,26 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
+    n_cand: usize,
+    threshold: usize,
+    n_vote: i64,
     xs: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            n_cand: usize,
+            threshold: usize,
+            n_vote: i64,
+            xs: [i64; n_cand],
         }
-        Problem { n, xs }
+        Problem {
+            n_cand,
+            threshold,
+            n_vote,
+            xs,
+        }
     }
 
     fn solve(&self) -> Answer {

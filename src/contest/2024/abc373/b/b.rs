@@ -1,21 +1,35 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    xs: Vec<u8>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            xs: Bytes,
         }
-        Problem { n, xs }
+        Problem { xs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let keyboard = &self.xs;
+        let mut current = keyboard.iter().copied().position(|x| x == b'A').unwrap();
+
+        let mut ans = 0;
+
+        for i in 1..26 {
+            // BからZまで
+            let next = keyboard
+                .iter()
+                .copied()
+                .position(|x| x == b'A' + i)
+                .unwrap();
+            let dist = current.abs_diff(next);
+            ans += dist as i64;
+            current = next;
+        }
+
         Answer { ans }
     }
 
