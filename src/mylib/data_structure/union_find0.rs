@@ -306,7 +306,8 @@ pub mod potentialized_union_find {
     #[derive(Clone, Debug)]
     struct NonRootInfo {
         parent: usize,
-        potential_diff: i64, // 親のポテンシャル - 自分のポテンシャル
+        /// 親のポテンシャル - 自分のポテンシャル
+        potential_diff: i64,
     }
 
     #[derive(Clone, Debug)]
@@ -338,7 +339,8 @@ pub mod potentialized_union_find {
     #[derive(Clone, Debug)]
     struct ToRoot {
         root_index: usize,
-        potential_diff: i64, // root のポテンシャル - 自分のポテンシャル
+        /// root のポテンシャル - 自分のポテンシャル
+        potential_diff: i64,
     }
 
     #[derive(Clone, Debug)]
