@@ -44,13 +44,13 @@ fn bellman_ford(edges: &[Edge], n_vertex: usize, start: usize) -> Option<Vec<Ext
     dist[start] = Fin(0);
 
     for n_iter in 0..n_vertex {
-        let mut updates = false;
+        let mut updated = false;
         for edge in edges {
             if chmin!(dist[edge.to], dist[edge.from] + Fin(edge.cost)) {
-                updates = true
+                updated = true
             }
         }
-        if !updates {
+        if !updated {
             break;
         }
         if n_iter == n_vertex - 1 {
