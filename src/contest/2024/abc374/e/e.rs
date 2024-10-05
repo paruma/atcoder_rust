@@ -41,7 +41,7 @@ impl Problem {
                         // y: 機械T を買う数
 
                         // 基本的にTを買う
-                        let price1 = (0..=process.a + process.b)
+                        let price1 = (0..process.b)
                             .map(|x| {
                                 //
                                 let y = num_integer::div_ceil(k - process.a * x, process.b);
@@ -54,7 +54,7 @@ impl Problem {
                             .min()
                             .unwrap();
                         // 基本的にSを買う
-                        let price2 = (0..=process.a + process.b)
+                        let price2 = (0..process.a)
                             .map(|y| {
                                 //
                                 let x = num_integer::div_ceil(k - process.b * y, process.a);
