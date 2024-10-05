@@ -15,7 +15,23 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let xs = &self.xs;
+        let ans = (0..n)
+            .powerset()
+            .map(|set_a| {
+                let set_a = set_a.iter().copied().collect::<HashSet<_>>();
+                let set_b = (0..n)
+                    .filter(|i| !set_a.contains(i))
+                    .collect::<HashSet<_>>();
+
+                let cnt_a = set_a.iter().copied().map(|i| xs[i]).sum::<i64>();
+                let cnt_b = set_b.iter().copied().map(|i| xs[i]).sum::<i64>();
+
+                cnt_a.max(cnt_b)
+            })
+            .min()
+            .unwrap();
         Answer { ans }
     }
 

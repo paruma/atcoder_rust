@@ -2,20 +2,92 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    s: i64,
+    t: i64,
+    segs: Vec<Seg>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Seg {
+    src: Pos<i64>,
+    dst: Pos<i64>,
+}
+
+impl Seg {
+    fn new(src: Pos<i64>, dst: Pos<i64>) -> Self {
+        Seg { src, dst }
+    }
+    fn rev(self) -> Seg {
+        Seg {
+            src: self.dst,
+            dst: self.src,
+        }
+    }
+}
+
+fn dist(p1: Pos<i64>, p2: Pos<i64>) -> f64 {
+    let d = p2 - p1;
+    ((d.x * d.x + d.y * d.y) as f64).sqrt()
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            s: i64,
+            t: i64,
+            xs: [(i64, i64, i64, i64); n],
         }
-        Problem { n, xs }
+
+        let segs = xs
+            .iter()
+            .copied()
+            .map(|(x1, y1, x2, y2)| Seg::new(Pos::new(x1, y1), Pos::new(x2, y2)))
+            .collect_vec();
+        Problem { n, s, t, segs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        // 向きを決める
+        // 順番を決める
+
+        let n = self.n;
+        let s = self.s as f64;
+        let t = self.t as f64;
+        let segs = &self.segs;
+        let ans = (0..n)
+            .powerset()
+            .map(|norm_set| {
+                let norm_set = norm_set.iter().copied().collect::<HashSet<_>>();
+
+                let segs = (0..n)
+                    .map(|i| {
+                        if norm_set.contains(&i) {
+                            segs[i]
+                        } else {
+                            segs[i].rev()
+                        }
+                    })
+                    .collect_vec();
+
+                (0..n)
+                    .permutations(n)
+                    .map(|ord| {
+                        // 始点(0,0) → 最初の点
+                        let mut current = Pos::new(0, 0);
+                        let mut sum = 0.0;
+
+                        for &i in &ord {
+                            sum += dist(current, segs[i].src) / s;
+                            sum += dist(segs[i].src, segs[i].dst) / t;
+                            current = segs[i].dst;
+                        }
+                        sum
+                    })
+                    .fold(f64::INFINITY, |acc, x| acc.min(x))
+            })
+            .fold(f64::INFINITY, |acc, x| acc.min(x));
+
         Answer { ans }
     }
 
@@ -27,9 +99,9 @@ impl Problem {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 struct Answer {
-    ans: i64,
+    ans: f64,
 }
 
 impl Answer {
@@ -119,6 +191,7 @@ mod tests {
 }
 
 // ====== import ======
+use core::f64;
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
 #[allow(unused_imports)]
@@ -180,3 +253,90 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use pos::*;
+pub mod pos {
+    use std::ops::{Add, AddAssign, Mul, Neg, Sub, SubAssign};
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    pub struct Pos<T> {
+        pub x: T,
+        pub y: T,
+    }
+    impl<T> Pos<T> {
+        pub fn new(x: T, y: T) -> Pos<T> {
+            Pos { x, y }
+        }
+    }
+    impl<T: Mul<Output = T> + Copy> Pos<T> {
+        pub fn scala_mul(self, rhs: T) -> Pos<T> {
+            Pos::new(self.x * rhs, self.y * rhs)
+        }
+    }
+    impl<T: Add<Output = T> + Mul<Output = T> + Copy> Pos<T> {
+        pub fn inner_product(self, rhs: Self) -> T {
+            self.x * rhs.x + self.y * rhs.y
+        }
+        pub fn norm_square(self) -> T {
+            self.inner_product(self)
+        }
+    }
+    impl<T: Add<Output = T> + Copy> Add for Pos<T> {
+        type Output = Pos<T>;
+        fn add(self, rhs: Self) -> Self::Output {
+            Pos::new(self.x + rhs.x, self.y + rhs.y)
+        }
+    }
+    impl<T: Sub<Output = T> + Copy> Sub for Pos<T> {
+        type Output = Pos<T>;
+        fn sub(self, rhs: Self) -> Self::Output {
+            Pos::new(self.x - rhs.x, self.y - rhs.y)
+        }
+    }
+    impl<T: Neg<Output = T>> Neg for Pos<T> {
+        type Output = Self;
+        fn neg(self) -> Self::Output {
+            Pos::new(-self.x, -self.y)
+        }
+    }
+    impl<T: num_traits::Zero + Copy> num_traits::Zero for Pos<T> {
+        fn zero() -> Self {
+            Pos::new(T::zero(), T::zero())
+        }
+        fn is_zero(&self) -> bool {
+            self.x.is_zero() && self.y.is_zero()
+        }
+    }
+    impl<T: Add<Output = T> + Copy> AddAssign for Pos<T> {
+        fn add_assign(&mut self, rhs: Self) {
+            *self = *self + rhs
+        }
+    }
+    impl<T: Sub<Output = T> + Copy> SubAssign for Pos<T> {
+        fn sub_assign(&mut self, rhs: Self) {
+            *self = *self - rhs
+        }
+    }
+    pub const DIR8_LIST: [Pos<i64>; 8] = [
+        Pos { x: 0, y: 1 },
+        Pos { x: 1, y: 1 },
+        Pos { x: 1, y: 0 },
+        Pos { x: 1, y: -1 },
+        Pos { x: 0, y: -1 },
+        Pos { x: -1, y: -1 },
+        Pos { x: -1, y: 0 },
+        Pos { x: -1, y: 1 },
+    ];
+    pub const DIR4_LIST: [Pos<i64>; 4] = [
+        Pos { x: 0, y: 1 },
+        Pos { x: 1, y: 0 },
+        Pos { x: 0, y: -1 },
+        Pos { x: -1, y: 0 },
+    ];
+    impl Pos<i64> {
+        pub fn around4_pos_iter(self) -> impl Iterator<Item = Pos<i64>> {
+            DIR4_LIST.iter().copied().map(move |d| d + self)
+        }
+        pub fn around8_pos_iter(self) -> impl Iterator<Item = Pos<i64>> {
+            DIR8_LIST.iter().copied().map(move |d| d + self)
+        }
+    }
+}

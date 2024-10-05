@@ -1,21 +1,31 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    xs: Vec<char>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            xs: Chars,
         }
-        Problem { n, xs }
+        Problem { xs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.xs.len();
+        // &str → Vec<char>
+        let ans = self.xs[n - 3..n].iter().collect::<String>() == "san";
+        let ans = self.xs[n - 3..n] == "san".chars().collect_vec();
+        let ans = self.xs.get(n - 3..n).unwrap().iter().collect::<String>() == "san";
+
+        use regex::Regex;
+        let re = Regex::new(r"^.*san$").unwrap();
+        let xs = self.xs.iter().collect::<String>();
+        let ans = re.find(&xs).is_some();
+
+        let ans = self.xs.ends_with(&"san".chars().collect_vec());
+
         Answer { ans }
     }
 
@@ -29,12 +39,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_yesno(self.ans);
     }
 }
 

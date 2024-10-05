@@ -1,21 +1,34 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    xs: Vec<char>,
+    ys: Vec<char>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            xs: Chars,
+            ys: Chars,
         }
-        Problem { n, xs }
+        Problem { xs, ys }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let xs = &self.xs;
+        let ys = &self.ys;
+        let ans = if xs == ys {
+            None
+        } else {
+            let tmp = izip!(xs.iter(), ys.iter())
+                .position(|(x, y)| x != y)
+                .unwrap_or({
+                    let nx = xs.len();
+                    let ny = ys.len();
+                    nx.min(ny)
+                });
+            Some(tmp)
+        };
         Answer { ans }
     }
 
@@ -29,12 +42,16 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Option<usize>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        if let Some(ans) = self.ans {
+            println!("{}", ans + 1);
+        } else {
+            println!("{}", 0);
+        }
     }
 }
 
