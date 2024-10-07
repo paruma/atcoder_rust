@@ -31,8 +31,14 @@ impl Problem {
 
         let ans = bin_search(0, 10_000_000_000, |k| {
             // 処理数をk以上にしたい。予算はxで足りる？
+
+            // 処理数をk以上にするのに必要な金額(の最小値)
+            // min Px + Qy
+            // s.t. Ax + By >= k, x>=0, y>=0 (x とy は整数)
+            // を解けば良い (x は 機械 S の数、y は 機械 T の数)
+            // x >= B, y >= A は得をしないので、x < B または y < A の範囲で考えれば良い
+            // (S×B個と T×A個は交換可能で、高い方を安い方に交換し続ければ良い)
             let price = {
-                //
                 ps.iter()
                     .copied()
                     .map(|process| {
@@ -53,6 +59,7 @@ impl Problem {
                             })
                             .min()
                             .unwrap();
+
                         // 基本的にSを買う
                         let price2 = (0..process.a)
                             .map(|y| {

@@ -84,9 +84,49 @@ impl Problem {
                         }
                         sum
                     })
-                    .fold(f64::INFINITY, |acc, x| acc.min(x))
+                    .min_by(f64::total_cmp)
+                    .unwrap()
             })
-            .fold(f64::INFINITY, |acc, x| acc.min(x));
+            .min_by(f64::total_cmp)
+            .unwrap();
+
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // 添字を使わないようにリファクタリング
+
+        let n = self.n;
+        let s = self.s as f64;
+        let t = self.t as f64;
+        let segs = &self.segs;
+
+        let ans = segs
+            .iter()
+            .copied()
+            .map(|s| [s, s.rev()])
+            .multi_cartesian_product()
+            .map(|segs| {
+                segs.iter()
+                    .copied()
+                    .permutations(n)
+                    .map(|segs| {
+                        // 始点(0,0) → 最初の点
+                        let mut current = Pos::new(0, 0);
+                        let mut sum = 0.0;
+
+                        for seg in segs {
+                            sum += dist(current, seg.src) / s;
+                            sum += dist(seg.src, seg.dst) / t;
+                            current = seg.dst;
+                        }
+                        sum
+                    })
+                    .min_by(f64::total_cmp)
+                    .unwrap()
+            })
+            .min_by(f64::total_cmp)
+            .unwrap();
 
         Answer { ans }
     }
@@ -111,7 +151,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]

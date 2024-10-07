@@ -32,6 +32,40 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        let xs = &self.xs;
+        let ys = &self.ys;
+        let ans = if xs == ys {
+            None
+        } else {
+            let max_len = usize::max(xs.len(), ys.len());
+            let tmp = (0..max_len).find(|&i| xs.get(i) != ys.get(i)).unwrap();
+            Some(tmp)
+        };
+        Answer { ans }
+    }
+
+    fn solve3(&self) -> Answer {
+        let xs = &self.xs;
+        let ys = &self.ys;
+        let ans = if xs == ys {
+            None
+        } else {
+            let tmp = xs
+                .iter()
+                .copied()
+                .zip_longest(ys.iter().copied())
+                .position(|xy| match xy {
+                    itertools::EitherOrBoth::Both(x, y) => x != y,
+                    itertools::EitherOrBoth::Left(_) => true,
+                    itertools::EitherOrBoth::Right(_) => true,
+                })
+                .unwrap();
+            Some(tmp)
+        };
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -56,7 +90,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve3().print();
 }
 
 #[cfg(test)]
