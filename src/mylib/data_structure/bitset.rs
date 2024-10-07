@@ -30,6 +30,11 @@ pub mod bitset {
             (0..len).filter(|i| (self.bit >> i) & 1 == 1).collect_vec()
         }
 
+        /// 持っている要素を Iterator で返す
+        pub fn to_iter(self, len: usize) -> impl Iterator<Item = usize> {
+            (0..len).filter(move |i| (self.bit >> i) & 1 == 1)
+        }
+
         pub fn contains(self, x: usize) -> bool {
             (self.bit >> x) & 1 == 1
         }
