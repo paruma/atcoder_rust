@@ -48,6 +48,7 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
+        // 全探索1
         // 向きを決める
         // 順番を決める
 
@@ -94,6 +95,7 @@ impl Problem {
     }
 
     fn solve2(&self) -> Answer {
+        // 全探索2
         // 添字を使わないようにリファクタリング
 
         let n = self.n;
@@ -131,6 +133,88 @@ impl Problem {
         Answer { ans }
     }
 
+    // (0, 0) からスタートして set に入っている線分を訪問して
+    // to_index 番目の線分の (is_dst_to なら終点、そうでないなら始点)
+    // までたどり着くのにかかる時間の最小値を求める
+    fn rec(
+        &self,
+        set: BitSet,
+        to_index: usize,
+        is_dst_to: bool,
+        dp: &mut [Vec<Vec<Option<f64>>>],
+    ) -> f64 {
+        if let Some(ans) = dp[set.to_bit()][to_index][is_dst_to as usize] {
+            return ans;
+        }
+
+        let ans = {
+            if set.count() == 1 && set.contains(to_index) {
+                let seg = if is_dst_to {
+                    self.segs[to_index]
+                } else {
+                    self.segs[to_index].rev()
+                };
+
+                dist(Pos::new(0, 0), seg.src) / (self.s as f64)
+                    + dist(seg.src, seg.dst) / (self.t as f64)
+            } else if !set.contains(to_index) {
+                f64::INFINITY
+            } else {
+                iproduct!((0..self.n), [true, false])
+                    .map(|(from_index, is_dst_from)| {
+                        // 0 → ... → from
+                        let term1 = self.rec(set.remove(to_index), from_index, is_dst_from, dp);
+
+                        // from → to
+                        let term2 = {
+                            let to_seg = if is_dst_to {
+                                self.segs[to_index]
+                            } else {
+                                self.segs[to_index].rev()
+                            };
+
+                            let from_last_pos = {
+                                let from_seg = if is_dst_from {
+                                    self.segs[from_index]
+                                } else {
+                                    self.segs[from_index].rev()
+                                };
+                                from_seg.dst
+                            };
+
+                            dist(from_last_pos, to_seg.src) / (self.s as f64)
+                                + dist(to_seg.src, to_seg.dst) / (self.t as f64)
+                        };
+
+                        term1 + term2
+                    })
+                    .min_by(f64::total_cmp)
+                    .unwrap()
+            }
+        };
+        dp[set.to_bit()][to_index][is_dst_to as usize] = Some(ans);
+        ans
+    }
+
+    fn solve3(&self) -> Answer {
+        // bit DP をする
+        let n = self.n;
+        let mut dp = vec![vec![vec![None; 2]; n]; 1 << n];
+
+        let ans = iproduct!((0..self.n), [true, false])
+            .map(|(terminal_index, is_dst_terminal)| {
+                self.rec(
+                    BitSet::universal_set(n),
+                    terminal_index,
+                    is_dst_terminal,
+                    &mut dp,
+                )
+            })
+            .min_by(f64::total_cmp)
+            .unwrap();
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -151,7 +235,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve2().print();
+    Problem::read().solve3().print();
 }
 
 #[cfg(test)]
@@ -377,6 +461,239 @@ pub mod pos {
         }
         pub fn around8_pos_iter(self) -> impl Iterator<Item = Pos<i64>> {
             DIR8_LIST.iter().copied().map(move |d| d + self)
+        }
+    }
+}
+use bitset::*;
+#[allow(clippy::module_inception)]
+pub mod bitset {
+    use itertools::Itertools;
+    use std::{
+        fmt::{Error, Formatter},
+        ops::{BitAnd, BitOr, BitXor},
+    };
+    #[derive(Clone, Copy, PartialEq, Eq)]
+    pub struct BitSet {
+        bit: usize,
+    }
+    impl BitSet {
+        #[inline]
+        pub fn new(bit: usize) -> BitSet {
+            BitSet { bit }
+        }
+        pub fn to_bit(self) -> usize {
+            self.bit
+        }
+        /// 持っている要素を Vec<usize> で返す
+        pub fn to_vec(self, len: usize) -> Vec<usize> {
+            (0..len).filter(|i| (self.bit >> i) & 1 == 1).collect_vec()
+        }
+        /// 持っている要素を Vec<usize> で返す
+        pub fn to_iter(self, len: usize) -> impl Iterator<Item = usize> {
+            (0..len).filter(move |i| (self.bit >> i) & 1 == 1)
+        }
+        pub fn contains(self, x: usize) -> bool {
+            (self.bit >> x) & 1 == 1
+        }
+        pub fn count(self) -> usize {
+            self.bit.count_ones() as usize
+        }
+        pub fn insert(self, x: usize) -> BitSet {
+            BitSet::new(self.bit | (1 << x))
+        }
+        pub fn remove(self, x: usize) -> BitSet {
+            BitSet::new(self.bit & !(1 << x))
+        }
+        pub fn empty() -> BitSet {
+            BitSet::new(0)
+        }
+        pub fn universal_set(size: usize) -> BitSet {
+            BitSet::new((1 << size) - 1)
+        }
+        pub fn complement(self, size: usize) -> BitSet {
+            BitSet::new(self.bit ^ ((1 << size) - 1))
+        }
+        pub fn set_minus(self, other: BitSet) -> BitSet {
+            BitSet::new(self.bit & !other.bit)
+        }
+        pub fn is_empty(self) -> bool {
+            self.bit == 0
+        }
+        pub fn is_subset(self, other: BitSet) -> bool {
+            self | other == other
+        }
+        pub fn all_subset(size: usize) -> impl Iterator<Item = BitSet> {
+            (0..(1 << size)).map(BitSet::new)
+        }
+        pub fn subsets(self) -> impl Iterator<Item = BitSet> {
+            std::iter::successors(Some(self.bit), move |x| {
+                if *x == 0 {
+                    None
+                } else {
+                    Some((x - 1) & self.bit)
+                }
+            })
+            .map(BitSet::new)
+        }
+    }
+    impl BitAnd for BitSet {
+        type Output = BitSet;
+        fn bitand(self, rhs: BitSet) -> BitSet {
+            BitSet::new(self.bit & rhs.bit)
+        }
+    }
+    impl BitOr for BitSet {
+        type Output = BitSet;
+        fn bitor(self, rhs: BitSet) -> BitSet {
+            BitSet::new(self.bit | rhs.bit)
+        }
+    }
+    impl BitXor for BitSet {
+        type Output = BitSet;
+        fn bitxor(self, rhs: BitSet) -> BitSet {
+            BitSet::new(self.bit ^ rhs.bit)
+        }
+    }
+    use std::fmt::Debug;
+    impl Debug for BitSet {
+        fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+            f.write_fmt(format_args!("{:#b}", self.bit))?;
+            Ok(())
+        }
+    }
+}
+use mod_ext_int::ExtInt::{self, *};
+pub mod mod_ext_int {
+    use ac_library::Monoid;
+    use std::{
+        cmp::Ordering,
+        convert::Infallible,
+        iter::Sum,
+        ops::{Add, AddAssign},
+    };
+    use ExtInt::*;
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub enum ExtInt {
+        Inf,
+        Fin(i64),
+    }
+    impl ExtInt {
+        pub fn get_fin(self) -> i64 {
+            match self {
+                Fin(val) => val,
+                Inf => panic!("called `ExtInt::get_fin()` on a `Fin` value"),
+            }
+        }
+        pub fn get_fin_or(self, default: i64) -> i64 {
+            match self {
+                Fin(val) => val,
+                Inf => default,
+            }
+        }
+        pub fn is_fin(self) -> bool {
+            matches!(self, Fin(_))
+        }
+        pub fn is_inf(self) -> bool {
+            matches!(self, Inf)
+        }
+        pub fn to_option(self) -> Option<i64> {
+            match self {
+                Inf => None,
+                Fin(a) => Some(a),
+            }
+        }
+        pub fn from_option(opt: Option<i64>) -> ExtInt {
+            match opt {
+                Some(a) => Fin(a),
+                None => Inf,
+            }
+        }
+        pub fn times(self, t: i64) -> Self {
+            match t.cmp(&0) {
+                Ordering::Less => panic!("t must be non-negative."),
+                Ordering::Equal => Fin(0),
+                Ordering::Greater => match self {
+                    Inf => Inf,
+                    Fin(a) => Fin(a * t),
+                },
+            }
+        }
+    }
+    impl Add for ExtInt {
+        type Output = ExtInt;
+        fn add(self, rhs: Self) -> Self::Output {
+            match (self, rhs) {
+                (Inf, Inf) => Inf,
+                (Inf, Fin(_)) => Inf,
+                (Fin(_), Inf) => Inf,
+                (Fin(a), Fin(b)) => Fin(a + b),
+            }
+        }
+    }
+    impl AddAssign for ExtInt {
+        fn add_assign(&mut self, rhs: Self) {
+            *self = *self + rhs;
+        }
+    }
+    impl Add<i64> for ExtInt {
+        type Output = ExtInt;
+        fn add(self, rhs: i64) -> Self::Output {
+            match self {
+                Inf => Inf,
+                Fin(a) => Fin(a + rhs),
+            }
+        }
+    }
+    impl AddAssign<i64> for ExtInt {
+        fn add_assign(&mut self, rhs: i64) {
+            *self = *self + rhs;
+        }
+    }
+    impl Sum for ExtInt {
+        fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+            let mut s = 0;
+            for x in iter {
+                match x {
+                    Inf => return Inf,
+                    Fin(x) => s += x,
+                }
+            }
+            Fin(s)
+        }
+    }
+    impl PartialOrd for ExtInt {
+        fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+            match (self, other) {
+                (Inf, Inf) => Some(Ordering::Equal),
+                (Inf, Fin(_)) => Some(Ordering::Greater),
+                (Fin(_), Inf) => Some(Ordering::Less),
+                (Fin(a), Fin(b)) => PartialOrd::partial_cmp(a, b),
+            }
+        }
+    }
+    impl Ord for ExtInt {
+        fn cmp(&self, other: &Self) -> Ordering {
+            self.partial_cmp(other).unwrap()
+        }
+    }
+    pub struct ExtIntAdditive(Infallible);
+    impl Monoid for ExtIntAdditive {
+        type S = ExtInt;
+        fn identity() -> Self::S {
+            Fin(0)
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            *a + *b
+        }
+    }
+    pub struct ExtIntMin(Infallible);
+    impl Monoid for ExtIntMin {
+        type S = ExtInt;
+        fn identity() -> Self::S {
+            Inf
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            *a.min(b)
         }
     }
 }
