@@ -12,7 +12,8 @@ fn solve(n_vertex: usize, edges: &[Edge]) -> ExtInt {
     // 巡回セールスマン問題
     // https://judge.u-aizu.ac.jp/onlinejudge/description.jsp
     // ハミルトン閉路が存在するなら、どの頂点を始点にしても良い→ここでは頂点0を始点にする。
-    // dp[planed_vertices][v]: (始点を除く)訪問する頂点の集合が planed_vertices、最後に訪問する点をvとしたときの最短路
+    // dp[planed_vertices][v]: (始点を除く)訪問する頂点の集合が planed_vertices、
+    //                         最後に訪問する点をvとしたときの頂点0からの最短路
 
     // 計算量は愚直に行うとO(n!) になるが、
     // bit DP をすることで O(n^2 2^n) 程度になる
