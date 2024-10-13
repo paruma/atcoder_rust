@@ -33,6 +33,8 @@ impl Problem {
         Problem { n, ps }
     }
     fn solve(&self) -> Answer {
+        // 解法: dp[何人見た？][チーム1の強さ][チーム2の強さ] = 変更人数 というDPをする
+        // そのままだと MLE になるので、next DP にする
         let n = self.n;
         let ps = &self.ps;
         let power_sum = ps.iter().copied().map(|p| p.power).sum::<usize>();
@@ -41,6 +43,7 @@ impl Problem {
             return Answer { ans: None };
         }
 
+        // NOTE: ここは power_sum/3 + 1 で良かった（そうすると MLE が避けられる）
         let mut dp = vec![vec![usize::MAX; power_sum + 1]; power_sum + 1];
 
         dp[0][0] = 0;
@@ -53,7 +56,8 @@ impl Problem {
                     if dp[p1][p2] == usize::MAX {
                         continue;
                     }
-
+                    // NOTE: next_dp[p1 + ps[i].power] は配列外参照しそうでやばい（実際には continue のおかげで配列外参照は発生しない）
+                    // dp配列の長さを power_sum/3 + 1 で取る場合は配列外参照のケアが必要になる
                     chmin!(
                         next_dp[p1 + ps[i].power][p2],
                         dp[p1][p2] + (ps[i].team != 1) as usize
@@ -74,6 +78,7 @@ impl Problem {
     }
 
     fn solve_naive(&self) -> Answer {
+        // MLE する
         let n = self.n;
         let ps = &self.ps;
         let power_sum = ps.iter().copied().map(|p| p.power).sum::<usize>();

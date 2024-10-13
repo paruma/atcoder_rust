@@ -39,6 +39,19 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        let origin = Pos::new(0, 0);
+        let ans = chain!(
+            std::iter::once(origin),
+            self.ps.iter().copied(),
+            std::iter::once(origin)
+        )
+        .tuple_windows()
+        .map(|(p1, p2)| dist(p1, p2))
+        .sum::<f64>();
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -59,7 +72,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]

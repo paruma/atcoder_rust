@@ -34,9 +34,6 @@ impl Problem {
 
         for i in 0..n / 2 {
             let xss_r = xss_rotates[(i + 1) % 4];
-            //print(&xss_r);
-            //println!();
-            //dbg!(i);
             for x in i..n - i {
                 let y1 = i;
                 ans[y1][x] = xss_r[y1][x];
@@ -52,9 +49,6 @@ impl Problem {
                 let x2 = n - i - 1;
                 ans[y][x2] = xss_r[y][x2];
             }
-
-            //print(&ans);
-            //println!();
         }
 
         Answer { ans }

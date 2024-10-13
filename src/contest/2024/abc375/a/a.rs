@@ -29,6 +29,19 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        let n = self.n;
+        let ss = &self.ss;
+
+        let ans = ss
+            .iter()
+            .copied()
+            .tuple_windows()
+            .filter(|&(x, y, z)| [x, y, z] == ['#', '.', '#'])
+            .count() as i64;
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -49,7 +62,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]

@@ -9,6 +9,7 @@
         "chmin",
         "cnts",
         "cumsum",
+        "cumsums",
         "Deque",
         "fastout",
         "Fenwick",
