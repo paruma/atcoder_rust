@@ -14,8 +14,10 @@ impl Problem {
 
     fn solve(&self) -> Answer {
         // 解法: 3文字の回文の端っこの文字を固定する
+        // \sum_{i=0}^{N-2} \sum_{j=i+1}^{N-1} 1[S_i = S_j] (j - i + 1) を解く話になる。
         // 計算量は O(N + アルファベットの数)
         let xs = &self.xs;
+        // indexes[ch_i] == ch_i 番目のアルファベットが現れる場所(添字)のリスト
         let mut idxeses = vec![vec![]; 26];
         for (i, x) in xs.iter().copied().enumerate() {
             idxeses[(x - b'A') as usize].push(i);
@@ -29,7 +31,7 @@ impl Problem {
 
                 for (i, idx) in idxes.iter().copied().enumerate() {
                     if i == 0 {
-                        idx_sum += idx;
+                        idx_sum += idx; // NOTE: これを忘れてた
                         continue;
                     }
                     let addition = i * (idx - 1) - idx_sum;
@@ -50,6 +52,7 @@ impl Problem {
         let xs = &self.xs;
         let n = xs.len();
 
+        // indicators[ch_i][i] = if xs[i] == (ch_i番目のアルファベット) {1} else {0}
         let indicators = {
             let mut indicator = vec![vec![0; n]; 26];
 
@@ -60,10 +63,13 @@ impl Problem {
             indicator
         };
 
+        // indicator_cumsums[ch_i].range_sum(begin..end) == xs[begin..end] にある ch_i番目のアルファベットの数
         let indicator_cumsums = indicators.iter().map(|ind| CumSum::new(ind)).collect_vec();
 
         let ans = (0..n)
             .map(|mid| {
+                // 3文字の回文の真ん中の index が mid であるとき、1文字目と3文字目の index の取り方は何通りあるか？
+                // 各アルファベットに対して、1文字目と3文字目にそのアルファベットが現れるような場合の数を求めて足し合わせる。
                 indicator_cumsums
                     .iter()
                     .map(|cumsum| cumsum.range_sum(..mid) * cumsum.range_sum(mid + 1..))
