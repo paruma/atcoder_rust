@@ -14,105 +14,172 @@ macro_rules! chmax {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct Item {
-    weight: usize,
+    weight: i64,
     value: i64,
 }
 
 /// 計算量: O(|items| * max_weight)
 #[allow(dead_code)]
-fn knapsack(n: usize, items: &[Item], max_weight: usize) -> i64 {
+fn knapsack(n: usize, items: &[Item], max_weight: i64) -> i64 {
     // dp[i][w] := [0,i) の items を使用したときの重さ w 以下での価値の最大値
     // dp[0][0] = 0
     // dp[0][w] = 0 (w!=0)
     // dp[i+1][w] = max(dp[i][w], dp[i][w-items[i].weight] + items[i].value);
     // 答えは必ず存在する。max_weight>=0なら、重さmax_weight以下となるような選び方は必ず存在するので（何も選ばないという選び方）
 
-    let mut dp = vec![vec![NegInf; max_weight + 1]; n + 1];
+    struct Dp {
+        dp: Vec<Vec<NegExtInt>>,
+    }
+    impl Dp {
+        fn new(n: usize, max_weight: i64) -> Dp {
+            let max_weight = max_weight as usize;
+            Dp {
+                dp: vec![vec![NegInf; max_weight + 1]; n + 1],
+            }
+        }
+
+        fn at(&self, i: usize, w: i64) -> &NegExtInt {
+            // 添字の小さい方だけ考慮すればよい（大きい方はスルー）
+            if w < 0 {
+                &NegInf
+            } else {
+                &self.dp[i][w as usize]
+            }
+        }
+
+        fn at_mut(&mut self, i: usize, w: i64) -> &mut NegExtInt {
+            &mut self.dp[i][w as usize]
+        }
+    }
+
+    let mut dp = Dp::new(n, max_weight);
 
     for w in 0..=max_weight {
-        dp[0][w] = Fin(0);
+        *dp.at_mut(0, w) = Fin(0);
     }
 
     for (i, item) in items.iter().enumerate() {
         for w in 0..=max_weight {
             // 現在のアイテムを選択する/しない
-            let choose = if w < item.weight {
-                NegInf
-            } else {
-                dp[i][w - item.weight] + Fin(item.value)
-            };
-            let no_choose = dp[i][w];
-            dp[i + 1][w] = max(choose, no_choose);
+            let choose = *dp.at(i, w - item.weight) + Fin(item.value);
+            let no_choose = *dp.at(i, w);
+            *dp.at_mut(i + 1, w) = max(choose, no_choose);
         }
     }
-    dp[n][max_weight].get_fin()
+    dp.at(n, max_weight).get_fin()
 }
 
 /// 計算量: O(|items| * max_weight)
 #[allow(dead_code)]
-fn knapsack_kubaru(n: usize, items: &[Item], max_weight: usize) -> i64 {
+fn knapsack_kubaru(n: usize, items: &[Item], max_weight: i64) -> i64 {
     // dp[i][w] := [0,i) の items を使用したときの重さ w 以下での価値の最大値
     // dp[0][0] = 0
     // dp[0][w] = 0 (w!=0)
     // dp[i+1][w] = max(dp[i][w], dp[i][w-items[i].weight] + items[i].value);
     // 答えは必ず存在する。max_weight>=0なら、重さmax_weight以下となるような選び方は必ず存在するので（何も選ばないという選び方）
 
-    let mut dp = vec![vec![NegInf; max_weight + 1]; n + 1];
+    struct Dp {
+        dp: Vec<Vec<NegExtInt>>,
+    }
+    impl Dp {
+        fn new(n: usize, max_weight: i64) -> Dp {
+            let max_weight = max_weight as usize;
+            Dp {
+                dp: vec![vec![NegInf; max_weight + 1]; n + 1],
+            }
+        }
+
+        fn at(&self, i: usize, w: i64) -> &NegExtInt {
+            // 添字の小さい方だけ考慮すればよい（大きい方はスルー）
+            if w < 0 {
+                // 配る場合、この if 文は不要
+                &NegInf
+            } else {
+                &self.dp[i][w as usize]
+            }
+        }
+
+        fn at_mut(&mut self, i: usize, w: i64) -> &mut NegExtInt {
+            &mut self.dp[i][w as usize]
+        }
+    }
+
+    let mut dp = Dp::new(n, max_weight);
 
     for w in 0..=max_weight {
-        dp[0][w] = Fin(0);
+        *dp.at_mut(0, w) = Fin(0);
     }
 
     for (i, item) in items.iter().enumerate() {
         for w in 0..=max_weight {
             // 現在のアイテムを選択する/しない
-            // (i, w) の状態から次の状態に配っていく。
-            let choose = dp[i][w] + Fin(item.value);
-            let no_choose = dp[i][w];
+            // (i, w) の状態から配っていく。
+            let choose = *dp.at(i, w) + Fin(item.value);
+            let no_choose = *dp.at(i, w);
             if w + item.weight <= max_weight {
-                chmax!(dp[i + 1][w + item.weight], choose);
+                chmax!(*dp.at_mut(i + 1, w + item.weight), choose);
             }
-            chmax!(dp[i + 1][w], no_choose);
+            chmax!(*dp.at_mut(i + 1, w), no_choose);
         }
     }
-    dp[n][max_weight].get_fin()
+    dp.at(n, max_weight).get_fin()
 }
 
 #[allow(dead_code)]
-fn knapsack_with_restore(n: usize, items: &[Item], max_weight: usize) -> (i64, Vec<bool>) {
+fn knapsack_with_restore(n: usize, items: &[Item], max_weight: i64) -> (i64, Vec<bool>) {
     // dp[i][w] := [0,i) の items を使用したときの重さ w 以下での価値の最大値
     // dp[0][0] = 0
     // dp[0][w] = 0 (w!=0)
     // dp[i+1][w] = max(dp[i][w], dp[i][w-items[i].weight] + items[i].value);
     // 答えは必ず存在する。max_weight>=0なら、重さmax_weight以下となるような選び方は必ず存在するので（何も選ばないという選び方）
 
+    struct Dp {
+        dp: Vec<Vec<NegExtInt>>,
+    }
+    impl Dp {
+        fn new(n: usize, max_weight: i64) -> Dp {
+            let max_weight = max_weight as usize;
+            Dp {
+                dp: vec![vec![NegInf; max_weight + 1]; n + 1],
+            }
+        }
+
+        fn at(&self, i: usize, w: i64) -> &NegExtInt {
+            // 添字の小さい方だけ考慮すればよい（大きい方はスルー）
+            if w < 0 {
+                &NegInf
+            } else {
+                &self.dp[i][w as usize]
+            }
+        }
+
+        fn at_mut(&mut self, i: usize, w: i64) -> &mut NegExtInt {
+            &mut self.dp[i][w as usize]
+        }
+    }
+
     // dp[i][w] := [0,i) の items を使用したときの重さ w 以下での価値の最大値
-    let mut dp = vec![vec![NegInf; max_weight + 1]; n + 1];
+    let mut dp = Dp::new(n, max_weight);
 
     // prev[i][w] := [0, i + 1) の items を使用したときの重さ w 以下での価値を最大化
     // したとき、i番目の item を使用したかどうか。
-    let mut prev = vec![vec![false; max_weight + 1]; n];
+    let mut prev = vec![vec![false; max_weight as usize + 1]; n];
 
     for w in 0..=max_weight {
-        dp[0][w] = Fin(0);
+        *dp.at_mut(0, w) = Fin(0);
     }
 
     for (i, item) in items.iter().enumerate() {
         for w in 0..=max_weight {
             // 現在のアイテムを選択する/しない
-            let choose = if w < item.weight {
-                NegInf
-            } else {
-                dp[i][w - item.weight] + Fin(item.value)
-            };
-            let no_choose = dp[i][w];
-
+            let choose = *dp.at(i, w - item.weight) + Fin(item.value);
+            let no_choose = *dp.at(i, w);
             if choose > no_choose {
-                dp[i + 1][w] = choose;
-                prev[i][w] = true;
+                *dp.at_mut(i + 1, w) = choose;
+                prev[i][w as usize] = true;
             } else {
-                dp[i + 1][w] = no_choose;
-                prev[i][w] = false;
+                *dp.at_mut(i + 1, w) = no_choose;
+                prev[i][w as usize] = false;
             }
         }
     }
@@ -121,7 +188,7 @@ fn knapsack_with_restore(n: usize, items: &[Item], max_weight: usize) -> (i64, V
         let mut path = vec![false; n];
         let mut current_weight = max_weight;
         for i in (0..n).rev() {
-            path[i] = prev[i][current_weight];
+            path[i] = prev[i][current_weight as usize];
             if path[i] {
                 current_weight -= items[i].weight;
             }
@@ -129,9 +196,8 @@ fn knapsack_with_restore(n: usize, items: &[Item], max_weight: usize) -> (i64, V
         path
     };
 
-    (dp[n][max_weight].get_fin(), path)
+    (dp.at(n, max_weight).get_fin(), path)
 }
-
 #[cfg(test)]
 mod tests {
     use itertools::Itertools;
@@ -158,10 +224,35 @@ mod tests {
         let ans = knapsack_kubaru(n, &items, max_weight);
         assert_eq!(ans, 94);
     }
+
+    #[test]
+    fn test_knapsack_restore() {
+        let n: usize = 6;
+        let items = [(2, 3), (1, 2), (3, 6), (2, 1), (1, 3), (5, 85)];
+        let items = items
+            .iter()
+            .map(|(weight, value)| Item {
+                weight: *weight,
+                value: *value,
+            })
+            .collect_vec();
+
+        let max_weight = 9;
+
+        let (ans, path) = knapsack_with_restore(n, &items, max_weight);
+        assert_eq!(ans, 94);
+        assert_eq!(
+            (0..n)
+                .filter(|i| path[*i])
+                .map(|i| items[i].value)
+                .sum::<i64>(),
+            94
+        )
+    }
 }
 
 //---------snippet---------
-use mod_neg_ext_int::NegExtInt::*;
+use mod_neg_ext_int::NegExtInt::{self, *};
 pub mod mod_neg_ext_int {
     use std::{cmp::Ordering, ops::Add};
     use NegExtInt::*;
