@@ -1,5 +1,17 @@
 use std::cmp::max;
 
+#[allow(unused_macros)]
+macro_rules! chmax {
+    ($a: expr, $b: expr) => {
+        if $a < $b {
+            $a = $b;
+            true
+        } else {
+            false
+        }
+    };
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct Item {
     weight: i64,
@@ -57,6 +69,62 @@ fn knapsack(n: usize, items: &[Item], max_weight: i64) -> i64 {
     dp.at(n, max_weight).get_fin()
 }
 
+/// 計算量: O(|items| * max_weight)
+#[allow(dead_code)]
+fn knapsack_kubaru(n: usize, items: &[Item], max_weight: i64) -> i64 {
+    // dp[i][w] := [0,i) の items を使用したときの重さ w 以下での価値の最大値
+    // dp[0][0] = 0
+    // dp[0][w] = 0 (w!=0)
+    // dp[i+1][w] = max(dp[i][w], dp[i][w-items[i].weight] + items[i].value);
+    // 答えは必ず存在する。max_weight>=0なら、重さmax_weight以下となるような選び方は必ず存在するので（何も選ばないという選び方）
+
+    struct Dp {
+        dp: Vec<Vec<NegExtInt>>,
+    }
+    impl Dp {
+        fn new(n: usize, max_weight: i64) -> Dp {
+            let max_weight = max_weight as usize;
+            Dp {
+                dp: vec![vec![NegInf; max_weight + 1]; n + 1],
+            }
+        }
+
+        fn at(&self, i: usize, w: i64) -> &NegExtInt {
+            // 添字の小さい方だけ考慮すればよい（大きい方はスルー）
+            if w < 0 {
+                // 配る場合、この if 文は不要
+                &NegInf
+            } else {
+                &self.dp[i][w as usize]
+            }
+        }
+
+        fn at_mut(&mut self, i: usize, w: i64) -> &mut NegExtInt {
+            &mut self.dp[i][w as usize]
+        }
+    }
+
+    let mut dp = Dp::new(n, max_weight);
+
+    for w in 0..=max_weight {
+        *dp.at_mut(0, w) = Fin(0);
+    }
+
+    for (i, item) in items.iter().enumerate() {
+        for w in 0..=max_weight {
+            // 現在のアイテムを選択する/しない
+            // (i, w) の状態から配っていく。
+            let choose = *dp.at(i, w) + Fin(item.value);
+            let no_choose = *dp.at(i, w);
+            if w + item.weight <= max_weight {
+                chmax!(*dp.at_mut(i + 1, w + item.weight), choose);
+            }
+            chmax!(*dp.at_mut(i + 1, w), no_choose);
+        }
+    }
+    dp.at(n, max_weight).get_fin()
+}
+
 #[allow(dead_code)]
 fn knapsack_with_restore(n: usize, items: &[Item], max_weight: i64) -> (i64, Vec<bool>) {
     // dp[i][w] := [0,i) の items を使用したときの重さ w 以下での価値の最大値
@@ -90,7 +158,11 @@ fn knapsack_with_restore(n: usize, items: &[Item], max_weight: i64) -> (i64, Vec
         }
     }
 
+    // dp[i][w] := [0,i) の items を使用したときの重さ w 以下での価値の最大値
     let mut dp = Dp::new(n, max_weight);
+
+    // prev[i][w] := [0, i + 1) の items を使用したときの重さ w 以下での価値を最大化
+    // したとき、i番目の item を使用したかどうか。
     let mut prev = vec![vec![false; max_weight as usize + 1]; n];
 
     for w in 0..=max_weight {
@@ -147,6 +219,9 @@ mod tests {
         let max_weight = 9;
 
         let ans = knapsack(n, &items, max_weight);
+        assert_eq!(ans, 94);
+
+        let ans = knapsack_kubaru(n, &items, max_weight);
         assert_eq!(ans, 94);
     }
 
