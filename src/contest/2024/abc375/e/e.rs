@@ -96,6 +96,9 @@ impl Problem {
 
             for p1 in 0..=power_sum / 3 {
                 for p2 in 0..=power_sum / 3 {
+                    if dp[p1][p2].is_inf() {
+                        continue;
+                    }
                     if p1 + player.power <= power_sum / 3 {
                         chmin!(
                             next_dp[p1 + player.power][p2],
