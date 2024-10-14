@@ -1,6 +1,12 @@
 use cargo_snippet::snippet;
 
 #[snippet(prefix = "use mod_ext_int::ExtInt::{self, *};")]
+/// 整数型に +∞ を追加したもの
+/// 実行時間・メモリ消費量が約2倍になるので注意
+///
+/// [参考]
+/// * ExtInt 未使用:  https://atcoder.jp/contests/abc375/submissions/58810350 (124 ms, 5944 KB)
+/// * ExtInt 使用: https://atcoder.jp/contests/abc375/submissions/58810373 (200 ms, 9840 KB)
 pub mod mod_ext_int {
     use ac_library::Monoid;
     use std::{
