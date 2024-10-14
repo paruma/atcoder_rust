@@ -77,6 +77,48 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        // 解法: dp[何人見た？][チーム1の強さ][チーム2の強さ] = 変更人数 というDPをする
+        // solve1 のリファクタリング
+        let ps = &self.ps;
+        let power_sum = ps.iter().copied().map(|p| p.power).sum::<usize>();
+
+        if power_sum % 3 != 0 {
+            return Answer { ans: None };
+        }
+
+        let mut dp = vec![vec![ExtInt::Inf; power_sum / 3 + 1]; power_sum / 3 + 1];
+
+        dp[0][0] = Fin(0);
+
+        for &player in ps {
+            let mut next_dp = vec![vec![ExtInt::Inf; power_sum / 3 + 1]; power_sum / 3 + 1];
+
+            for p1 in 0..=power_sum / 3 {
+                for p2 in 0..=power_sum / 3 {
+                    if p1 + player.power <= power_sum / 3 {
+                        chmin!(
+                            next_dp[p1 + player.power][p2],
+                            dp[p1][p2] + Fin((player.team != 1) as i64)
+                        );
+                    }
+                    if p2 + player.power <= power_sum / 3 {
+                        chmin!(
+                            next_dp[p1][p2 + player.power],
+                            dp[p1][p2] + Fin((player.team != 2) as i64)
+                        );
+                    }
+                    chmin!(next_dp[p1][p2], dp[p1][p2] + Fin((player.team != 3) as i64));
+                }
+            }
+            dp = next_dp;
+        }
+        let ans = dp[power_sum / 3][power_sum / 3];
+        let ans = ans.to_option().map(|x| x as usize);
+
+        Answer { ans }
+    }
+
     fn solve_naive(&self) -> Answer {
         // MLE する
         let n = self.n;
@@ -135,7 +177,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -276,3 +318,138 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use mod_ext_int::ExtInt::{self, *};
+pub mod mod_ext_int {
+    use ac_library::Monoid;
+    use std::{
+        cmp::Ordering,
+        convert::Infallible,
+        iter::Sum,
+        ops::{Add, AddAssign},
+    };
+    use ExtInt::*;
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub enum ExtInt {
+        Inf,
+        Fin(i64),
+    }
+    impl ExtInt {
+        pub fn get_fin(self) -> i64 {
+            match self {
+                Fin(val) => val,
+                Inf => panic!("called `ExtInt::get_fin()` on a `Fin` value"),
+            }
+        }
+        pub fn get_fin_or(self, default: i64) -> i64 {
+            match self {
+                Fin(val) => val,
+                Inf => default,
+            }
+        }
+        pub fn is_fin(self) -> bool {
+            matches!(self, Fin(_))
+        }
+        pub fn is_inf(self) -> bool {
+            matches!(self, Inf)
+        }
+        pub fn to_option(self) -> Option<i64> {
+            match self {
+                Inf => None,
+                Fin(a) => Some(a),
+            }
+        }
+        pub fn from_option(opt: Option<i64>) -> ExtInt {
+            match opt {
+                Some(a) => Fin(a),
+                None => Inf,
+            }
+        }
+        pub fn times(self, t: i64) -> Self {
+            match t.cmp(&0) {
+                Ordering::Less => panic!("t must be non-negative."),
+                Ordering::Equal => Fin(0),
+                Ordering::Greater => match self {
+                    Inf => Inf,
+                    Fin(a) => Fin(a * t),
+                },
+            }
+        }
+    }
+    impl Add for ExtInt {
+        type Output = ExtInt;
+        fn add(self, rhs: Self) -> Self::Output {
+            match (self, rhs) {
+                (Inf, Inf) => Inf,
+                (Inf, Fin(_)) => Inf,
+                (Fin(_), Inf) => Inf,
+                (Fin(a), Fin(b)) => Fin(a + b),
+            }
+        }
+    }
+    impl AddAssign for ExtInt {
+        fn add_assign(&mut self, rhs: Self) {
+            *self = *self + rhs;
+        }
+    }
+    impl Add<i64> for ExtInt {
+        type Output = ExtInt;
+        fn add(self, rhs: i64) -> Self::Output {
+            match self {
+                Inf => Inf,
+                Fin(a) => Fin(a + rhs),
+            }
+        }
+    }
+    impl AddAssign<i64> for ExtInt {
+        fn add_assign(&mut self, rhs: i64) {
+            *self = *self + rhs;
+        }
+    }
+    impl Sum for ExtInt {
+        fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+            let mut s = 0;
+            for x in iter {
+                match x {
+                    Inf => return Inf,
+                    Fin(x) => s += x,
+                }
+            }
+            Fin(s)
+        }
+    }
+    impl PartialOrd for ExtInt {
+        fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+            match (self, other) {
+                (Inf, Inf) => Some(Ordering::Equal),
+                (Inf, Fin(_)) => Some(Ordering::Greater),
+                (Fin(_), Inf) => Some(Ordering::Less),
+                (Fin(a), Fin(b)) => PartialOrd::partial_cmp(a, b),
+            }
+        }
+    }
+    impl Ord for ExtInt {
+        fn cmp(&self, other: &Self) -> Ordering {
+            self.partial_cmp(other).unwrap()
+        }
+    }
+    pub struct ExtIntAdditive(Infallible);
+    impl Monoid for ExtIntAdditive {
+        type S = ExtInt;
+        fn identity() -> Self::S {
+            Fin(0)
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            *a + *b
+        }
+    }
+    pub struct ExtIntMin(Infallible);
+    impl Monoid for ExtIntMin {
+        type S = ExtInt;
+        fn identity() -> Self::S {
+            Inf
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            *a.min(b)
+        }
+    }
+}
