@@ -2133,6 +2133,10 @@ path = "src/contest/template.rs"
 name = "lc_template"
 path = "src/library_checker/template.rs"
 
+[[bin]]
+name = "lc_cycle_detection"
+path = "src/library_checker/cycle_detection.rs"
+
 hoge = """
 
 """

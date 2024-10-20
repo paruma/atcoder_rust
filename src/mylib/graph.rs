@@ -1,3 +1,4 @@
+pub mod cycle_detection_directed;
 pub mod euler_tour;
 #[allow(clippy::module_inception)]
 pub mod graph;
