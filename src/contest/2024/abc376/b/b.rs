@@ -1,21 +1,103 @@
-//#[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Instruction {
+    h: char,
+    t: Usize1,
+}
+
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    nq: usize,
+    qs: Vec<Instruction>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            nq: usize,
+            qs: [Instruction; nq],
         }
-        Problem { n, xs }
+        Problem { n, nq, qs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let qs = &self.qs;
+
+        let mut left = 0;
+        let mut right = 1;
+        let mut cnt = 0;
+        let n = self.n;
+
+        let inc = |x: usize| (x + 1) % n;
+        let dec = |x: usize| (x + n - 1) % n;
+
+        for q in &self.qs {
+            if q.h == 'R' {
+                let mut c_right = right;
+                let mut fail = false;
+                let mut c_cnt = 0;
+                // 左に動かす
+                while c_right != q.t {
+                    c_right = dec(c_right);
+                    c_cnt += 1;
+                    if c_right == left {
+                        fail = true;
+                        break;
+                    }
+                }
+                if !fail {
+                    cnt += c_cnt;
+                    right = c_right;
+                } else {
+                    // 右に動かす
+                    let mut c_right = right;
+                    let mut c_cnt = 0;
+                    // 左に動かす
+                    while c_right != q.t {
+                        c_right = inc(c_right);
+                        c_cnt += 1;
+                    }
+                    right = c_right;
+                    cnt += c_cnt;
+                }
+            } else if q.h == 'L' {
+                let mut c_left = left;
+                let mut fail = false;
+                let mut c_cnt = 0;
+                // 左に動かす
+                while c_left != q.t {
+                    c_left = dec(c_left);
+                    c_cnt += 1;
+                    if c_left == right {
+                        fail = true;
+                        break;
+                    }
+                }
+                if !fail {
+                    cnt += c_cnt;
+                    left = c_left;
+                } else {
+                    // 右に動かす
+                    let mut c_left = left;
+                    let mut c_cnt = 0;
+
+                    // 左に動かす
+                    while c_left != q.t {
+                        c_left = inc(c_left);
+                        c_cnt += 1;
+                    }
+                    left = c_left;
+                    cnt += c_cnt;
+                }
+            } else {
+                unreachable!();
+            }
+        }
+
+        let ans = cnt;
         Answer { ans }
     }
 

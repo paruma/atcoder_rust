@@ -2,20 +2,31 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    c: i64,
+    ts: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            c: i64,
+            ts: [i64; n],
         }
-        Problem { n, xs }
+        Problem { n, c, ts }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let mut last_push_time = -100000;
+        let mut cnt = 0;
+
+        for &t in &self.ts {
+            if t - last_push_time >= self.c {
+                cnt += 1;
+                last_push_time = t;
+            }
+        }
+        let ans = cnt;
         Answer { ans }
     }
 

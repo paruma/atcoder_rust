@@ -1,21 +1,82 @@
-//#[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Edge {
+    src: Usize1,
+    dst: Usize1,
+}
+
+impl Edge {
+    fn new(src: usize, dst: usize) -> Edge {
+        Edge { src, dst }
+    }
+    fn rev(self) -> Self {
+        Edge {
+            src: self.dst,
+            dst: self.src,
+        }
+    }
+}
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    nv: usize,
+    ne: usize,
+    es: Vec<Edge>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            nv: usize,
+            ne: usize,
+            es: [Edge; ne],
         }
-        Problem { n, xs }
+        Problem { nv, ne, es }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let nv = self.nv;
+        let ne = self.ne;
+
+        let adj = self
+            .es
+            .iter()
+            .copied()
+            .fold(vec![vec![]; nv], |mut acc, e| {
+                acc[e.src].push(e);
+                acc
+            });
+
+        let mut visited = vec![false; nv];
+
+        let mut min_cycle = usize::MAX;
+
+        let mut dist: HashMap<usize, usize> = HashMap::new();
+        let mut open: Queue<usize> = Queue::new();
+        let start = 0;
+        open.push(start);
+        dist.insert(start, 0);
+        visited[start] = true;
+
+        while let Some(current) = open.pop() {
+            for &e in &adj[current] {
+                #[allow(clippy::map_entry)]
+                if !dist.contains_key(&e.dst) {
+                    visited[e.dst] = true;
+                    open.push(e.dst);
+                    dist.insert(e.dst, dist[&e.src] + 1);
+                } else {
+                    if e.dst == 0 {
+                        min_cycle = min_cycle.min(dist[&e.src] + 1 - dist[&e.dst]);
+                    }
+                }
+            }
+        }
+
+        let ans = if min_cycle == usize::MAX {
+            None
+        } else {
+            Some(min_cycle)
+        };
         Answer { ans }
     }
 
@@ -29,12 +90,16 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Option<usize>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        if let Some(ans) = self.ans {
+            println!("{}", ans);
+        } else {
+            println!("{}", -1);
+        }
     }
 }
 
@@ -180,3 +245,38 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use mod_queue::*;
+pub mod mod_queue {
+    use std::collections::VecDeque;
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct Queue<T> {
+        raw: VecDeque<T>,
+    }
+    impl<T> Queue<T> {
+        pub fn new() -> Self {
+            Queue {
+                raw: VecDeque::new(),
+            }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push_front(value)
+        }
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop_back()
+        }
+        pub fn peek(&self) -> Option<&T> {
+            self.raw.back()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.raw.is_empty()
+        }
+        pub fn len(&self) -> usize {
+            self.raw.len()
+        }
+    }
+    impl<T> Default for Queue<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+}
