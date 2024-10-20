@@ -80,6 +80,50 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        let nv = self.nv;
+
+        let adj = self
+            .es
+            .iter()
+            .copied()
+            .fold(vec![vec![]; nv], |mut acc, e| {
+                acc[e.src].push(e);
+                acc
+            });
+
+        let mut visited = vec![false; nv];
+
+        let dist = {
+            let mut dist = vec![None; nv];
+            let mut open: Queue<usize> = Queue::new();
+            let start = 0;
+            open.push(start);
+            dist[start] = Some(0);
+            visited[start] = true;
+
+            while let Some(current) = open.pop() {
+                for &e in &adj[current] {
+                    if !visited[e.dst] {
+                        visited[e.dst] = true;
+                        open.push(e.dst);
+                        dist[e.dst] = Some(dist[e.src].unwrap() + 1);
+                    }
+                }
+            }
+            dist
+        };
+        let ans = self
+            .es
+            .iter()
+            .copied()
+            .filter(|e| e.dst == 0)
+            .filter_map(|e| dist[e.src])
+            .min()
+            .map(|x| x + 1);
+
+        Answer { ans }
+    }
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -104,7 +148,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
