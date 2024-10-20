@@ -1,4 +1,6 @@
-// https://judge.yosupo.jp/problem/cycle_detection
+// 問題: https://judge.yosupo.jp/problem/cycle_detection
+// 解法: グラフのサイクル検出 (閉路検出) by DFS - けんちょんの競プロ精進記録 https://drken1215.hatenablog.com/entry/2023/05/20/200517
+
 use cargo_snippet::snippet;
 
 #[snippet]
@@ -42,7 +44,7 @@ pub mod cycle_detection {
             prev_e: Option<EdgeIndex>,
             visited_pre: &mut Vec<bool>,
             visited_post: &mut Vec<bool>,
-            history: &mut Vec<EdgeIndex>,
+            history: &mut Vec<EdgeIndex>, // 行きがけで追加して帰りがけで削除される
         ) -> Option<usize> {
             visited_pre[current_v] = true;
             if let Some(prev_e) = prev_e {
@@ -73,7 +75,7 @@ pub mod cycle_detection {
             None
         }
 
-        // 履歴からサイクルのみを抽出する
+        // 履歴 history からからサイクルのみを抽出する
         // v: サイクル検出をした頂点
         fn construct_cycle(&self, vertex_on_cycle: usize, history: &[EdgeIndex]) -> Vec<usize> {
             let mut rev_cycle = vec![];
@@ -102,6 +104,9 @@ pub mod cycle_detection {
                     &mut history,
                 );
                 if let Some(vertex_on_cycle) = vertex_on_cycle {
+                    // 閉路が存在する場合、history は以下のようになっている
+                    // start → 閉路始まり-(閉路1周)→閉路始まり
+                    // 「start → 閉路始まり」の部分を construct_cycle で消去する
                     return Some(self.construct_cycle(vertex_on_cycle, &history));
                 }
             }
