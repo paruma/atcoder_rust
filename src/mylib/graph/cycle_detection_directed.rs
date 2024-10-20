@@ -1,6 +1,9 @@
 // https://judge.yosupo.jp/problem/cycle_detection
+use cargo_snippet::snippet;
 
+#[snippet]
 pub mod cycle_detection {
+
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
     struct EdgeIndex {
         src: usize,
