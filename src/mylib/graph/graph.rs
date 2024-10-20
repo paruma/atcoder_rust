@@ -252,7 +252,7 @@ pub fn has_cycle_directed_by_topo_sort(adj: &Vec<Vec<usize>>) -> bool {
 }
 
 pub fn has_cycle_directed(adj: &Vec<Vec<usize>>) -> bool {
-    // DFS を使って有向グラフの閉路判定をする (連結性は仮定する)
+    // DFS を使って有向グラフの閉路判定をする
     fn dfs(
         adj: &[Vec<usize>],
         current: usize,
@@ -260,18 +260,20 @@ pub fn has_cycle_directed(adj: &Vec<Vec<usize>>) -> bool {
         visited_post: &mut Vec<bool>,
     ) -> bool {
         // 行きがけ
-        if visited_pre[current] && !visited_post[current] {
-            return true;
-            // 閉路がある
-        }
         visited_pre[current] = true;
 
         for &next in &adj[current] {
-            if !visited_pre[next] {
-                let has_cycle = dfs(adj, next, visited_pre, visited_post);
-                if has_cycle {
-                    return true;
-                }
+            if visited_pre[next] && !visited_post[next] {
+                // next が行きがけで訪問済だが帰りがけで未訪問: next から current に到達可能(閉路がある)
+                // 逆に next が帰りがけで訪問済の場合は、next から current に到達不可能
+                return true;
+            }
+            if visited_pre[next] {
+                continue;
+            }
+            let has_cycle = dfs(adj, next, visited_pre, visited_post);
+            if has_cycle {
+                return true;
             }
         }
         // 帰りがけ
@@ -279,7 +281,18 @@ pub fn has_cycle_directed(adj: &Vec<Vec<usize>>) -> bool {
         false
     }
     let nv = adj.len();
-    dfs(adj, 0, &mut vec![false; nv], &mut vec![false; nv])
+    let mut visited_pre = vec![false; nv];
+    let mut visited_post = vec![false; nv];
+    for start in 0..nv {
+        if visited_pre[start] {
+            continue;
+        }
+        let has_cycle = dfs(adj, start, &mut visited_pre, &mut visited_post);
+        if has_cycle {
+            return true;
+        }
+    }
+    false
 }
 
 mod tests {
@@ -595,6 +608,35 @@ mod tests {
             let edges = vec![(0, 1), (1, 2), (2, 3), (3, 4), (4, 1)];
             let adj = make_adj_from_directed(n_vertex, &edges);
             assert!(has_cycle_directed_by_topo_sort(&adj));
+            assert!(has_cycle_directed(&adj));
+        }
+        {
+            // 0 ← 1 → 2
+            //     ↑   ↓
+            //     4 → 3
+            let n_vertex = 5;
+            let edges = vec![(1, 0), (1, 2), (2, 3), (3, 4), (4, 1)];
+            let adj = make_adj_from_directed(n_vertex, &edges);
+            assert!(has_cycle_directed_by_topo_sort(&adj));
+            assert!(has_cycle_directed(&adj));
+        }
+        {
+            // 0 → 1 → 2 → 5
+            //     ↓   ↓   ↑
+            //     4 → 3 → 6
+            let n_vertex = 7;
+            let edges = vec![
+                (0, 1),
+                (1, 2),
+                (2, 3),
+                (3, 4),
+                (1, 4),
+                (2, 5),
+                (3, 6),
+                (6, 5),
+            ];
+            let adj = make_adj_from_directed(n_vertex, &edges);
+            // assert!(!has_cycle_directed_by_topo_sort(&adj));
             assert!(!has_cycle_directed(&adj));
         }
     }
