@@ -4,3 +4,4 @@ pub mod euler_tour;
 pub mod graph;
 pub mod lca;
 pub mod lca_euler_tour;
+pub mod topo_sort;
