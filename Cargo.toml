@@ -2129,6 +2129,9 @@ path = "src/contest/2024/abc356/e/e.rs"
 name = "template"
 path = "src/contest/template.rs"
 
+[[bin]]
+name = "lc_template"
+path = "src/library_checker/template.rs"
 
 hoge = """
 
