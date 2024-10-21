@@ -1,7 +1,7 @@
-// 問題: https://judge.yosupo.jp/problem/cycle_detection
+// 問題: https://judge.yosupo.jp/problem/cycle_detection_undirected
 // 解法: グラフのサイクル検出 (閉路検出) by DFS - けんちょんの競プロ精進記録 https://drken1215.hatenablog.com/entry/2023/05/20/200517
 
-pub mod cycle_detection {
+pub mod cycle_detection_undirected {
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
     struct EdgeIndex {
@@ -10,13 +10,23 @@ pub mod cycle_detection {
         idx: usize,
     }
 
-    struct CycleDetectionSolver {
+    impl EdgeIndex {
+        fn rev(self) -> Self {
+            Self {
+                src: self.dst,
+                dst: self.src,
+                idx: self.idx,
+            }
+        }
+    }
+
+    struct CycleDetectionUndirectedSolver {
         nv: usize,
         adj: Vec<Vec<EdgeIndex>>,
     }
 
-    impl CycleDetectionSolver {
-        fn new(nv: usize, edges: &[(usize, usize)]) -> CycleDetectionSolver {
+    impl CycleDetectionUndirectedSolver {
+        fn new(nv: usize, edges: &[(usize, usize)]) -> CycleDetectionUndirectedSolver {
             let edges = edges
                 .iter()
                 .copied()
@@ -29,9 +39,10 @@ pub mod cycle_detection {
                 .collect::<Vec<_>>();
             let adj = edges.iter().copied().fold(vec![vec![]; nv], |mut acc, e| {
                 acc[e.src].push(e);
+                acc[e.dst].push(e.rev());
                 acc
             });
-            CycleDetectionSolver { nv, adj }
+            CycleDetectionUndirectedSolver { nv, adj }
         }
 
         // サイクルがあったらそのサイクル上の点を返す。なければ None を返す
@@ -50,6 +61,12 @@ pub mod cycle_detection {
             }
 
             for e in &self.adj[current_v] {
+                if let Some(prev_e) = prev_e {
+                    if prev_e.idx == e.idx {
+                        //逆流を禁止する
+                        continue;
+                    }
+                }
                 if visited_pre[e.dst] && !visited_post[e.dst] {
                     // e.dst が行きがけで訪問済だが帰りがけで未訪問: e.dst から current_v に到達可能(閉路がある)
                     // 逆に e.dst が帰りがけで訪問済の場合は、e.dst から current_v に到達不可能
@@ -74,7 +91,12 @@ pub mod cycle_detection {
 
         // 履歴 history からからサイクルのみを抽出する
         // v: サイクル検出をした頂点
-        fn construct_cycle(&self, vertex_on_cycle: usize, history: &[EdgeIndex]) -> Vec<usize> {
+        // サイクルは(頂点の添字列, 辺の添字列) というペアで返す。
+        fn construct_cycle(
+            &self,
+            vertex_on_cycle: usize,
+            history: &[EdgeIndex],
+        ) -> (Vec<usize>, Vec<usize>) {
             let mut rev_cycle = vec![];
             for e in history.iter().rev() {
                 rev_cycle.push(*e);
@@ -82,10 +104,18 @@ pub mod cycle_detection {
                     break;
                 }
             }
-            rev_cycle.iter().copied().rev().map(|e| e.idx).collect()
+            let cycle = {
+                rev_cycle.reverse();
+                rev_cycle
+            };
+
+            let cycle_vertex: Vec<usize> = cycle.iter().copied().map(|e| e.src).collect();
+            let cycle_edge: Vec<usize> = cycle.iter().copied().map(|e| e.idx).collect();
+
+            (cycle_vertex, cycle_edge)
         }
 
-        fn solve(&self) -> Option<Vec<usize>> {
+        fn solve(&self) -> Option<(Vec<usize>, Vec<usize>)> {
             let mut visited_pre = vec![false; self.nv];
             let mut visited_post = vec![false; self.nv];
             for start in 0..self.nv {
@@ -111,32 +141,39 @@ pub mod cycle_detection {
         }
     }
 
-    /// 与えられた有向グラフにサイクルが存在するか判定して、存在したらサイクル上の点を返す
+    /// 与えられた有向グラフにサイクルが存在するか判定して、存在したらサイクルの情報を返す。
     ///
     /// 有向グラフは以下の２つの情報で与えられる
     /// * `nv`: 頂点の数 `nv`
     /// * `edges`: 辺のリスト。辺は始点と終点のペアで与えられる
     ///
-    /// /// 計算量: O(E+V) (V は頂点の数, E は辺の数)
-    pub fn cycle_detection(nv: usize, edges: &[(usize, usize)]) -> Option<Vec<usize>> {
-        CycleDetectionSolver::new(nv, edges).solve()
+    /// サイクルは (頂点の添字列, 辺の添字列) というペアで返す。
+    /// 具体的には以下の条件を満たす頂点の添字列 (v_0, ..., v_{L-1}) と辺の添字列 (e_0, ..., e_{L-1})で返される。
+    /// e_i は v_i と v_{i+1} を接続している(i = L のときは i + 1 = 0 として扱う)
+    ///
+    /// 計算量: O(E+V) (V は頂点の数, E は辺の数)
+    pub fn cycle_detection_undirected(
+        nv: usize,
+        edges: &[(usize, usize)],
+    ) -> Option<(Vec<usize>, Vec<usize>)> {
+        CycleDetectionUndirectedSolver::new(nv, edges).solve()
     }
 }
 
 fn main() {
-    use cycle_detection::cycle_detection;
+    use cycle_detection_undirected::cycle_detection_undirected;
     input! {
         nv: usize,
         ne: usize,
         edges: [(usize, usize); ne],
     }
 
-    let ans = cycle_detection(nv, &edges);
-    if let Some(ans) = ans {
-        println!("{}", ans.len());
-        for x in ans {
-            println!("{}", x);
-        }
+    let ans = cycle_detection_undirected(nv, &edges);
+    if let Some((vertices, edges)) = ans {
+        println!("{}", vertices.len());
+
+        print_vec_1line(&vertices);
+        print_vec_1line(&edges);
     } else {
         println!("-1");
     }
@@ -198,4 +235,14 @@ macro_rules! read_value {
     ($next:expr, $t:ty) => {
         $next().parse::<$t>().expect("Parse error")
     };
+}
+
+// ------------------入力------------------
+pub fn print_vec_1line<T: std::fmt::Debug>(arr: &[T]) {
+    let msg = arr
+        .iter()
+        .map(|x| format!("{:?}", x))
+        .collect::<Vec<String>>()
+        .join(" ");
+    println!("{}", msg);
 }
