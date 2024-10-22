@@ -48,5 +48,17 @@
 			"|$1|{$2}"
 		],
 		"description": "closure"
+	},
+	"print_option": {
+		"scope": "rust",
+		"prefix": "print_option",
+		"body": [
+			"if let Some(ans) = $1 {",
+			"    $2",
+			"} else {",
+			"    println!(\"-1\");",
+			"}",
+		],
+		"description": "closure"
 	}
 }
