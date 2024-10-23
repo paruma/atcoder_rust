@@ -60,5 +60,38 @@
 			"}",
 		],
 		"description": "closure"
+	},
+	"edge_snippet": {
+		"scope": "rust",
+		"prefix": "edge_snippet",
+		"body": [
+			"#[derive_readable]",
+			"#[derive(Clone, Copy, Debug, PartialEq, Eq)]",
+			"struct Edge {",
+			"    src: Usize1,",
+			"    dst: Usize1,",
+			"}",
+			"",
+			"impl Edge {",
+			"    fn new(src: usize, dst: usize) -> Edge {",
+			"        Edge { src, dst }",
+			"    }",
+			"    fn rev(self) -> Self {",
+			"        Edge {",
+			"            src: self.dst,",
+			"            dst: self.src,",
+			"        }",
+			"    }",
+			"}",
+			"",
+			"fn make_adj(edges: &[Edge], nv: usize) -> Vec<Vec<Edge>> {",
+			"    edges.iter().copied().fold(vec![vec![]; nv], |mut acc, e| {",
+			"        acc[e.src].push(e);",
+			"        // acc[e.dst].push(e.rev());",
+			"        acc",
+			"    })",
+			"}"
+		],
+		"description": "snippet of edge"
 	}
 }
