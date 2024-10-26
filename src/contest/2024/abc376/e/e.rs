@@ -35,12 +35,8 @@ impl Problem {
             .map(|(i, x)| (x, i))
             .collect::<BTreeSet<(i64, usize)>>();
 
-        let mut ys_bag_current = ys[0..k - 1]
-            .iter()
-            .copied()
-            .enumerate()
-            .map(|(i, y)| (y, i))
-            .collect::<BTreeSet<(i64, usize)>>();
+        // {(i, B_i) | i ∈ S} を保存する。
+        let mut ys_bag_current = (0..k - 1).map(|i| (ys[i], i)).collect::<BTreeSet<_>>();
 
         let mut ys_bag_current_sum = ys_bag_current.iter().copied().map(|(y, _)| y).sum::<i64>();
 
@@ -50,10 +46,10 @@ impl Problem {
         let mut ans = i64::MAX;
 
         while xs_bag.len() >= k {
+            // xs[i] が {xs[i] | i ∈ S} の最大値になるケースを考える。
             let (x, i) = *xs_bag.iter().max().unwrap();
             let max = x;
             let sum = if ys_bag_current.contains(&(ys[i], i)) {
-                //
                 if ys_bag_cand.is_empty() {
                     break;
                 }
@@ -64,6 +60,8 @@ impl Problem {
             };
             ans = ans.min(max * sum);
 
+            // 次からもうi番目は使えないものとして、各種集合から remove していく。
+            // (i番目が xs の最大値にならないようにようするためにそうする。)
             xs_bag.remove(&(x, i));
             ys_bag_cand.remove(&(ys[i], i));
 
@@ -77,6 +75,46 @@ impl Problem {
                 ys_bag_cand.remove(&(y, yi));
                 ys_bag_current_sum += y;
             }
+        }
+
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // 想定解法
+        // A でソートして、
+
+        let n = self.n;
+        let k = self.k;
+        let xys = izip!(&self.xs, &self.ys)
+            .map(|(x, y)| (*x, *y))
+            .sorted_by_key(|(x, _y)| *x)
+            .collect_vec();
+
+        let xs = xys.iter().copied().map(|(x, _)| x).collect_vec();
+        let ys = xys.iter().copied().map(|(_, y)| y).collect_vec();
+
+        // 小さい方からk-1個入れる
+        let mut ys_bag = BinaryHeap::new();
+        let mut ys_bag_sum = 0;
+
+        for i in 0..k - 1 {
+            ys_bag.push(ys[i]);
+            ys_bag_sum += ys[i];
+        }
+
+        let mut ans = i64::MAX;
+
+        for i in k - 1..n {
+            let max = xs[i];
+            let sum = ys_bag_sum + ys[i];
+            ans = ans.min(max * sum);
+
+            ys_bag.push(ys[i]);
+            ys_bag_sum += ys[i];
+
+            let poped_y = ys_bag.pop().unwrap();
+            ys_bag_sum -= poped_y;
         }
 
         Answer { ans }
@@ -143,7 +181,7 @@ fn main() {
         t: usize
     }
     for _ in 0..t {
-        Problem::read().solve().print();
+        Problem::read().solve2().print();
     }
 }
 
@@ -235,9 +273,9 @@ use proconio::{
 };
 #[allow(unused_imports)]
 use std::cmp::Reverse;
-use std::collections::BTreeSet;
 #[allow(unused_imports)]
 use std::collections::{BinaryHeap, HashMap, HashSet};
+use std::{collections::BTreeSet, i64};
 
 // ====== output func ======
 #[allow(unused_imports)]

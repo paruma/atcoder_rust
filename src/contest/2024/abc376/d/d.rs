@@ -16,6 +16,7 @@ impl Edge {
         }
     }
 }
+
 #[derive(Debug, Clone)]
 struct Problem {
     nv: usize,
