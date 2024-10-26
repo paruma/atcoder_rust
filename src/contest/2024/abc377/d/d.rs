@@ -1,21 +1,61 @@
-//#[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Segment {
+    l: Usize1,
+    r: Usize1,
+}
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    m: usize,
+    segs: Vec<Segment>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            m: usize,
+            segs: [Segment; n]
         }
-        Problem { n, xs }
+        Problem { n, m, segs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let m = self.m;
+        let segs = &self.segs;
+        let mut segs = segs
+            .iter()
+            .copied()
+            .map(|s| (s.l, s.r))
+            .collect::<BTreeSet<(usize, usize)>>();
+        let mut rights = segs
+            .iter()
+            .copied()
+            .map(|(left, right)| right)
+            .collect::<BTreeMultiSet<usize>>();
+
+        rights.insert(m); // 番兵
+
+        let mut ans = 0;
+
+        for l in 0..m {
+            // segs にある左が l 以下の seg を取り消す
+            let (seg_r, _cnt) = rights.iter().min().unwrap();
+
+            let ans_sub = seg_r - l;
+            ans += ans_sub;
+
+            while let Some(&(seg_l, seg_r)) = segs.iter().min() {
+                if seg_l <= l {
+                    segs.remove(&(seg_l, seg_r));
+                    rights.remove1(&seg_r);
+                } else {
+                    break;
+                }
+            }
+        }
         Answer { ans }
     }
 
@@ -29,7 +69,7 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: usize,
 }
 
 impl Answer {
@@ -128,6 +168,7 @@ use proconio::{
 };
 #[allow(unused_imports)]
 use std::cmp::Reverse;
+use std::collections::BTreeSet;
 #[allow(unused_imports)]
 use std::collections::{BinaryHeap, HashMap, HashSet};
 
@@ -180,3 +221,98 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use btree_multiset::*;
+#[allow(clippy::module_inception)]
+pub mod btree_multiset {
+    use std::{
+        borrow::Borrow,
+        collections::{btree_map::Range, BTreeMap},
+        ops::RangeBounds,
+    };
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct BTreeMultiSet<T> {
+        map: BTreeMap<T, usize>,
+        length: usize,
+    }
+    impl<T> BTreeMultiSet<T> {
+        pub const fn new() -> BTreeMultiSet<T> {
+            BTreeMultiSet {
+                map: BTreeMap::new(),
+                length: 0,
+            }
+        }
+        pub fn range<R>(&self, range: R) -> Range<'_, T, usize>
+        where
+            T: Ord,
+            R: RangeBounds<T>,
+        {
+            self.map.range(range)
+        }
+        pub fn iter(&self) -> impl Iterator<Item = (&T, &usize)> {
+            self.map.iter()
+        }
+        pub fn insert(&mut self, value: T)
+        where
+            T: Ord,
+        {
+            *self.map.entry(value).or_insert(0) += 1;
+            self.length += 1;
+        }
+        pub fn remove1<Q: ?Sized>(&mut self, value: &Q) -> bool
+        where
+            T: Borrow<Q> + Ord,
+            Q: Ord,
+        {
+            if let Some(cnt) = self.map.get_mut(value) {
+                *cnt -= 1;
+                if *cnt == 0 {
+                    self.map.remove(value);
+                }
+                self.length -= 1;
+                return true;
+            }
+            false
+        }
+        pub fn remove_all<Q: ?Sized>(&mut self, value: &Q) -> bool
+        where
+            T: Borrow<Q> + Ord,
+            Q: Ord,
+        {
+            if let Some(cnt) = self.map.get(value) {
+                self.length -= cnt;
+                self.map.remove(value);
+                return true;
+            }
+            false
+        }
+        pub fn len(&self) -> usize {
+            self.length
+        }
+        pub fn is_empty(&self) -> bool {
+            self.length == 0
+        }
+        pub fn count<Q: ?Sized>(&self, value: &Q) -> usize
+        where
+            T: Borrow<Q> + Ord,
+            Q: Ord,
+        {
+            self.map.get(value).copied().unwrap_or(0)
+        }
+        pub fn contains<Q: ?Sized>(&self, value: &Q) -> bool
+        where
+            T: Borrow<Q> + Ord,
+            Q: Ord,
+        {
+            self.map.contains_key(value)
+        }
+    }
+    impl<T: Ord> FromIterator<T> for BTreeMultiSet<T> {
+        fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> BTreeMultiSet<T> {
+            let mut set = BTreeMultiSet::new();
+            for x in iter {
+                set.insert(x);
+            }
+            set
+        }
+    }
+}

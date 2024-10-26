@@ -2,20 +2,63 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    k: i64,
+    ps: Vec<usize>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            k: i64,
+            ps: [Usize1; n],
         }
-        Problem { n, xs }
+        Problem { n, k, ps }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let k = self.k;
+        let ps = &self.ps;
+
+        let mut uf = UnionFind::new(n);
+
+        for (i, p) in ps.iter().copied().enumerate() {
+            uf.unite(i, p);
+        }
+        let groups = uf.groups();
+        //dbg!(&groups);
+
+        let mut ans = vec![usize::MAX; n];
+
+        for group in groups {
+            // group 内 で 2^k をする。
+            // 2^k mod |group| を求めたい。
+            let group = {
+                let start = group[0];
+                let mut group = vec![start];
+
+                let mut current = start;
+                loop {
+                    current = ps[current];
+                    if current == start {
+                        break;
+                    }
+                    group.push(current);
+                }
+                group
+            };
+
+            //dbg!(&group);
+            let step = pow_mod(2, k, group.len() as u32) as usize;
+            //dbg!(step);
+            for i in 0..group.len() {
+                //dbg!(group[i]);
+                //dbg!(group[(i + step) % group.len()]);
+                ans[group[i]] = group[(i + step) % group.len()];
+            }
+        }
+
         Answer { ans }
     }
 
@@ -29,12 +72,13 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<usize>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        let ans = self.ans.iter().copied().map(|x| x + 1).collect_vec();
+        print_vec_1line(&ans);
     }
 }
 
@@ -118,6 +162,7 @@ mod tests {
     }
 }
 
+use ac_library::pow_mod;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
@@ -180,3 +225,109 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use simple_union_find::*;
+pub mod simple_union_find {
+    use itertools::Itertools;
+    #[derive(Clone, Debug)]
+    struct RootInfo {
+        count: usize,
+    }
+    #[derive(Clone, Debug)]
+    struct NonRootInfo {
+        parent: usize,
+    }
+    #[derive(Clone, Debug)]
+    enum Node {
+        Root(RootInfo),
+        NonRoot(NonRootInfo),
+    }
+    impl Node {
+        fn root(count: usize) -> Node {
+            Node::Root(RootInfo { count })
+        }
+        fn non_root(parent: usize) -> Node {
+            Node::NonRoot(NonRootInfo { parent })
+        }
+        fn as_root(&self) -> &RootInfo {
+            match self {
+                Node::Root(info) => info,
+                Node::NonRoot(_) => panic!(),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct UnionFind {
+        nodes: Vec<Node>,
+        cnt_groups: usize,
+    }
+    impl UnionFind {
+        pub fn new(n: usize) -> UnionFind {
+            let nodes = (0..n).map(|_| Node::root(1)).collect_vec();
+            UnionFind {
+                nodes,
+                cnt_groups: n,
+            }
+        }
+        pub fn root(&mut self, index: usize) -> usize {
+            match &self.nodes[index] {
+                Node::Root(_) => index,
+                Node::NonRoot(info) => {
+                    let root = self.root(info.parent);
+                    self.nodes[index] = Node::non_root(root);
+                    root
+                }
+            }
+        }
+        pub fn same_count(&mut self, index: usize) -> usize {
+            let root_index = self.root(index);
+            self.nodes[root_index].as_root().count
+        }
+        pub fn same(&mut self, x: usize, y: usize) -> bool {
+            self.root(x) == self.root(y)
+        }
+        pub fn num_groups(&self) -> usize {
+            self.cnt_groups
+        }
+        pub fn unite(&mut self, x: usize, y: usize) -> bool {
+            if self.same(x, y) {
+                return false;
+            }
+            self.cnt_groups -= 1;
+            let (smaller_root, larger_root) = {
+                let x_root = self.root(x);
+                let y_root = self.root(y);
+                let x_count = self.nodes[x_root].as_root().count;
+                let y_count = self.nodes[y_root].as_root().count;
+                if x_count < y_count {
+                    (x_root, y_root)
+                } else {
+                    (y_root, x_root)
+                }
+            };
+            let count_sum =
+                self.nodes[smaller_root].as_root().count + self.nodes[larger_root].as_root().count;
+            self.nodes[smaller_root] = Node::non_root(larger_root);
+            self.nodes[larger_root] = Node::root(count_sum);
+            true
+        }
+        pub fn groups(&mut self) -> Vec<Vec<usize>> {
+            let n = self.nodes.len();
+            let roots = (0..n).map(|i| self.root(i)).collect_vec();
+            let group_size = (0..n).map(|i| roots[i]).fold(vec![0; n], |mut acc, x| {
+                acc[x] += 1;
+                acc
+            });
+            let result = {
+                let mut result = vec![Vec::new(); n];
+                for i in 0..n {
+                    result[i].reserve(group_size[i]);
+                }
+                for i in 0..n {
+                    result[roots[i]].push(i);
+                }
+                result
+            };
+            result.into_iter().filter(|x| !x.is_empty()).collect_vec()
+        }
+    }
+}

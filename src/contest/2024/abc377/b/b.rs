@@ -1,21 +1,34 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    board: Vec<Vec<char>>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            board: [Chars; 8]
         }
-        Problem { n, xs }
+        Problem { board }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let board = &self.board;
+        let mut board_bool = vec![vec![true; 8]; 8];
+
+        for y in 0..8 {
+            for x in 0..8 {
+                if board[y][x] == '#' {
+                    for y1 in 0..8 {
+                        board_bool[y1][x] = false;
+                    }
+                    for x1 in 0..8 {
+                        board_bool[y][x1] = false;
+                    }
+                }
+            }
+        }
+        let ans = board_bool.iter().flatten().filter(|p| **p).count() as i64;
         Answer { ans }
     }
 
