@@ -2,6 +2,7 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
+    m: i64,
     xs: Vec<i64>,
 }
 
@@ -9,13 +10,58 @@ impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
+            m: i64,
             xs: [i64; n],
         }
-        Problem { n, xs }
+        Problem { n, m, xs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let m = self.m;
+        let cumsum = self
+            .xs
+            .iter()
+            .copied()
+            .scanl(0_i64, |acc, x| (*acc + x) % m)
+            .collect_vec();
+
+        let term1 = (1..n)
+            .map(|l| (2 * l as i64 - n as i64) * cumsum[l])
+            .sum::<i64>()
+            + (n as i64) * cumsum[n]
+            - (n as i64) * cumsum[0];
+
+        // let term1_naive = (0..n)
+        //     .map(|l| (l..n).map(|r| cumsum[r + 1] - cumsum[l]).sum::<i64>())
+        //     .sum::<i64>();
+
+        let term2 = {
+            //
+            let mut cnt = 0;
+            let mut fenwick = FenwickTree::new(m as usize, 0_i64);
+
+            for r in 0..n {
+                fenwick.add(cumsum[r] as usize, 1);
+                // dbg!(fenwick_tree_to_vec(&fenwick, m as usize));
+                cnt += fenwick.sum((cumsum[r + 1] as usize + 1)..);
+            }
+
+            for &s in &cumsum {
+                fenwick.add(s as usize, 1)
+            }
+
+            //dbg!(cnt);
+
+            m * cnt
+        };
+
+        //dbg!(term1);
+        // dbg!(term2);
+        //dbg!(term1_naive);
+
+        // dbg!(&cumsum);
+        let ans = term1 + term2;
         Answer { ans }
     }
 
@@ -118,6 +164,7 @@ mod tests {
     }
 }
 
+use ac_library::FenwickTree;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
@@ -180,3 +227,54 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use scan_iter::*;
+pub mod scan_iter {
+    #[derive(Clone)]
+    pub struct Scanl<I, B, F> {
+        iter: I,
+        state: Option<B>,
+        f: F,
+    }
+    impl<I, B, F> Scanl<I, B, F> {
+        fn new(iter: I, init: B, f: F) -> Scanl<I, B, F> {
+            Scanl {
+                iter,
+                state: Some(init),
+                f,
+            }
+        }
+    }
+    impl<I, B, F> Iterator for Scanl<I, B, F>
+    where
+        B: Copy,
+        I: Iterator,
+        F: FnMut(&mut B, I::Item) -> B,
+    {
+        type Item = B;
+        #[inline]
+        fn next(&mut self) -> Option<B> {
+            let retval = self.state?;
+            let a_opt = self.iter.next();
+            self.state = self
+                .state
+                .and_then(|mut s| a_opt.map(|a| (self.f)(&mut s, a)));
+            Some(retval)
+        }
+    }
+    pub trait IteratorExtScanLeft: Iterator + Sized {
+        fn scanl<B, F>(self, init: B, f: F) -> Scanl<Self, B, F>
+        where
+            Self: Sized,
+            F: FnMut(&mut B, Self::Item) -> B,
+        {
+            Scanl::new(self, init, f)
+        }
+    }
+    impl<T: Iterator> IteratorExtScanLeft for T {}
+}
+pub fn fenwick_tree_to_vec<T>(fenwick_tree: &ac_library::FenwickTree<T>, len: usize) -> Vec<T>
+where
+    T: Clone + std::ops::AddAssign<T> + std::ops::Sub<Output = T>,
+{
+    (0..len).map(|i| fenwick_tree.sum(i..=i)).collect()
+}

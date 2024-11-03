@@ -1,21 +1,53 @@
-//#[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct CollectionTiming {
+    q: i64, // q で割ったあまりが
+    r: i64, // r の日に回収する
+}
+
+impl CollectionTiming {
+    fn next_collect(self, day: i64) -> i64 {
+        if day % self.q == self.r {
+            day
+        } else {
+            (day + self.q - self.r) / self.q * self.q + self.r
+        }
+    }
+}
+
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Query {
+    t: Usize1, // t番目のゴミを
+    d: i64,    // d日目に出す
+}
+
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    timing: Vec<CollectionTiming>,
+    nq: usize,
+    qs: Vec<Query>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            timing: [CollectionTiming; n],
+            nq: usize,
+            qs: [Query; nq],
         }
-        Problem { n, xs }
+        Problem { n, timing, nq, qs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = self
+            .qs
+            .iter()
+            .copied()
+            .map(|q| self.timing[q.t].next_collect(q.d))
+            .collect_vec();
         Answer { ans }
     }
 
@@ -29,12 +61,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec(&self.ans);
     }
 }
 

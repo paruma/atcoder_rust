@@ -15,7 +15,25 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let mut map = HashMap::<i64, Option<usize>>::new();
+
+        let mut ans = vec![];
+        for (i, x) in self.xs.iter().copied().enumerate() {
+            ans.push(map.get(&x).copied().flatten());
+            *map.entry(x).or_insert(None) = Some(i);
+        }
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        let mut map = HashMap::<i64, usize>::new();
+
+        let mut ans = vec![];
+        for (i, x) in self.xs.iter().copied().enumerate() {
+            ans.push(map.get(&x).copied());
+            //*map.entry(x).or_insert(0) = i;
+            map.insert(x, i);
+        }
         Answer { ans }
     }
 
@@ -29,17 +47,23 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<Option<usize>>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        let ans = self
+            .ans
+            .iter()
+            .copied()
+            .map(|x| x.map(|x| (x + 1) as i64).unwrap_or(-1))
+            .collect_vec();
+        print_vec_1line(&ans);
     }
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]

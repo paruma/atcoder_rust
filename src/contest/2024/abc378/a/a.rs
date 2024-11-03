@@ -1,21 +1,25 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    xs: Vec<usize>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            xs: [Usize1; 4],
         }
-        Problem { n, xs }
+        Problem { xs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let xs = &self.xs;
+        let mut color_cnt = vec![0; 4];
+        for x in xs {
+            color_cnt[*x] += 1;
+        }
+
+        let ans = color_cnt.iter().copied().map(|cnt| cnt / 2).sum::<usize>() as i64;
         Answer { ans }
     }
 
