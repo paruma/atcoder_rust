@@ -22,6 +22,8 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
+        // l を固定して、条件を満たす r の数を数える。
+        // l は昇順に考えた (l を降順または r を昇順に考えるほうが楽)
         let n = self.n;
         let m = self.m;
         let segs = &self.segs;
@@ -59,6 +61,33 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        // r を固定して、条件を満たす l の数を数える。
+        // r は昇順に考えた
+        let m = self.m;
+
+        let segs_by_r = self
+            .segs
+            .iter()
+            .copied()
+            .fold(vec![vec![]; self.m], |mut acc, seg| {
+                acc[seg.r].push(seg);
+                acc
+            });
+
+        let mut min_l = 0; // 各 r に対してどこまで l を左に伸ばせるか
+        let mut ans = 0;
+
+        for r in 0..m {
+            for seg in &segs_by_r[r] {
+                min_l = min_l.max(seg.l + 1);
+            }
+            ans += r + 1 - min_l;
+        }
+
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -79,7 +108,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
