@@ -31,7 +31,7 @@ fn permutations_with_replacement(n: usize, r: usize) -> Vec<Vec<usize>> {
             }
 
             for i in 0..self.n {
-                seq.push(i);
+                seq.push(i); // caller で状態(seq)を管理する
                 self.exec_rec(seq, seq_list);
                 seq.pop();
             }

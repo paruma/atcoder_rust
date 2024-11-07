@@ -13,6 +13,18 @@ impl CollectionTiming {
             (day + self.q - self.r) / self.q * self.q + self.r
         }
     }
+
+    fn next_collect2(self, day: i64) -> i64 {
+        // 回収日はある整数nを用いて n*q + r と書ける。
+        // (n-1)*q + r < day <= n*q + r を満たすので、
+        // そういうn を求めて、n*q + rを計算すれば良い。
+        // (n-1)*q + r < day <= n*q + r は
+        // n-1 < (day -r)/q <= n と同値。 (割り算は実数の意味での割り算で切り捨てしない)
+        // これは天井関数の特徴づけそのもの
+
+        let n = num_integer::div_ceil(day - self.r, self.q);
+        n * self.q + self.r
+    }
 }
 
 #[derive_readable]
@@ -46,7 +58,7 @@ impl Problem {
             .qs
             .iter()
             .copied()
-            .map(|q| self.timing[q.t].next_collect(q.d))
+            .map(|q| self.timing[q.t].next_collect2(q.d))
             .collect_vec();
         Answer { ans }
     }

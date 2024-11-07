@@ -12,18 +12,13 @@ struct DfsPermutationsWithReplacement {
     w: usize,
     k: usize,
     grid: Vec<Vec<char>>,
-    // n個のものから重複を許してr個取る順列 n^r
-    //n: usize,
-    //r: usize,
 }
 
-// これは非再帰（Stack）だと書きにくい？
 impl DfsPermutationsWithReplacement {
     fn new(h: usize, w: usize, k: usize, grid: Vec<Vec<char>>) -> Self {
         Self { h, w, k, grid }
     }
 
-    /// 計算量: O(n^r)
     fn exec(&self) -> usize {
         let mut cnt = 0;
         for y in 0..self.h {
@@ -32,9 +27,13 @@ impl DfsPermutationsWithReplacement {
                 if !self.can_move(init) {
                     continue;
                 }
+                // visited は HashSet<Pos<i64>> で管理してもよい（カウントが楽になるので）
+                // ただし、遅くなる。
+                // Vec<Vec<bool>> だと 56ms なのに対して、
+                // HashSet<Pos<i64>> だと 545 ms になる。
                 let mut visited: Vec<Vec<bool>> = vec![vec![false; self.w]; self.h];
-                let cnt_current = self.exec_rec(init, &mut visited, 0);
-                //dbg!(cnt_current);
+                *visited.at_mut(init) = true; // visited は caller が管理する
+                let cnt_current = self.exec_rec(init, &mut visited, 1);
                 cnt += cnt_current;
             }
         }
@@ -49,15 +48,7 @@ impl DfsPermutationsWithReplacement {
         self.is_within(pos) && *self.grid.at(pos) == '.'
     }
 
-    // seq が現在の状態、seq_list が結果の蓄積物
-    fn exec_rec(
-        &self,
-        pos: Pos<i64>,
-        visited: &mut Vec<Vec<bool>>,
-        mut cnt_visited: usize,
-    ) -> usize {
-        *visited.at_mut(pos) = true;// ここいる？
-        cnt_visited += 1;
+    fn exec_rec(&self, pos: Pos<i64>, visited: &mut Vec<Vec<bool>>, cnt_visited: usize) -> usize {
         if cnt_visited == self.k + 1 {
             return 1;
         }
@@ -69,7 +60,7 @@ impl DfsPermutationsWithReplacement {
                 continue;
             }
             *visited.at_mut(next) = true;
-            cnt += self.exec_rec(next, visited, cnt_visited);
+            cnt += self.exec_rec(next, visited, cnt_visited + 1);
             *visited.at_mut(next) = false;
         }
         cnt
