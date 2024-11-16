@@ -2,20 +2,31 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    k: usize,
+    xs: Vec<char>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            k: usize,
+            xs: Chars,
         }
-        Problem { n, xs }
+        Problem { n, k, xs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let k = self.k;
+        let run_length = self.xs.iter().copied().dedup_with_count().collect_vec();
+
+        let ans = run_length
+            .iter()
+            .copied()
+            .filter_map(|(cnt, ch)| (ch == 'O').then_some(cnt))
+            .map(|cnt| cnt / k)
+            .sum::<usize>();
+        let ans = ans as i64;
         Answer { ans }
     }
 

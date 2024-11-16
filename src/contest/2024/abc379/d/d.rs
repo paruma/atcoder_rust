@@ -1,21 +1,80 @@
 //#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Query {
+    Plant,
+    Wait(i64),
+    Harvest(i64),
+}
+
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    nq: usize,
+    qs: Vec<Query>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            nq: usize,
         }
-        Problem { n, xs }
+
+        let qs = (0..nq)
+            .map(|_| {
+                input! {
+                    t: usize,
+                }
+                match t {
+                    1 => Query::Plant,
+                    2 => {
+                        input! {
+                            t: i64,
+                        }
+                        Query::Wait(t)
+                    }
+                    3 => {
+                        input! {
+                            h: i64,
+                        }
+                        Query::Harvest(h)
+                    }
+                    _ => panic!(),
+                }
+            })
+            .collect_vec();
+        Problem { nq, qs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let qs = &self.qs;
+        let mut ans = vec![];
+
+        let mut time = 0;
+        let mut pq = BinaryHeap::new();
+
+        for &q in qs {
+            match q {
+                Query::Plant => {
+                    pq.push(Reverse(time));
+                }
+                Query::Wait(t) => {
+                    time += t;
+                }
+                Query::Harvest(h) => {
+                    let mut cnt = 0;
+                    while let Some(&Reverse(t)) = pq.peek() {
+                        // t は植えた時間
+                        let duration = time - t;
+                        if duration >= h {
+                            cnt += 1;
+                            pq.pop();
+                        } else {
+                            break;
+                        }
+                    }
+                    ans.push(cnt);
+                }
+            }
+        }
         Answer { ans }
     }
 
@@ -29,12 +88,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec(&self.ans);
     }
 }
 

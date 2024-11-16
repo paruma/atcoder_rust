@@ -9,13 +9,44 @@ impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            xs: Bytes,
         }
+        let xs = xs.iter().copied().map(|x| (x - b'0') as i64).collect_vec();
         Problem { n, xs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let xs = &self.xs;
+
+        let mut ans = vec![0; n];
+        ans[0] = xs[0];
+
+        for i in 1..n {
+            ans[i] = ans[i - 1] + xs[i] * (i as i64 + 1);
+        }
+
+        ans.reverse();
+        // 繰り上がり処理をやる
+
+        for i in 0.. {
+            let tmp = ans[i] / 10;
+            ans[i] %= 10;
+            if ans.len() == i + 1 {
+                if tmp == 0 {
+                    break;
+                }
+                ans.push(0);
+            }
+
+            ans[i + 1] += tmp;
+        }
+
+        ans.reverse();
+        //dbg!(&ans);
+
+        // 繰り上がり処理
+
         Answer { ans }
     }
 
@@ -29,12 +60,18 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        let msg = self
+            .ans
+            .iter()
+            .copied()
+            .map(|x| (x as u8) + b'0')
+            .collect_vec();
+        print_bytes(&msg);
     }
 }
 

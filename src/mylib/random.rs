@@ -1,6 +1,6 @@
 use cargo_snippet::snippet;
 
-#[snippet]
+#[snippet(prefix = "use random_test::*;")]
 pub mod random_test {
     use std::{collections::HashSet, hash::Hash};
 

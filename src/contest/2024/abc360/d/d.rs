@@ -132,7 +132,7 @@ impl Problem {
             .collect_vec();
 
         fn inversion_number(xs: &[i64]) -> usize {
-            // i < j で xs[i] >= ys[j] となる (i, j) の組 (通常の転倒数と少し違う)
+            // i < j で xs[i] >= xs[j] となる (i, j) の組 (通常の転倒数と少し違う)
             let cc = CoordinateCompression::new(xs);
             let xs_cc = cc.compress_vec(xs);
             let mut bit = FenwickTree::new(cc.space_size(), 0);

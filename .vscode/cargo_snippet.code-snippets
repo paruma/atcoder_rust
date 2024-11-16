@@ -5387,6 +5387,7 @@
     "scope": "rust",
     "prefix": "random_test",
     "body": [
+      "use random_test::*;",
       "pub mod random_test {",
       "    use itertools::Itertools;",
       "    use num::Integer;",
