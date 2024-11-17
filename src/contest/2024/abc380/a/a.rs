@@ -1,21 +1,22 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    n: Vec<char>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            n: Chars,
         }
-        Problem { n, xs }
+        Problem { n }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = &self.n;
+        let cnts = self.n.iter().copied().counts();
+        let ans =
+            cnts.get(&'1') == Some(&1) && cnts.get(&'2') == Some(&2) && cnts.get(&'3') == Some(&3);
         Answer { ans }
     }
 
@@ -29,12 +30,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_yesno(self.ans);
     }
 }
 

@@ -1,21 +1,47 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    s: Vec<char>,
+    nq: usize,
+    qs: Vec<usize>,
+}
+
+fn trans(ch: char) -> char {
+    if ch.is_ascii_lowercase() {
+        ch.to_ascii_uppercase()
+    } else {
+        ch.to_ascii_lowercase()
+    }
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            s: Chars,
+            nq: usize,
+            qs: [Usize1; nq]
         }
-        Problem { n, xs }
+        Problem { s, nq, qs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let s = &self.s;
+        let ans = self
+            .qs
+            .iter()
+            .copied()
+            .map(|k| {
+                //
+                let qu = k / s.len(); // 何ループ目？
+                let rem = k % s.len();
+
+                if qu.count_ones() % 2 == 0 {
+                    s[rem]
+                } else {
+                    trans(s[rem])
+                }
+            })
+            .collect_vec();
         Answer { ans }
     }
 
@@ -29,12 +55,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<char>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        println!("{}", self.ans.iter().join(" "));
     }
 }
 

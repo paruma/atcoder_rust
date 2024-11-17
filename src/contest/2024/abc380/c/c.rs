@@ -2,20 +2,40 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    k: usize,
+    s: Vec<char>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            k: usize,
+            s: Chars,
         }
-        Problem { n, xs }
+        Problem { n, k, s }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let k = self.k;
+        let s = &self.s;
+
+        let mut run_length = s.iter().copied().dedup_with_count().collect_vec();
+
+        let idx_kth_1 = if run_length[0].1 == '0' {
+            2 * k - 1
+        } else {
+            2 * k - 2
+        };
+
+        run_length.swap(idx_kth_1 - 1, idx_kth_1);
+
+        let ans = run_length
+            .iter()
+            .copied()
+            .flat_map(|(cnt, ch)| std::iter::repeat(ch).take(cnt))
+            .collect_vec();
         Answer { ans }
     }
 
@@ -29,12 +49,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<char>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_chars(&self.ans);
     }
 }
 
