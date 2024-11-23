@@ -2,20 +2,36 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    k: usize,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            k: usize,
         }
-        Problem { n, xs }
+        Problem { n, k }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let k = self.k;
+        let ans = if n % 2 == 1 {
+            true
+        } else {
+            let n2 = n / 2;
+            let x = num_integer::gcd(2 * k, n);
+            if (n / 2) % x == 0 {
+                x == 1
+            //
+            } else {
+                x == 2
+            }
+            //((k * 2) % n).gcd(&n2) == 1
+        };
+
+        // let ans = num_integer::gcd(n, (k * 2) % n) == 1;
         Answer { ans }
     }
 
@@ -29,17 +45,22 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_yesno(self.ans);
     }
 }
 
 fn main() {
-    Problem::read().solve().print();
+    input! {
+        t: usize
+    }
+    for _ in 0..t {
+        Problem::read().solve().print();
+    }
 }
 
 #[cfg(test)]
@@ -121,6 +142,7 @@ mod tests {
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
+use num::Integer;
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,

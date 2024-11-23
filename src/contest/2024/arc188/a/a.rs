@@ -2,28 +2,74 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    k: usize,
+    xs: Vec<char>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            k: usize,
+            xs: Chars,
         }
-        Problem { n, xs }
+        Problem { n, k, xs }
     }
 
     fn solve(&self) -> Answer {
+        use ac_library::ModInt998244353 as Mint;
         let ans = 0;
         Answer { ans }
     }
 
+    fn solve_naive_sub(zs: &[char]) -> usize {
+        // よい部分文字列の個数
+        let mut cnt = 0;
+        for begin in 0..zs.len() {
+            for end in begin + 1..=zs.len() {
+                let ws = &zs[begin..end];
+                let cnts = (0..3)
+                    .map(|i| {
+                        let ch = (b'A' + i) as char;
+                        ws.iter().filter(|x| **x == ch).count()
+                    })
+                    .collect_vec();
+                if cnts.iter().copied().map(|cnt| cnt % 2).all_equal() {
+                    cnt += 1;
+                }
+            }
+        }
+        cnt
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
-        todo!();
-        // let ans = 0;
-        // Answer { ans }
+        let n = self.n;
+        let k = self.k;
+        let xs = &self.xs;
+
+        let cnt_q = xs.iter().copied().filter(|&ch| ch == '?').count();
+
+        let ans = std::iter::repeat(['A', 'B', 'C'])
+            .take(cnt_q)
+            .multi_cartesian_product()
+            .filter(|ys| {
+                let mut zs = vec!['-'; n];
+                let mut cnt_q = 0;
+
+                for i in 0..n {
+                    if xs[i] == '?' {
+                        zs[i] = ys[cnt_q];
+                        cnt_q += 1;
+                    } else {
+                        zs[i] = xs[i]
+                    }
+                }
+                dbg!(ys.iter().join(""));
+                dbg!(Problem::solve_naive_sub(&zs)) >= k
+            })
+            .count() as i64;
+        Answer { ans }
     }
 }
 
@@ -39,7 +85,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve_naive().print();
 }
 
 #[cfg(test)]
