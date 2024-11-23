@@ -9,33 +9,59 @@ fn solve_sub2(xs: &[usize]) -> usize {
     if xs.is_empty() {
         return 0;
     }
-    let max_xs = xs.iter().copied().max().unwrap();
-
-    // TODO: HashMap にしないといけない
-    let mut prev: HashMap<usize, usize> = HashMap::new();
+    let mut prev_map: HashMap<usize, usize> = HashMap::new();
 
     let mut begin = 0;
-    // let mut current_cnt = 0;
     let mut max_cnt = 0;
 
     for i in 0..xs.len() {
-        //dbg!(&prev);
-        //dbg!(begin);
-        if let Some(p) = prev.get(&xs[i]) {
-            max_cnt = max_cnt.max(i - begin);
-            begin = begin.max(p + 1);
+        if let Some(prev) = prev_map.get(&xs[i]) {
+            max_cnt = max_cnt.max(i - begin); // 区間 [begin, i) の長さで更新する
+            begin = begin.max(prev + 1);
         }
-        *prev.entry(xs[i]).or_default() = i;
+        prev_map.insert(xs[i], i);
     }
-
-    //dbg!(xs.len());
-    //dbg!(begin);
-    max_cnt = max_cnt.max(xs.len() - begin);
+    max_cnt = max_cnt.max(xs.len() - begin); // 区間 [begin, xs.len()) の長さで更新する
 
     max_cnt
 }
 
-fn solve_sub1(xs: &[Option<usize>]) -> usize {
+fn solve_sub22(xs: &[usize]) -> usize {
+    // 尺取法
+    if xs.is_empty() {
+        return 0;
+    }
+
+    let mut begin = 0;
+    let mut end = 0;
+    let mut set = HashSet::new(); // xs[begin..end] を集合にしたもの
+    let mut max_len = 0;
+    while begin < xs.len() {
+        // xs[begin..end] が all unique であるように end を動かす
+        while end < xs.len() {
+            if set.contains(&xs[end]) {
+                break;
+            }
+
+            set.insert(&xs[end]);
+            end += 1;
+        }
+
+        max_len = max_len.max(end - begin);
+
+        if begin == end {
+            begin += 1;
+            end += 1;
+        } else {
+            set.remove(&xs[begin]);
+            begin += 1;
+        }
+    }
+    max_len
+}
+
+fn solve_sub1_old(xs: &[Option<usize>]) -> usize {
+    // None で分けて計算をする
     let mut buf = vec![];
     let mut max = 0;
 
@@ -50,6 +76,16 @@ fn solve_sub1(xs: &[Option<usize>]) -> usize {
 
     max = max.max(solve_sub2(&buf));
     max
+}
+
+fn solve_sub1(xs: &[Option<usize>]) -> usize {
+    xs.split(|x| x.is_none())
+        .map(|chunk| {
+            let chunk = chunk.iter().copied().map(|x| x.unwrap()).collect_vec();
+            solve_sub22(&chunk)
+        })
+        .max()
+        .unwrap()
 }
 
 fn solve_naive_sub(s: &[usize]) -> bool {

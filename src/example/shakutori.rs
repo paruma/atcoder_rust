@@ -2,31 +2,28 @@
 
 use std::collections::HashMap;
 
+use hashbag::HashBag;
 use itertools::Itertools;
 
 /// 数列 xs の部分列で種類数が k 以下になる最大の長さを求める
 /// 参考: 【ゆっくり解説】尺取り法と二分探索の「本当の」違い - YouTube https://www.youtube.com/watch?v=omD-yyb730k
 fn solve1(xs: &[i64], k: usize) -> usize {
     let n = xs.len();
-    let mut begin = 0;
+    let mut begin = 0; // [begin, end) の半開区間を考える
     let mut end = 0;
-    let mut cnt_table: HashMap<i64, usize> = HashMap::new();
-    let mut distinct_cnt = 0;
+    let mut bag = HashBag::<i64>::new();
     let mut max_len = 0;
 
     while begin < n {
         // begin..end が条件を満たす範囲で end を繰り返し進める
         while end < n {
-            // distinct_cnt が k + 1 になりそうなときは break
-            if distinct_cnt == k && *cnt_table.get(&xs[end]).unwrap_or(&0) == 0 {
+            // xs[end] を含めることで種類数 が k + 1 になりそうなときは break
+            if bag.set_len() == k && bag.contains(&xs[end]) == 0 {
                 break;
             }
 
             // end を進める
-            *cnt_table.entry(xs[end]).or_insert(0) += 1;
-            if cnt_table[&xs[end]] == 1 {
-                distinct_cnt += 1;
-            }
+            bag.insert(xs[end]);
             end += 1;
         }
 
@@ -37,10 +34,7 @@ fn solve1(xs: &[i64], k: usize) -> usize {
             begin += 1;
         } else {
             // begin を進める
-            if cnt_table[&xs[begin]] == 1 {
-                distinct_cnt -= 1;
-            }
-            *cnt_table.get_mut(&xs[begin]).unwrap() -= 1;
+            bag.remove(&xs[begin]);
             begin += 1;
         }
     }

@@ -50,26 +50,69 @@ impl Problem {
             .max()
             .unwrap() as i64;
 
-        // let run_length = self.xs.iter().copied().dedup_with_count().collect_vec();
-
-        // let ans = (0..run_length.len())
-        //     .filter(|&i| run_length[i].1 == '/')
-        //     .map(|i| {
-        //         if i == 0 || i == run_length.len() - 1 {
-        //             1
-        //         } else {
-        //             if run_length[i - 1].1 == '1' && run_length[i + 1].1 == '2' {
-        //                 run_length[i - 1].0.min(run_length[i + 1].0)
-        //             } else {
-        //                 1
-        //             }
-        //         }
-        //     })
-        //     .max()
-        //     .unwrap() as i64;
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        // ランレングスを使う
+        let n = self.n;
+        let xs = &self.xs;
+        let run_length = xs.iter().copied().dedup_with_count().collect_vec();
+        let ans = (0..run_length.len())
+            .filter(|&i| run_length[i].1 == '/')
+            .map(|i| {
+                if i == 0 || i == run_length.len() - 1 || run_length[i].0 > 1 {
+                    return 1;
+                }
+
+                let cnt1 = if run_length[i - 1].1 == '1' {
+                    run_length[i - 1].0
+                } else {
+                    0
+                };
+
+                let cnt2 = if run_length[i + 1].1 == '2' {
+                    run_length[i + 1].0
+                } else {
+                    0
+                };
+
+                let cnt = cnt1.min(cnt2);
+                cnt * 2 + 1
+            })
+            .max()
+            .unwrap_or(0) as i64;
+
+        Answer { ans }
+    }
+
+    fn solve3(&self) -> Answer {
+        // loop を find で書き換え
+        let n = self.n;
+        let xs = &self.xs;
+        let ans = (0..self.n)
+            .filter(|&i| xs[i] == '/')
+            .map(|i| {
+                if i == 0 || i == n - 1 {
+                    return 1;
+                }
+                let cnt1 = {
+                    let pos = (0..i).rev().find(|&i| xs[i] != '1');
+                    pos.map(|pos| i - pos - 1).unwrap_or(i)
+                };
+
+                let cnt2 = {
+                    let pos = (i + 1..n).find(|&i| xs[i] != '2');
+                    pos.map(|pos| pos - i - 1).unwrap_or(n - i - 1)
+                };
+
+                cnt1.min(cnt2) * 2 + 1
+            })
+            .max()
+            .unwrap() as i64;
+
+        Answer { ans }
+    }
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -90,7 +133,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve3().print();
 }
 
 #[cfg(test)]

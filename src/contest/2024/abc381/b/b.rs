@@ -31,9 +31,17 @@ impl Problem {
 
     fn solve(&self) -> Answer {
         let ans = Problem::solve_sub(&self.s);
+
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        let run_length = self.s.iter().copied().dedup_with_count().collect_vec();
+
+        let ans = run_length.iter().copied().all(|(cnt, _)| cnt == 2)
+            && run_length.iter().copied().map(|(_, ch)| ch).all_unique();
+        Answer { ans }
+    }
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -54,7 +62,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]

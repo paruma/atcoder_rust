@@ -1,30 +1,45 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: Vec<char>,
+    n: usize,
+    xs: Vec<char>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            k: usize,
-            n: Chars,
+            n: usize,
+            xs: Chars,
         }
-        Problem { n }
+        Problem { n, xs }
     }
-    fn solve_sub(n: &[char]) -> bool {
-        let len = n.len();
+    fn solve_sub(xs: &[char]) -> bool {
+        let len = xs.len();
         if len % 2 == 0 {
             return false;
         }
 
-        (n[0..len / 2] == vec!['1'; len / 2])
-            && (n[len / 2] == '/')
-            && (n[len / 2 + 1..] == vec!['2'; len / 2])
+        (xs[0..len / 2] == vec!['1'; len / 2])
+            && (xs[len / 2] == '/')
+            && (xs[len / 2 + 1..] == vec!['2'; len / 2])
     }
 
     fn solve(&self) -> Answer {
-        let ans = Problem::solve_sub(&self.n);
+        let ans = Problem::solve_sub(&self.xs);
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        let run_length = self.xs.iter().copied().dedup_with_count().collect_vec();
+
+        let ans = self.xs == vec!['/']
+            || run_length.len() == 3
+                && run_length[0].1 == '1'
+                && run_length[1].1 == '/'
+                && run_length[2].1 == '2'
+                && run_length[0].0 == run_length[2].0
+                && run_length[1].0 == 1;
+
         Answer { ans }
     }
 
@@ -48,7 +63,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
