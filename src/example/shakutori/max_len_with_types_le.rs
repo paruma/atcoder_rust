@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use hashbag::HashBag;
+use itertools::Itertools;
 
 use crate::mylib::data_structure::queue0::mod_queue::Queue;
 
@@ -61,6 +62,16 @@ fn solve_deque(xs: &[i64], k: usize) -> usize {
     max_len
 }
 
+fn solve_naive(xs: &[i64], k: usize) -> usize {
+    let n = xs.len();
+    (0..n)
+        .flat_map(|begin| (begin..=n).map(move |end| (begin, end)))
+        .filter(|&(begin, end)| xs[begin..end].iter().unique().count() <= k)
+        .map(|(begin, end)| end - begin)
+        .max()
+        .unwrap()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -71,10 +82,26 @@ mod tests {
         let k = 3;
         assert_eq!(solve(&xs, k), 3);
         assert_eq!(solve_deque(&xs, k), 3);
+        assert_eq!(solve_naive(&xs, k), 3);
 
         let xs = [1, 2, 3, 3, 4, 4, 5];
         let k = 3;
         assert_eq!(solve(&xs, k), 5);
         assert_eq!(solve_deque(&xs, k), 5);
+        assert_eq!(solve_naive(&xs, k), 5);
+    }
+
+    #[test]
+    fn random_test() {
+        use rand::{rngs::SmallRng, *};
+        let mut rng = SmallRng::seed_from_u64(42);
+        for _ in 0..100 {
+            let n = rng.gen_range(1..6);
+            let xs = (0..n).map(|_| rng.gen_range(1..6)).collect_vec();
+            let k = rng.gen_range(0..6);
+            let naive_ans = solve_naive(&xs, k);
+            assert_eq!(solve(&xs, k), naive_ans);
+            assert_eq!(solve_deque(&xs, k), naive_ans,);
+        }
     }
 }
