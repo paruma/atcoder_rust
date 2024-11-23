@@ -2,20 +2,71 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    xs: Vec<char>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            xs: Chars,
         }
         Problem { n, xs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let xs = &self.xs;
+        let ans = (0..self.n)
+            .filter(|&i| xs[i] == '/')
+            .map(|i| {
+                if i == 0 || i == n - 1 {
+                    return 1;
+                }
+                let cnt1 = {
+                    let mut j = i;
+                    loop {
+                        if j == 0 || xs[j - 1] != '1' {
+                            break;
+                        }
+                        j -= 1;
+                    }
+                    i - j
+                };
+
+                let cnt2 = {
+                    let mut j = i;
+                    loop {
+                        if j == n - 1 || xs[j + 1] != '2' {
+                            break;
+                        }
+                        j += 1;
+                    }
+                    j - i
+                };
+
+                cnt1.min(cnt2) * 2 + 1
+            })
+            .max()
+            .unwrap() as i64;
+
+        // let run_length = self.xs.iter().copied().dedup_with_count().collect_vec();
+
+        // let ans = (0..run_length.len())
+        //     .filter(|&i| run_length[i].1 == '/')
+        //     .map(|i| {
+        //         if i == 0 || i == run_length.len() - 1 {
+        //             1
+        //         } else {
+        //             if run_length[i - 1].1 == '1' && run_length[i + 1].1 == '2' {
+        //                 run_length[i - 1].0.min(run_length[i + 1].0)
+        //             } else {
+        //                 1
+        //             }
+        //         }
+        //     })
+        //     .max()
+        //     .unwrap() as i64;
         Answer { ans }
     }
 

@@ -1,21 +1,77 @@
-//#[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Query {
+    left: Usize1,
+    right: Usize1,
+}
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    nq: usize,
+    xs: Vec<char>,
+    qs: Vec<Query>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            nq: usize,
+            xs: Chars,
+            qs: [Query; nq],
         }
-        Problem { n, xs }
+        Problem { n, nq, xs, qs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let xs = &self.xs;
+        let max_list = (0..n)
+            .map(|i| {
+                if xs[i] != '/' {
+                    return 0;
+                }
+                if i == 0 || i == n - 1 {
+                    return 1;
+                }
+                let cnt1 = {
+                    let mut j = i;
+                    loop {
+                        if j == 0 || xs[j - 1] != '1' {
+                            break;
+                        }
+                        j -= 1;
+                    }
+                    i - j
+                };
+
+                let cnt2 = {
+                    let mut j = i;
+                    loop {
+                        if j == n - 1 || xs[j + 1] != '2' {
+                            break;
+                        }
+                        j += 1;
+                    }
+                    j - i
+                };
+
+                cnt1.min(cnt2) * 2 + 1
+            })
+            .collect_vec();
+        dbg!(&max_list);
+
+        let seg = Segtree::<Max<usize>>::from(max_list);
+
+        let ans = self
+            .qs
+            .iter()
+            .copied()
+            .map(|q| {
+                //
+                seg.prod(q.left..=q.right)
+            })
+            .collect_vec();
         Answer { ans }
     }
 
@@ -29,12 +85,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<usize>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec(&self.ans);
     }
 }
 
@@ -118,6 +174,7 @@ mod tests {
     }
 }
 
+use ac_library::{Max, Segtree};
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};

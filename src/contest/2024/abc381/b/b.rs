@@ -1,21 +1,36 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    s: Vec<char>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            s: Chars,
         }
-        Problem { n, xs }
+        Problem { s }
+    }
+    fn solve_sub(s: &[char]) -> bool {
+        let len = s.len();
+        if len % 2 == 1 {
+            return false;
+        }
+
+        if !(1..=len / 2).all(|i| s[2 * i - 2] == s[2 * i - 1]) {
+            return false;
+        }
+
+        s.iter()
+            .copied()
+            .counts()
+            .values()
+            .copied()
+            .all(|cnt| cnt == 0 || cnt == 2)
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = Problem::solve_sub(&self.s);
         Answer { ans }
     }
 
@@ -29,12 +44,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_yesno(self.ans);
     }
 }
 

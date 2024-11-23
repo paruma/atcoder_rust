@@ -2,28 +2,118 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    xs: Vec<usize>,
+}
+
+fn solve_sub2(xs: &[usize]) -> usize {
+    if xs.is_empty() {
+        return 0;
+    }
+    let max_xs = xs.iter().copied().max().unwrap();
+
+    // TODO: HashMap にしないといけない
+    let mut prev: HashMap<usize, usize> = HashMap::new();
+
+    let mut begin = 0;
+    // let mut current_cnt = 0;
+    let mut max_cnt = 0;
+
+    for i in 0..xs.len() {
+        //dbg!(&prev);
+        //dbg!(begin);
+        if let Some(p) = prev.get(&xs[i]) {
+            max_cnt = max_cnt.max(i - begin);
+            begin = begin.max(p + 1);
+        }
+        *prev.entry(xs[i]).or_default() = i;
+    }
+
+    //dbg!(xs.len());
+    //dbg!(begin);
+    max_cnt = max_cnt.max(xs.len() - begin);
+
+    max_cnt
+}
+
+fn solve_sub1(xs: &[Option<usize>]) -> usize {
+    let mut buf = vec![];
+    let mut max = 0;
+
+    for &x in xs {
+        if let Some(x) = x {
+            buf.push(x);
+        } else {
+            max = max.max(solve_sub2(&buf));
+            buf.clear();
+        }
+    }
+
+    max = max.max(solve_sub2(&buf));
+    max
+}
+
+fn solve_naive_sub(s: &[usize]) -> bool {
+    let len = s.len();
+    if len % 2 == 1 {
+        return false;
+    }
+
+    if !(1..=len / 2).all(|i| s[2 * i - 2] == s[2 * i - 1]) {
+        return false;
+    }
+
+    s.iter()
+        .copied()
+        .counts()
+        .values()
+        .copied()
+        .all(|cnt| cnt == 0 || cnt == 2)
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            xs: [usize; n],
         }
         Problem { n, xs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let xs = &self.xs;
+        let ys = &xs[1..];
+
+        let xs1 = (0..xs.len() / 2)
+            .map(|i| (xs[2 * i] == xs[2 * i + 1]).then_some(xs[2 * i]))
+            .collect_vec();
+        let ys1 = (0..ys.len() / 2)
+            .map(|i| (ys[2 * i] == ys[2 * i + 1]).then_some(ys[2 * i]))
+            .collect_vec();
+
+        let ans1 = solve_sub1(&xs1);
+        let ans2 = solve_sub1(&ys1);
+
+        let ans = (ans1.max(ans2) * 2) as i64;
         Answer { ans }
     }
 
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
-        todo!();
-        // let ans = 0;
-        // Answer { ans }
+        let mut max = 0;
+        let n = self.n;
+        let xs = &self.xs;
+
+        for begin in 0..n {
+            for end in begin..=n {
+                let ys = &xs[begin..end];
+                if solve_naive_sub(ys) {
+                    max = max.max(ys.len());
+                }
+            }
+        }
+        let ans = max as i64;
+        Answer { ans }
     }
 }
 
@@ -79,19 +169,20 @@ mod tests {
 
     #[allow(dead_code)]
     fn make_random_problem(rng: &mut SmallRng) -> Problem {
-        todo!()
-        // let n = rng.gen_range(1..=10);
-        // let p = Problem { _a: n };
-        // println!("{:?}", &p);
-        // p
+        let n = rng.gen_range(1..=10);
+        let xs = (0..n).map(|_| rng.gen_range(0..n)).collect_vec();
+
+        let p = Problem { n, xs };
+        println!("{:?}", &p);
+        p
     }
 
     #[allow(unreachable_code)]
     #[test]
     fn test_with_naive() {
-        let num_tests = 0;
+        let num_tests = 1000000;
         let max_wrong_case = 10; // この件数間違いが見つかったら打ち切り
-        let mut rng = SmallRng::seed_from_u64(42);
+        let mut rng = SmallRng::seed_from_u64(46);
         // let mut rng = SmallRng::from_entropy();
         let mut wrong_cases: Vec<WrongTestCase> = vec![];
         for _ in 0..num_tests {
