@@ -7,7 +7,26 @@ use crate::mylib::data_structure::queue0::mod_queue::Queue;
 
 /// 数列 xs の連続部分列で種類数が k 以下になる最大の長さを求める
 /// 参考: 【ゆっくり解説】尺取り法と二分探索の「本当の」違い - YouTube https://www.youtube.com/watch?v=omD-yyb730k
+
 fn solve(xs: &[i64], k: usize) -> usize {
+    // end を 1 ずつ動かす尺取法
+    let n = xs.len();
+    let mut begin = 0;
+    let mut bag = HashBag::<i64>::new();
+    let mut max_len = 0;
+    for end in 1..=n {
+        bag.insert(xs[end - 1]);
+        // 区間 [begin, end) が条件を満たすようになるまで begin を進める
+        while bag.set_len() > k {
+            bag.remove(&xs[begin]);
+            begin += 1;
+        }
+        max_len = max_len.max(end - begin);
+    }
+
+    max_len
+}
+fn solve2(xs: &[i64], k: usize) -> usize {
     // begin を1ずつ動かす尺取法
     let n = xs.len();
     let mut begin = 0; // [begin, end) の半開区間を考える
@@ -39,49 +58,6 @@ fn solve(xs: &[i64], k: usize) -> usize {
             begin += 1;
         }
     }
-    max_len
-}
-
-fn solve2(xs: &[i64], k: usize) -> usize {
-    // 条件を満たさないギリギリまで伸ばす尺取法
-    let n = xs.len();
-    let mut end = 0;
-    let mut bag = HashBag::<i64>::new();
-    let mut max_len = 0;
-    for begin in 0..n {
-        while bag.set_len() <= k && end <= n {
-            if end != n {
-                bag.insert(xs[end]);
-            }
-            end += 1;
-        }
-        // end = min {end | xs[begin..end] の種類数が k より大きい} になっている（min ∅ は n + 1扱い)
-        // ↓
-        // end - 1 = max {end | xs[begin..end] の種類数が k 以下} になっている。
-        // begin を固定したとき、[begin, end - 1) が種類数 k 以下になる最長区間
-        max_len = max_len.max((end - 1) - begin);
-        bag.remove(&xs[begin]);
-    }
-
-    max_len
-}
-
-fn solve3(xs: &[i64], k: usize) -> usize {
-    // end を 1 ずつ動かす尺取法
-    let n = xs.len();
-    let mut begin = 0;
-    let mut bag = HashBag::<i64>::new();
-    let mut max_len = 0;
-    for end in 1..=n {
-        bag.insert(xs[end - 1]);
-        // 区間 [begin, end) が条件を満たすようになるまで begin を進める
-        while bag.set_len() > k {
-            bag.remove(&xs[begin]);
-            begin += 1;
-        }
-        max_len = max_len.max(end - begin);
-    }
-
     max_len
 }
 
@@ -127,7 +103,6 @@ mod tests {
         let k = 3;
         assert_eq!(solve(&xs, k), 3);
         assert_eq!(solve2(&xs, k), 3);
-        assert_eq!(solve3(&xs, k), 3);
         assert_eq!(solve_queue(&xs, k), 3);
         assert_eq!(solve_naive(&xs, k), 3);
 
@@ -135,7 +110,6 @@ mod tests {
         let k = 3;
         assert_eq!(solve(&xs, k), 5);
         assert_eq!(solve2(&xs, k), 5);
-        assert_eq!(solve3(&xs, k), 5);
         assert_eq!(solve_queue(&xs, k), 5);
         assert_eq!(solve_naive(&xs, k), 5);
     }
@@ -151,7 +125,6 @@ mod tests {
             let naive_ans = solve_naive(&xs, k);
             assert_eq!(solve(&xs, k), naive_ans);
             assert_eq!(solve2(&xs, k), naive_ans);
-            assert_eq!(solve3(&xs, k), naive_ans, "n={}, xs={:?}, k={}", n, &xs, k);
             assert_eq!(solve_queue(&xs, k), naive_ans);
         }
     }
