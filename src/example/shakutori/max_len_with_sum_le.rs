@@ -3,6 +3,28 @@ use itertools::Itertools;
 
 /// 数列 xs の部分列で総和が k 以下になる最大の長さを求める
 fn solve(xs: &[i64], k: i64) -> usize {
+    // end を 1 ずつ動かす尺取法
+    let n = xs.len();
+    let mut begin = 0;
+    let mut sum = 0;
+    let mut max_len = 0;
+    for end in 1..=n {
+        sum += xs[end - 1];
+
+        while sum > k {
+            sum -= xs[begin];
+            begin += 1;
+        }
+
+        max_len = max_len.max(end - begin);
+    }
+
+    max_len
+}
+
+/// 数列 xs の部分列で総和が k 以下になる最大の長さを求める
+fn solve2(xs: &[i64], k: i64) -> usize {
+    // begin を 1 ずつ動かす尺取法
     let n = xs.len();
     let mut begin = 0;
     let mut end = 0;
@@ -56,6 +78,7 @@ mod tests {
         let k = 5;
         assert_eq!(solve_naive(&xs, k), 3);
         assert_eq!(solve(&xs, k), 3);
+        assert_eq!(solve2(&xs, k), 3);
     }
     #[test]
     fn random_test() {
@@ -67,6 +90,7 @@ mod tests {
             let k = rng.gen_range(0..30);
             let naive_ans = solve_naive(&xs, k);
             assert_eq!(solve(&xs, k), naive_ans);
+            assert_eq!(solve2(&xs, k), naive_ans);
         }
     }
 }
