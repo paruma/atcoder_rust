@@ -5,7 +5,9 @@ struct Problem {
     xs: Vec<usize>,
 }
 
+/// all unique な最大連続部分列長を求める
 fn solve_sub2(xs: &[usize]) -> usize {
+    // 尺取法を使わない実装
     if xs.is_empty() {
         return 0;
     }
@@ -26,8 +28,9 @@ fn solve_sub2(xs: &[usize]) -> usize {
     max_cnt
 }
 
+/// all unique な最大連続部分列長を求める
 fn solve_sub22(xs: &[usize]) -> usize {
-    // 尺取法
+    // 尺取法 (begin を 1ずつ動かす)
     if xs.is_empty() {
         return 0;
     }
@@ -60,6 +63,33 @@ fn solve_sub22(xs: &[usize]) -> usize {
     max_len
 }
 
+/// all unique な最大連続部分列長を求める
+fn solve_sub23(xs: &[usize]) -> usize {
+    // 尺取法 (end を1 ずつ動かす)
+    if xs.is_empty() {
+        return 0;
+    }
+
+    let mut begin = 0;
+    let mut bag = HashBag::new();
+    let mut max_len = 0;
+
+    for end in 1..=xs.len() {
+        bag.insert(xs[end - 1]);
+
+        // set_len() != len() は重複があるということ
+        while bag.set_len() != bag.len() {
+            bag.remove(&xs[begin]);
+            begin += 1;
+        }
+
+        max_len = max_len.max(end - begin)
+    }
+
+    max_len
+}
+
+/// None を含まない all unique な最大連続部分列長を求める
 fn solve_sub1_old(xs: &[Option<usize>]) -> usize {
     // None で分けて計算をする
     let mut buf = vec![];
@@ -78,16 +108,18 @@ fn solve_sub1_old(xs: &[Option<usize>]) -> usize {
     max
 }
 
+/// None を含まない all unique な最大連続部分列長を求める
 fn solve_sub1(xs: &[Option<usize>]) -> usize {
     xs.split(|x| x.is_none())
         .map(|chunk| {
             let chunk = chunk.iter().copied().map(|x| x.unwrap()).collect_vec();
-            solve_sub22(&chunk)
+            solve_sub23(&chunk)
         })
         .max()
         .unwrap()
 }
 
+/// 1122列か判定する
 fn solve_naive_sub(s: &[usize]) -> bool {
     let len = s.len();
     if len % 2 == 1 {
@@ -120,12 +152,24 @@ impl Problem {
         let xs = &self.xs;
         let ys = &xs[1..];
 
-        let xs1 = (0..xs.len() / 2)
-            .map(|i| (xs[2 * i] == xs[2 * i + 1]).then_some(xs[2 * i]))
+        // xs の添字でいうと次のように区切る: [0, 1], [2, 3],...
+        let xs1 = xs
+            .chunks_exact(2)
+            .map(|chunk| (chunk[0] == chunk[1]).then_some(chunk[0]))
             .collect_vec();
-        let ys1 = (0..ys.len() / 2)
-            .map(|i| (ys[2 * i] == ys[2 * i + 1]).then_some(ys[2 * i]))
+
+        // xs の添字でいうと次のように区切る: [1, 2], [3, 4],...
+        let ys1 = ys
+            .chunks_exact(2)
+            .map(|chunk| (chunk[0] == chunk[1]).then_some(chunk[0]))
             .collect_vec();
+
+        // let xs1 = (0..xs.len() / 2)
+        //     .map(|i| (xs[2 * i] == xs[2 * i + 1]).then_some(xs[2 * i]))
+        //     .collect_vec();
+        // let ys1 = (0..ys.len() / 2)
+        //     .map(|i| (ys[2 * i] == ys[2 * i + 1]).then_some(ys[2 * i]))
+        //     .collect_vec();
 
         let ans1 = solve_sub1(&xs1);
         let ans2 = solve_sub1(&ys1);
@@ -245,6 +289,7 @@ mod tests {
     }
 }
 
+use hashbag::HashBag;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
