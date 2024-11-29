@@ -75,6 +75,10 @@ pub mod btree_multiset {
             self.length
         }
 
+        pub fn set_len(&self) -> usize {
+            self.map.len()
+        }
+
         pub fn is_empty(&self) -> bool {
             self.length == 0
         }
@@ -187,6 +191,22 @@ mod tests {
         assert_eq!(set.count(&1), 2);
         assert_eq!(set.count(&2), 1);
         assert_eq!(set.count(&3), 0);
+    }
+
+    #[test]
+    fn test_set_len() {
+        let mut set: BTreeMultiSet<_> = vec![1, 1, 2].into_iter().collect();
+
+        assert_eq!(set.len(), 3);
+        assert_eq!(set.set_len(), 2);
+
+        set.remove1(&1);
+        assert_eq!(set.len(), 2);
+        assert_eq!(set.set_len(), 2);
+
+        set.remove1(&1);
+        assert_eq!(set.len(), 1);
+        assert_eq!(set.set_len(), 1);
     }
 
     #[test]
