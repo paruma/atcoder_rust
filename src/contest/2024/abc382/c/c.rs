@@ -2,20 +2,39 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
+    m: usize,
     xs: Vec<i64>,
+    ys: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
+            m: usize,
             xs: [i64; n],
+            ys: [i64; m],
         }
-        Problem { n, xs }
+        Problem { n, m, xs, ys }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        // xs は人の美食度
+        // ys は寿司の美味しさ
+        let mut seg = Segtree::<Min<i64>>::from(self.xs.clone());
+        let mut ans: Vec<Option<usize>> = vec![];
+
+        for &y in &self.ys {
+            // seg の中から y 以下のものを見つける
+            let idx = seg.max_right(0, |acc| *acc > y);
+            // if idx != self.n {
+            //     seg.set(idx, i64::MAX);
+            // }
+            let sub_ans = if idx == self.n { None } else { Some(idx) };
+
+            ans.push(sub_ans);
+        }
+
         Answer { ans }
     }
 
@@ -29,12 +48,21 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<Option<usize>>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        let msg = self
+            .ans
+            .iter()
+            .copied()
+            .map(|x| match x {
+                Some(x) => x as i64 + 1,
+                None => -1,
+            })
+            .collect_vec();
+        print_vec(&msg);
     }
 }
 
@@ -118,6 +146,7 @@ mod tests {
     }
 }
 
+use ac_library::{Min, Segtree};
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};

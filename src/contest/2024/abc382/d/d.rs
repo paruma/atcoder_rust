@@ -2,20 +2,34 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    m: usize,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            m: usize,
         }
-        Problem { n, xs }
+        Problem { n, m }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let m = self.m;
+        let m_dash = m - 9 * (n - 1);
+        let ans = (1..=m_dash)
+            .combinations(n)
+            .map(|xs| {
+                xs.iter()
+                    .copied()
+                    .enumerate()
+                    .map(|(i, x)| x + i * 9)
+                    .collect_vec()
+            })
+            .sorted()
+            .collect_vec();
+
         Answer { ans }
     }
 
@@ -29,12 +43,15 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<Vec<usize>>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        println!("{}", self.ans.len());
+        for row in &self.ans {
+            print_vec_1line(row);
+        }
     }
 }
 

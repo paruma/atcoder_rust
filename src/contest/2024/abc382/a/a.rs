@@ -1,21 +1,23 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    n_box: usize,
+    n_day: usize,
+    xs: Vec<char>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            n_box: usize,
+            n_day: usize,
+            xs: Chars,
         }
-        Problem { n, xs }
+        Problem { n_box, n_day, xs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = self.xs.iter().copied().filter(|ch: &char| *ch == '.').count() + self.n_day;
         Answer { ans }
     }
 
@@ -29,7 +31,7 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: usize,
 }
 
 impl Answer {
