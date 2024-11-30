@@ -74,6 +74,27 @@ impl Problem {
     }
 
     fn solve3(&self) -> Answer {
+        // solve2 のリファクタリング
+        // T ではなく S を 1 ずつ動かしていく
+        let s = &self.s;
+        let t = &self.t.to_ascii_lowercase(); // 長さ3
+
+        // 末尾が x の場合は x を除いた状態で考える
+        let t_len = if t[2] == b'x' { 2 } else { 3 };
+
+        let mut t_itr = t[0..t_len].iter().copied().peekable();
+
+        for si in s {
+            if t_itr.peek() == Some(si) {
+                t_itr.next();
+            }
+        }
+        let ans = t_itr.peek().is_none();
+
+        Answer { ans }
+    }
+
+    fn solve4(&self) -> Answer {
         // 正規表現を使ったもの
         let s = String::from_utf8(self.s.clone()).unwrap();
         let t = &self
@@ -140,7 +161,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve2().print();
+    Problem::read().solve3().print();
 }
 
 #[cfg(test)]

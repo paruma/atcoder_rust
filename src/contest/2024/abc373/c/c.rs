@@ -17,9 +17,6 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
-        self.xs.iter().copied().max().unwrap();
-
-
         let ans = self.xs.iter().max().unwrap() + self.ys.iter().max().unwrap();
         Answer { ans }
     }

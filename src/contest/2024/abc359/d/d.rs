@@ -7,6 +7,7 @@ struct Problem {
 }
 
 fn is_palindrome(str: &[u8]) -> bool {
+    // str.iter().eq(str.iter().rev()); とした方が良い。
     str == str.iter().copied().rev().collect_vec()
 }
 

@@ -42,7 +42,7 @@ impl Problem {
     fn solve(&self) -> Answer {
         let n = self.n;
         let x = self.x;
-        let len_list = &self.len_list;
+        let len_list = &self.len_list;  
 
         // dp[t]: 時刻 t から再生開始する確率
         let mut dp = Dp::new(x);

@@ -38,6 +38,28 @@ impl Problem {
         let ans = stack.len() as i64;
         Answer { ans }
     }
+    fn solve2(&self) -> Answer {
+        // loop は while で書き換え
+        let n = self.n;
+        let xs = &self.xs;
+        let mut stack: Vec<i64> = vec![];
+
+        for &x in xs {
+            stack.push(x);
+
+            while {
+                let len = stack.len();
+                len >= 2 && stack[len - 2] == stack[stack.len() - 1]
+            } {
+                stack.pop();
+                let len = stack.len();
+                stack[len - 1] += 1;
+            }
+        }
+
+        let ans = stack.len() as i64;
+        Answer { ans }
+    }
 
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
@@ -59,7 +81,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]

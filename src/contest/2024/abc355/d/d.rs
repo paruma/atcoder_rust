@@ -28,7 +28,6 @@ impl Problem {
             .copied()
             .enumerate()
             .map(|(i, range)| {
-                //
                 // range.r >= x.l となる x in rs の数
                 let j_star = bin_search(i as i64, n as i64, |j| {
                     //
