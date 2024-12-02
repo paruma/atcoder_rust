@@ -21,17 +21,13 @@ impl Problem {
     fn solve(&self) -> Answer {
         // xs は人の美食度
         // ys は寿司の美味しさ
-        let mut seg = Segtree::<Min<i64>>::from(self.xs.clone());
+        let seg = Segtree::<Min<i64>>::from(self.xs.clone());
         let mut ans: Vec<Option<usize>> = vec![];
 
         for &y in &self.ys {
             // seg の中から y 以下のものを見つける
             let idx = seg.max_right(0, |acc| *acc > y);
-            // if idx != self.n {
-            //     seg.set(idx, i64::MAX);
-            // }
             let sub_ans = if idx == self.n { None } else { Some(idx) };
-
             ans.push(sub_ans);
         }
 

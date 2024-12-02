@@ -23,6 +23,13 @@ impl Problem {
         let x = self.x;
         let ps = &self.ps;
         let mut dp = vec![vec![0.0; n]; x + 1];
+        // dp[i][j] = レアカードをi枚持っていてパックをj枚見た状態のとき、レアカードがx枚揃うまでに必要なパック開封回数
+        // (ただし、この実装ではパックをn枚見終わった段階でパックを開封したというカウントをしている)
+        // j != n-1 のとき
+        // dp[i][j] = (1 - ps[j]) * dp[i][j+1] + ps[j] * dp[i+1][j+1]
+        // j = n-1 のとき
+        // dp[i][n-1] = (1 - ps[j]) * (1 + dp[i][0]) + ps[j] * (1 + dp[i+1][0])
+        // ループしている部分は一次方程式を解く。
 
         dp[x][0] = 0.0;
         for j in 1..n {
@@ -62,6 +69,49 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        // パックを1回開けた時のレアカードの枚数の確率分布をDPで計算
+        let n = self.n;
+        let x = self.x;
+        let ps = &self.ps;
+
+        // distrib[j] = パックを1回開けた時にレアカードがj枚出る確率
+        let distrib = {
+            // dp[i][j] = パック内の[0, i)のカードでレアカードがj枚出る確率
+            let mut dp = vec![vec![0.0; n + 1]; n + 1];
+            dp[0][0] = 1.0;
+
+            for i in 0..n {
+                dp[i + 1][0] = (1.0 - ps[i]) * dp[i][0];
+                for j in 1..=n {
+                    dp[i + 1][j] = (1.0 - ps[i]) * dp[i][j] + ps[i] * dp[i][j - 1];
+                }
+            }
+            dp[n].clone()
+        };
+
+        // dp[i] = レアカードがi枚の状態でx枚のレアカードを手に入れるまでに必要なパック開封回数の期待値
+        // dp[i] = distrib[0] * (dp[i] + 1) + distrib[1] * (dp[i+1] + 1)+ ... + distrib[n] * (dp[i+n] + 1)
+        // dp[i] = (distrib[0] + distrib[1] * (dp[i+1] + 1)+ ... + distrib[n] * (dp[i+n] + 1)/(1 - distrib[0]) と計算できる。
+        let mut dp = vec![0.0; x + 1];
+        dp[x] = 0.0;
+        for i in (0..x).rev() {
+            let numer = distrib[0]
+                + (1..=n)
+                    .map(|j| {
+                        // 1パックにj枚レアカードがあった場合
+                        distrib[j] * (if i + j > x { 0.0 } else { dp[i + j] } + 1.0)
+                    })
+                    .sum::<f64>();
+            let denom = 1.0 - distrib[0];
+            dp[i] = numer / denom;
+        }
+
+        let ans = dp[0];
+
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -82,7 +132,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
