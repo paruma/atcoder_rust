@@ -33,6 +33,42 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        // 再帰による実装
+        let n = self.n;
+        let m = self.m;
+
+        struct Dfs {
+            n: usize,
+            m: usize,
+        }
+
+        impl Dfs {
+            fn new(n: usize, m: usize) -> Self {
+                Self { n, m }
+            }
+
+            fn rec(&self, seq: &mut Vec<usize>, seq_list: &mut Vec<Vec<usize>>) {
+                if seq.len() == self.n {
+                    // ここがforループの中のようなもの
+                    seq_list.push(seq.clone());
+                    return;
+                }
+                let begin = seq.last().copied().map(|x| x + 10).unwrap_or(1);
+                for i in begin..=(self.m - 10 * (self.n - 1 - seq.len())) {
+                    seq.push(i);
+                    self.rec(seq, seq_list);
+                    seq.pop();
+                }
+            }
+        }
+
+        let mut ans = vec![];
+        Dfs::new(n, m).rec(&mut vec![], &mut ans);
+
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -56,7 +92,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]

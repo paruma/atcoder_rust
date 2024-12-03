@@ -34,6 +34,36 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        // xs は人の美食度
+        // ys は寿司の美味しさ
+
+        let xs = &self.xs;
+        let ys = &self.ys;
+
+        let max_y = ys.iter().copied().max().unwrap() as usize;
+
+        // 寿司の美味しさ→誰が食べるか
+        let mut map: Vec<Option<usize>> = vec![None; max_y + 1];
+
+        let mut person = 0;
+
+        for y in (0..=max_y).rev() {
+            while person < xs.len() && xs[person] as usize > y {
+                person += 1;
+            }
+            map[y] = if person == xs.len() {
+                None
+            } else {
+                Some(person)
+            };
+        }
+
+        let ans: Vec<Option<usize>> = ys.iter().copied().map(|y| map[y as usize]).collect_vec();
+
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -63,7 +93,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
