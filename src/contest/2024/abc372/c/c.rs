@@ -75,6 +75,40 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        // リファクタリング
+        let n = self.n;
+        let nq = self.nq;
+        let mut s = self.s.clone();
+        let qs = &self.qs;
+
+        let mut cnt_abc = s.windows(3).filter(|w| *w == ['A', 'B', 'C']).count();
+        let mut ans = vec![];
+
+        for q in qs {
+            // q.x の周辺5文字を見る
+
+            let before_cnt = s[q.x.saturating_sub(2)..(q.x + 3).min(n)]
+                .windows(3)
+                .filter(|w| *w == ['A', 'B', 'C'])
+                .count();
+
+            s[q.x] = q.c;
+
+            let after_cnt = s[q.x.saturating_sub(2)..(q.x + 3).min(n)]
+                .windows(3)
+                .filter(|w| *w == ['A', 'B', 'C'])
+                .count();
+
+            cnt_abc -= before_cnt;
+            cnt_abc += after_cnt;
+
+            ans.push(cnt_abc);
+        }
+
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -95,7 +129,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
