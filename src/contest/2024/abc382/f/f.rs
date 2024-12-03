@@ -1,21 +1,79 @@
-//#[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Bar {
+    y: Usize1,
+    x: Usize1,
+    len: usize,
+}
 #[derive(Debug, Clone)]
 struct Problem {
+    h: usize,
+    w: usize,
     n: usize,
-    xs: Vec<i64>,
+    bars: Vec<Bar>,
+}
+
+use ac_library::LazySegtree;
+use map_monoid_template::*;
+#[allow(unused_variables)]
+pub mod map_monoid_template {
+    use ac_library::lazysegtree::MapMonoid;
+    use ac_library::Min;
+    use std::convert::Infallible;
+    use std::usize;
+
+    pub struct RangeChminRangeMin(Infallible);
+    impl MapMonoid for RangeChminRangeMin {
+        type M = Min<usize>;
+        type F = usize;
+        fn identity_map() -> Self::F {
+            usize::MAX
+        }
+        fn mapping(
+            f: &Self::F,
+            x: &<Self::M as ac_library::Monoid>::S,
+        ) -> <Self::M as ac_library::Monoid>::S {
+            *f.min(x)
+        }
+        fn composition(f: &Self::F, g: &Self::F) -> Self::F {
+            *f.min(g)
+        }
+    }
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
+            h: usize,
+            w: usize,
             n: usize,
-            xs: [i64; n],
+            bars: [Bar; n],
         }
-        Problem { n, xs }
+        Problem { w, h, n, bars }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let h = self.h;
+        let w = self.w;
+        let n = self.n;
+        let bars = &self.bars;
+        let mut seg: LazySegtree<RangeChminRangeMin> = LazySegtree::from(vec![h - 1; w]);
+
+        let mut ans = vec![0; n];
+
+        for (i, bar) in bars
+            .iter()
+            .copied()
+            .enumerate()
+            .sorted_by_key(|(_, bar)| Reverse(bar.y))
+        {
+            let next_y = seg.prod(bar.x..bar.x + bar.len);
+            ans[i] = next_y;
+            if next_y != 0 {
+                seg.apply_range(bar.x..bar.x + bar.len, next_y - 1);
+            }
+        }
+
         Answer { ans }
     }
 
@@ -29,12 +87,13 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<usize>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        let msg = self.ans.iter().copied().map(|x| x + 1).collect_vec();
+        print_vec(&msg);
     }
 }
 
@@ -130,6 +189,7 @@ use proconio::{
 use std::cmp::Reverse;
 #[allow(unused_imports)]
 use std::collections::{BinaryHeap, HashMap, HashSet};
+use std::sync::Arc;
 
 // ====== output func ======
 #[allow(unused_imports)]
