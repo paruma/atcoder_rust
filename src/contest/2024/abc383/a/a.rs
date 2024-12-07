@@ -1,21 +1,46 @@
-//#[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Query {
+    t: usize,
+    v: i64,
+}
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    qs: Vec<Query>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            qs: [Query; n],
         }
-        Problem { n, xs }
+        Problem { n, qs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let time_to_qs = self
+            .qs
+            .iter()
+            .copied()
+            .fold(vec![vec![]; 101], |mut acc, x| {
+                acc[x.t].push(x);
+                acc
+            });
+        let last_time = self.qs.iter().copied().map(|q| q.t).max().unwrap();
+
+        let mut vol = 0; // 水の入ってる量
+        for t in 1..=last_time {
+            if vol > 0 {
+                vol -= 1;
+            }
+            for q in &time_to_qs[t] {
+                vol += q.v;
+            }
+        }
+
+        let ans = vol;
         Answer { ans }
     }
 

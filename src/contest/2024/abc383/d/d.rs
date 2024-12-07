@@ -2,20 +2,39 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
         }
-        Problem { n, xs }
+        Problem { n }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+
+        let sieve = EratosthenesSieve::new(1_000_000);
+        let primes = (1..1_000_000).filter(|x| sieve.is_prime(*x)).collect_vec();
+
+        // p^2 * q^2 (p > q)
+        let cnt1 = primes
+            .iter()
+            .copied()
+            .map(|p| {
+                primes
+                    .iter()
+                    .copied()
+                    .take_while(|&q| p > q && p * p * q * q <= n)
+                    .count()
+            })
+            .sum::<usize>();
+
+        // p^8
+        let cnt2 = primes.iter().copied().take_while(|p| p.pow(8) <= n).count();
+
+        let ans = cnt1 + cnt2;
         Answer { ans }
     }
 
@@ -29,7 +48,7 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: usize,
 }
 
 impl Answer {
@@ -180,3 +199,71 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use eratosthenes_sieve::*;
+pub mod eratosthenes_sieve {
+    use std::collections::HashMap;
+    pub struct EratosthenesSieve {
+        is_prime_list: Vec<bool>,
+        min_factor_list: Vec<Option<usize>>,
+    }
+    impl EratosthenesSieve {
+        /// [0, n] の区間でエラトステネスのふるいをする
+        /// 計算量: O(n log(log(n)))
+        pub fn new(n: usize) -> Self {
+            let mut is_prime_list = vec![true; n + 1];
+            let mut min_factor_list = vec![None; n + 1];
+            is_prime_list[0] = false;
+            is_prime_list[1] = false;
+            for p in 2..=n {
+                if !is_prime_list[p] {
+                    continue;
+                }
+                min_factor_list[p] = Some(p);
+                for q in (p * 2..=n).step_by(p) {
+                    is_prime_list[q] = false;
+                    if min_factor_list[q].is_none() {
+                        min_factor_list[q] = Some(p);
+                    }
+                }
+            }
+            Self {
+                is_prime_list,
+                min_factor_list,
+            }
+        }
+        /// 計算量: O(1)
+        pub fn is_prime(&self, n: usize) -> bool {
+            self.is_prime_list[n]
+        }
+        /// 計算量: O(log n)
+        pub fn prime_factorize(&self, n: usize) -> HashMap<usize, usize> {
+            let mut n = n;
+            let mut cnt_table: HashMap<usize, usize> = HashMap::new();
+            while n > 1 {
+                let p = self.min_factor_list[n].unwrap();
+                let mut exp = 0;
+                while self.min_factor_list[n] == Some(p) {
+                    n /= p;
+                    exp += 1;
+                }
+                cnt_table.insert(p, exp);
+            }
+            cnt_table
+        }
+        /// 計算量: O(nの約数の個数)
+        pub fn divisors(&self, n: usize) -> Vec<usize> {
+            let mut res = vec![1];
+            let pf = self.prime_factorize(n);
+            for (p, e) in pf {
+                for i in 0..res.len() {
+                    let mut tmp = 1;
+                    for _ in 0..e {
+                        tmp *= p;
+                        res.push(res[i] * tmp);
+                    }
+                }
+            }
+            res
+        }
+    }
+}

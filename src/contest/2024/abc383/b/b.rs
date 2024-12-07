@@ -1,21 +1,52 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    h: usize,
+    w: usize,
+    d: usize,
+    grid: Vec<Vec<char>>,
+}
+
+fn dist(y1: usize, x1: usize, y2: usize, x2: usize) -> usize {
+    y1.abs_diff(y2) + x1.abs_diff(x2)
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            h: usize,
+            w: usize,
+            d: usize,
+            grid: [Chars; h],
         }
-        Problem { n, xs }
+        Problem { h, w, d, grid }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let h = self.h;
+        let w = self.w;
+        let d = self.d;
+        let grid = &self.grid;
+
+        let mut ans = 0;
+
+        for (y1, x1) in iproduct!(0..h, 0..w).filter(|&(y, x)| grid[y][x] == '.') {
+            for (y2, x2) in iproduct!(0..h, 0..w).filter(|&(y, x)| grid[y][x] == '.') {
+                let mut new_grid = grid.clone();
+
+                // (x1, y1 から距離 d ) だったら ! に書き換える
+                for (y3, x3) in iproduct!(0..h, 0..w).filter(|&(y, x)| grid[y][x] == '.') {
+                    if new_grid[y3][x3] == '.'
+                        && (dist(y1, x1, y3, x3) <= d || dist(y2, x2, y3, x3) <= d)
+                    {
+                        new_grid[y3][x3] = '!';
+                    }
+                }
+
+                let cnt = new_grid.iter().flatten().filter(|ch| **ch == '!').count();
+                ans = ans.max(cnt);
+            }
+        }
         Answer { ans }
     }
 
@@ -29,7 +60,7 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: usize,
 }
 
 impl Answer {
