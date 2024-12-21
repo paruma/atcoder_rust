@@ -162,6 +162,7 @@ fn combinations(n: usize, r: usize) -> Vec<Vec<usize>> {
 
             let begin = seq.last().copied().map(|x| x + 1).unwrap_or(0);
 
+            // ループ範囲は具体例 (r=2 くらい) を考えるとわかる
             for i in begin..self.n - self.r + 1 + seq.len() {
                 seq.push(i);
                 self.exec_rec(seq, seq_list);
