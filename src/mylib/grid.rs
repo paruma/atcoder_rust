@@ -27,14 +27,14 @@ pub mod grid_template {
 
         pub fn at(&self, pos: Pos) -> &char {
             if self.is_within(pos) {
-                self.grid.at(pos)
+                &self.grid[pos]
             } else {
                 &'#'
             }
         }
 
         pub fn at_mut(&mut self, pos: Pos) -> &mut char {
-            self.grid.at_mut(pos)
+            &mut self.grid[pos]
         }
 
         pub fn can_move(&self, pos: Pos) -> bool {

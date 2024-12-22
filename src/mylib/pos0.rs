@@ -214,6 +214,8 @@ pub mod general_pos {
 
 #[snippet(prefix = "use vec_vec_at::*;")]
 pub mod vec_vec_at {
+    use std::ops::{Index, IndexMut};
+
     use super::pos::*;
     use easy_ext::ext;
 
@@ -235,21 +237,26 @@ pub mod vec_vec_at {
         pub fn is_within(&self, pos: Pos) -> bool {
             (0..self.width() as i64).contains(&pos.x) && (0..self.height() as i64).contains(&pos.y)
         }
+    }
+    impl<T> Index<Pos> for Vec<Vec<T>> {
+        type Output = T;
 
-        pub fn at(&self, pos: Pos) -> &T {
-            if cfg!(debug_assertions) && !self.is_within(pos) {
-                panic!("index out of bounds: the size (w, h) is ({}, {}) but the index (x, y) is ({}, {})", self.width(), self.height(), pos.x, pos.y);
+        fn index(&self, index: Pos) -> &Self::Output {
+            if cfg!(debug_assertions) && !self.is_within(index) {
+                panic!("index out of bounds: the size (w, h) is ({}, {}) but the index (x, y) is ({}, {})", self.width(), self.height(), index.x, index.y);
             }
 
-            &self[pos.y as usize][pos.x as usize]
+            &self[index.y as usize][index.x as usize]
         }
+    }
 
-        pub fn at_mut(&mut self, pos: Pos) -> &mut T {
-            if cfg!(debug_assertions) && !self.is_within(pos) {
-                panic!("index out of bounds: the size (w, h) is ({}, {}) but the index (x, y) is ({}, {})", self.width(), self.height(), pos.x, pos.y);
+    impl<T> IndexMut<Pos> for Vec<Vec<T>> {
+        fn index_mut(&mut self, index: Pos) -> &mut Self::Output {
+            if cfg!(debug_assertions) && !self.is_within(index) {
+                panic!("index out of bounds: the size (w, h) is ({}, {}) but the index (x, y) is ({}, {})", self.width(), self.height(), index.x, index.y);
             }
 
-            &mut self[pos.y as usize][pos.x as usize]
+            &mut self[index.y as usize][index.x as usize]
         }
     }
 }
@@ -363,13 +370,12 @@ mod tests_pos {
 #[cfg(test)]
 mod tests_vec_vec_at {
     use super::pos::*;
-    use super::vec_vec_at::*;
 
     #[test]
     fn test_vec_vec_at() {
         let mut xss = vec![vec![1, 2, 3], vec![4, 5, 6]];
-        assert_eq!(*xss.at_mut(Pos::new(3, 1)), 6);
-        *xss.at_mut(Pos::new(2, 1)) = 60;
+        assert_eq!(xss[Pos::new(2, 1)], 6);
+        xss[Pos::new(2, 1)] = 60;
 
         assert_eq!(xss, vec![vec![1, 2, 3], vec![4, 5, 60]])
     }
