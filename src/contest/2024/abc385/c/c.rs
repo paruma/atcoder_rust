@@ -15,7 +15,29 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let xs = &self.xs;
+        let ans = (1..n)
+            .flat_map(|d| {
+                // d: 間隔
+                (0..d)
+                    .flat_map(|init| {
+                        // init, init + d,...
+                        let ys = (0..)
+                            .map(|i| init + i * d)
+                            .take_while(|i| *i < n)
+                            .map(|i| xs[i])
+                            .collect_vec();
+                        ys.iter()
+                            .copied()
+                            .dedup_with_count()
+                            .map(|(cnt, _)| cnt)
+                            .max()
+                    })
+                    .max()
+            })
+            .max()
+            .unwrap_or(1);
         Answer { ans }
     }
 
@@ -29,7 +51,7 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: usize,
 }
 
 impl Answer {

@@ -1,22 +1,106 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    init_pos: Pos<i64>,
+    grid: Grid,
+    moves: Vec<char>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Grid {
+    pub grid: Vec<Vec<char>>,
+    pub h: usize,
+    pub w: usize,
+}
+impl Grid {
+    pub fn new(grid: Vec<Vec<char>>) -> Grid {
+        let h = grid.len();
+        let w = grid[0].len();
+        Grid { grid, h, w }
+    }
+    pub fn is_within(&self, pos: Pos<i64>) -> bool {
+        let h = self.h as i64;
+        let w = self.w as i64;
+        0 <= pos.y && pos.y < h && 0 <= pos.x && pos.x < w
+    }
+    pub fn at(&self, pos: Pos<i64>) -> &char {
+        if self.is_within(pos) {
+            self.grid.at(pos)
+        } else {
+            &'#'
+        }
+    }
+    pub fn at_mut(&mut self, pos: Pos<i64>) -> &mut char {
+        self.grid.at_mut(pos)
+    }
+    pub fn can_move(&self, pos: Pos<i64>) -> bool {
+        ['.', '@'].contains(self.at(pos))
+    }
+    pub fn is_house(&self, pos: Pos<i64>) -> bool {
+        ['@'].contains(self.at(pos))
+    }
+    pub fn all_pos_iter(&self) -> impl Iterator<Item = Pos<i64>> {
+        iproduct!(0..self.h, 0..self.w).map(|(y, x)| Pos::new(x as i64, y as i64))
+    }
+    pub fn find_pos_of(&self, ch: char) -> Option<Pos<i64>> {
+        self.all_pos_iter().find(|pos| self.at(*pos) == &ch)
+    }
+    pub fn encode(&self, pos: Pos<i64>) -> usize {
+        (pos.y * self.w as i64 + pos.x) as usize
+    }
+    pub fn decode(&self, i: usize) -> Pos<i64> {
+        let y = (i / self.w) as i64;
+        let x = (i % self.w) as i64;
+        Pos::new(x, y)
+    }
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            h: usize,
+            w: usize,
+            y: i64,
+            x: i64,
+            grid: [Chars; h],
+            moves: Chars,
         }
-        Problem { n, xs }
+        let init_pos = Pos::new(x - 1, y - 1);
+        let grid = Grid::new(grid);
+        Problem {
+            init_pos,
+            grid,
+            moves,
+        }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
-        Answer { ans }
+        let mut current_pos = self.init_pos;
+        let mut house_visited = vec![vec![false; self.grid.w]; self.grid.h];
+
+        let dir_map = hashmap! {
+            'L' => Pos { x: -1, y: 0 },
+            'R' => Pos { x: 1, y: 0 },
+            'U' => Pos { x: 0, y: -1 },
+            'D' => Pos { x: 0, y: 1 },
+        };
+
+        for &m in &self.moves {
+            let dir = dir_map[&m];
+            let next = current_pos + dir;
+            if self.grid.can_move(next) {
+                if self.grid.is_house(next) {
+                    *house_visited.at_mut(next) = true;
+                }
+                current_pos = next;
+            }
+        }
+        let cnt_house = house_visited.iter().flatten().filter(|p| **p).count();
+
+        Answer {
+            cnt_house,
+            final_pos: current_pos,
+        }
     }
 
     #[allow(dead_code)]
@@ -29,12 +113,18 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    final_pos: Pos<i64>,
+    cnt_house: usize,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        println!(
+            "{} {} {}",
+            self.final_pos.y + 1,
+            self.final_pos.x + 1,
+            self.cnt_house
+        );
     }
 }
 
@@ -121,6 +211,7 @@ mod tests {
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
+use maplit::hashmap;
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,
@@ -180,3 +271,105 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use pos::*;
+pub mod pos {
+    use std::ops::{Add, AddAssign, Mul, Neg, Sub, SubAssign};
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    pub struct Pos<T> {
+        pub x: T,
+        pub y: T,
+    }
+    impl<T> Pos<T> {
+        pub fn new(x: T, y: T) -> Pos<T> {
+            Pos { x, y }
+        }
+    }
+    impl<T: Mul<Output = T> + Copy> Pos<T> {
+        pub fn scala_mul(self, rhs: T) -> Pos<T> {
+            Pos::new(self.x * rhs, self.y * rhs)
+        }
+    }
+    impl<T: Add<Output = T> + Mul<Output = T> + Copy> Pos<T> {
+        pub fn inner_product(self, rhs: Self) -> T {
+            self.x * rhs.x + self.y * rhs.y
+        }
+        pub fn norm_square(self) -> T {
+            self.inner_product(self)
+        }
+    }
+    impl<T: Add<Output = T> + Copy> Add for Pos<T> {
+        type Output = Pos<T>;
+        fn add(self, rhs: Self) -> Self::Output {
+            Pos::new(self.x + rhs.x, self.y + rhs.y)
+        }
+    }
+    impl<T: Sub<Output = T> + Copy> Sub for Pos<T> {
+        type Output = Pos<T>;
+        fn sub(self, rhs: Self) -> Self::Output {
+            Pos::new(self.x - rhs.x, self.y - rhs.y)
+        }
+    }
+    impl<T: Neg<Output = T>> Neg for Pos<T> {
+        type Output = Self;
+        fn neg(self) -> Self::Output {
+            Pos::new(-self.x, -self.y)
+        }
+    }
+    impl<T: num_traits::Zero + Copy> num_traits::Zero for Pos<T> {
+        fn zero() -> Self {
+            Pos::new(T::zero(), T::zero())
+        }
+        fn is_zero(&self) -> bool {
+            self.x.is_zero() && self.y.is_zero()
+        }
+    }
+    impl<T: Add<Output = T> + Copy> AddAssign for Pos<T> {
+        fn add_assign(&mut self, rhs: Self) {
+            *self = *self + rhs
+        }
+    }
+    impl<T: Sub<Output = T> + Copy> SubAssign for Pos<T> {
+        fn sub_assign(&mut self, rhs: Self) {
+            *self = *self - rhs
+        }
+    }
+    pub const DIR8_LIST: [Pos<i64>; 8] = [
+        Pos { x: 0, y: 1 },
+        Pos { x: 1, y: 1 },
+        Pos { x: 1, y: 0 },
+        Pos { x: 1, y: -1 },
+        Pos { x: 0, y: -1 },
+        Pos { x: -1, y: -1 },
+        Pos { x: -1, y: 0 },
+        Pos { x: -1, y: 1 },
+    ];
+    pub const DIR4_LIST: [Pos<i64>; 4] = [
+        Pos { x: 0, y: 1 },
+        Pos { x: 1, y: 0 },
+        Pos { x: 0, y: -1 },
+        Pos { x: -1, y: 0 },
+    ];
+    impl Pos<i64> {
+        pub fn around4_pos_iter(self) -> impl Iterator<Item = Pos<i64>> {
+            DIR4_LIST.iter().copied().map(move |d| d + self)
+        }
+        pub fn around8_pos_iter(self) -> impl Iterator<Item = Pos<i64>> {
+            DIR8_LIST.iter().copied().map(move |d| d + self)
+        }
+    }
+}
+
+use vec_vec_at::*;
+pub mod vec_vec_at {
+    use super::pos::*;
+    use easy_ext::ext;
+    #[ext(VecVecAt)]
+    impl<T> Vec<Vec<T>> {
+        pub fn at(&self, pos: Pos<i64>) -> &T {
+            &self[pos.y as usize][pos.x as usize]
+        }
+        pub fn at_mut(&mut self, pos: Pos<i64>) -> &mut T {
+            &mut self[pos.y as usize][pos.x as usize]
+        }
+    }
+}
