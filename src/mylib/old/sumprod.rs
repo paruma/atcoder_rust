@@ -28,7 +28,7 @@ pub mod iter_sum {
     impl<T: Iterator> IteratorExtSum2 for T {}
 }
 
-mod iter_product {
+pub mod iter_product {
     pub trait Product2<A>: Sized {
         fn product2<I: Iterator<Item = A>>(iter: I) -> Self;
     }
