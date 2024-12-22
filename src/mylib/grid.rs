@@ -1,14 +1,36 @@
 pub mod grid_template {
+    use std::ops::{Index, IndexMut};
+
     use cargo_snippet::snippet;
     use itertools::iproduct;
 
-    use crate::mylib::pos0::{pos::Pos, vec_vec_at::*};
+    use crate::mylib::pos0::pos::Pos;
 
-    #[snippet(name = "Grid")]
+    #[snippet(name = "Grid", prefix = "use std::ops::{Index, IndexMut};")]
     pub struct Grid {
         pub grid: Vec<Vec<char>>,
         pub h: usize,
         pub w: usize,
+    }
+
+    #[snippet(name = "Grid")]
+    impl Index<Pos> for Grid {
+        type Output = char;
+
+        fn index(&self, index: Pos) -> &Self::Output {
+            if self.is_within(index) {
+                self.grid.index(index)
+            } else {
+                &'#'
+            }
+        }
+    }
+
+    #[snippet(name = "Grid")]
+    impl IndexMut<Pos> for Grid {
+        fn index_mut(&mut self, index: Pos) -> &mut Self::Output {
+            self.grid.index_mut(index)
+        }
     }
 
     #[snippet(name = "Grid")]
@@ -25,20 +47,8 @@ pub mod grid_template {
             0 <= pos.y && pos.y < h && 0 <= pos.x && pos.x < w
         }
 
-        pub fn at(&self, pos: Pos) -> &char {
-            if self.is_within(pos) {
-                &self.grid[pos]
-            } else {
-                &'#'
-            }
-        }
-
-        pub fn at_mut(&mut self, pos: Pos) -> &mut char {
-            &mut self.grid[pos]
-        }
-
         pub fn can_move(&self, pos: Pos) -> bool {
-            ['.'].contains(self.at(pos))
+            ['.'].contains(&self[pos])
         }
 
         pub fn all_pos_iter(&self) -> impl Iterator<Item = Pos> {
@@ -46,7 +56,7 @@ pub mod grid_template {
         }
 
         pub fn find_pos_of(&self, ch: char) -> Option<Pos> {
-            self.all_pos_iter().find(|pos| self.at(*pos) == &ch)
+            self.all_pos_iter().find(|pos| self[*pos] == ch)
         }
 
         pub fn encode(&self, pos: Pos) -> usize {
