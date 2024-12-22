@@ -19,13 +19,13 @@ pub mod grid_template {
             Grid { grid, h, w }
         }
 
-        pub fn is_within(&self, pos: Pos<i64>) -> bool {
+        pub fn is_within(&self, pos: Pos) -> bool {
             let h = self.h as i64;
             let w = self.w as i64;
             0 <= pos.y && pos.y < h && 0 <= pos.x && pos.x < w
         }
 
-        pub fn at(&self, pos: Pos<i64>) -> &char {
+        pub fn at(&self, pos: Pos) -> &char {
             if self.is_within(pos) {
                 self.grid.at(pos)
             } else {
@@ -33,27 +33,27 @@ pub mod grid_template {
             }
         }
 
-        pub fn at_mut(&mut self, pos: Pos<i64>) -> &mut char {
+        pub fn at_mut(&mut self, pos: Pos) -> &mut char {
             self.grid.at_mut(pos)
         }
 
-        pub fn can_move(&self, pos: Pos<i64>) -> bool {
+        pub fn can_move(&self, pos: Pos) -> bool {
             ['.'].contains(self.at(pos))
         }
 
-        pub fn all_pos_iter(&self) -> impl Iterator<Item = Pos<i64>> {
+        pub fn all_pos_iter(&self) -> impl Iterator<Item = Pos> {
             iproduct!(0..self.h, 0..self.w).map(|(y, x)| Pos::new(x as i64, y as i64))
         }
 
-        pub fn find_pos_of(&self, ch: char) -> Option<Pos<i64>> {
+        pub fn find_pos_of(&self, ch: char) -> Option<Pos> {
             self.all_pos_iter().find(|pos| self.at(*pos) == &ch)
         }
 
-        pub fn encode(&self, pos: Pos<i64>) -> usize {
+        pub fn encode(&self, pos: Pos) -> usize {
             (pos.y * self.w as i64 + pos.x) as usize
         }
 
-        pub fn decode(&self, i: usize) -> Pos<i64> {
+        pub fn decode(&self, i: usize) -> Pos {
             let y = (i / self.w) as i64;
             let x = (i % self.w) as i64;
             Pos::new(x, y)

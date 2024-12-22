@@ -41,6 +41,31 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        // 本当の愚直。O(N^2 log N) (調和級数)
+        let n = self.n;
+        let xs = &self.xs;
+        // 計算量: O(Σ_d n^2/d)  = O(n^2 log n)
+        let ans = (1..n)
+            .flat_map(|d| {
+                // d: 間隔
+                // 計算量: O(n^2/d)
+                (0..n)
+                    .map(|init| {
+                        // init, init + d,...
+                        // 計算量 O(n/d)
+                        (0..)
+                            .map(|i| init + i * d)
+                            .take_while(|i| *i < n && xs[*i] == xs[init])
+                            .count()
+                    })
+                    .max()
+            })
+            .max()
+            .unwrap_or(1);
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -61,7 +86,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]

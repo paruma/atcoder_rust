@@ -2463,9 +2463,6 @@ path = "src/library_checker/cycle_detection.rs"
 name = "lc_cycle_detection_undirected"
 path = "src/library_checker/cycle_detection undirected.rs"
 
-hoge = """
-
-"""
 
 [dependencies]
 
