@@ -219,7 +219,7 @@ pub mod vec_vec_at {
     use super::pos::*;
     use easy_ext::ext;
 
-    #[ext(VecVecAt)]
+    #[ext(ExtVecVec)]
     impl<T> Vec<Vec<T>> {
         pub fn width(&self) -> usize {
             if self.is_empty() {

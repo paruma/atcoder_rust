@@ -7892,7 +7892,7 @@
       "    use super::pos::*;",
       "    use easy_ext::ext;",
       "    use std::ops::{Index, IndexMut};",
-      "    #[ext(VecVecAt)]",
+      "    #[ext(ExtVecVec)]",
       "    impl<T> Vec<Vec<T>> {",
       "        pub fn width(&self) -> usize {",
       "            if self.is_empty() {",
