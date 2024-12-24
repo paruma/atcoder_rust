@@ -21,34 +21,32 @@ impl DfsPermutationsWithReplacement {
 
     fn exec(&self) -> usize {
         let mut cnt = 0;
-        for y in 0..self.h {
-            for x in 0..self.w {
-                let init = Pos::new(x as i64, y as i64);
-                if !self.can_move(init) {
-                    continue;
-                }
-                // visited は HashSet<Pos<i64>> で管理してもよい（カウントが楽になるので）
-                // ただし、遅くなる。
-                // Vec<Vec<bool>> だと 56ms なのに対して、
-                // HashSet<Pos<i64>> だと 545 ms になる。
-                let mut visited: Vec<Vec<bool>> = vec![vec![false; self.w]; self.h];
-                *visited.at_mut(init) = true; // visited は caller が管理する
-                let cnt_current = self.exec_rec(init, &mut visited, 1);
-                cnt += cnt_current;
-            }
+        for init in iproduct!(0..self.h, 0..self.w)
+            .map(|(y, x)| Pos::new(x as i64, y as i64))
+            .filter(|p| self.can_move(*p))
+        {
+            // visited は HashSet<Pos<i64>> で管理してもよい（カウントが楽になるので）
+            // ただし、遅くなる。
+            // Vec<Vec<bool>> だと 56ms なのに対して、
+            // HashSet<Pos<i64>> だと 545 ms になる。
+            let mut visited: Vec<Vec<bool>> = vec![vec![false; self.w]; self.h];
+            visited[init] = true; // visited は caller が管理する
+            let cnt_current = self.exec_rec(init, &mut visited, 1);
+            cnt += cnt_current;
         }
+
         cnt
     }
 
-    fn is_within(&self, pos: Pos<i64>) -> bool {
+    fn is_within(&self, pos: Pos) -> bool {
         (0..self.h as i64).contains(&pos.y) && (0..self.w as i64).contains(&pos.x)
     }
 
-    fn can_move(&self, pos: Pos<i64>) -> bool {
-        self.is_within(pos) && *self.grid.at(pos) == '.'
+    fn can_move(&self, pos: Pos) -> bool {
+        self.is_within(pos) && self.grid[pos] == '.'
     }
 
-    fn exec_rec(&self, pos: Pos<i64>, visited: &mut Vec<Vec<bool>>, cnt_visited: usize) -> usize {
+    fn exec_rec(&self, pos: Pos, visited: &mut Vec<Vec<bool>>, cnt_visited: usize) -> usize {
         if cnt_visited == self.k + 1 {
             return 1;
         }
@@ -56,12 +54,12 @@ impl DfsPermutationsWithReplacement {
         let mut cnt = 0;
 
         for next in Pos::around4_pos_iter(pos).filter(|next| self.can_move(*next)) {
-            if *visited.at(next) {
+            if visited[next] {
                 continue;
             }
-            *visited.at_mut(next) = true;
+            visited[next] = true;
             cnt += self.exec_rec(next, visited, cnt_visited + 1);
-            *visited.at_mut(next) = false;
+            visited[next] = false;
         }
         cnt
     }
@@ -251,70 +249,69 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
-
 use pos::*;
 pub mod pos {
-    use std::ops::{Add, AddAssign, Mul, Neg, Sub, SubAssign};
+    use std::ops::{Add, AddAssign, Neg, Sub, SubAssign};
     #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-    pub struct Pos<T> {
-        pub x: T,
-        pub y: T,
+    pub struct Pos {
+        pub x: i64,
+        pub y: i64,
     }
-    impl<T> Pos<T> {
-        pub fn new(x: T, y: T) -> Pos<T> {
+    impl Pos {
+        pub fn new(x: i64, y: i64) -> Pos {
             Pos { x, y }
         }
     }
-    impl<T: Mul<Output = T> + Copy> Pos<T> {
-        pub fn scala_mul(self, rhs: T) -> Pos<T> {
+    impl Pos {
+        pub fn scala_mul(self, rhs: i64) -> Pos {
             Pos::new(self.x * rhs, self.y * rhs)
         }
     }
-    impl<T: Add<Output = T> + Mul<Output = T> + Copy> Pos<T> {
-        pub fn inner_product(self, rhs: Self) -> T {
+    impl Pos {
+        pub fn inner_product(self, rhs: Self) -> i64 {
             self.x * rhs.x + self.y * rhs.y
         }
-        pub fn norm_square(self) -> T {
+        pub fn norm_square(self) -> i64 {
             self.inner_product(self)
         }
     }
-    impl<T: Add<Output = T> + Copy> Add for Pos<T> {
-        type Output = Pos<T>;
+    impl Add for Pos {
+        type Output = Pos;
         fn add(self, rhs: Self) -> Self::Output {
             Pos::new(self.x + rhs.x, self.y + rhs.y)
         }
     }
-    impl<T: Sub<Output = T> + Copy> Sub for Pos<T> {
-        type Output = Pos<T>;
+    impl Sub for Pos {
+        type Output = Pos;
         fn sub(self, rhs: Self) -> Self::Output {
             Pos::new(self.x - rhs.x, self.y - rhs.y)
         }
     }
-    impl<T: Neg<Output = T>> Neg for Pos<T> {
+    impl Neg for Pos {
         type Output = Self;
         fn neg(self) -> Self::Output {
             Pos::new(-self.x, -self.y)
         }
     }
-    impl<T: num_traits::Zero + Copy> num_traits::Zero for Pos<T> {
+    impl num_traits::Zero for Pos {
         fn zero() -> Self {
-            Pos::new(T::zero(), T::zero())
+            Pos::new(0, 0)
         }
         fn is_zero(&self) -> bool {
             self.x.is_zero() && self.y.is_zero()
         }
     }
-    impl<T: Add<Output = T> + Copy> AddAssign for Pos<T> {
+    impl AddAssign for Pos {
         fn add_assign(&mut self, rhs: Self) {
             *self = *self + rhs
         }
     }
-    impl<T: Sub<Output = T> + Copy> SubAssign for Pos<T> {
+    impl SubAssign for Pos {
         fn sub_assign(&mut self, rhs: Self) {
             *self = *self - rhs
         }
     }
-    pub const DIR8_LIST: [Pos<i64>; 8] = [
+    pub const DIR8_LIST: [Pos; 8] = [
         Pos { x: 0, y: 1 },
         Pos { x: 1, y: 1 },
         Pos { x: 1, y: 0 },
@@ -324,18 +321,18 @@ pub mod pos {
         Pos { x: -1, y: 0 },
         Pos { x: -1, y: 1 },
     ];
-    pub const DIR4_LIST: [Pos<i64>; 4] = [
+    pub const DIR4_LIST: [Pos; 4] = [
         Pos { x: 0, y: 1 },
         Pos { x: 1, y: 0 },
         Pos { x: 0, y: -1 },
         Pos { x: -1, y: 0 },
     ];
-    impl Pos<i64> {
-        pub fn around4_pos_iter(self) -> impl Iterator<Item = Pos<i64>> {
-            DIR4_LIST.iter().copied().map(move |d| d + self)
+    impl Pos {
+        pub fn around4_pos_iter(self) -> impl Iterator<Item = Pos> {
+            DIR4_LIST.iter().copied().map(move |d| self + d)
         }
-        pub fn around8_pos_iter(self) -> impl Iterator<Item = Pos<i64>> {
-            DIR8_LIST.iter().copied().map(move |d| d + self)
+        pub fn around8_pos_iter(self) -> impl Iterator<Item = Pos> {
+            DIR8_LIST.iter().copied().map(move |d| self + d)
         }
     }
 }
@@ -343,13 +340,38 @@ use vec_vec_at::*;
 pub mod vec_vec_at {
     use super::pos::*;
     use easy_ext::ext;
-    #[ext(VecVecAt)]
+    use std::ops::{Index, IndexMut};
+    #[ext(ExtVecVec)]
     impl<T> Vec<Vec<T>> {
-        pub fn at(&self, pos: Pos<i64>) -> &T {
-            &self[pos.y as usize][pos.x as usize]
+        pub fn width(&self) -> usize {
+            if self.is_empty() {
+                0
+            } else {
+                self[0].len()
+            }
         }
-        pub fn at_mut(&mut self, pos: Pos<i64>) -> &mut T {
-            &mut self[pos.y as usize][pos.x as usize]
+        pub fn height(&self) -> usize {
+            self.len()
+        }
+        pub fn is_within(&self, pos: Pos) -> bool {
+            (0..self.width() as i64).contains(&pos.x) && (0..self.height() as i64).contains(&pos.y)
+        }
+    }
+    impl<T> Index<Pos> for Vec<Vec<T>> {
+        type Output = T;
+        fn index(&self, index: Pos) -> &Self::Output {
+            if cfg!(debug_assertions) && !self.is_within(index) {
+                panic ! ("index out of bounds: the size (w, h) is ({}, {}) but the index (x, y) is ({}, {})" , self . width () , self . height () , index . x , index . y );
+            }
+            &self[index.y as usize][index.x as usize]
+        }
+    }
+    impl<T> IndexMut<Pos> for Vec<Vec<T>> {
+        fn index_mut(&mut self, index: Pos) -> &mut Self::Output {
+            if cfg!(debug_assertions) && !self.is_within(index) {
+                panic ! ("index out of bounds: the size (w, h) is ({}, {}) but the index (x, y) is ({}, {})" , self . width () , self . height () , index . x , index . y );
+            }
+            &mut self[index.y as usize][index.x as usize]
         }
     }
 }
