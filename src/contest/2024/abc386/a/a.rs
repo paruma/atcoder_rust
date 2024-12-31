@@ -22,10 +22,14 @@ impl Problem {
             .copied()
             .collect_vec();
 
-        let ans = cnts.len() == 2
-            && ((cnts[0] == 2 && cnts[1] == 2)
-                || (cnts[0] == 1 && cnts[1] == 3)
-                || (cnts[0] == 3 && cnts[1] == 1));
+        // let ans = cnts.len() == 2
+        //     && ((cnts[0] == 2 && cnts[1] == 2)
+        //         || (cnts[0] == 1 && cnts[1] == 3)
+        //         || (cnts[0] == 3 && cnts[1] == 1));
+        // let ans = cnts.len() == 2 && (matches!((cnts[0], cnts[1]), (2, 2) | (1, 3) | (3, 1)));
+
+        let ans = cnts == [2, 2] || cnts == [1, 3] || cnts == [3, 1];
+
         Answer { ans }
     }
 

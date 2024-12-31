@@ -1,102 +1,21 @@
-//#[derive_readable]
+/*
+ABC 386 E - Maximize XOR
+
+- 再帰を使わず itertools の combinations を使い、K が大きい場合は N - K 個を選ぶ (solve2)
+- 再帰を使う
+    - 分岐1の squash をせずに、K が大きい場合は N - K 個を選ぶ
+        - 0 <= seq[0] < seq[1] < ... < seq[k-1] < N を多重 for ループな再帰で全列挙 (solve)
+        - 各 i = 0,...,N - 1 に対して選ぶ選ばないの再帰をする (solve4)
+    - 分岐1の squash をする
+        - 0 <= seq[0] < seq[1] < ... < seq[k-1] < N を多重 for ループな再帰で全列挙 (solve3)
+        - 各 i = 0,...,N - 1 に対して選ぶ選ばないの再帰をする (solve5)
+*/
+
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
     k: usize,
     xs: Vec<i64>,
-}
-
-fn combinations_naive(n: usize, k: usize, xs: &[i64]) -> i64 {
-    struct DfsCombinations {
-        // n個のものからk個取る組合せ nCk
-        n: usize,
-        k: usize,
-        xs: Vec<i64>,
-    }
-
-    impl DfsCombinations {
-        fn new(n: usize, k: usize, xs: Vec<i64>) -> Self {
-            Self { n, k, xs }
-        }
-
-        fn exec(&self) -> Vec<i64> {
-            let mut seq_list = vec![];
-            self.exec_rec(&mut vec![], &mut seq_list);
-            seq_list
-        }
-
-        // seq が現在の状態、seq_list が結果の蓄積物
-        fn exec_rec(&self, seq: &mut Vec<usize>, xor_sum_list: &mut Vec<i64>) {
-            if seq.len() == self.k {
-                // ここがforループの中のようなもの
-                let xor_sum = seq
-                    .iter()
-                    .copied()
-                    .map(|i| self.xs[i])
-                    .fold(0, |acc, x| acc ^ x);
-                xor_sum_list.push(xor_sum);
-                return;
-            }
-
-            let begin = seq.last().copied().map(|x| x + 1).unwrap_or(0);
-
-            // ループ範囲は具体例 (r=2 くらい) を考えるとわかる
-            for i in begin..self.n - self.k + 1 + seq.len() {
-                seq.push(i);
-                self.exec_rec(seq, xor_sum_list);
-                seq.pop();
-            }
-        }
-    }
-    let dfs = DfsCombinations::new(n, k, xs.to_vec());
-    dfs.exec().iter().copied().max().unwrap()
-}
-
-fn combinations(n: usize, k: usize, xs: &[i64]) -> i64 {
-    struct DfsCombinations {
-        // n個のものからk個取る組合せ nCk
-        n: usize,
-        k: usize,
-        xs: Vec<i64>,
-    }
-
-    impl DfsCombinations {
-        fn new(n: usize, k: usize, xs: Vec<i64>) -> Self {
-            Self { n, k, xs }
-        }
-
-        fn exec(&self) -> Vec<i64> {
-            let mut seq_list = vec![];
-            self.exec_rec(&mut vec![], 0, &mut seq_list);
-            seq_list
-        }
-
-        // seq が現在の状態、seq_list が結果の蓄積物
-        fn exec_rec(&self, seq: &mut Vec<usize>, xor_sum: i64, xor_sum_list: &mut Vec<i64>) {
-            if seq.len() == self.k {
-                // ここがforループの中のようなもの
-                xor_sum_list.push(xor_sum);
-                return;
-            }
-
-            let begin = seq.last().copied().map(|x| x + 1).unwrap_or(0);
-
-            // ループ範囲は具体例 (r=2 くらい) を考えるとわかる
-            for i in begin..self.n - self.k + 1 + seq.len() {
-                seq.push(i);
-                self.exec_rec(seq, xor_sum ^ self.xs[i], xor_sum_list);
-                seq.pop();
-            }
-        }
-    }
-    if k * 2 <= n {
-        let dfs = DfsCombinations::new(n, k, xs.to_vec());
-        dfs.exec().iter().copied().max().unwrap()
-    } else {
-        let dfs = DfsCombinations::new(n, n - k, xs.to_vec());
-        let all = xs.iter().copied().fold(0, |acc, x| acc ^ x);
-        dfs.exec().iter().copied().map(|x| all ^ x).max().unwrap()
-    }
 }
 
 impl Problem {
@@ -110,8 +29,302 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
-        //let ans = combinations_naive(self.n, self.k, &self.xs);
-        let ans = combinations(self.n, self.k, &self.xs);
+        // DFS を使用。分岐1あり。
+        /// xs から異なる k 個選んだときの xor sum を列挙する
+        fn enumerate_sub_sequence_xor_sum(n: usize, k: usize, xs: &[i64]) -> Vec<i64> {
+            struct DfsCombinations<'a> {
+                n: usize,
+                k: usize,
+                xs: &'a [i64],
+            }
+
+            impl<'a> DfsCombinations<'a> {
+                fn new(n: usize, k: usize, xs: &'a [i64]) -> Self {
+                    Self { n, k, xs }
+                }
+
+                fn exec(&self) -> Vec<i64> {
+                    let mut xor_sum_list = vec![];
+                    self.exec_rec(&mut vec![], 0, &mut xor_sum_list);
+                    xor_sum_list
+                }
+
+                // seq が現在の状態
+                fn exec_rec(
+                    &self,
+                    seq: &mut Vec<usize>,
+                    xor_sum: i64,
+                    xor_sum_list: &mut Vec<i64>,
+                ) {
+                    if seq.len() == self.k {
+                        // ここがforループの中のようなもの
+                        xor_sum_list.push(xor_sum);
+                        return;
+                    }
+
+                    let begin = seq.last().copied().map(|x| x + 1).unwrap_or(0);
+
+                    // ループ範囲は具体例 (k=2 くらい) を考えるとわかる
+                    for i in begin..self.n - self.k + 1 + seq.len() {
+                        seq.push(i);
+                        self.exec_rec(seq, xor_sum ^ self.xs[i], xor_sum_list);
+                        seq.pop();
+                    }
+                }
+            }
+            DfsCombinations::new(n, k, xs).exec()
+        }
+        let n = self.n;
+        let k = self.k;
+        let xs = &self.xs;
+        let ans = if k * 2 <= n {
+            enumerate_sub_sequence_xor_sum(n, k, xs)
+                .iter()
+                .copied()
+                .max()
+                .unwrap()
+        } else {
+            let all = xs.iter().copied().fold(0, |acc, x| acc ^ x);
+            enumerate_sub_sequence_xor_sum(n, n - k, xs)
+                .iter()
+                .copied()
+                .map(|x| all ^ x)
+                .max()
+                .unwrap()
+        };
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // combinations で組合せ全列挙。xor は全て素朴に計算 (k または n-k が 11以下なので。)
+
+        let n = self.n;
+        let k = self.k;
+        let xs = &self.xs;
+
+        let ans = if k * 2 <= n {
+            xs.iter()
+                .copied()
+                .combinations(k)
+                .map(|sub| sub.iter().copied().fold(0, |acc, x| acc ^ x))
+                .max()
+                .unwrap()
+        } else {
+            let all = xs.iter().copied().fold(0, |acc, x| acc ^ x);
+            xs.iter()
+                .copied()
+                .combinations(n - k)
+                .map(|sub| all ^ sub.iter().copied().fold(0, |acc, x| acc ^ x))
+                .max()
+                .unwrap()
+        };
+        Answer { ans }
+    }
+
+    fn solve3(&self) -> Answer {
+        // DFS を使用。分岐1を squash
+        /// xs から異なる k 個選んだときの xor sum を列挙する
+        fn enumerate_sub_sequence_xor_sum(n: usize, k: usize, xs: &[i64]) -> Vec<i64> {
+            struct DfsCombinations<'a> {
+                n: usize,
+                k: usize,
+                xs: &'a [i64],
+                cum_xor: CumMonoid<BitwiseXor<i64>>,
+            }
+
+            impl<'a> DfsCombinations<'a> {
+                fn new(n: usize, k: usize, xs: &'a [i64]) -> Self {
+                    let cum_xor = CumMonoid::new(xs);
+                    Self { n, k, xs, cum_xor }
+                }
+
+                fn exec(&self) -> Vec<i64> {
+                    let mut xor_sum_list = vec![];
+                    self.exec_rec(&mut vec![], 0, &mut xor_sum_list);
+                    xor_sum_list
+                }
+
+                // seq が現在の状態
+                fn exec_rec(
+                    &self,
+                    seq: &mut Vec<usize>,
+                    xor_sum: i64,
+                    xor_sum_list: &mut Vec<i64>,
+                ) {
+                    if seq.len() == self.k {
+                        // ここがforループの中のようなもの
+                        xor_sum_list.push(xor_sum);
+                        return;
+                    }
+
+                    let begin = seq.last().copied().map(|x| x + 1).unwrap_or(0);
+                    // ループ範囲は具体例 (k=2 くらい) を考えるとわかる
+                    let end = self.n - self.k + 1 + seq.len();
+
+                    // 分岐の数が1の場合は squash する
+                    if end - begin == 1 {
+                        // xs[begin..] の xor を加える
+                        let final_xor_sum = xor_sum ^ self.cum_xor.suffix_prod(begin);
+                        xor_sum_list.push(final_xor_sum);
+                        return;
+                    }
+
+                    for i in begin..self.n - self.k + 1 + seq.len() {
+                        seq.push(i);
+                        self.exec_rec(seq, xor_sum ^ self.xs[i], xor_sum_list);
+                        seq.pop();
+                    }
+                }
+            }
+            DfsCombinations::new(n, k, xs).exec()
+        }
+        let n = self.n;
+        let k = self.k;
+        let xs = &self.xs;
+        let ans = enumerate_sub_sequence_xor_sum(n, k, xs)
+            .iter()
+            .copied()
+            .max()
+            .unwrap();
+        Answer { ans }
+    }
+
+    fn solve4(&self) -> Answer {
+        // 選ぶ選ばないの DFS を使用。
+        /// xs から異なる k 個選んだときの xor sum を列挙する
+        fn enumerate_sub_sequence_xor_sum(n: usize, k: usize, xs: &[i64]) -> Vec<i64> {
+            struct DfsCombinations<'a> {
+                n: usize,
+                k: usize,
+                xs: &'a [i64],
+            }
+
+            impl<'a> DfsCombinations<'a> {
+                fn new(n: usize, k: usize, xs: &'a [i64]) -> Self {
+                    Self { n, k, xs }
+                }
+
+                fn exec(&self) -> Vec<i64> {
+                    let mut xor_sum_list = vec![];
+                    self.exec_rec(0, &mut vec![], 0, &mut xor_sum_list);
+                    xor_sum_list
+                }
+
+                // seq が現在の状態
+                fn exec_rec(
+                    &self,
+                    i: usize,
+                    seq: &mut Vec<usize>,
+                    xor_sum: i64,
+                    xor_sum_list: &mut Vec<i64>,
+                ) {
+                    if seq.len() == self.k {
+                        // ここがforループの中のようなもの
+                        xor_sum_list.push(xor_sum);
+                        return;
+                    }
+
+                    // self.k - seq.len(): 残りの選ぶ数
+                    // self.n - i: 残りの選ぶ候補
+                    if self.k - seq.len() < self.n - i {
+                        // 選ばない
+                        self.exec_rec(i + 1, seq, xor_sum, xor_sum_list);
+                    }
+
+                    // 選ぶ
+                    seq.push(i);
+                    self.exec_rec(i + 1, seq, xor_sum ^ self.xs[i], xor_sum_list);
+                    seq.pop();
+                }
+            }
+            DfsCombinations::new(n, k, xs).exec()
+        }
+        let n = self.n;
+        let k = self.k;
+        let xs = &self.xs;
+        let ans = if k * 2 <= n {
+            enumerate_sub_sequence_xor_sum(n, k, xs)
+                .iter()
+                .copied()
+                .max()
+                .unwrap()
+        } else {
+            let all = xs.iter().copied().fold(0, |acc, x| acc ^ x);
+            enumerate_sub_sequence_xor_sum(n, n - k, xs)
+                .iter()
+                .copied()
+                .map(|x| all ^ x)
+                .max()
+                .unwrap()
+        };
+        Answer { ans }
+    }
+
+    fn solve5(&self) -> Answer {
+        // 選ぶ選ばないの DFS を使用。分岐1を squash
+        /// xs から異なる k 個選んだときの xor sum を列挙する
+        fn enumerate_sub_sequence_xor_sum(n: usize, k: usize, xs: &[i64]) -> Vec<i64> {
+            struct DfsCombinations<'a> {
+                n: usize,
+                k: usize,
+                xs: &'a [i64],
+                cum_xor: CumMonoid<BitwiseXor<i64>>,
+            }
+
+            impl<'a> DfsCombinations<'a> {
+                fn new(n: usize, k: usize, xs: &'a [i64]) -> Self {
+                    let cum_xor = CumMonoid::new(xs);
+                    Self { n, k, xs, cum_xor }
+                }
+
+                fn exec(&self) -> Vec<i64> {
+                    let mut xor_sum_list = vec![];
+                    self.exec_rec(0, &mut vec![], 0, &mut xor_sum_list);
+                    xor_sum_list
+                }
+
+                // seq が現在の状態
+                fn exec_rec(
+                    &self,
+                    i: usize,
+                    seq: &mut Vec<usize>,
+                    xor_sum: i64,
+                    xor_sum_list: &mut Vec<i64>,
+                ) {
+                    if seq.len() == self.k {
+                        // ここがforループの中のようなもの
+                        xor_sum_list.push(xor_sum);
+                        return;
+                    }
+
+                    // self.k - seq.len(): 残りの選ぶ数
+                    // self.n - i: 残りの選ぶ候補
+                    if self.k - seq.len() == self.n - i {
+                        // 残りはすべて選ぶ (squash)
+                        let final_xor_sum = xor_sum ^ self.cum_xor.suffix_prod(i);
+                        xor_sum_list.push(final_xor_sum);
+                        return;
+                    }
+
+                    // 選ばない
+                    self.exec_rec(i + 1, seq, xor_sum, xor_sum_list);
+
+                    // 選ぶ
+                    seq.push(i);
+                    self.exec_rec(i + 1, seq, xor_sum ^ self.xs[i], xor_sum_list);
+                    seq.pop();
+                }
+            }
+            DfsCombinations::new(n, k, xs).exec()
+        }
+        let n = self.n;
+        let k = self.k;
+        let xs = &self.xs;
+        let ans = enumerate_sub_sequence_xor_sum(n, k, xs)
+            .iter()
+            .copied()
+            .max()
+            .unwrap();
         Answer { ans }
     }
 
@@ -138,7 +351,7 @@ fn main() {
     // let n = 200_000;
     // println!("{n} {n}");
     // println!("{}", std::iter::repeat(2).take(n).join(" "));
-    Problem::read().solve().print();
+    Problem::read().solve5().print();
 }
 
 #[cfg(test)]
@@ -279,3 +492,147 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use cum_monoid::*;
+pub mod cum_monoid {
+    use ac_library::{Max, Min, Monoid};
+    pub struct CumMonoid<M>
+    where
+        M: Monoid,
+    {
+        prefix_prod: Vec<M::S>,
+        suffix_prod: Vec<M::S>,
+    }
+    impl<M> CumMonoid<M>
+    where
+        M: Monoid,
+    {
+        pub fn new(xs: &[M::S]) -> CumMonoid<M> {
+            let mut prefix_prod = vec![M::identity(); xs.len() + 1];
+            let mut suffix_prod = vec![M::identity(); xs.len() + 1];
+            for i in 0..xs.len() {
+                prefix_prod[i + 1] = M::binary_operation(&prefix_prod[i], &xs[i]);
+            }
+            for i in (0..xs.len()).rev() {
+                suffix_prod[i] = M::binary_operation(&xs[i], &suffix_prod[i + 1]);
+            }
+            CumMonoid {
+                prefix_prod,
+                suffix_prod,
+            }
+        }
+        /// [0, i) の総積 (前から累積)
+        pub fn prefix_prod(&self, i: usize) -> M::S {
+            self.prefix_prod[i].clone()
+        }
+        /// [i, n) の総積 (後ろから累積)
+        pub fn suffix_prod(&self, i: usize) -> M::S {
+            self.suffix_prod[i].clone()
+        }
+        /// [0, i), [i + 1, n) の区間で総積を取る
+        pub fn prod_without1(&self, i: usize) -> M::S {
+            M::binary_operation(&self.prefix_prod[i], &self.suffix_prod[i + 1])
+        }
+        pub fn prod_without_range(&self, l: usize, r: usize) -> M::S {
+            M::binary_operation(&self.prefix_prod[l], &self.suffix_prod[r])
+        }
+    }
+    pub struct CumMin {
+        cum: CumMonoid<Min<i64>>,
+    }
+    impl CumMin {
+        pub fn new(xs: &[i64]) -> CumMin {
+            CumMin {
+                cum: CumMonoid::new(xs),
+            }
+        }
+        /// [0, i) の総積 (前から累積)
+        pub fn prefix_min(&self, i: usize) -> i64 {
+            self.cum.prefix_prod(i)
+        }
+        /// [i, n) の総積 (後ろから累積)
+        pub fn suffix_min(&self, i: usize) -> i64 {
+            self.cum.suffix_prod(i)
+        }
+        /// [0, i), [i + 1, n) の区間で総積を取る
+        pub fn min_without1(&self, i: usize) -> i64 {
+            self.cum.prod_without1(i)
+        }
+        pub fn min_without_range(&self, l: usize, r: usize) -> i64 {
+            self.cum.prod_without_range(l, r)
+        }
+    }
+    pub struct CumMax {
+        cum: CumMonoid<Max<i64>>,
+    }
+    impl CumMax {
+        pub fn new(xs: &[i64]) -> CumMax {
+            CumMax {
+                cum: CumMonoid::new(xs),
+            }
+        }
+        /// [0, i) の総積 (前から累積)
+        pub fn prefix_max(&self, i: usize) -> i64 {
+            self.cum.prefix_prod(i)
+        }
+        /// [i, n) の総積 (後ろから累積)
+        pub fn suffix_max(&self, i: usize) -> i64 {
+            self.cum.suffix_prod(i)
+        }
+        /// [0, i), [i + 1, n) の区間で総積を取る
+        pub fn max_without1(&self, i: usize) -> i64 {
+            self.cum.prod_without1(i)
+        }
+        pub fn max_without_range(&self, l: usize, r: usize) -> i64 {
+            self.cum.prod_without_range(l, r)
+        }
+    }
+}
+use monoid_bitwise::*;
+pub mod monoid_bitwise {
+    use ac_library::Monoid;
+    use num_traits::Zero;
+    use std::{
+        convert::Infallible,
+        marker::PhantomData,
+        ops::{BitAnd, BitOr, BitXor, Not},
+    };
+    pub struct BitwiseOr<S>(Infallible, PhantomData<fn() -> S>);
+    impl<S> Monoid for BitwiseOr<S>
+    where
+        S: Copy + BitOr<Output = S> + Zero,
+    {
+        type S = S;
+        fn identity() -> Self::S {
+            S::zero()
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            *a | *b
+        }
+    }
+    pub struct BitwiseAnd<S>(Infallible, PhantomData<fn() -> S>);
+    impl<S> Monoid for BitwiseAnd<S>
+    where
+        S: Copy + BitAnd<Output = S> + Not<Output = S> + Zero,
+    {
+        type S = S;
+        fn identity() -> Self::S {
+            !S::zero()
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            *a & *b
+        }
+    }
+    pub struct BitwiseXor<S>(Infallible, PhantomData<fn() -> S>);
+    impl<S> Monoid for BitwiseXor<S>
+    where
+        S: Copy + BitXor<Output = S> + Zero,
+    {
+        type S = S;
+        fn identity() -> Self::S {
+            S::zero()
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            *a ^ *b
+        }
+    }
+}
