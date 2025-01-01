@@ -1,4 +1,32 @@
-// solve メソッドがメイン実装の部分なので、solve メソッドを参照してください。
+/*
+ABC370 D - Cross Explosion
+
+solve メソッドがメイン実装の部分なので、solve メソッドを参照してください。
+
+■ 解法1 (GridSolve1 を使った場合)
+各点に対して、その点の上下左右にある壁の位置を保持する
+（range update をしたいので、range update 遅延セグ木を持つ）
+
+■ 解法2 (GridSolve2 を使った場合)
+壁を壊した区間を Union Find で管理する
+壁を壊したら両隣の区間をくっつける
+
+■ 解法3 (GridSolve3 を使った場合)
+各行・各列の壁の位置を BTreeSet で管理する
+
+■ 解法4 (GridSolve4 を使った場合)
+各行・各列の壁の位置を range sum セグ木で管理する(壁あり: 1 壁なし: 0)
+右側にある一番近い壁などはセグ木の二分探索を使う
+
+■ 解法5 (GridSolve5 を使った場合)
+各行・各列の壁の位置を range min セグ木や range max セグ木で管理する
+(壁あり: 座標の値, 壁なし: +∞ または -∞)
+range max や range min をすると、壁の位置が得られる。
+
+■ 解法6 (GridSolve6 を使った場合)
+区間を sorted set で持つテクニック
+*/
+
 #[derive_readable]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct Query {
