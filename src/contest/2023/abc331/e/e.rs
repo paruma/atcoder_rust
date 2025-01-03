@@ -95,70 +95,57 @@ impl Problem {
 
         // 主菜副菜の組み合わせの上位 n_bad_comb + 1個を抽出する
 
-        let top_list: Vec<MealComb> = {
-            let mut buf = vec![];
-            //(price, ソート後index) を置いてBinaryHeapすべきだった(price の順に出てくる)
-            let mut pq = BinaryHeap::new();
-            let mut visited: HashSet<MealComb> = HashSet::new();
-            let init = MealComb {
-                main: main_list[0],
-                sorted_main_idx: 0,
-                sub: sub_list[0],
-                sorted_sub_idx: 0,
-            };
-            visited.insert(init);
-            pq.push(init);
+        // ソート後の添字で取得する
+        let top_list: Vec<(usize, usize)> = {
+            let mut buf: Vec<(usize, usize)> = vec![]; // (主菜の添字, 副菜の添字)
 
-            while let Some(current) = pq.pop() {
-                if buf.len() == *n_bad_comb + 1 {
+            // (価値, 主菜の添字, 副菜の添字) を Priority Queue に入れる
+            let mut pq: BinaryHeap<(i64, usize, usize)> = BinaryHeap::new();
+            let mut visited: HashSet<(usize, usize)> = HashSet::new();
+            pq.push((main_list[0].price + sub_list[0].price, 0, 0));
+            visited.insert((0, 0));
+            while let Some((_price, main_idx, sub_idx)) = pq.pop() {
+                buf.push((main_idx, sub_idx));
+                if buf.len() == n_bad_comb + 1 {
                     break;
                 }
-                buf.push(current);
 
-                let next1_opt = {
-                    let main_opt = main_list.get(current.sorted_main_idx + 1);
-                    let sub = sub_list[current.sorted_sub_idx];
-
-                    main_opt.map(|&main| MealComb {
-                        main,
-                        sorted_main_idx: current.sorted_main_idx + 1,
-                        sub,
-                        sorted_sub_idx: current.sorted_sub_idx,
-                    })
-                };
-
-                let next2_opt = {
-                    let main = main_list[current.sorted_main_idx];
-                    let sub_opt = sub_list.get(current.sorted_sub_idx + 1);
-                    sub_opt.map(|&sub| MealComb {
-                        main,
-                        sorted_main_idx: current.sorted_main_idx,
-                        sub,
-                        sorted_sub_idx: current.sorted_sub_idx + 1,
-                    })
-                };
-
-                for next in [next1_opt, next2_opt].into_iter().flatten() {
-                    if !visited.contains(&next) {
-                        visited.insert(next);
-                        pq.push(next);
+                for (next_main_idx, next_sub_idx) in
+                    [(main_idx + 1, sub_idx), (main_idx, sub_idx + 1)]
+                {
+                    if next_main_idx < *n_main
+                        && next_sub_idx < *n_sub
+                        && !visited.contains(&(next_main_idx, next_sub_idx))
+                    {
+                        visited.insert((next_main_idx, next_sub_idx));
+                        pq.push((
+                            main_list[next_main_idx].price + sub_list[next_sub_idx].price,
+                            next_main_idx,
+                            next_sub_idx,
+                        ));
                     }
                 }
             }
+
             buf
         };
-        let bad_comb: HashSet<MealIndexComb> = bad_comb.iter().copied().collect::<HashSet<_>>();
 
+        let bad_comb: HashSet<MealIndexComb> = bad_comb.iter().copied().collect::<HashSet<_>>();
         let ans = top_list
             .iter()
             .copied()
-            .filter(|comb| {
-                !bad_comb.contains(&MealIndexComb {
-                    main: comb.main.idx,
-                    sub: comb.sub.idx,
-                })
+            .filter_map(|(main_idx, sub_idx)| {
+                let main = main_list[main_idx];
+                let sub = sub_list[sub_idx];
+                if bad_comb.contains(&MealIndexComb {
+                    main: main.idx,
+                    sub: sub.idx,
+                }) {
+                    None
+                } else {
+                    Some(main.price + sub.price)
+                }
             })
-            .map(|comb| comb.price())
             .max()
             .unwrap();
         Answer { ans }
@@ -305,34 +292,28 @@ impl Problem {
             .sorted_by_key(|m| Reverse(m.price))
             .collect_vec();
 
-        let top_list: Vec<MealComb> = {
+        let top_list: Vec<(usize, usize)> = {
             let mut buf = vec![];
 
-            let mut pq = BinaryHeap::<MealComb>::new();
+            let mut pq = BinaryHeap::<(i64, usize, usize)>::new();
 
             for (main_i, main) in main_list.iter().copied().enumerate() {
-                pq.push(MealComb {
-                    main,
-                    sorted_main_idx: main_i,
-                    sub: sub_list[0],
-                    sorted_sub_idx: 0,
-                })
+                let sub = sub_list[0];
+                pq.push((main.price + sub.price, main_i, 0));
             }
 
-            while let Some(current) = pq.pop() {
+            while let Some((_, main_idx, sub_idx)) = pq.pop() {
                 if buf.len() == n_bad_comb + 1 {
                     break;
                 }
-                buf.push(current);
-                if current.sorted_sub_idx < n_sub - 1 {
+                buf.push((main_idx, sub_idx));
+                if sub_idx < n_sub - 1 {
                     // sub を 1 だけ進める (ドント式だと ÷k から ÷(k+1) にするところ)
-                    let next = MealComb {
-                        main: current.main,
-                        sorted_main_idx: current.sorted_main_idx,
-                        sub: sub_list[current.sorted_sub_idx + 1],
-                        sorted_sub_idx: current.sorted_sub_idx + 1,
-                    };
-                    pq.push(next);
+                    let next_main_idx = main_idx;
+                    let next_sub_idx = sub_idx + 1;
+                    let next_price = main_list[next_main_idx].price + sub_list[next_sub_idx].price;
+
+                    pq.push((next_price, next_main_idx, next_sub_idx));
                 }
             }
             buf
@@ -343,13 +324,18 @@ impl Problem {
         let ans = top_list
             .iter()
             .copied()
-            .filter(|comb| {
-                !bad_comb.contains(&MealIndexComb {
-                    main: comb.main.idx,
-                    sub: comb.sub.idx,
-                })
+            .filter_map(|(sorted_main_idx, sorted_sub_idx)| {
+                let main = main_list[sorted_main_idx];
+                let sub = sub_list[sorted_sub_idx];
+                if bad_comb.contains(&MealIndexComb {
+                    main: main.idx,
+                    sub: sub.idx,
+                }) {
+                    None
+                } else {
+                    Some(main.price + sub.price)
+                }
             })
-            .map(|comb| comb.price())
             .max()
             .unwrap();
         Answer { ans }
@@ -368,7 +354,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve4().print();
+    Problem::read().solve().print();
 }
 
 #[cfg(test)]
