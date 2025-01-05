@@ -1,20 +1,21 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    n: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            n: Bytes,
         }
-        Problem { n, xs }
+
+        let n = n.iter().map(|x| (x - b'0') as i64).collect_vec();
+        Problem { n }
     }
 
     fn solve(&self) -> Answer {
+        // let n = self.n;
         let ans = 0;
         Answer { ans }
     }

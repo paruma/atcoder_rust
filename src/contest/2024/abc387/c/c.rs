@@ -1,21 +1,72 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    l: i64,
+    r: i64,
+}
+use positional_notation::*;
+#[allow(clippy::module_inception)]
+pub mod positional_notation {
+    pub fn eval_base_n_value(xs: &[i64], base: i64) -> i64 {
+        xs.iter().fold(0, |acc, &x| acc * base + x)
+    }
+    pub fn to_base_n_value(x: i64, base: i64) -> Vec<i64> {
+        let mut ret = vec![];
+        let mut x = x;
+        while x > 0 {
+            ret.push(x % base);
+            x /= base;
+        }
+        ret.reverse();
+        ret
+    }
+}
+
+/// [0, n] での蛇数の数
+fn solve0(n: i64) -> i64 {
+    if n <= 9 {
+        return 0;
+    }
+    let n10 = to_base_n_value(n, 10);
+    // n がヘビ数ではない
+    if let Some(p) = n10[1..]
+        .iter()
+        .copied()
+        .position(|x| x >= n10[0])
+        .map(|p| p + 1)
+    {
+        let next_n10 = (0..n10.len())
+            .map(|i| if i < p { n10[i] } else { n10[0] - 1 })
+            .collect_vec();
+        let next_n = eval_base_n_value(&next_n10, 10);
+        return solve0(next_n);
+    }
+
+    // n はヘビ数
+
+    let lower_cnt = eval_base_n_value(&n10[1..], n10[0]) + 1;
+
+    let next_n10 = (0..n10.len())
+        .map(|i| if i == 0 { n10[0] } else { 0 })
+        .collect_vec();
+    let next_n = eval_base_n_value(&next_n10, 10);
+
+    solve0(next_n - 1) + lower_cnt
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            l: i64,
+            r: i64,
         }
-        Problem { n, xs }
+        Problem { l, r }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let l = self.l;
+        let r = self.r;
+        let ans = solve0(r) - solve0(l - 1);
         Answer { ans }
     }
 
@@ -51,6 +102,8 @@ mod tests {
 
     #[test]
     fn test_problem() {
+        //solve0(573);
+        // dbg!(solve0(518));
         assert_eq!(1 + 1, 2);
     }
 

@@ -2,19 +2,78 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    m: usize,
+    xs: Vec<usize>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            m: usize,
+            xs: [Usize1; n],
         }
-        Problem { n, xs }
+        Problem { n, m, xs }
     }
 
     fn solve(&self) -> Answer {
+        use ac_library::ModInt998244353 as Mint;
+        let n = self.n;
+        let m = self.m;
+        let xs = &self.xs;
+
+        let mut scc_graph = SccGraph::new(n);
+        for from in 0..n {
+            let to = self.xs[from];
+            scc_graph.add_edge(from, to);
+        }
+
+        let scc = scc_graph.scc();
+
+        let to_scc_idx = {
+            let mut to_scc_idx = vec![0; n];
+            for (i, component) in scc.iter().enumerate() {
+                for v in component {
+                    to_scc_idx[*v] = i;
+                }
+            }
+            to_scc_idx
+        };
+
+        let scc_adj = {
+            let mut scc_adj = vec![HashSet::<usize>::new(); scc.len()];
+            for from in 0..n {
+                let to = self.xs[from];
+                let from_scc_idx = to_scc_idx[from];
+                let to_scc_idx = to_scc_idx[to];
+                if from_scc_idx != to_scc_idx {
+                    scc_adj[from_scc_idx].insert(to_scc_idx);
+                }
+            }
+            scc_adj
+                .iter()
+                .map(|s| s.iter().copied().collect_vec())
+                .collect_vec()
+        };
+
+        let seg = Segtree::<MintAdditive<Mod998244353>>::from(vec![Mint::new(0); m]);
+
+        let mut dp = (0..scc.len())
+            .map(|_| Segtree::<MintAdditive<Mod998244353>>::from(vec![Mint::new(0); m]))
+            .collect_vec();
+
+        for i in (0..scc.len()).rev() {
+            for k in 0..m {
+                let next_val = scc_adj[i]
+                    .iter()
+                    .copied()
+                    .map(|next| dp[next].prod(m..))
+                    .product();
+                //
+                dp[i].set(k, next_val);
+            }
+        }
+
         let ans = 0;
         Answer { ans }
     }
@@ -118,6 +177,7 @@ mod tests {
     }
 }
 
+use ac_library::{Mod998244353, SccGraph, Segtree};
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
@@ -180,3 +240,34 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use monoid_modint::*;
+pub mod monoid_modint {
+    use ac_library::{Modulus, Monoid, StaticModInt};
+    use std::{convert::Infallible, marker::PhantomData};
+    pub struct MintAdditive<Mod>(Infallible, PhantomData<fn() -> Mod>);
+    impl<Mod> Monoid for MintAdditive<Mod>
+    where
+        Mod: Modulus,
+    {
+        type S = StaticModInt<Mod>;
+        fn identity() -> Self::S {
+            StaticModInt::raw(0)
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            a + b
+        }
+    }
+    pub struct MintMultiplicative<Mod>(Infallible, PhantomData<fn() -> Mod>);
+    impl<Mod> Monoid for MintMultiplicative<Mod>
+    where
+        Mod: Modulus,
+    {
+        type S = StaticModInt<Mod>;
+        fn identity() -> Self::S {
+            StaticModInt::raw(1)
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            a * b
+        }
+    }
+}

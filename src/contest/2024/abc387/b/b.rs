@@ -1,21 +1,22 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    x: i64,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            x: i64
         }
-        Problem { n, xs }
+        Problem { x }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = iproduct!(1..=9, 1..=9)
+            .map(|(a, b)| a * b)
+            .filter(|y| *y != self.x)
+            .sum::<i64>();
         Answer { ans }
     }
 

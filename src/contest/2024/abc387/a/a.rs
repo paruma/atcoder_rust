@@ -1,21 +1,24 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    a: usize,
+    b: usize,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            a: usize,
+            b: usize,
         }
-        Problem { n, xs }
+        Problem { a, b }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let a = self.a;
+        let b = self.b;
+
+        let ans = (a + b) * (a + b);
         Answer { ans }
     }
 
@@ -29,7 +32,7 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: usize,
 }
 
 impl Answer {
