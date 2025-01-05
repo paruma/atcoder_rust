@@ -43,6 +43,7 @@ dependencies = [
  "rand",
  "recur-fn",
  "regex",
+ "rustc-hash",
  "superslice",
 ]
 

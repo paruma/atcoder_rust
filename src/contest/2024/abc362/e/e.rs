@@ -19,7 +19,7 @@ impl Problem {
         let n = self.n;
         let xs = &self.xs;
 
-        // dp[i][k][p][q] = xs[0..i] で 長さk の部分文字列を取って、初項がxs[p]で2項目がxs[q] であるようなものの数
+        // dp[i][k][p][q] = xs[0..i] で 長さk の部分文字列を取って、初項を xs の添字 p から取ってきて、2項目が xs[q] であるようなものの数
         let mut dp = vec![vec![vec![vec![Mint::new(0); n]; n]; n + 1]; n + 1];
 
         // k=0 の初期化
@@ -229,6 +229,203 @@ impl Problem {
 
         Answer { ans }
     }
+
+    fn solve4(&self) -> Answer {
+        // メモ化再帰を使った実装
+        // HashMap を使うと 2051 ms で TLE するが、FxHashMap を使うと 827 ms で AC できる。
+        // (TL は 2000 ms)
+        // solve3 (582 ms) では普通の HashMap を使っているが next dp を使っているため、solve4 (普通の HashMap 使用)よりも早い。
+        // solve4 のメモ化再帰では next dp で書けない。
+        use ac_library::ModInt998244353 as Mint;
+
+        let n = self.n;
+        let xs = &self.xs;
+
+        // 初項と公差のペアのリスト
+        let head_diff_list = (0..n)
+            .tuple_combinations()
+            .map(|(i, j)| {
+                let head = xs[i];
+                let diff = xs[j] - xs[i];
+                (head, diff)
+            })
+            .unique()
+            .collect_vec();
+
+        fn rec(
+            xs: &[i64],
+            i: usize,
+            k: usize,
+            h: i64,
+            d: i64,
+            memo: &mut Vec<Vec<FxHashMap<(i64, i64), Mint>>>,
+        ) -> Mint {
+            if let Some(&ans) = memo[i][k].get(&(h, d)) {
+                return ans;
+            };
+
+            let ans = {
+                if k == 0 {
+                    Mint::new(1)
+                } else if i == 1 {
+                    if xs[0] == h && k == 1 {
+                        Mint::new(1)
+                    } else {
+                        Mint::new(0)
+                    }
+                } else {
+                    if xs[i - 1] == h + (k as i64 - 1) * d {
+                        rec(xs, i - 1, k - 1, h, d, memo) + rec(xs, i - 1, k, h, d, memo)
+                    } else {
+                        rec(xs, i - 1, k, h, d, memo)
+                    }
+                }
+            };
+            memo[i][k].insert((h, d), ans);
+            ans
+        }
+        let mut memo = vec![vec![FxHashMap::default(); n + 1]; n + 1];
+        let mut ans = vec![];
+
+        ans.push(n as i64); // k = 1の答え
+        for k in 2..=n {
+            let sub_ans = head_diff_list
+                .iter()
+                .copied()
+                .map(|(h, d)| rec(xs, n, k, h, d, &mut memo))
+                .sum::<Mint>();
+            ans.push(sub_ans.val() as i64);
+        }
+        Answer { ans }
+    }
+
+    fn solve5(&self) -> Answer {
+        // メモ化再帰を使った実装 (solve4 のリファクタリング)
+        // 初項と公差はメモ化しない
+        // (solve4 → solve5 で) 877ms が 222 ms になった
+        use ac_library::ModInt998244353 as Mint;
+
+        let n = self.n;
+        let xs = &self.xs;
+
+        // 初項と公差のペアのリスト
+        let head_diff_list = (0..n)
+            .tuple_combinations()
+            .map(|(i, j)| {
+                let head = xs[i];
+                let diff = xs[j] - xs[i];
+                (head, diff)
+            })
+            .unique()
+            .collect_vec();
+
+        struct Rec<'a> {
+            xs: &'a [i64],
+            h: i64, // 初項
+            d: i64, // 公差
+        }
+
+        impl<'a> Rec<'a> {
+            fn new(xs: &[i64], h: i64, d: i64) -> Rec {
+                Rec { xs, h, d }
+            }
+            fn rec(&self, i: usize, k: usize, memo: &mut Vec<Vec<Option<Mint>>>) -> Mint {
+                if let Some(ans) = memo[i][k] {
+                    return ans;
+                };
+
+                let ans = {
+                    if k == 0 {
+                        Mint::new(1)
+                    } else if i == 1 {
+                        if self.xs[0] == self.h && k == 1 {
+                            Mint::new(1)
+                        } else {
+                            Mint::new(0)
+                        }
+                    } else {
+                        if self.xs[i - 1] == self.h + (k as i64 - 1) * self.d {
+                            self.rec(i - 1, k - 1, memo) + self.rec(i - 1, k, memo)
+                        } else {
+                            self.rec(i - 1, k, memo)
+                        }
+                    }
+                };
+                memo[i][k] = Some(ans);
+                ans
+            }
+        }
+
+        let mut ans = vec![Mint::new(0); n];
+
+        ans[0] = Mint::new(n); // k = 1 の答え
+
+        for &(h, d) in &head_diff_list {
+            let mut memo = vec![vec![None; n + 1]; n + 1];
+
+            for k in 2..=n {
+                let sub_ans = Rec::new(xs, h, d).rec(n, k, &mut memo);
+                ans[k - 1] += sub_ans;
+            }
+        } // k と (h, d) の for ループが逆だと N^5 の計算量になってしまう
+
+        let ans = ans.iter().copied().map(|x| x.val() as i64).collect_vec();
+        Answer { ans }
+    }
+
+    fn solve6(&self) -> Answer {
+        // solve5(メモ化再帰) を forループで書き直し
+        // 222ms → 50ms になった
+        use ac_library::ModInt998244353 as Mint;
+
+        let n = self.n;
+        let xs = &self.xs;
+
+        // 初項と公差のペアのリスト
+        let head_diff_list = (0..n)
+            .tuple_combinations()
+            .map(|(i, j)| {
+                let head = xs[i];
+                let diff = xs[j] - xs[i];
+                (head, diff)
+            })
+            .unique()
+            .collect_vec();
+
+        let mut ans = vec![Mint::new(0); n];
+
+        ans[0] = Mint::new(n); // k = 1 の答え
+
+        for &(h, d) in &head_diff_list {
+            let mut dp = vec![vec![Mint::new(0); n + 1]; n + 1];
+            for i in 0..=n {
+                dp[i][0] = Mint::new(1);
+            }
+            dp[1][1] = if xs[0] == h {
+                Mint::new(1)
+            } else {
+                Mint::new(0)
+            };
+            for i in 2..=n {
+                for k in 1..=n {
+                    let choose = if xs[i - 1] == h + (k as i64 - 1) * d {
+                        dp[i - 1][k - 1]
+                    } else {
+                        Mint::new(0)
+                    };
+                    let no_choose = dp[i - 1][k];
+                    dp[i][k] = choose + no_choose;
+                }
+            }
+
+            for k in 2..=n {
+                ans[k - 1] += dp[n][k];
+            }
+        }
+
+        let ans = ans.iter().copied().map(|x| x.val() as i64).collect_vec();
+        Answer { ans }
+    }
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -249,7 +446,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve3().print();
+    Problem::read().solve6().print();
 }
 
 #[cfg(test)]
@@ -336,6 +533,7 @@ use proconio::{
     derive_readable, fastout, input,
     marker::{Bytes, Chars, Usize1},
 };
+use rustc_hash::FxHashMap;
 #[allow(unused_imports)]
 use std::collections::{BinaryHeap, HashMap, HashSet};
 

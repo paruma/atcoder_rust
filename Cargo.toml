@@ -2651,7 +2651,7 @@ proconio = { version = "=0.4.5", features = ["derive"] }
 # text_io = "=0.1.12"
 
 # 高速なハッシュ関数
-# rustc-hash = "=1.1.0"
+rustc-hash = "=1.1.0"
 
 # ある長さまでは要素を「直に」持つ可変長配列
 # smallvec = { version = "=1.11.0", features = ["const_generics", "const_new", "write", "union", "serde", "arbitrary"] }
