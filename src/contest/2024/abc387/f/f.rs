@@ -20,11 +20,10 @@ impl Problem {
         use ac_library::ModInt998244353 as Mint;
         let n = self.n;
         let m = self.m;
-        let xs = &self.xs;
 
         let mut scc_graph = SccGraph::new(n);
-        for from in 0..n {
-            let to = self.xs[from];
+        for to in 0..n {
+            let from = self.xs[to];
             scc_graph.add_edge(from, to);
         }
 
@@ -42,8 +41,8 @@ impl Problem {
 
         let scc_adj = {
             let mut scc_adj = vec![HashSet::<usize>::new(); scc.len()];
-            for from in 0..n {
-                let to = self.xs[from];
+            for to in 0..n {
+                let from = self.xs[to];
                 let from_scc_idx = to_scc_idx[from];
                 let to_scc_idx = to_scc_idx[to];
                 if from_scc_idx != to_scc_idx {
@@ -56,7 +55,13 @@ impl Problem {
                 .collect_vec()
         };
 
-        let seg = Segtree::<MintAdditive<Mod998244353>>::from(vec![Mint::new(0); m]);
+        let scc_in_degree = {
+            let mut scc_in_degree = vec![0; scc.len()];
+            for to in scc_adj.iter().flatten().copied() {
+                scc_in_degree[to] += 1;
+            }
+            scc_in_degree
+        };
 
         let mut dp = (0..scc.len())
             .map(|_| Segtree::<MintAdditive<Mod998244353>>::from(vec![Mint::new(0); m]))
@@ -67,14 +72,18 @@ impl Problem {
                 let next_val = scc_adj[i]
                     .iter()
                     .copied()
-                    .map(|next| dp[next].prod(m..))
+                    .map(|next| dp[next].prod(..=k))
                     .product();
                 //
                 dp[i].set(k, next_val);
             }
         }
 
-        let ans = 0;
+        let ans = (0..scc.len())
+            .filter(|i| scc_in_degree[*i] == 0)
+            .map(|i| dp[i].all_prod())
+            .product::<Mint>()
+            .val() as i64;
         Answer { ans }
     }
 
