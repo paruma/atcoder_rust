@@ -1,21 +1,37 @@
-//#[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Snake {
+    thickness: i64,
+    len: i64,
+}
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    d: usize,
+    snakes: Vec<Snake>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            d: usize,
+            snakes: [Snake; n],
         }
-        Problem { n, xs }
+        Problem { n, d, snakes }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = (1..=self.d)
+            .map(|k| {
+                self.snakes
+                    .iter()
+                    .copied()
+                    .map(|snake| (snake.len + k as i64) * snake.thickness)
+                    .max()
+                    .unwrap()
+            })
+            .collect_vec();
         Answer { ans }
     }
 
@@ -29,12 +45,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec(&self.ans);
     }
 }
 

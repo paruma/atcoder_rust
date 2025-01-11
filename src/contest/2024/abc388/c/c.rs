@@ -15,7 +15,14 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let xs = &self.xs;
+        let ans = (0..n)
+            .map(|i| {
+                //
+                n - xs.lower_bound(&(2 * xs[i]))
+            })
+            .sum::<usize>();
         Answer { ans }
     }
 
@@ -29,7 +36,7 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: usize,
 }
 
 impl Answer {
@@ -130,6 +137,7 @@ use proconio::{
 use std::cmp::Reverse;
 #[allow(unused_imports)]
 use std::collections::{BinaryHeap, HashMap, HashSet};
+use superslice::Ext;
 
 // ====== output func ======
 #[allow(unused_imports)]

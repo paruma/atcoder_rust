@@ -15,7 +15,29 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let xs = &self.xs;
+        let mut used = vec![false; n];
+        let mut set = self.xs[n / 2..]
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(i, x)| (x, i + n / 2))
+            .collect::<BTreeSet<_>>();
+
+        for i in 0..n / 2 {
+            if used[i] {
+                continue;
+            }
+            let cand = set.range((xs[i] * 2, 0)..).min().copied();
+            if let Some((x_j, j)) = cand {
+                set.remove(&(xs[i], i));
+                set.remove(&(x_j, j));
+                used[i] = true;
+                used[j] = true;
+            }
+        }
+        let ans = used.iter().filter(|p| **p).count() / 2;
         Answer { ans }
     }
 
@@ -29,7 +51,7 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: usize,
 }
 
 impl Answer {
@@ -128,6 +150,7 @@ use proconio::{
 };
 #[allow(unused_imports)]
 use std::cmp::Reverse;
+use std::collections::BTreeSet;
 #[allow(unused_imports)]
 use std::collections::{BinaryHeap, HashMap, HashSet};
 
