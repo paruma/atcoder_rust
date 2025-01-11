@@ -100,6 +100,33 @@ impl Problem {
 
         Answer { ans }
     }
+
+    fn solve3(&self) -> Answer {
+        // DP 解き直し
+        let n = self.n;
+        let s = &self.s;
+        let cs = &self.cs;
+
+        // dp[i][c][x] = [0, i) を見たとき、隣り合った2文字が一致している箇所が c 個あって、s[i-1] が x のもの
+        let mut dp = vec![[[i64::MAX; 2]; 2]; n + 1];
+
+        for x in [0, 1] {
+            dp[1][0][x] = (s[0] != x) as i64 * cs[0];
+            dp[1][1][x] = i64::MAX;
+        }
+
+        for i in 2..=n {
+            for x in [0, 1] {
+                dp[i][0][x] = dp[i - 1][0][1 - x] + (s[i - 1] != x) as i64 * cs[i - 1];
+                dp[i][1][x] = i64::min(dp[i - 1][0][x], dp[i - 1][1][1 - x])
+                    + (s[i - 1] != x) as i64 * cs[i - 1];
+            }
+        }
+
+        let ans = i64::min(dp[n][1][0], dp[n][1][1]);
+
+        Answer { ans }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -114,7 +141,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve2().print();
+    Problem::read().solve3().print();
 }
 
 #[cfg(test)]
