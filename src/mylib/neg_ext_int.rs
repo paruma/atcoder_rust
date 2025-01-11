@@ -6,10 +6,11 @@ pub mod mod_neg_ext_int {
     use std::{
         cmp::Ordering,
         convert::Infallible,
+        fmt,
         ops::{Add, AddAssign},
     };
     use NegExtInt::*;
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    #[derive(Clone, Copy, PartialEq, Eq)]
     pub enum NegExtInt {
         NegInf,
         Fin(i64),
@@ -19,7 +20,7 @@ pub mod mod_neg_ext_int {
         pub fn get_fin(self) -> i64 {
             match self {
                 Fin(val) => val,
-                NegInf => panic!("called `NegExtInt::get_fin()` on a `Fin` value"),
+                NegInf => panic!("called `NegExtInt::get_fin()` on a `NegInf` value"),
             }
         }
 
@@ -127,6 +128,24 @@ pub mod mod_neg_ext_int {
     impl Ord for NegExtInt {
         fn cmp(&self, other: &Self) -> Ordering {
             self.partial_cmp(other).unwrap()
+        }
+    }
+
+    impl fmt::Display for NegExtInt {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            match self {
+                NegInf => write!(f, "-∞"),
+                Fin(x) => write!(f, "{x}"),
+            }
+        }
+    }
+
+    impl fmt::Debug for NegExtInt {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            match self {
+                NegInf => write!(f, "-∞"),
+                Fin(x) => write!(f, "{x}"),
+            }
         }
     }
 

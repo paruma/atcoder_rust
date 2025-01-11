@@ -12,12 +12,13 @@ pub mod mod_ext_int {
     use std::{
         cmp::Ordering,
         convert::Infallible,
+        fmt,
         iter::Sum,
         ops::{Add, AddAssign},
     };
     use ExtInt::*;
 
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    #[derive(Clone, Copy, PartialEq, Eq)]
     pub enum ExtInt {
         Inf,
         Fin(i64),
@@ -27,7 +28,7 @@ pub mod mod_ext_int {
         pub fn get_fin(self) -> i64 {
             match self {
                 Fin(val) => val,
-                Inf => panic!("called `ExtInt::get_fin()` on a `Fin` value"),
+                Inf => panic!("called `ExtInt::get_fin()` on a `Inf` value"),
             }
         }
 
@@ -135,6 +136,24 @@ pub mod mod_ext_int {
     impl Ord for ExtInt {
         fn cmp(&self, other: &Self) -> Ordering {
             self.partial_cmp(other).unwrap()
+        }
+    }
+
+    impl fmt::Display for ExtInt {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            match self {
+                Inf => write!(f, "+∞"),
+                Fin(x) => write!(f, "{x}"),
+            }
+        }
+    }
+
+    impl fmt::Debug for ExtInt {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            match self {
+                Inf => write!(f, "+∞"),
+                Fin(x) => write!(f, "{x}"),
+            }
         }
     }
 
