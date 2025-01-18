@@ -1,21 +1,22 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    x: i64,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            x: i64
         }
-        Problem { n, xs }
+        Problem { x }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let fs = (1..=20)
+            .map(|i| ((1..=i).product::<i64>(), i))
+            .collect::<HashMap<_, _>>();
+        let ans = *fs.get(&self.x).unwrap();
         Answer { ans }
     }
 

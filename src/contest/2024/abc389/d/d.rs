@@ -1,21 +1,35 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    r: i64,
+}
+
+// (x, y) を中心とした正方形が円の中に入っているような x の数
+fn sq(x: i64) -> i64 {
+    x * x
+}
+
+fn solve0(r: i64, y: i64) -> i64 {
+    let max_x = bin_search(0, 2 * r, |x| {
+        (sq(2 * x + 1) + sq(2 * y + 1) <= 4 * r * r)
+            && (sq(2 * x + 1) + sq(2 * y - 1) <= 4 * r * r)
+            && (sq(2 * x - 1) + sq(2 * y + 1) <= 4 * r * r)
+            && (sq(2 * x - 1) + sq(2 * y - 1) <= 4 * r * r)
+    });
+    2 * max_x + 1
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            r: i64
         }
-        Problem { n, xs }
+        Problem { r }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let r = self.r;
+        let ans = (-(r - 1)..=(r - 1)).map(|y| solve0(r, y)).sum::<i64>();
         Answer { ans }
     }
 
@@ -180,3 +194,44 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+/// 二分探索をする
+/// ```text
+/// ng ng ng ok ok ok
+///          ↑ここの引数の値を返す
+/// ```
+/// 計算量: O(log(|ok - ng|))
+/// ## Arguments
+/// * ok != ng
+/// * |ok - ng| <= 2^63 - 1, |ok + ng| <= 2^63 - 1
+/// * p の定義域について
+///     * ng < ok の場合、p は区間 ng..ok で定義されている。
+///     * ok < ng の場合、p は区間 ok..ng で定義されている。
+/// * p の単調性について
+///     * ng < ok の場合、p は単調増加
+///     * ok < ng の場合、p は単調減少
+/// ## Return
+/// * ng < ok の場合: I = { i in ng..ok | p(i) == true } としたとき
+///     * I が空でなければ、min I を返す。
+///     * I が空ならば、ok を返す。
+/// * ok < ng の場合: I = { i in ok..ng | p(i) == true } としたとき
+///     * I が空でなければ、max I を返す。
+///     * I が空ならば、ok を返す。
+pub fn bin_search<F>(mut ok: i64, mut ng: i64, p: F) -> i64
+where
+    F: Fn(i64) -> bool,
+{
+    assert!(ok != ng);
+    assert!(ok.checked_sub(ng).is_some());
+    assert!(ok.checked_add(ng).is_some());
+    while num::abs(ok - ng) > 1 {
+        let mid = (ok + ng) / 2;
+        assert!(mid != ok);
+        assert!(mid != ng);
+        if p(mid) {
+            ok = mid;
+        } else {
+            ng = mid;
+        }
+    }
+    ok
+}

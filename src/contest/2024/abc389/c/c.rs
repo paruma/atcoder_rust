@@ -1,21 +1,71 @@
 //#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Query {
+    Push(i64),
+    Pop,
+    Get(usize),
+}
+
+impl Query {
+    fn read() -> Query {
+        input! {
+            t: usize,
+        }
+        match t {
+            1 => {
+                input! { l: i64 }
+                Query::Push(l)
+            }
+            2 => Query::Pop,
+            3 => {
+                input! {k: Usize1}
+                Query::Get(k)
+            }
+            _ => unreachable!(),
+        }
+    }
+}
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    q: usize,
+    qs: Vec<Query>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            q: usize,
         }
-        Problem { n, xs }
+        let qs = (0..q).map(|_| Query::read()).collect_vec();
+        Problem { q, qs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        // ヘビの長さとその累積和
+        let mut que = VecDeque::new();
+        let mut offset = 0;
+        let mut ans = vec![];
+
+        for &q in &self.qs {
+            match q {
+                Query::Push(l) => {
+                    if let Some((head_l, head_sum)) = que.front() {
+                        que.push_front((l, head_sum + head_l));
+                    } else {
+                        que.push_front((l, 0));
+                        offset = 0;
+                    }
+                }
+                Query::Pop => {
+                    let (l, _sum0) = que.pop_back().unwrap();
+                    offset += l;
+                }
+                Query::Get(k) => {
+                    let (_l, sum) = que[que.len() - 1 - k];
+                    ans.push(sum - offset);
+                }
+            }
+        }
         Answer { ans }
     }
 
@@ -29,12 +79,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec(&self.ans);
     }
 }
 
@@ -128,6 +178,7 @@ use proconio::{
 };
 #[allow(unused_imports)]
 use std::cmp::Reverse;
+use std::collections::VecDeque;
 #[allow(unused_imports)]
 use std::collections::{BinaryHeap, HashMap, HashSet};
 
@@ -180,3 +231,42 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use mod_queue::*;
+pub mod mod_queue {
+    use std::collections::VecDeque;
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct Queue<T> {
+        raw: VecDeque<T>,
+    }
+    impl<T> Queue<T> {
+        pub fn new() -> Self {
+            Queue {
+                raw: VecDeque::new(),
+            }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push_front(value)
+        }
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop_back()
+        }
+        pub fn peek(&self) -> Option<&T> {
+            self.raw.back()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.raw.is_empty()
+        }
+        pub fn len(&self) -> usize {
+            self.raw.len()
+        }
+
+        pub fn get(&self, k: usize) -> &T {
+            &self.raw[k]
+        }
+    }
+    impl<T> Default for Queue<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+}
