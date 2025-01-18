@@ -15,6 +15,7 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
+        // 遅延セグ木
         let n = self.n;
         let xs = &self.xs;
         let mut seg = RangeAffineRangeSumSegtree::new(&vec![0_i64; n + 2]);
@@ -27,6 +28,157 @@ impl Problem {
 
             ans[i] = i64::max(all - (n as i64 - i as i64 - 1), 0);
         }
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // いもす法
+        let n = self.n;
+        let xs = &self.xs;
+        let mut ans = vec![0; n];
+        let mut diff = vec![0; n + 2]; // (年度→石を持っている人数) の差分テーブル
+        let mut cnt_non_zero = 0; // 石を持っている人の人数
+
+        for i in 0..n {
+            // i + 1年目に成人する
+            cnt_non_zero += diff[i + 1];
+            let all = cnt_non_zero + xs[i]; // i番目の人が成人して石をもらったあとの石の数
+
+            // [i + 2, i + 2 + all) の区間で石を配る
+            diff[i + 2] += 1;
+            if (i + 2 + all as usize) < diff.len() {
+                diff[i + 2 + all as usize] -= 1;
+            }
+            ans[i] = i64::max(all - (n - i - 1) as i64, 0);
+        }
+
+        Answer { ans }
+    }
+
+    fn solve3(&self) -> Answer {
+        // PriorityQueue で石を持っている人の人数を管理する
+        // 石が0になる年度を持たせて適宜消す
+        // 期限切れになったら消すとき、有効な対象の数を Priority Queue で管理するイメージ
+        let n = self.n;
+        let xs = &self.xs;
+        let mut ans = vec![0; n];
+        let mut pq = BinaryHeap::<Reverse<i64>>::new();
+
+        for i in 0..n {
+            while pq
+                .peek()
+                .map(|&Reverse(expired)| expired <= i as i64 + 1)
+                .unwrap_or(false)
+            {
+                debug_assert!(pq.pop().is_some())
+            }
+            // i + 1年目に成人する
+            let all = pq.len() as i64 + xs[i]; // i番目の人が成人して石をもらったあとの石の数
+
+            // i + 2 + all 年目になると石の数が 0個になる
+            pq.push(Reverse(i as i64 + 2 + all));
+
+            ans[i] = i64::max(all - (n - i - 1) as i64, 0);
+        }
+
+        Answer { ans }
+    }
+
+    fn solve4(&self) -> Answer {
+        // 全部 decrement する部分を offset を使って管理
+        struct AllDecrementVec {
+            raw: Vec<i64>,
+            offset: i64,
+        }
+        impl AllDecrementVec {
+            fn new() -> AllDecrementVec {
+                AllDecrementVec {
+                    raw: Vec::new(),
+                    offset: 0,
+                }
+            }
+
+            fn push(&mut self, x: i64) {
+                self.raw.push(x - self.offset)
+            }
+
+            fn dec_all(&mut self) {
+                self.offset -= 1;
+            }
+
+            fn get(&self, idx: usize) -> i64 {
+                i64::max(self.raw[idx] + self.offset, 0)
+            }
+        }
+
+        struct AllDecrementAndCounts {
+            raw_cnts: HashMap<i64, usize>,
+            cnt_dec: i64,
+            cnt_zeros: usize,
+            cnt_all: usize,
+        }
+
+        impl AllDecrementAndCounts {
+            fn new() -> AllDecrementAndCounts {
+                AllDecrementAndCounts {
+                    raw_cnts: HashMap::new(),
+                    cnt_dec: 0,
+                    cnt_zeros: 0,
+                    cnt_all: 0,
+                }
+            }
+
+            fn insert(&mut self, val: i64) {
+                *self.raw_cnts.entry(val + self.cnt_dec).or_insert(0) += 1;
+                self.cnt_all += 1;
+                if val == 0 {
+                    self.cnt_zeros += 1;
+                }
+            }
+
+            fn dec_all(&mut self) {
+                self.cnt_dec += 1;
+                self.cnt_zeros += self.raw_cnts.get(&self.cnt_dec).unwrap_or(&0);
+            }
+
+            fn count_zeros(&self) -> usize {
+                self.cnt_zeros
+            }
+
+            fn count_non_zeros(&self) -> usize {
+                self.cnt_all - self.cnt_zeros
+            }
+
+            fn count(&self, val: i64) -> usize {
+                if val == 0 {
+                    self.count_zeros()
+                } else if val < 0 {
+                    0
+                } else {
+                    self.raw_cnts
+                        .get(&(val + self.cnt_dec))
+                        .copied()
+                        .unwrap_or(0)
+                }
+            }
+        }
+
+        let n = self.n;
+        let xs = &self.xs;
+
+        let mut stones = AllDecrementVec::new(); // それぞれの人が持っている石の数を管理する
+        let mut counter = AllDecrementAndCounts::new(); // 持っている石の数が0個の人の人数を管理する
+
+        for i in 0..n {
+            let all = xs[i] + counter.count_non_zeros() as i64;
+            stones.dec_all();
+            counter.dec_all();
+            stones.push(all);
+            counter.insert(all);
+            // dbg!((0..=i).map(|i| stones.get(i)).collect_vec());
+        }
+
+        let ans = (0..n).map(|i| stones.get(i)).collect_vec();
         Answer { ans }
     }
 
@@ -50,7 +202,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve3().print();
 }
 
 #[cfg(test)]
@@ -129,6 +281,7 @@ mod tests {
     }
 }
 
+use ac_library::FenwickTree;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
@@ -141,6 +294,7 @@ use proconio::{
 use std::cmp::Reverse;
 #[allow(unused_imports)]
 use std::collections::{BinaryHeap, HashMap, HashSet};
+use std::ops::{Index, RangeBounds};
 
 // ====== output func ======
 #[allow(unused_imports)]

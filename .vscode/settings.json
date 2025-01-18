@@ -57,7 +57,9 @@
         "-A",
         "clippy::if_same_then_else",
         "-A",
-        "clippy::int_plus_one"
+        "clippy::int_plus_one",
+        "-A",
+        "clippy::comparison_chain"
     ],
     "rust-analyzer.check.overrideCommand": [
         "cargo",
@@ -77,6 +79,8 @@
         "-A",
         "clippy::if_same_then_else",
         "-A",
-        "clippy::int_plus_one"
+        "clippy::int_plus_one",
+        "-A",
+        "clippy::comparison_chain"
     ]
 }
