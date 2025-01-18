@@ -237,7 +237,7 @@ macro_rules! read_value {
     };
 }
 
-// ------------------入力------------------
+// ------------------出力------------------
 pub fn print_vec_1line<T: std::fmt::Debug>(arr: &[T]) {
     let msg = arr
         .iter()

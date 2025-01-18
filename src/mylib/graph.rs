@@ -5,3 +5,4 @@ pub mod graph;
 pub mod lca;
 pub mod lca_euler_tour;
 pub mod topo_sort;
+pub mod tree_diameter;

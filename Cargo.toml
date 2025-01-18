@@ -2548,8 +2548,11 @@ path = "src/library_checker/cycle_detection.rs"
 
 [[bin]]
 name = "lc_cycle_detection_undirected"
-path = "src/library_checker/cycle_detection undirected.rs"
+path = "src/library_checker/cycle_detection_undirected.rs"
 
+[[bin]]
+name = "lc_tree_diameter"
+path = "src/library_checker/tree_diameter.rs"
 
 [dependencies]
 
