@@ -31,7 +31,7 @@ oj_test() {
 
     if cargo build --bin "${contest}_${task}"; then
         export RUST_BACKTRACE=1
-        oj test -c "$(git rev-parse --show-toplevel)/target/debug/${contest}_${task}"
+        oj test -c "$(git rev-parse --show-toplevel)/target/debug/${contest}_${task}" --ignore-spaces-and-newline
     fi
 
     on_after_test
@@ -46,7 +46,7 @@ oj_test_f() {
 
     if cargo build --bin "${contest}_${task}"; then
         export RUST_BACKTRACE=1
-        oj test -c "$(git rev-parse --show-toplevel)/target/debug/${contest}_${task}" -e 1e-6
+        oj test -c "$(git rev-parse --show-toplevel)/target/debug/${contest}_${task}" -e 1e-6 --ignore-spaces-and-newline
     fi
 
     on_after_test
@@ -65,7 +65,7 @@ oj_test_release() {
 
     if cargo build --release --bin "${contest}_${task}"; then
         export RUST_BACKTRACE=1
-        oj test -c "$(git rev-parse --show-toplevel)/target/release/${contest}_${task}"
+        oj test -c "$(git rev-parse --show-toplevel)/target/release/${contest}_${task}" --ignore-spaces-and-newline
     fi
 
     on_after_test
