@@ -4,11 +4,11 @@ struct Problem {
     r: i64,
 }
 
-// (x, y) を中心とした正方形が円の中に入っているような x の数
 fn sq(x: i64) -> i64 {
     x * x
 }
 
+/// (x, y) を中心とした正方形が円の中に入っているような x の数
 fn solve0(r: i64, y: i64) -> i64 {
     let max_x = bin_search(0, 2 * r, |x| {
         (sq(2 * x + 1) + sq(2 * y + 1) <= 4 * r * r)
@@ -33,6 +33,22 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        // OEIS を見る
+        // https://oeis.org/A373193
+        // a(n) = 4*Sum_{k=1..n-1} floor(sqrt(n^2 - (k+1/2)^2) - 1/2) + 4*n - 3.
+
+        let r = self.r;
+
+        let ans = 4
+            * (1..r)
+                .map(|k| num_integer::div_floor(sqrt(4 * r * r - (2 * k + 1) * (2 * k + 1)) - 1, 2))
+                .sum::<i64>()
+            + 4 * r
+            - 3;
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -53,7 +69,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -135,6 +151,7 @@ mod tests {
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
+use num_integer::sqrt;
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,
