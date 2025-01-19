@@ -16,15 +16,15 @@ pub mod mod_queue {
             }
         }
         pub fn push(&mut self, value: T) {
-            self.raw.push_front(value)
+            self.raw.push_back(value)
         }
 
         pub fn pop(&mut self) -> Option<T> {
-            self.raw.pop_back()
+            self.raw.pop_front()
         }
 
         pub fn peek(&self) -> Option<&T> {
-            self.raw.back()
+            self.raw.front()
         }
 
         pub fn is_empty(&self) -> bool {
