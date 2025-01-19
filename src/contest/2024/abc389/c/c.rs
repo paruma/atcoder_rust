@@ -42,26 +42,26 @@ impl Problem {
 
     fn solve(&self) -> Answer {
         // ヘビの長さとその累積和
-        let mut que = VecDeque::new();
-        let mut offset = 0;
-        let mut ans = vec![];
+        let mut que: VecDeque<(i64, i64)> = VecDeque::new();
+        let mut offset: i64 = 0;
+        let mut ans: Vec<i64> = vec![];
 
         for &q in &self.qs {
             match q {
                 Query::Push(l) => {
-                    if let Some((head_l, head_sum)) = que.front() {
-                        que.push_front((l, head_sum + head_l));
+                    if let Some((head_l, head_sum)) = que.back() {
+                        que.push_back((l, head_sum + head_l));
                     } else {
-                        que.push_front((l, 0));
+                        que.push_back((l, 0));
                         offset = 0;
                     }
                 }
                 Query::Pop => {
-                    let (l, _sum0) = que.pop_back().unwrap();
+                    let (l, _sum0) = que.pop_front().unwrap();
                     offset += l;
                 }
                 Query::Get(k) => {
-                    let (_l, sum) = que[que.len() - 1 - k];
+                    let (_l, sum) = que[k];
                     ans.push(sum - offset);
                 }
             }
@@ -69,6 +69,32 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        // Deque を使わない。累積和意識
+        let mut snakes: Vec<i64> = vec![];
+        let mut head = 0;
+        let mut prefix_sum = vec![0]; // ヘビの長さの累積和
+        let mut ans: Vec<i64> = vec![];
+
+        for &q in &self.qs {
+            match q {
+                Query::Push(l) => {
+                    snakes.push(l);
+                    prefix_sum.push(prefix_sum.last().unwrap() + l);
+                }
+                Query::Pop => {
+                    head += 1;
+                }
+                Query::Get(k) => {
+                    // いま列にいる [0, k) 番目のヘビの長さの総和
+                    // [head, head + k) 番目のヘビの長さの総和を求めればよい
+                    let sub_ans = prefix_sum[head + k] - prefix_sum[head];
+                    ans.push(sub_ans);
+                }
+            }
+        }
+        Answer { ans }
+    }
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -89,7 +115,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
