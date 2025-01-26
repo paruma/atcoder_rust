@@ -1,21 +1,38 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    xs: Vec<usize>,
 }
 
+/// 転倒数 #{(i, j) | i < j and xs[i] > xs[j]} を求める
+/// 計算量: O(n log n)
+pub fn inversion_number_segtree(xs: &[usize]) -> i64 {
+    use ac_library::{Additive, Segtree};
+    if xs.is_empty() {
+        return 0;
+    }
+    let max_val = xs.iter().copied().max().unwrap();
+
+    // 各値が今までに現れた回数を記録する
+    let mut segtree = Segtree::<Additive<i64>>::new(max_val + 1);
+    let mut cnt = 0;
+    for &x in xs {
+        cnt += segtree.prod(x + 1..); // 今までに見たxより大きい値の数
+        segtree.set(x, segtree.get(x) + 1)
+    }
+
+    cnt
+}
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            xs: [Usize1; 5],
         }
-        Problem { n, xs }
+        Problem { xs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = inversion_number_segtree(&self.xs) == 1;
         Answer { ans }
     }
 
@@ -29,12 +46,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_yesno(self.ans);
     }
 }
 

@@ -1,21 +1,47 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    h: usize,
+    w: usize,
+    grid: Vec<Vec<char>>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            h: usize,
+            w: usize,
+            grid: [Chars; h],
         }
-        Problem { n, xs }
+        Problem { h, w, grid }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let w = self.w;
+        let h = self.h;
+        let grid = &self.grid;
+        // 正方形包を取る
+        let min_x = (0..w)
+            .filter(|&x| (0..h).any(|y| grid[y][x] == '#'))
+            .min()
+            .unwrap();
+        let max_x = (0..w)
+            .filter(|&x| (0..h).any(|y| grid[y][x] == '#'))
+            .max()
+            .unwrap();
+
+        let min_y = (0..h)
+            .filter(|&y| (0..w).any(|x| grid[y][x] == '#'))
+            .min()
+            .unwrap();
+
+        let max_y = (0..h)
+            .filter(|&y| (0..w).any(|x| grid[y][x] == '#'))
+            .max()
+            .unwrap();
+
+        let ans =
+            iproduct!(min_x..=max_x, min_y..=max_y).all(|(x, y)| ['#', '?'].contains(&grid[y][x]));
         Answer { ans }
     }
 
@@ -26,15 +52,14 @@ impl Problem {
         // Answer { ans }
     }
 }
-
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_yesno(self.ans);
     }
 }
 

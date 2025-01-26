@@ -5,6 +5,64 @@ struct Problem {
     xs: Vec<i64>,
 }
 
+/// n_balls 個の区別するボールを、n_boxes 個のグループ（区別しない）に分割する分割の仕方を全列挙する。
+/// ボールが0個のグループがあっても良い。
+/// Vec<Vec<usize>> はグループの分割を表す
+fn bell(n_balls: usize, n_boxes: usize, xs: &[i64]) -> Vec<i64> {
+    struct Rec {
+        n_balls: usize,
+        n_boxes: usize,
+        xs: Vec<i64>,
+    }
+
+    impl Rec {
+        fn new(n_balls: usize, n_boxes: usize, xs: Vec<i64>) -> Self {
+            Rec {
+                n_balls,
+                n_boxes,
+                xs,
+            }
+        }
+
+        fn exec(&self) -> Vec<i64> {
+            let mut groups_list = vec![];
+            self.exec_rec(0, &mut vec![], &mut groups_list);
+            groups_list
+        }
+
+        fn exec_rec(&self, cnt: usize, groups: &mut Vec<Vec<usize>>, xor_list: &mut Vec<i64>) {
+            // スターリング数の漸化式
+            // S(n,k) = k S(n-1, k) + S(n-1, k-1)
+            // と同じ考え方をする
+
+            if self.n_balls == cnt {
+                let xor = groups
+                    .iter()
+                    .map(|group| group.iter().copied().map(|i| self.xs[i]).sum::<i64>())
+                    .fold(0, |acc, x| acc ^ x);
+                xor_list.push(xor);
+                return;
+            }
+
+            // すでにあるグループに追加
+            for group_i in 0..groups.len() {
+                groups[group_i].push(cnt);
+                self.exec_rec(cnt + 1, groups, xor_list);
+                groups[group_i].pop();
+            }
+
+            // 新しくグループを作成する
+            if groups.len() < self.n_boxes {
+                groups.push(vec![cnt]);
+                self.exec_rec(cnt + 1, groups, xor_list);
+                groups.pop();
+            }
+        }
+    }
+
+    Rec::new(n_balls, n_boxes, xs.to_vec()).exec()
+}
+
 impl Problem {
     fn read() -> Problem {
         input! {
@@ -15,7 +73,10 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let xs = &self.xs;
+        let xor_list = bell(n, n, xs);
+        let ans = xor_list.iter().unique().count() as i64;
         Answer { ans }
     }
 
@@ -39,6 +100,7 @@ impl Answer {
 }
 
 fn main() {
+    // bell(12, 12, &vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
     Problem::read().solve().print();
 }
 
