@@ -30,13 +30,13 @@ pub fn bin_search<F>(mut ok: i64, mut ng: i64, p: F) -> i64
 where
     F: Fn(i64) -> bool,
 {
-    assert!(ok != ng);
-    assert!(ok.checked_sub(ng).is_some());
-    assert!(ok.checked_add(ng).is_some());
+    debug_assert!(ok != ng);
+    debug_assert!(ok.checked_sub(ng).is_some());
+    debug_assert!(ok.checked_add(ng).is_some());
     while num::abs(ok - ng) > 1 {
         let mid = (ok + ng) / 2;
-        assert!(mid != ok); // |ok - ng| > 1 なので
-        assert!(mid != ng); // 同じく
+        debug_assert!(mid != ok); // |ok - ng| > 1 なので
+        debug_assert!(mid != ng); // 同じく
         if p(mid) {
             ok = mid;
         } else {
@@ -162,7 +162,10 @@ mod tests {
         impl TestCase {
             fn new(range_begin: i64, range_end: i64) -> Self {
                 assert!(range_begin <= range_end);
-                TestCase { range_begin, range_end }
+                TestCase {
+                    range_begin,
+                    range_end,
+                }
             }
             fn test_inc(&self) {
                 let ok = self.range_end;
