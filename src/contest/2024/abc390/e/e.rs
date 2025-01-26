@@ -1,3 +1,14 @@
+/*
+    本番は30秒間に合わず。
+
+    * 二分探索を使っていたので想定解法と比べて log がついてしまった
+    * DP の値に i64 ではなく NegExtInt を使っていて、定数倍が遅くなっていた。
+        * 当時は enum{NegInf, Fin(i64)} という実装だったため遅かった。
+    * 二分探索のたびに DP 配列を初期化してしまっていた
+        * next DP をしたり、配列をあらかじめとっておくと解決する
+
+    本番は配列をあらかじめ取ろうとしたが、クロージャーと mut 変数との相性の悪さで苦戦してしまった。
+*/
 #[derive_readable]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct Food {
@@ -12,40 +23,6 @@ struct Problem {
     foods: Vec<Food>,
 }
 
-/// カロリーの最小値
-fn solve_sub(foods: &[Food], vit: i64, dp: &mut Vec<Vec<i64>>, x: i64) -> Option<i64> {
-    let n = foods.len();
-    let x = foods.iter().map(|f| f.cal).sum::<i64>().min(x);
-
-    for cal in 0..=x as usize {
-        dp[0][cal] = 0;
-    }
-
-    for i in 0..n {
-        let food = foods[i];
-        for cal in 0..=x {
-            let choose = if cal < food.cal {
-                i64::MIN
-            } else {
-                if dp[i][(cal - food.cal) as usize] == i64::MIN {
-                    i64::MIN
-                } else {
-                    dp[i][(cal - food.cal) as usize] + food.vit
-                }
-            };
-
-            let no_choose = dp[i][cal as usize];
-
-            dp[i + 1][cal as usize] = i64::max(choose, no_choose);
-        }
-    }
-
-    // dp[n][cal] == ビタミン最大値
-    // dp[n][cal] >= bit となるような cal の最小値を求める
-
-    (0..=x).find(|&cal| dp[n][cal as usize] >= vit)
-}
-
 impl Problem {
     fn read() -> Problem {
         input! {
@@ -56,7 +33,98 @@ impl Problem {
         Problem { n, x, foods }
     }
 
-    fn solve(&self) -> Answer {
+    fn solve1(&self) -> Answer {
+        // 愚直実装 (TLE)
+
+        /// カロリーの最小値
+        fn solve_sub(foods: &[Food], vit: i64, x: i64) -> Option<i64> {
+            let n = foods.len();
+            let mut dp = vec![vec![NegExtInt::NEG_INF; x as usize + 1]; n + 1];
+            for cal in 0..=x as usize {
+                dp[0][cal] = NegExtInt::fin(0);
+            }
+
+            for i in 0..n {
+                let food = foods[i];
+                for cal in 0..=x {
+                    let choose = if cal < food.cal {
+                        NegExtInt::NEG_INF
+                    } else {
+                        dp[i][(cal - food.cal) as usize] + food.vit
+                    };
+
+                    let no_choose = dp[i][cal as usize];
+
+                    dp[i + 1][cal as usize] = NegExtInt::max(choose, no_choose);
+                }
+            }
+
+            // dp[n][cal] == ビタミン最大値
+            // dp[n][cal] >= bit となるような cal の最小値を求める
+
+            (0..=x).find(|&cal| dp[n][cal as usize] >= NegExtInt::fin(vit))
+        }
+
+        let x = self.x;
+        let foods = &self.foods;
+        let type_to_foods = foods.iter().fold(vec![vec![]; 3], |mut acc, food| {
+            acc[food.t].push(*food);
+            acc
+        });
+
+        let sum_vit = foods.iter().map(|f| f.vit).sum::<i64>();
+
+        let ans = bin_search(0, sum_vit + 1, |vit| {
+            // それぞれ vit 以上のビタミンを取る。そのとき、カロリーの最小値 が x 以下か
+
+            let sum_cal = (0..3)
+                .map(|t| {
+                    let foods = &type_to_foods[t];
+                    solve_sub(foods, vit, x).unwrap_or(i64::MAX / 10)
+                })
+                .sum::<i64>();
+            // dbg!(vit);
+            // dbg!(sum_cal);
+            sum_cal <= x
+        });
+
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // DP 初期化を1回だけ(本番解法)
+        // クロージャーと mut の制約で map や bin_search のクロージャーが使えないのが厳しい。
+
+        /// カロリーの最小値
+        fn solve_sub(foods: &[Food], vit: i64, dp: &mut [Vec<NegExtInt>], x: i64) -> Option<i64> {
+            let n = foods.len();
+            let x = foods.iter().map(|f| f.cal).sum::<i64>().min(x);
+
+            for cal in 0..=x as usize {
+                dp[0][cal] = NegExtInt::fin(0);
+            }
+
+            for i in 0..n {
+                let food = foods[i];
+                for cal in 0..=x {
+                    let choose = if cal < food.cal {
+                        NegExtInt::NEG_INF
+                    } else {
+                        dp[i][(cal - food.cal) as usize] + food.vit
+                    };
+
+                    let no_choose = dp[i][cal as usize];
+
+                    dp[i + 1][cal as usize] = std::cmp::max(choose, no_choose);
+                }
+            }
+
+            // dp[n][cal] == ビタミン最大値
+            // dp[n][cal] >= bit となるような cal の最小値を求める
+
+            (0..=x).find(|&cal| dp[n][cal as usize] >= NegExtInt::fin(vit))
+        }
+
         let n = self.n;
         let x = self.x;
         let foods = &self.foods;
@@ -67,7 +135,7 @@ impl Problem {
 
         let sum_vit = foods.iter().map(|f| f.vit).sum::<i64>();
 
-        let mut dp = vec![vec![i64::MIN; x as usize + 1]; n + 1];
+        let mut dp = vec![vec![NegExtInt::NEG_INF; x as usize + 1]; n + 1];
 
         let mut ok = 0;
         let mut ng = sum_vit + 1;
@@ -97,6 +165,64 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve3(&self) -> Answer {
+        // next DP にした
+
+        /// カロリーの最小値
+        fn solve_sub(foods: &[Food], vit: i64, x: i64) -> Option<i64> {
+            let n = foods.len();
+            let mut dp = vec![NegExtInt::NEG_INF; x as usize + 1];
+            for cal in 0..=x as usize {
+                dp[cal] = NegExtInt::fin(0);
+            }
+
+            for i in 0..n {
+                let mut next_dp = vec![NegExtInt::NEG_INF; x as usize + 1];
+                let food = foods[i];
+                for cal in 0..=x {
+                    let choose = if cal < food.cal {
+                        NegExtInt::NEG_INF
+                    } else {
+                        dp[(cal - food.cal) as usize] + food.vit
+                    };
+
+                    let no_choose = dp[cal as usize];
+
+                    next_dp[cal as usize] = std::cmp::max(choose, no_choose);
+                }
+                dp = next_dp;
+            }
+
+            // dp[cal] == ビタミン最大値
+            // dp[cal] >= bit となるような cal の最小値を求める
+
+            (0..=x).find(|&cal| dp[cal as usize] >= NegExtInt::fin(vit))
+        }
+
+        let x = self.x;
+        let foods = &self.foods;
+        let type_to_foods = foods.iter().fold(vec![vec![]; 3], |mut acc, food| {
+            acc[food.t].push(*food);
+            acc
+        });
+
+        let sum_vit = foods.iter().map(|f| f.vit).sum::<i64>();
+
+        let ans = bin_search(0, sum_vit + 1, |vit| {
+            // それぞれ vit 以上のビタミンを取る。そのとき、カロリーの最小値 が x 以下か
+
+            let sum_cal = (0..3)
+                .map(|t| {
+                    let foods = &type_to_foods[t];
+                    solve_sub(foods, vit, x).unwrap_or(i64::MAX / 10)
+                })
+                .sum::<i64>();
+            sum_cal <= x
+        });
+
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -117,7 +243,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve3().print();
 }
 
 #[cfg(test)]
@@ -161,7 +287,7 @@ mod tests {
 
     #[allow(dead_code)]
     fn check(p: &Problem) -> Option<WrongTestCase> {
-        let main_ans = p.solve();
+        let main_ans = p.solve1();
         let naive_ans = p.solve_naive();
         if main_ans != naive_ans {
             Some(WrongTestCase {
@@ -318,7 +444,7 @@ where
     }
     ok
 }
-use mod_neg_ext_int::NegExtInt::{self, *};
+use mod_neg_ext_int::*;
 pub mod mod_neg_ext_int {
     use ac_library::Monoid;
     use std::{
@@ -327,62 +453,69 @@ pub mod mod_neg_ext_int {
         fmt,
         ops::{Add, AddAssign},
     };
-    use NegExtInt::*;
-    #[derive(Clone, Copy, PartialEq, Eq)]
-    pub enum NegExtInt {
-        NegInf,
-        Fin(i64),
-    }
+    #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+    pub struct NegExtInt(i64);
     impl NegExtInt {
+        pub const NEG_INF: Self = Self(i64::MIN);
+
+        pub fn fin(x: i64) -> Self {
+            Self(x)
+        }
         pub fn get_fin(self) -> i64 {
-            match self {
-                Fin(val) => val,
-                NegInf => panic!("called `NegExtInt::get_fin()` on a `NegInf` value"),
+            if self.is_fin() {
+                self.0
+            } else {
+                panic!("called `NegExtInt::get_fin()` on a `NegInf` value")
             }
         }
         pub fn get_fin_or(self, default: i64) -> i64 {
-            match self {
-                Fin(val) => val,
-                NegInf => default,
+            if self.is_fin() {
+                self.0
+            } else {
+                default
             }
         }
+        #[inline]
         pub fn is_fin(self) -> bool {
-            matches!(self, Fin(_))
+            self.0 != i64::MIN
         }
         pub fn is_neginf(self) -> bool {
-            matches!(self, NegInf)
+            self.0 == i64::MIN
         }
         pub fn to_option(self) -> Option<i64> {
-            match self {
-                NegInf => None,
-                Fin(a) => Some(a),
+            if self.is_fin() {
+                Some(self.0)
+            } else {
+                None
             }
         }
         pub fn from_option(opt: Option<i64>) -> NegExtInt {
             match opt {
-                Some(a) => Fin(a),
-                None => NegInf,
+                Some(a) => Self(a),
+                None => Self::NEG_INF,
             }
         }
         pub fn times(self, t: i64) -> Self {
             match t.cmp(&0) {
                 Ordering::Less => panic!("t must be non-negative."),
-                Ordering::Equal => Fin(0),
-                Ordering::Greater => match self {
-                    NegInf => NegInf,
-                    Fin(a) => Fin(a * t),
-                },
+                Ordering::Equal => Self(0),
+                Ordering::Greater => {
+                    if self.is_fin() {
+                        Self(self.0 * t)
+                    } else {
+                        Self::NEG_INF
+                    }
+                }
             }
         }
     }
     impl Add for NegExtInt {
         type Output = NegExtInt;
         fn add(self, rhs: Self) -> Self::Output {
-            match (self, rhs) {
-                (NegInf, NegInf) => NegInf,
-                (NegInf, Fin(_)) => NegInf,
-                (Fin(_), NegInf) => NegInf,
-                (Fin(a), Fin(b)) => Fin(a + b),
+            if self.is_neginf() || rhs.is_neginf() {
+                Self::NEG_INF
+            } else {
+                Self::fin(self.0 + rhs.0)
             }
         }
     }
@@ -394,9 +527,10 @@ pub mod mod_neg_ext_int {
     impl Add<i64> for NegExtInt {
         type Output = NegExtInt;
         fn add(self, rhs: i64) -> Self::Output {
-            match self {
-                NegInf => NegInf,
-                Fin(a) => Fin(a + rhs),
+            if self.is_neginf() {
+                Self::NEG_INF
+            } else {
+                Self::fin(self.0 + rhs)
             }
         }
     }
@@ -409,42 +543,29 @@ pub mod mod_neg_ext_int {
         fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
             let mut s = 0;
             for x in iter {
-                match x {
-                    NegInf => return NegInf,
-                    Fin(x) => s += x,
+                if x.is_neginf() {
+                    return Self::NEG_INF;
                 }
+                s += x.0;
             }
-            Fin(s)
-        }
-    }
-    impl PartialOrd for NegExtInt {
-        fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-            match (self, other) {
-                (NegInf, NegInf) => Some(Ordering::Equal),
-                (NegInf, Fin(_)) => Some(Ordering::Less),
-                (Fin(_), NegInf) => Some(Ordering::Greater),
-                (Fin(a), Fin(b)) => PartialOrd::partial_cmp(a, b),
-            }
-        }
-    }
-    impl Ord for NegExtInt {
-        fn cmp(&self, other: &Self) -> Ordering {
-            self.partial_cmp(other).unwrap()
+            Self::fin(s)
         }
     }
     impl fmt::Display for NegExtInt {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-            match self {
-                NegInf => write!(f, "-∞"),
-                Fin(x) => write!(f, "{x}"),
+            if self.is_neginf() {
+                write!(f, "-∞")
+            } else {
+                write!(f, "{}", self.0)
             }
         }
     }
     impl fmt::Debug for NegExtInt {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            match self {
-                NegInf => write!(f, "-∞"),
-                Fin(x) => write!(f, "{x}"),
+            if self.is_neginf() {
+                write!(f, "-∞")
+            } else {
+                write!(f, "{}", self.0)
             }
         }
     }
@@ -452,7 +573,7 @@ pub mod mod_neg_ext_int {
     impl Monoid for NegExtIntAdditive {
         type S = NegExtInt;
         fn identity() -> Self::S {
-            Fin(0)
+            NegExtInt::fin(0)
         }
         fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
             *a + *b
@@ -462,7 +583,7 @@ pub mod mod_neg_ext_int {
     impl Monoid for NegExtIntMax {
         type S = NegExtInt;
         fn identity() -> Self::S {
-            NegInf
+            NegExtInt::NEG_INF
         }
         fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
             *a.max(b)
