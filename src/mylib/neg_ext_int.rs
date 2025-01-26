@@ -1,6 +1,6 @@
 use cargo_snippet::snippet;
 
-#[snippet(prefix = "use mod_neg_ext_int::NegExtInt::{self, *};")]
+#[snippet(prefix = "use mod_neg_ext_int::*;")]
 pub mod mod_neg_ext_int {
     use ac_library::Monoid;
     use std::{
@@ -9,237 +9,211 @@ pub mod mod_neg_ext_int {
         fmt,
         ops::{Add, AddAssign},
     };
-    use NegExtInt::*;
-    #[derive(Clone, Copy, PartialEq, Eq)]
-    pub enum NegExtInt {
-        NegInf,
-        Fin(i64),
+
+    pub const NEG_INF: NegExtInt = NegExtInt::NEG_INF;
+    pub fn fin(x: i64) -> NegExtInt {
+        NegExtInt::fin(x)
     }
 
+    #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+    pub struct NegExtInt(i64);
     impl NegExtInt {
+        pub const NEG_INF: Self = Self(i64::MIN);
+
+        pub fn fin(x: i64) -> Self {
+            Self(x)
+        }
         pub fn get_fin(self) -> i64 {
-            match self {
-                Fin(val) => val,
-                NegInf => panic!("called `NegExtInt::get_fin()` on a `NegInf` value"),
+            if self.is_fin() {
+                self.0
+            } else {
+                panic!("called `NegExtInt::get_fin()` on a negative infinity")
             }
         }
-
         pub fn get_fin_or(self, default: i64) -> i64 {
-            match self {
-                Fin(val) => val,
-                NegInf => default,
+            if self.is_fin() {
+                self.0
+            } else {
+                default
             }
         }
-
+        #[inline]
         pub fn is_fin(self) -> bool {
-            matches!(self, Fin(_))
+            self.0 != i64::MIN
         }
-
-        pub fn is_neginf(self) -> bool {
-            matches!(self, NegInf)
+        pub fn is_neg_inf(self) -> bool {
+            self.0 == i64::MIN
         }
-
         pub fn to_option(self) -> Option<i64> {
-            match self {
-                NegInf => None,
-                Fin(a) => Some(a),
+            if self.is_fin() {
+                Some(self.0)
+            } else {
+                None
             }
         }
-
         pub fn from_option(opt: Option<i64>) -> NegExtInt {
             match opt {
-                Some(a) => Fin(a),
-                None => NegInf,
+                Some(a) => Self(a),
+                None => Self::NEG_INF,
             }
         }
-
         pub fn times(self, t: i64) -> Self {
             match t.cmp(&0) {
                 Ordering::Less => panic!("t must be non-negative."),
-                Ordering::Equal => Fin(0),
-                Ordering::Greater => match self {
-                    NegInf => NegInf,
-                    Fin(a) => Fin(a * t),
-                },
+                Ordering::Equal => Self(0),
+                Ordering::Greater => {
+                    if self.is_fin() {
+                        Self(self.0 * t)
+                    } else {
+                        Self::NEG_INF
+                    }
+                }
             }
         }
     }
-
     impl Add for NegExtInt {
         type Output = NegExtInt;
-
         fn add(self, rhs: Self) -> Self::Output {
-            match (self, rhs) {
-                (NegInf, NegInf) => NegInf,
-                (NegInf, Fin(_)) => NegInf,
-                (Fin(_), NegInf) => NegInf,
-                (Fin(a), Fin(b)) => Fin(a + b),
+            if self.is_neg_inf() || rhs.is_neg_inf() {
+                Self::NEG_INF
+            } else {
+                Self::fin(self.0 + rhs.0)
             }
         }
     }
-
     impl AddAssign for NegExtInt {
         fn add_assign(&mut self, rhs: Self) {
             *self = *self + rhs;
         }
     }
-
     impl Add<i64> for NegExtInt {
         type Output = NegExtInt;
-
         fn add(self, rhs: i64) -> Self::Output {
-            match self {
-                NegInf => NegInf,
-                Fin(a) => Fin(a + rhs),
+            if self.is_neg_inf() {
+                Self::NEG_INF
+            } else {
+                Self::fin(self.0 + rhs)
             }
         }
     }
-
     impl AddAssign<i64> for NegExtInt {
         fn add_assign(&mut self, rhs: i64) {
             *self = *self + rhs;
         }
     }
-
     impl std::iter::Sum for NegExtInt {
         fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
             let mut s = 0;
             for x in iter {
-                match x {
-                    NegInf => return NegInf,
-                    Fin(x) => s += x,
+                if x.is_neg_inf() {
+                    return Self::NEG_INF;
                 }
+                s += x.0;
             }
-            Fin(s)
+            Self::fin(s)
         }
     }
-
-    impl PartialOrd for NegExtInt {
-        fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-            match (self, other) {
-                (NegInf, NegInf) => Some(Ordering::Equal),
-                (NegInf, Fin(_)) => Some(Ordering::Less),
-                (Fin(_), NegInf) => Some(Ordering::Greater),
-                (Fin(a), Fin(b)) => PartialOrd::partial_cmp(a, b),
-            }
-        }
-    }
-
-    impl Ord for NegExtInt {
-        fn cmp(&self, other: &Self) -> Ordering {
-            self.partial_cmp(other).unwrap()
-        }
-    }
-
     impl fmt::Display for NegExtInt {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-            match self {
-                NegInf => write!(f, "-∞"),
-                Fin(x) => write!(f, "{x}"),
+            if self.is_neg_inf() {
+                write!(f, "-∞")
+            } else {
+                write!(f, "{}", self.0)
             }
         }
     }
-
     impl fmt::Debug for NegExtInt {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            match self {
-                NegInf => write!(f, "-∞"),
-                Fin(x) => write!(f, "{x}"),
+            if self.is_neg_inf() {
+                write!(f, "-∞")
+            } else {
+                write!(f, "{}", self.0)
             }
         }
     }
-
     pub struct NegExtIntAdditive(Infallible);
     impl Monoid for NegExtIntAdditive {
         type S = NegExtInt;
-
         fn identity() -> Self::S {
-            Fin(0)
+            NegExtInt::fin(0)
         }
-
         fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
             *a + *b
         }
     }
-
     pub struct NegExtIntMax(Infallible);
     impl Monoid for NegExtIntMax {
         type S = NegExtInt;
-
         fn identity() -> Self::S {
-            NegInf
+            NegExtInt::NEG_INF
         }
-
         fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
             *a.max(b)
         }
     }
 }
-
-#[cfg(test)]
 mod tests {
 
     use ac_library::Monoid;
 
-    use super::mod_neg_ext_int::NegExtInt::{self, *};
-    use super::mod_neg_ext_int::{NegExtIntAdditive, NegExtIntMax};
+    use super::mod_neg_ext_int::*;
 
     #[allow(clippy::eq_op)]
     #[test]
     fn test_neg_ext_int_ord() {
-        let _x: NegExtInt = Fin(3);
+        let _x: NegExtInt = fin(3);
 
-        assert!(NegInf >= NegInf);
-        assert!(Fin(3) >= NegInf);
-        assert!(Fin(6) >= Fin(4));
-        assert!(Fin(4) >= Fin(4));
+        assert!(NEG_INF >= NEG_INF);
+        assert!(fin(3) >= NEG_INF);
+        assert!(fin(6) >= fin(4));
+        assert!(fin(4) >= fin(4));
 
-        assert!(NegInf <= NegInf);
-        assert!(NegInf <= Fin(3));
-        assert!(Fin(4) <= Fin(6));
-        assert!(Fin(4) <= Fin(4));
+        assert!(NEG_INF <= NEG_INF);
+        assert!(NEG_INF <= fin(3));
+        assert!(fin(4) <= fin(6));
+        assert!(fin(4) <= fin(4));
 
         use std::cmp::max;
 
-        assert_eq!(max(NegInf, NegInf), NegInf);
-        assert_eq!(max(NegInf, Fin(3)), Fin(3));
-        assert_eq!(max(Fin(3), NegInf), Fin(3));
-        assert_eq!(max(Fin(6), Fin(4)), Fin(6));
-        assert_eq!(max(Fin(4), Fin(4)), Fin(4));
+        assert_eq!(max(NEG_INF, NEG_INF), NEG_INF);
+        assert_eq!(max(NEG_INF, fin(3)), fin(3));
+        assert_eq!(max(fin(3), NEG_INF), fin(3));
+        assert_eq!(max(fin(6), fin(4)), fin(6));
+        assert_eq!(max(fin(4), fin(4)), fin(4));
     }
 
     #[test]
     fn test_neg_ext_int_add() {
-        assert_eq!(NegInf + NegInf, NegInf);
-        assert_eq!(NegInf + Fin(3), NegInf);
-        assert_eq!(Fin(3) + NegInf, NegInf);
-        assert_eq!(Fin(3) + Fin(4), Fin(7));
+        assert_eq!(NEG_INF + NEG_INF, NEG_INF);
+        assert_eq!(NEG_INF + fin(3), NEG_INF);
+        assert_eq!(fin(3) + NEG_INF, NEG_INF);
+        assert_eq!(fin(3) + fin(4), fin(7));
     }
 
     #[test]
     fn test_neg_ext_int_add_assign() {
-        let mut x = Fin(3);
-        x += Fin(4);
-        assert_eq!(x, Fin(7));
-        x += NegInf;
-        assert_eq!(x, NegInf);
+        let mut x = fin(3);
+        x += fin(4);
+        assert_eq!(x, fin(7));
+        x += NEG_INF;
+        assert_eq!(x, NEG_INF);
     }
 
     #[test]
     fn test_neg_ext_int_add_i64() {
-        assert_eq!(NegInf + 4, NegInf);
-        assert_eq!(Fin(3) + 4, Fin(7));
+        assert_eq!(NEG_INF + 4, NEG_INF);
+        assert_eq!(fin(3) + 4, fin(7));
     }
 
     #[test]
     fn test_neg_ext_int_add_assign_i64() {
-        let mut x = Fin(3);
+        let mut x = fin(3);
         x += 4;
-        assert_eq!(x, Fin(7));
+        assert_eq!(x, fin(7));
 
-        let mut y = NegInf;
+        let mut y = NEG_INF;
         y += 4;
-        assert_eq!(y, NegInf);
+        assert_eq!(y, NEG_INF);
     }
 
     #[test]
@@ -247,68 +221,68 @@ mod tests {
         let test = |xs: &[NegExtInt], expected: NegExtInt| {
             assert_eq!(xs.iter().copied().sum::<NegExtInt>(), expected);
         };
-        test(&[Fin(3), Fin(4), Fin(5)], Fin(12));
-        test(&[Fin(3), NegInf, Fin(5)], NegInf);
-        test(&[Fin(3)], Fin(3));
-        test(&[NegInf], NegInf);
-        test(&[], Fin(0));
+        test(&[fin(3), fin(4), fin(5)], fin(12));
+        test(&[fin(3), NEG_INF, fin(5)], NEG_INF);
+        test(&[fin(3)], fin(3));
+        test(&[NEG_INF], NEG_INF);
+        test(&[], fin(0));
     }
 
     #[test]
     #[should_panic]
     fn test_neg_ext_int_get_fin_panic() {
-        NegInf.get_fin();
+        NEG_INF.get_fin();
     }
 
     #[test]
     fn test_neg_ext_int_util() {
-        assert_eq!(Fin(3).get_fin(), 3);
+        assert_eq!(fin(3).get_fin(), 3);
 
-        assert_eq!(Fin(3).get_fin_or(0), 3);
-        assert_eq!(NegInf.get_fin_or(0), 0);
+        assert_eq!(fin(3).get_fin_or(0), 3);
+        assert_eq!(NEG_INF.get_fin_or(0), 0);
 
-        assert!(Fin(3).is_fin());
-        assert!(!NegInf.is_fin());
+        assert!(fin(3).is_fin());
+        assert!(!NEG_INF.is_fin());
 
-        assert!(!Fin(3).is_neginf());
-        assert!(NegInf.is_neginf());
+        assert!(!fin(3).is_neg_inf());
+        assert!(NEG_INF.is_neg_inf());
 
-        assert_eq!(Fin(3).to_option(), Some(3));
-        assert_eq!(NegInf.to_option(), None);
+        assert_eq!(fin(3).to_option(), Some(3));
+        assert_eq!(NEG_INF.to_option(), None);
 
-        assert_eq!(NegExtInt::from_option(Some(3)), Fin(3));
-        assert_eq!(NegExtInt::from_option(None), NegInf);
+        assert_eq!(NegExtInt::from_option(Some(3)), fin(3));
+        assert_eq!(NegExtInt::from_option(None), NEG_INF);
     }
 
     #[test]
     fn test_neg_ext_int_times() {
-        assert_eq!(Fin(3).times(0), Fin(0));
-        assert_eq!(Fin(3).times(10), Fin(30));
-        assert_eq!(Fin(0).times(0), Fin(0));
-        assert_eq!(Fin(0).times(10), Fin(0));
-        assert_eq!(Fin(-3).times(0), Fin(0));
-        assert_eq!(Fin(-3).times(10), Fin(-30));
-        assert_eq!(NegInf.times(0), Fin(0)); // Inf を 0 回足した場合と考え、足し算の単位元 Fin(0) 扱い
-        assert_eq!(NegInf.times(10), NegInf);
+        assert_eq!(fin(3).times(0), fin(0));
+        assert_eq!(fin(3).times(10), fin(30));
+        assert_eq!(fin(0).times(0), fin(0));
+        assert_eq!(fin(0).times(10), fin(0));
+        assert_eq!(fin(-3).times(0), fin(0));
+        assert_eq!(fin(-3).times(10), fin(-30));
+        assert_eq!(NEG_INF.times(0), fin(0)); // NEG_INF を 0 回足した場合と考え、足し算の単位元 fin(0) 扱い
+        assert_eq!(NEG_INF.times(10), NEG_INF);
     }
 
     #[test]
     fn test_neg_ext_int_additive() {
         type M = NegExtIntAdditive;
-        assert_eq!(M::binary_operation(&Fin(3), &Fin(4)), Fin(7));
-        assert_eq!(M::binary_operation(&Fin(3), &NegInf), NegInf);
-        assert_eq!(M::identity(), Fin(0));
-        assert_eq!(M::binary_operation(&M::identity(), &Fin(5)), Fin(5));
-        assert_eq!(M::binary_operation(&M::identity(), &NegInf), NegInf);
+        assert_eq!(M::binary_operation(&fin(3), &fin(4)), fin(7));
+        assert_eq!(M::binary_operation(&fin(3), &NEG_INF), NEG_INF);
+        assert_eq!(M::identity(), fin(0));
+        assert_eq!(M::binary_operation(&M::identity(), &fin(5)), fin(5));
+        assert_eq!(M::binary_operation(&M::identity(), &NEG_INF), NEG_INF);
     }
 
     #[test]
     fn test_neg_ext_int_min() {
         type M = NegExtIntMax;
-        assert_eq!(M::binary_operation(&Fin(3), &Fin(4)), Fin(4));
-        assert_eq!(M::binary_operation(&Fin(3), &NegInf), Fin(3));
-        assert_eq!(M::identity(), NegInf);
-        assert_eq!(M::binary_operation(&M::identity(), &Fin(5)), Fin(5));
-        assert_eq!(M::binary_operation(&M::identity(), &NegInf), NegInf);
+        assert_eq!(M::binary_operation(&fin(3), &fin(4)), fin(4));
+        assert_eq!(M::binary_operation(&fin(3), &NEG_INF), fin(3));
+        assert_eq!(M::identity(), NEG_INF);
+        assert_eq!(M::binary_operation(&M::identity(), &fin(5)), fin(5));
+        assert_eq!(M::binary_operation(&M::identity(), &NEG_INF), NEG_INF);
     }
 }
