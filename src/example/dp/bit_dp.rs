@@ -42,10 +42,10 @@ fn solve(n_vertex: usize, edges: &[Edge]) -> ExtInt {
             }
 
             let ans = if planed_vertices.is_empty() && to == 0 {
-                ExtInt::Fin(0)
+                ExtInt::fin(0)
             } else if !planed_vertices.contains(to) {
                 // to に訪問できないので to にたどり着くことはできない。
-                ExtInt::Inf
+                ExtInt::INF
             } else {
                 // to の直前の頂点 from で場合分け。
                 // 0 →...→ from → to という経路を考える
@@ -63,9 +63,9 @@ fn solve(n_vertex: usize, edges: &[Edge]) -> ExtInt {
         }
     }
     let adj_matrix = {
-        let mut adj_matrix = vec![vec![ExtInt::Inf; n_vertex]; n_vertex];
+        let mut adj_matrix = vec![vec![ExtInt::INF; n_vertex]; n_vertex];
         for e in edges {
-            adj_matrix[e.from][e.to] = ExtInt::Fin(e.cost);
+            adj_matrix[e.from][e.to] = ExtInt::fin(e.cost);
         }
         adj_matrix
     };
@@ -94,7 +94,7 @@ mod tests {
         ]
         .map(|(from, to, cost)| Edge { from, to, cost });
 
-        assert_eq!(solve(n_vertex, &edges), ExtInt::Fin(16));
+        assert_eq!(solve(n_vertex, &edges), ExtInt::fin(16));
     }
 
     #[test]
@@ -110,7 +110,7 @@ mod tests {
         let edges =
             [(0, 1, 1), (1, 2, 1), (0, 2, 1)].map(|(from, to, cost)| Edge { from, to, cost });
 
-        assert_eq!(solve(n_vertex, &edges), ExtInt::Inf);
+        assert_eq!(solve(n_vertex, &edges), ExtInt::INF);
     }
 }
 

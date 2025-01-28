@@ -15,7 +15,7 @@ use itertools::Itertools;
 
 - ワーシャルフロイド法
 */
-use crate::mylib::ext_int::mod_ext_int::{ExtInt, ExtInt::Fin, ExtInt::Inf};
+use crate::mylib::ext_int::mod_ext_int::{fin, ExtInt, INF};
 
 macro_rules! chmin {
     ($a: expr, $b: expr) => {
@@ -40,13 +40,13 @@ impl Edge {
     }
 }
 fn bellman_ford(edges: &[Edge], n_vertex: usize, start: usize) -> Option<Vec<ExtInt>> {
-    let mut dist = vec![Inf; n_vertex];
-    dist[start] = Fin(0);
+    let mut dist = vec![INF; n_vertex];
+    dist[start] = fin(0);
 
     for n_iter in 0..n_vertex {
         let mut updated = false;
         for edge in edges {
-            if chmin!(dist[edge.to], dist[edge.from] + Fin(edge.cost)) {
+            if chmin!(dist[edge.to], dist[edge.from] + fin(edge.cost)) {
                 updated = true
             }
         }
@@ -65,16 +65,16 @@ fn bellman_ford(edges: &[Edge], n_vertex: usize, start: usize) -> Option<Vec<Ext
 fn dijkstra(adj: &[Vec<Edge>], start: usize) -> Vec<ExtInt> {
     let n_vertex = adj.len();
     let mut pq: BinaryHeap<(Reverse<ExtInt>, usize)> = BinaryHeap::new();
-    let mut dist = vec![Inf; n_vertex];
-    dist[start] = Fin(0);
-    pq.push((Reverse(Fin(0)), start));
+    let mut dist = vec![INF; n_vertex];
+    dist[start] = fin(0);
+    pq.push((Reverse(fin(0)), start));
 
     while let Some((Reverse(d), current)) = pq.pop() {
         if dist[current] < d {
             continue;
         }
         for e in &adj[current] {
-            if chmin!(dist[e.to], dist[e.from] + Fin(e.cost)) {
+            if chmin!(dist[e.to], dist[e.from] + fin(e.cost)) {
                 pq.push((Reverse(dist[e.to]), e.to));
             }
         }
@@ -83,13 +83,13 @@ fn dijkstra(adj: &[Vec<Edge>], start: usize) -> Vec<ExtInt> {
 }
 
 fn warshall_floyd(edges: &[Edge], n_vertex: usize) -> Vec<Vec<ExtInt>> {
-    let mut dist = vec![vec![Inf; n_vertex]; n_vertex];
+    let mut dist = vec![vec![INF; n_vertex]; n_vertex];
 
     for e in edges {
-        dist[e.from][e.to] = Fin(e.cost)
+        dist[e.from][e.to] = fin(e.cost)
     }
     for v in 0..n_vertex {
-        dist[v][v] = Fin(0);
+        dist[v][v] = fin(0);
     }
 
     for k in 0..n_vertex {
@@ -124,17 +124,17 @@ fn prev_to_path(prev_list: &[Option<usize>], start: usize, goal: usize) -> Optio
 fn dijkstra_with_restore(adj: &[Vec<Edge>], start: usize) -> (Vec<ExtInt>, Vec<Option<usize>>) {
     let n_vertex = adj.len();
     let mut pq: BinaryHeap<(Reverse<ExtInt>, usize)> = BinaryHeap::new();
-    let mut dist = vec![Inf; n_vertex];
+    let mut dist = vec![INF; n_vertex];
     let mut prev: Vec<Option<usize>> = vec![None; n_vertex];
-    dist[start] = Fin(0);
-    pq.push((Reverse(Fin(0)), start));
+    dist[start] = fin(0);
+    pq.push((Reverse(fin(0)), start));
 
     while let Some((Reverse(d), current)) = pq.pop() {
         if dist[current] < d {
             continue;
         }
         for e in &adj[current] {
-            if chmin!(dist[e.to], dist[e.from] + Fin(e.cost)) {
+            if chmin!(dist[e.to], dist[e.from] + fin(e.cost)) {
                 prev[e.to] = Some(e.from);
                 pq.push((Reverse(dist[e.to]), e.to));
             }
@@ -170,7 +170,7 @@ mod tests {
 
         let result = bellman_ford(&edges, 4, 0);
 
-        assert_eq!(result, Some(vec![Fin(0), Fin(2), Fin(0), Fin(1)]));
+        assert_eq!(result, Some(vec![fin(0), fin(2), fin(0), fin(1)]));
     }
 
     #[test]
@@ -185,7 +185,7 @@ mod tests {
 
         let result = bellman_ford(&edges, 4, 0);
 
-        assert_eq!(result, Some(vec![Fin(0), Fin(1), Fin(3), Fin(6)]));
+        assert_eq!(result, Some(vec![fin(0), fin(1), fin(3), fin(6)]));
     }
 
     #[test]
@@ -210,7 +210,7 @@ mod tests {
 
         let result = bellman_ford(&edges, 4, 0);
 
-        assert_eq!(result, Some(vec![Fin(0), Fin(2), Fin(-1), Fin(0)]));
+        assert_eq!(result, Some(vec![fin(0), fin(2), fin(-1), fin(0)]));
     }
 
     #[test]
@@ -250,7 +250,7 @@ mod tests {
 
         let result = bellman_ford(&edges, 4, 0);
 
-        assert_eq!(result, Some(vec![Fin(0), Fin(1), Inf, Inf]));
+        assert_eq!(result, Some(vec![fin(0), fin(1), INF, INF]));
     }
 
     #[test]
@@ -282,7 +282,7 @@ mod tests {
         let result_bellman_ford = bellman_ford(&edges, 4, 0);
         let result_dijkstra = dijkstra(&adj, 0);
 
-        let expected = vec![Fin(0), Fin(9), Fin(6), Fin(6)];
+        let expected = vec![fin(0), fin(9), fin(6), fin(6)];
 
         assert_eq!(result_bellman_ford, Some(expected.clone()));
         assert_eq!(result_dijkstra, expected);
@@ -306,7 +306,7 @@ mod tests {
         let result_bellman_ford = bellman_ford(&edges, 4, 0);
         let result_dijkstra = dijkstra(&adj, 0);
 
-        let expected = vec![Fin(0), Fin(2), Fin(5), Inf];
+        let expected = vec![fin(0), fin(2), fin(5), INF];
 
         assert_eq!(result_bellman_ford, Some(expected.clone()));
         assert_eq!(result_dijkstra, expected);
@@ -332,10 +332,10 @@ mod tests {
         .map(|(from, to, cost)| Edge::new(from, to, cost));
         let result = warshall_floyd(&edges, 4);
         let expected = vec![
-            vec![Fin(0), Fin(9), Fin(6), Fin(6)],
-            vec![Inf, Fin(0), Fin(1), Fin(1)],
-            vec![Inf, Fin(3), Fin(0), Fin(0)],
-            vec![Inf, Inf, Inf, Fin(0)],
+            vec![fin(0), fin(9), fin(6), fin(6)],
+            vec![INF, fin(0), fin(1), fin(1)],
+            vec![INF, fin(3), fin(0), fin(0)],
+            vec![INF, INF, INF, fin(0)],
         ];
         assert_eq!(result, expected);
     }
@@ -368,7 +368,7 @@ mod tests {
         });
         let (result_dist, result_prev) = dijkstra_with_restore(&adj, 0);
 
-        let expected_dist = vec![Fin(0), Fin(9), Fin(6), Fin(6)];
+        let expected_dist = vec![fin(0), fin(9), fin(6), fin(6)];
         let expected_prev = vec![None, Some(2), Some(0), Some(2)];
 
         assert_eq!(result_dist, expected_dist);
@@ -393,7 +393,7 @@ mod tests {
 
         let (result_dist, result_prev) = dijkstra_with_restore(&adj, 0);
 
-        let expected_dist = vec![Fin(0), Fin(2), Fin(5), Inf];
+        let expected_dist = vec![fin(0), fin(2), fin(5), INF];
         let expected_prev = vec![None, Some(0), Some(1), None];
 
         assert_eq!(result_dist, expected_dist);
