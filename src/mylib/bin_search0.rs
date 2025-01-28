@@ -26,9 +26,9 @@ use cargo_snippet::snippet;
 ///     * I が空でなければ、max I を返す。
 ///     * I が空ならば、ok を返す。
 #[snippet]
-pub fn bin_search<F>(mut ok: i64, mut ng: i64, p: F) -> i64
+pub fn bin_search<F>(mut ok: i64, mut ng: i64, mut p: F) -> i64
 where
-    F: Fn(i64) -> bool,
+    F: FnMut(i64) -> bool,
 {
     debug_assert!(ok != ng);
     debug_assert!(ok.checked_sub(ng).is_some());
