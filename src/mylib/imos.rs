@@ -2,137 +2,174 @@ use cargo_snippet::snippet;
 
 #[snippet(prefix = "use imos_1d::*;")]
 pub mod imos_1d {
-    // TODO: Usize1 にしたいかも
 
-    // [begin, end) で value、それ以外で0を取る関数
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-    pub struct RangeFunc {
-        begin: usize,
-        end: usize,
-        value: i64,
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct Imos1D {
+        raw: Vec<i64>,
+        begin: i64,
+        end: i64,
     }
 
-    impl RangeFunc {
-        pub fn new(begin: usize, end: usize, value: i64) -> Self {
-            Self { begin, end, value }
-        }
-    }
-
-    /// sum value * 1_{[begin, end)} を Vec<i64> として計算する
-    /// [0, space) の範囲で考える
-    /// 各 begin, end は [0, space) に入っていてほしい
-    pub fn calc_imos_1d(range_func_list: &[RangeFunc], space: usize) -> Vec<i64> {
-        let mut imos = vec![0; space];
-        for &range_func in range_func_list {
-            imos[range_func.begin] += range_func.value;
-            imos[range_func.end] -= range_func.value;
+    impl Imos1D {
+        /// 注意: 差分の回数分だけ end を広めに取る
+        pub fn new(begin: i64, end: i64) -> Self {
+            debug_assert!(begin < end);
+            let len = (end - begin) as usize;
+            let raw = vec![0; len];
+            Self { raw, begin, end }
         }
 
-        for i in 1..space {
-            imos[i] += imos[i - 1];
+        fn is_within(&self, i: i64) -> bool {
+            (self.begin..self.end).contains(&i)
         }
-        imos
-    }
-}
 
-#[snippet(prefix = "use imos_2d::*;")]
-pub mod imos_2d {
-
-    // [x_begin, x_end) * [y_begin, y_end) で value、それ以外で0を取る関数
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-    pub struct RectFunc {
-        x_begin: usize,
-        x_end: usize,
-        y_begin: usize,
-        y_end: usize,
-        value: i64,
-    }
-
-    impl RectFunc {
-        pub fn new(x_begin: usize, x_end: usize, y_begin: usize, y_end: usize, value: i64) -> Self {
-            Self { x_begin, x_end, y_begin, y_end, value }
+        pub fn get(&self, i: i64) -> i64 {
+            if cfg!(debug_assertions) && !self.is_within(i) {
+                panic!(
+                    "index out of bounds: the range is [{}, {}) but the index is {}",
+                    self.begin, self.end, i
+                );
+            }
+            self.raw[(i - self.begin) as usize]
         }
-    }
 
-    #[allow(clippy::needless_range_loop)]
-    pub fn calc_imos_2d(
-        rect_func_list: &[RectFunc],
-        x_space: usize,
-        y_space: usize,
-    ) -> Vec<Vec<i64>> {
-        let mut imos = vec![vec![0; x_space]; y_space];
-        for &rect_func in rect_func_list {
-            imos[rect_func.y_begin][rect_func.x_begin] += rect_func.value;
-            imos[rect_func.y_begin][rect_func.x_end] -= rect_func.value;
-            imos[rect_func.y_end][rect_func.x_begin] -= rect_func.value;
-            imos[rect_func.y_end][rect_func.x_end] += rect_func.value;
+        pub fn add(&mut self, i: i64, val: i64) {
+            if cfg!(debug_assertions) && !self.is_within(i) {
+                panic!(
+                    "index out of bounds: the range is [{}, {}) but the index is {}",
+                    self.begin, self.end, i
+                );
+            }
+            self.raw[(i - self.begin) as usize] += val;
         }
-        for x in 1..x_space {
-            for y in 0..y_space {
-                imos[y][x] += imos[y][x - 1];
+
+        pub fn summation(&mut self) {
+            for i in 1..self.raw.len() {
+                self.raw[i] += self.raw[i - 1]
             }
         }
-        for y in 1..y_space {
-            for x in 0..x_space {
-                imos[y][x] += imos[y - 1][x];
+
+        /// デバッグ用
+        pub fn difference(&mut self) {
+            for i in (1..self.raw.len()).rev() {
+                self.raw[i] -= self.raw[i - 1];
             }
         }
-        imos
     }
 }
 
 #[cfg(test)]
 mod test {
 
+    use itertools::Itertools;
+
     use super::imos_1d::*;
     #[test]
-    fn test_imos_1d() {
-        // 0 1 2 3 4 5
-        // ------------
-        //   2 2 2 2     [1, 5), value: 2
-        // 3 3           [0, 2), value: 3
-        // ------------
-        // 3 5 2 2 2 0
+    fn test_imos_1d_const_func() {
+        // [-2, 5) の範囲で考える。1回差分を取るので end は 1つ余分に確保する
+        let mut imos = Imos1D::new(-2, 5 + 1);
 
-        let range_func_list = [RangeFunc::new(1, 5, 2), RangeFunc::new(0, 2, 3)];
-        let imos = calc_imos_1d(&range_func_list, 6);
+        // [-2, 0) で 1 を足す
+        imos.add(-2, 1);
+        imos.add(0, -1);
 
-        assert_eq!(imos, [3, 5, 2, 2, 2, 0]);
+        // [3, 5) で 2 を足す
+        imos.add(3, 2);
+        imos.add(5, -2);
+
+        // [1, 3) で 4 を足す
+        imos.add(1, 4);
+        imos.add(3, -4);
+
+        imos.summation();
+
+        // 1 1 0 0 0 0 0
+        // 0 0 0 0 0 2 2
+        // 0 0 0 4 4 0 0
+        // -------------------
+        // 1 1 0 4 4 2 2
+
+        let actual = (-2..5).map(|x| imos.get(x)).collect_vec();
+        let expected = vec![1, 1, 0, 4, 4, 2, 2];
+        assert_eq!(actual, expected)
     }
 
-    use super::imos_2d::*;
     #[test]
-    fn test_imos_2d() {
-        /*
-        1 1 1 1 0 0       0 0 0 0 0 0       0 0 0 0 0 0       1 1 1 1 0 0
-        1 1 1 1 0 0       0 0 0 0 0 0       0 0 0 0 0 0       1 1 1 1 0 0
-        1 1 1 1 0 0   +   0 0 1 1 1 1   +   0 0 0 0 0 0   =   1 1 2 2 1 1
-        1 1 1 1 0 0       0 0 1 1 1 1       0 1 1 0 0 0       1 2 3 2 1 1
-        0 0 0 0 0 0       0 0 1 1 1 1       0 1 1 0 0 0       0 1 2 1 1 1
-        0 0 0 0 0 0       0 0 1 1 1 1       0 0 0 0 0 0       0 0 1 1 1 1
+    fn test_imos_1d_affine() {
+        let mut imos = Imos1D::new(0, 9 + 2); // 差分の回数だけ広めに範囲を取っておく。
 
-        [0, 4) * [0 ,4)   [2, 6) * [2, 6)   [1, 3) * [3, 5)
-         */
+        // [3, 7) で x+3 を足す
+        let f = |x: i64| x + 3;
+        imos.add(3, f(3));
+        imos.add(4, f(4) - 2 * f(3));
+        imos.add(7, -f(7));
+        imos.add(8, -(f(8) - 2 * f(7)));
 
-        let range_func_list = [
-            RectFunc::new(0, 4, 0, 4, 1),
-            RectFunc::new(2, 6, 2, 6, 1),
-            RectFunc::new(1, 3, 3, 5, 1),
-        ];
-        // end も スペースに入るようにちょっと大きめに設定
-        let imos = calc_imos_2d(&range_func_list, 7, 7);
+        // [5, 9) で 2x+1 を足す
+        let g = |x: i64| 2 * x + 1;
+        imos.add(5, g(5));
+        imos.add(6, g(6) - 2 * g(5));
+        imos.add(9, -g(9));
+        imos.add(10, -(g(10) - 2 * g(9)));
 
-        assert_eq!(
-            imos,
-            [
-                [1, 1, 1, 1, 0, 0, 0],
-                [1, 1, 1, 1, 0, 0, 0],
-                [1, 1, 2, 2, 1, 1, 0],
-                [1, 2, 3, 2, 1, 1, 0],
-                [0, 1, 2, 1, 1, 1, 0],
-                [0, 0, 1, 1, 1, 1, 0],
-                [0, 0, 0, 0, 0, 0, 0],
-            ]
-        );
+        imos.summation();
+        imos.summation();
+
+        let actual = (0..11).map(|x| imos.get(x)).collect_vec();
+        // 0 0 0 6 7  8  9  0  0 0 0
+        // 0 0 0 0 0 11 13 15 17 0 0
+        // -------------------------
+        // 0 0 0 6 7 19 22 15 17 0 0
+        let expected = vec![0, 0, 0, 6, 7, 19, 22, 15, 17, 0, 0];
+        assert_eq!(actual, expected)
+    }
+
+    #[test]
+    fn test_imos_1d_quadratic() {
+        let mut imos = Imos1D::new(0, 5 + 3); // 差分の回数だけ広めに範囲を取っておく。
+
+        // [1, 5) で x^2 を足す
+        let f = |x: i64| if x >= 1 { x * x } else { 0 };
+        for t in 0..3 {
+            let begin = 1;
+            imos.add(
+                begin + t,
+                f(begin + t) - 3 * f(begin + t - 1) + 3 * f(begin + t - 2),
+            )
+        }
+        let f = |x: i64| if x >= 5 { -x * x } else { 0 };
+        for t in 0..3 {
+            let end = 5;
+            imos.add(
+                end + t,
+                f(end + t) - 3 * f(end + t - 1) + 3 * f(end + t - 2),
+            )
+        }
+
+        imos.summation();
+        imos.summation();
+        imos.summation();
+
+        let actual = (0..5).map(|x| imos.get(x)).collect_vec();
+
+        let expected = vec![0, 1, 4, 9, 16];
+        assert_eq!(actual, expected)
+    }
+
+    #[test]
+    fn test_imos_1d_difference() {
+        let mut imos = Imos1D::new(0, 5);
+        for i in 0..5 {
+            imos.add(i, i * i);
+        }
+        imos.difference();
+        // 0 1 4 9 16
+        // ↓ 差分
+        // 0 1 3 5 7
+
+        let actual = (0..5).map(|x| imos.get(x)).collect_vec();
+
+        let expected = vec![0, 1, 3, 5, 7];
+        assert_eq!(actual, expected)
     }
 }
