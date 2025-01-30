@@ -165,12 +165,12 @@ mod tests {
         let _x: ExtInt = fin(3);
 
         assert!(INF >= INF);
-        assert!(fin(3) >= INF);
+        assert!(INF >= fin(3));
         assert!(fin(6) >= fin(4));
         assert!(fin(4) >= fin(4));
 
         assert!(INF <= INF);
-        assert!(INF <= fin(3));
+        assert!(fin(3) <= INF);
         assert!(fin(4) <= fin(6));
         assert!(fin(4) <= fin(4));
 
@@ -179,7 +179,7 @@ mod tests {
         assert_eq!(min(INF, INF), INF);
         assert_eq!(min(INF, fin(3)), fin(3));
         assert_eq!(min(fin(3), INF), fin(3));
-        assert_eq!(min(fin(6), fin(4)), fin(6));
+        assert_eq!(min(fin(6), fin(4)), fin(4));
         assert_eq!(min(fin(4), fin(4)), fin(4));
     }
 
