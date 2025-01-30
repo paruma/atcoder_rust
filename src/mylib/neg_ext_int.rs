@@ -7,7 +7,7 @@ pub mod mod_neg_ext_int {
         cmp::Ordering,
         convert::Infallible,
         fmt,
-        ops::{Add, AddAssign},
+        ops::{Add, AddAssign, Sub, SubAssign},
     };
 
     pub const NEG_INF: NegExtInt = NegExtInt::NEG_INF;
@@ -99,6 +99,21 @@ pub mod mod_neg_ext_int {
     impl AddAssign<i64> for NegExtInt {
         fn add_assign(&mut self, rhs: i64) {
             *self = *self + rhs;
+        }
+    }
+    impl Sub<i64> for NegExtInt {
+        type Output = NegExtInt;
+        fn sub(self, rhs: i64) -> Self::Output {
+            if self.is_neg_inf() {
+                Self::NEG_INF
+            } else {
+                Self::fin(self.0 - rhs)
+            }
+        }
+    }
+    impl SubAssign<i64> for NegExtInt {
+        fn sub_assign(&mut self, rhs: i64) {
+            *self = *self - rhs;
         }
     }
     impl std::iter::Sum for NegExtInt {
@@ -213,6 +228,23 @@ mod tests {
 
         let mut y = NEG_INF;
         y += 4;
+        assert_eq!(y, NEG_INF);
+    }
+
+    #[test]
+    fn test_ext_int_sub_i64() {
+        assert_eq!(NEG_INF - 4, NEG_INF);
+        assert_eq!(fin(3) - 4, fin(-1));
+    }
+
+    #[test]
+    fn test_ext_int_sub_assign_i64() {
+        let mut x = fin(3);
+        x -= 4;
+        assert_eq!(x, fin(-1));
+
+        let mut y = NEG_INF;
+        y -= 4;
         assert_eq!(y, NEG_INF);
     }
 

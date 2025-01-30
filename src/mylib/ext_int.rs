@@ -8,7 +8,7 @@ pub mod mod_ext_int {
         cmp::Ordering,
         convert::Infallible,
         fmt,
-        ops::{Add, AddAssign},
+        ops::{Add, AddAssign, Sub, SubAssign},
     };
 
     pub const INF: ExtInt = ExtInt::INF;
@@ -100,6 +100,22 @@ pub mod mod_ext_int {
     impl AddAssign<i64> for ExtInt {
         fn add_assign(&mut self, rhs: i64) {
             *self = *self + rhs;
+        }
+    }
+
+    impl Sub<i64> for ExtInt {
+        type Output = ExtInt;
+        fn sub(self, rhs: i64) -> Self::Output {
+            if self.is_inf() {
+                Self::INF
+            } else {
+                Self::fin(self.0 - rhs)
+            }
+        }
+    }
+    impl SubAssign<i64> for ExtInt {
+        fn sub_assign(&mut self, rhs: i64) {
+            *self = *self - rhs;
         }
     }
     impl std::iter::Sum for ExtInt {
@@ -214,6 +230,23 @@ mod tests {
 
         let mut y = INF;
         y += 4;
+        assert_eq!(y, INF);
+    }
+
+    #[test]
+    fn test_ext_int_sub_i64() {
+        assert_eq!(INF - 4, INF);
+        assert_eq!(fin(3) - 4, fin(-1));
+    }
+
+    #[test]
+    fn test_ext_int_sub_assign_i64() {
+        let mut x = fin(3);
+        x -= 4;
+        assert_eq!(x, fin(-1));
+
+        let mut y = INF;
+        y -= 4;
         assert_eq!(y, INF);
     }
 
