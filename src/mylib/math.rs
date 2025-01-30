@@ -1,4 +1,5 @@
 pub mod acl_modint;
+pub mod argcmp;
 pub mod combinatorics;
 pub mod inversion;
 pub mod matrix;
