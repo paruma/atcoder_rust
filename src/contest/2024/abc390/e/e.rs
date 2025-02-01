@@ -8,6 +8,15 @@
         * next DP をしたり、配列をあらかじめとっておくと解決する
     * 本番は DP 配列をあらかじめ取ろうとしたが、二分探索に渡す述語関数が FnMut ではなく Fn を要求してきて、DP 配列を述語関数（クロージャー）でキャプチャできなかった。
 
+    それぞれの実装は以下の通り
+
+    * solve1: 二分探索 & DP の TLE 解法（定数倍が遅い）
+    * solve2: solve1 の DP テーブル初期化を1回だけ行ったもの
+    * solve3: solve2 のリファクタリング (二分探索の手動インライン展開をやめるなど)
+    * solve4: solve1 を next dp にしたもの
+    * solve5: DP を二分探索の外で行ったもの
+    * solve6: DP & 貪欲法 (想定解法)
+
 */
 #[derive_readable]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -288,6 +297,118 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve5(&self) -> Answer {
+        // DP を二分探索の外に出す
+        // 計算量: O(NX + X log Σ A)
+        // （二分探索の中で DP をした場合の計算量は O(NX log Σ A) であった）
+
+        /// カロリーごとのビタミン摂取量の最大値
+        fn max_vit_by_cal(foods: &[Food], x: i64) -> Vec<NegExtInt> {
+            let n = foods.len();
+            let mut dp = vec![NegExtInt::NEG_INF; x as usize + 1];
+            for cal in 0..=x as usize {
+                dp[cal] = NegExtInt::fin(0);
+            }
+
+            for i in 0..n {
+                let mut next_dp = vec![NegExtInt::NEG_INF; x as usize + 1];
+                let food = foods[i];
+                for cal in 0..=x {
+                    let choose = if cal < food.cal {
+                        NegExtInt::NEG_INF
+                    } else {
+                        dp[(cal - food.cal) as usize] + food.vit
+                    };
+
+                    let no_choose = dp[cal as usize];
+
+                    next_dp[cal as usize] = std::cmp::max(choose, no_choose);
+                }
+                dp = next_dp;
+            }
+
+            dp
+        }
+
+        let x = self.x;
+        let foods = &self.foods;
+        let type_to_foods = foods.iter().fold(vec![vec![]; 3], |mut acc, food| {
+            acc[food.t].push(*food);
+            acc
+        });
+
+        let max_vit_by_cal_by_food = type_to_foods
+            .iter()
+            .map(|foods| max_vit_by_cal(foods, x))
+            .collect_vec();
+
+        let sum_vit = foods.iter().map(|f| f.vit).sum::<i64>();
+
+        let ans = bin_search(0, sum_vit + 1, |vit| {
+            // それぞれのビタミンを vit 以上取ったときのカロリーの最小値をX以下にできる？
+            let sum_cal = (0..3)
+                .map(|i| {
+                    let max_vit_by_cal = &max_vit_by_cal_by_food[i];
+                    max_vit_by_cal
+                        .iter()
+                        .position(|v| *v >= fin(vit))
+                        .map(|x| x as i64)
+                        .unwrap_or(i64::MAX / 10)
+                })
+                .sum::<i64>();
+            sum_cal <= x
+        });
+        Answer { ans }
+    }
+
+    fn solve6(&self) -> Answer {
+        // 二分探索をせずに DP & 貪欲法をする（想定解法）
+        // 計算量: O(NX)
+
+        /// カロリーごとのビタミン摂取量の最大値
+        fn max_vit_by_cal(foods: &[Food], x: i64) -> Vec<NegExtInt> {
+            let n = foods.len();
+            let mut dp = vec![NegExtInt::NEG_INF; x as usize + 1];
+            for cal in 0..=x as usize {
+                dp[cal] = NegExtInt::fin(0);
+            }
+
+            for i in 0..n {
+                let mut next_dp = vec![NegExtInt::NEG_INF; x as usize + 1];
+                let food = foods[i];
+                for cal in 0..=x {
+                    let choose = if cal < food.cal {
+                        NegExtInt::NEG_INF
+                    } else {
+                        dp[(cal - food.cal) as usize] + food.vit
+                    };
+
+                    let no_choose = dp[cal as usize];
+
+                    next_dp[cal as usize] = std::cmp::max(choose, no_choose);
+                }
+                dp = next_dp;
+            }
+
+            dp
+        }
+
+        let x = self.x;
+        let foods = &self.foods;
+        let type_to_foods = foods.iter().fold(vec![vec![]; 3], |mut acc, food| {
+            acc[food.t].push(*food);
+            acc
+        });
+
+        let max_vit_by_cal_by_food = type_to_foods
+            .iter()
+            .map(|foods| max_vit_by_cal(foods, x))
+            .collect_vec();
+        todo!();
+        let ans = 0;
+
+        Answer { ans }
+    }
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -308,7 +429,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve3().print();
+    Problem::read().solve6().print();
 }
 
 #[cfg(test)]
