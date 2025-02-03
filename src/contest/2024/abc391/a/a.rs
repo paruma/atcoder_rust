@@ -1,21 +1,26 @@
-//#[derive_readable]
+#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    d: Chars,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            p: Problem
         }
-        Problem { n, xs }
+        p
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let d = &self.d;
+        let rev_map = maplit::hashmap! {
+            'N' => 'S',
+            'S' => 'N',
+            'E' => 'W',
+            'W' => 'E',
+        };
+        let ans = d.iter().copied().map(|ch| rev_map[&ch]).collect_vec();
         Answer { ans }
     }
 
@@ -29,12 +34,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<char>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_chars(&self.ans);
     }
 }
 

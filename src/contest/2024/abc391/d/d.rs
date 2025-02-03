@@ -1,21 +1,110 @@
-//#[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Query {
+    time: usize,
+    block_id: Usize1,
+}
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    w: usize,
+    ps: Vec<Pos>,
+    nq: usize,
+    qs: Vec<Query>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            w: usize,
         }
-        Problem { n, xs }
+        let ps = (0..n)
+            .map(|_| {
+                input! {
+                    x: i64,
+                    y: i64,
+                }
+                Pos::new(x - 1, y - 1)
+            })
+            .collect_vec();
+
+        input! {
+            nq: usize,
+            qs: [Query; nq],
+        }
+        Problem { n, w, ps, nq, qs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        // priority queue
+        let n = self.n;
+        let w = self.w;
+        let ps = &self.ps;
+
+        // i番目に消えるブロックたちのリスト
+        let mut vanish_list_order_i: Vec<Vec<usize>> = vec![];
+        let mut group_by_x = vec![vec![]; w];
+        for i in 0..n {
+            let x = ps[i].x as usize;
+            group_by_x[x].push(i)
+        }
+        'l: for ord in 0.. {
+            let mut buf: Vec<usize> = vec![];
+            for x in 0..w {
+                if ord >= group_by_x[x].len() {
+                    break 'l;
+                }
+                buf.push(group_by_x[x][ord])
+            }
+            vanish_list_order_i.push(buf);
+        }
+
+        // dbg!(&vanish_list_order_i);
+
+        let nq = self.nq;
+        let qs = &self.qs;
+        let iqs = qs
+            .iter()
+            .copied()
+            .enumerate()
+            .sorted_by_key(|(_i, q)| q.time)
+            .collect_vec();
+        let mut iqs_iter = iqs.iter().copied().peekable();
+        let mut ans = vec![false; nq];
+
+        let mut exists = vec![true; n];
+
+        for line in vanish_list_order_i {
+            // dbg!(&exists);
+            let vanish_time = line.iter().copied().map(|i| ps[i].y).max().unwrap() + 1;
+            #[allow(clippy::while_let_loop)]
+            loop {
+                if let Some(&(i, q)) = iqs_iter.peek() {
+                    //
+                    if vanish_time > q.time as i64 {
+                        ans[i] = exists[q.block_id];
+                        // dbg!(i, ans[i]);
+                        iqs_iter.next();
+                    } else {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+
+            for &i in &line {
+                exists[i] = false;
+            }
+        }
+        //dbg!(&exists);
+
+        while let Some((i, q)) = iqs_iter.next() {
+            // dbg!(i);
+            ans[i] = exists[q.block_id];
+        }
+
         Answer { ans }
     }
 
@@ -29,12 +118,16 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<bool>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        for line in &self.ans {
+            let msg = if *line { "Yes" } else { "No" };
+            println!("{}", msg);
+            // print_yesno(*line);
+        }
     }
 }
 
@@ -180,3 +273,90 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use pos::*;
+pub mod pos {
+    use std::ops::{Add, AddAssign, Neg, Sub, SubAssign};
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    pub struct Pos {
+        pub x: i64,
+        pub y: i64,
+    }
+    impl Pos {
+        pub fn new(x: i64, y: i64) -> Pos {
+            Pos { x, y }
+        }
+    }
+    impl Pos {
+        pub fn scala_mul(self, rhs: i64) -> Pos {
+            Pos::new(self.x * rhs, self.y * rhs)
+        }
+    }
+    impl Pos {
+        pub fn inner_product(self, rhs: Self) -> i64 {
+            self.x * rhs.x + self.y * rhs.y
+        }
+        pub fn norm_square(self) -> i64 {
+            self.inner_product(self)
+        }
+    }
+    impl Add for Pos {
+        type Output = Pos;
+        fn add(self, rhs: Self) -> Self::Output {
+            Pos::new(self.x + rhs.x, self.y + rhs.y)
+        }
+    }
+    impl Sub for Pos {
+        type Output = Pos;
+        fn sub(self, rhs: Self) -> Self::Output {
+            Pos::new(self.x - rhs.x, self.y - rhs.y)
+        }
+    }
+    impl Neg for Pos {
+        type Output = Self;
+        fn neg(self) -> Self::Output {
+            Pos::new(-self.x, -self.y)
+        }
+    }
+    impl num_traits::Zero for Pos {
+        fn zero() -> Self {
+            Pos::new(0, 0)
+        }
+        fn is_zero(&self) -> bool {
+            self.x.is_zero() && self.y.is_zero()
+        }
+    }
+    impl AddAssign for Pos {
+        fn add_assign(&mut self, rhs: Self) {
+            *self = *self + rhs
+        }
+    }
+    impl SubAssign for Pos {
+        fn sub_assign(&mut self, rhs: Self) {
+            *self = *self - rhs
+        }
+    }
+    pub const DIR8_LIST: [Pos; 8] = [
+        Pos { x: 0, y: 1 },
+        Pos { x: 1, y: 1 },
+        Pos { x: 1, y: 0 },
+        Pos { x: 1, y: -1 },
+        Pos { x: 0, y: -1 },
+        Pos { x: -1, y: -1 },
+        Pos { x: -1, y: 0 },
+        Pos { x: -1, y: 1 },
+    ];
+    pub const DIR4_LIST: [Pos; 4] = [
+        Pos { x: 0, y: 1 },
+        Pos { x: 1, y: 0 },
+        Pos { x: 0, y: -1 },
+        Pos { x: -1, y: 0 },
+    ];
+    impl Pos {
+        pub fn around4_pos_iter(self) -> impl Iterator<Item = Pos> {
+            DIR4_LIST.iter().copied().map(move |d| self + d)
+        }
+        pub fn around8_pos_iter(self) -> impl Iterator<Item = Pos> {
+            DIR8_LIST.iter().copied().map(move |d| self + d)
+        }
+    }
+}

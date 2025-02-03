@@ -1,21 +1,75 @@
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Query {
+    Move { pigeon: usize, hole: usize },
+    Output,
+}
+
+impl Query {
+    fn read() -> Query {
+        input! {
+            t: usize
+        }
+        if t == 1 {
+            input! {
+                p: Usize1,
+                h: Usize1,
+            }
+            Query::Move { pigeon: p, hole: h }
+        } else {
+            Query::Output
+        }
+    }
+}
+
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    nq: usize,
+    qs: Vec<Query>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            nq: usize,
         }
-        Problem { n, xs }
+        let qs = (0..nq).map(|_| Query::read()).collect_vec();
+        Problem { n, nq, qs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let qs = &self.qs;
+        let mut p_to_h = (0..n).collect_vec();
+        let mut h_to_p = (0..n).map(|i| hashset! {i}).collect_vec();
+        let mut cnt_p_to_cnt_h = vec![0; n + 1];
+        cnt_p_to_cnt_h[1] = n;
+
+        let mut ans = vec![];
+
+        for q in qs {
+            match q {
+                &Query::Move { pigeon, hole } => {
+                    let prev_hole = p_to_h[pigeon];
+
+                    cnt_p_to_cnt_h[h_to_p[prev_hole].len()] -= 1;
+                    h_to_p[prev_hole].remove(&pigeon);
+                    cnt_p_to_cnt_h[h_to_p[prev_hole].len()] += 1;
+
+                    cnt_p_to_cnt_h[h_to_p[hole].len()] -= 1;
+                    h_to_p[hole].insert(pigeon);
+                    cnt_p_to_cnt_h[h_to_p[hole].len()] += 1;
+
+                    p_to_h[pigeon] = hole;
+                }
+                Query::Output => {
+                    let sub_ans = n - cnt_p_to_cnt_h[0] - cnt_p_to_cnt_h[1];
+                    ans.push(sub_ans);
+                }
+            }
+        }
         Answer { ans }
     }
 
@@ -29,12 +83,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<usize>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec(&self.ans);
     }
 }
 
@@ -121,6 +175,7 @@ mod tests {
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
+use maplit::{hashmap, hashset};
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,

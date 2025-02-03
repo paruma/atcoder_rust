@@ -2,21 +2,32 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    m: usize,
+    s: Vec<Vec<char>>,
+    t: Vec<Vec<char>>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            m: usize,
+            s: [Chars; n],
+            t: [Chars; m],
         }
-        Problem { n, xs }
+        Problem { n, m, s, t }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
-        Answer { ans }
+        let n = self.n;
+        let m = self.m;
+        let s = &self.s;
+        let t = &self.t;
+
+        let (ans0, ans1) = iproduct!(0..n - m + 1, 0..n - m + 1)
+            .find(|&(y, x)| iproduct!(0..m, 0..m).all(|(dx, dy)| s[y + dy][x + dx] == t[dy][dx]))
+            .unwrap();
+        Answer { ans0, ans1 }
     }
 
     #[allow(dead_code)]
@@ -29,12 +40,13 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans0: usize,
+    ans1: usize,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        println!("{} {}", self.ans0 + 1, self.ans1 + 1);
     }
 }
 
