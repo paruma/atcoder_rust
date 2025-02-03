@@ -139,20 +139,20 @@ pub mod print_vec {
     use itertools::Itertools;
     use proconio::fastout;
     #[fastout]
-    pub fn print_vec<T: std::fmt::Debug>(arr: &[T]) {
+    pub fn print_vec<T: std::fmt::Display>(arr: &[T]) {
         for a in arr {
-            println!("{:?}", a);
+            println!("{}", a);
         }
     }
     #[fastout]
-    pub fn print_vec_1line<T: std::fmt::Debug>(arr: &[T]) {
-        let msg = arr.iter().map(|x| format!("{:?}", x)).join(" ");
+    pub fn print_vec_1line<T: std::fmt::Display>(arr: &[T]) {
+        let msg = arr.iter().map(|x| format!("{}", x)).join(" ");
         println!("{}", msg);
     }
     #[fastout]
-    pub fn print_vec2<T: std::fmt::Debug>(arr: &Vec<Vec<T>>) {
+    pub fn print_vec2<T: std::fmt::Display>(arr: &Vec<Vec<T>>) {
         for row in arr {
-            let msg = row.iter().map(|x| format!("{:?}", x)).join(" ");
+            let msg = row.iter().map(|x| format!("{}", x)).join(" ");
             println!("{}", msg);
         }
     }
