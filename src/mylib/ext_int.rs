@@ -148,6 +148,7 @@ pub mod mod_ext_int {
             }
         }
     }
+
     pub struct ExtIntAdditive(Infallible);
     impl Monoid for ExtIntAdditive {
         type S = ExtInt;
@@ -169,11 +170,12 @@ pub mod mod_ext_int {
         }
     }
 }
+
+#[cfg(test)]
 mod tests {
 
-    use ac_library::Monoid;
-
     use super::mod_ext_int::*;
+    use ac_library::Monoid;
 
     #[allow(clippy::eq_op)]
     #[test]

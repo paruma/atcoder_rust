@@ -167,6 +167,7 @@ pub mod mod_neg_ext_int {
         }
     }
 }
+#[cfg(test)]
 mod tests {
 
     use ac_library::Monoid;
