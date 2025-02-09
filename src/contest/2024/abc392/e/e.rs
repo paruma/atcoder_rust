@@ -1,21 +1,75 @@
-//#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Edge {
+    id: usize,
+    u: usize,
+    v: usize,
+}
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    nv: usize,
+    ne: usize,
+    es: Vec<Edge>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            nv: usize,
+            ne: usize,
         }
-        Problem { n, xs }
+        let es = (0..ne)
+            .map(|id| {
+                input! {
+                    u: Usize1,
+                    v: Usize1,
+                }
+                Edge { id, u, v }
+            })
+            .collect_vec();
+        Problem { nv, ne, es }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let nv = self.nv;
+        let ne = self.ne;
+
+        let mut uf = UnionFind::new(nv);
+        let es = &self.es;
+        let mut yobun_edges: Vec<Edge> = vec![];
+
+        for e in es {
+            let operated = uf.unite(e.u, e.v);
+
+            if !operated {
+                yobun_edges.push(*e);
+            }
+        }
+
+        let mut ans: Vec<(usize, usize, usize)> = vec![];
+
+        for e in &yobun_edges {
+            // e.v を 別のサーバにつなげる
+
+            let eu_root = uf.root(e.u);
+            let next_ev_opt = {
+                let mut iter = uf.root_set.iter();
+                let x = iter.next();
+                if x == Some(&eu_root) {
+                    let y = iter.next();
+                    y.copied()
+                } else {
+                    x.copied()
+                }
+            };
+            // assert!(next_ev_opt != Some(eu_root));
+            if let Some(next_ev) = next_ev_opt {
+                let ok = uf.unite(e.u, next_ev);
+                // assert!(ok);
+                ans.push((e.id, e.v, next_ev));
+            }
+        }
+
+        // dbg!(yobun_edges);
         Answer { ans }
     }
 
@@ -29,12 +83,15 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<(usize, usize, usize)>,
 }
-
 impl Answer {
+    #[fastout]
     fn print(&self) {
-        println!("{}", self.ans);
+        println!("{}", self.ans.len());
+        for &(x, y, z) in &self.ans {
+            println!("{} {} {}", x + 1, y + 1, z + 1);
+        }
     }
 }
 
@@ -180,3 +237,115 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use simple_union_find::*;
+pub mod simple_union_find {
+    use std::collections::BTreeSet;
+
+    use itertools::Itertools;
+    #[derive(Clone, Debug)]
+    struct RootInfo {
+        count: usize,
+    }
+    #[derive(Clone, Debug)]
+    struct NonRootInfo {
+        parent: usize,
+    }
+    #[derive(Clone, Debug)]
+    enum Node {
+        Root(RootInfo),
+        NonRoot(NonRootInfo),
+    }
+    impl Node {
+        fn root(count: usize) -> Node {
+            Node::Root(RootInfo { count })
+        }
+        fn non_root(parent: usize) -> Node {
+            Node::NonRoot(NonRootInfo { parent })
+        }
+        fn as_root(&self) -> &RootInfo {
+            match self {
+                Node::Root(info) => info,
+                Node::NonRoot(_) => panic!(),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct UnionFind {
+        nodes: Vec<Node>,
+        cnt_groups: usize,
+        pub root_set: BTreeSet<usize>,
+    }
+    impl UnionFind {
+        pub fn new(n: usize) -> UnionFind {
+            let nodes = (0..n).map(|_| Node::root(1)).collect_vec();
+            let root_set = (0..n).collect::<BTreeSet<_>>();
+            UnionFind {
+                nodes,
+                cnt_groups: n,
+                root_set,
+            }
+        }
+        pub fn root(&mut self, index: usize) -> usize {
+            match &self.nodes[index] {
+                Node::Root(_) => index,
+                Node::NonRoot(info) => {
+                    let root = self.root(info.parent);
+                    self.nodes[index] = Node::non_root(root);
+                    root
+                }
+            }
+        }
+        pub fn same_count(&mut self, index: usize) -> usize {
+            let root_index = self.root(index);
+            self.nodes[root_index].as_root().count
+        }
+        pub fn same(&mut self, x: usize, y: usize) -> bool {
+            self.root(x) == self.root(y)
+        }
+        pub fn num_groups(&self) -> usize {
+            self.cnt_groups
+        }
+        pub fn unite(&mut self, x: usize, y: usize) -> bool {
+            if self.same(x, y) {
+                return false;
+            }
+            self.cnt_groups -= 1;
+            let (smaller_root, larger_root) = {
+                let x_root = self.root(x);
+                let y_root = self.root(y);
+                let x_count = self.nodes[x_root].as_root().count;
+                let y_count = self.nodes[y_root].as_root().count;
+                if x_count < y_count {
+                    (x_root, y_root)
+                } else {
+                    (y_root, x_root)
+                }
+            };
+            let count_sum =
+                self.nodes[smaller_root].as_root().count + self.nodes[larger_root].as_root().count;
+            self.nodes[smaller_root] = Node::non_root(larger_root);
+            self.root_set.remove(&smaller_root);
+            self.nodes[larger_root] = Node::root(count_sum);
+            true
+        }
+        pub fn groups(&mut self) -> Vec<Vec<usize>> {
+            let n = self.nodes.len();
+            let roots = (0..n).map(|i| self.root(i)).collect_vec();
+            let group_size = (0..n).map(|i| roots[i]).fold(vec![0; n], |mut acc, x| {
+                acc[x] += 1;
+                acc
+            });
+            let result = {
+                let mut result = vec![Vec::new(); n];
+                for i in 0..n {
+                    result[i].reserve(group_size[i]);
+                }
+                for i in 0..n {
+                    result[roots[i]].push(i);
+                }
+                result
+            };
+            result.into_iter().filter(|x| !x.is_empty()).collect_vec()
+        }
+    }
+}

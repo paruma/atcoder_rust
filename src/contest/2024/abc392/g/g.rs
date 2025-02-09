@@ -15,7 +15,29 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let xs = self.xs.iter().copied().sorted().collect_vec();
+        let max_xs = xs.iter().copied().max().unwrap() as usize;
+        let xs_bit = {
+            let mut buf = vec![0; max_xs + 1];
+            for x in &xs {
+                buf[*x as usize] = 1
+            }
+            buf
+        };
+
+        // dbg!(&xs_bit);
+
+        let xs_bit2 = ac_library::convolution_i64(&xs_bit, &xs_bit);
+
+        // dbg!(&xs_bit2);
+
+        let ans = (0..n)
+            .map(|b| {
+                let tmp = xs_bit2.get(2 * xs[b] as usize).copied().unwrap_or(0);
+                (tmp - 1) / 2
+            })
+            .sum();
         Answer { ans }
     }
 

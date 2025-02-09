@@ -2,20 +2,31 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    xs: Vec<usize>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            xs: [Usize1; n],
         }
         Problem { n, xs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let xs = &self.xs;
+
+        let mut ans = vec![2 * n + 1; n];
+        // let nokori_idx = (0..n).collect::<BTreeSet<usize>>();
+        let mut seg = Segtree::<Additive<i64>>::from(vec![1; n]);
+        for (i, x) in xs.iter().copied().enumerate().rev() {
+            let insert_pos = seg.max_right(0, |sum| *sum <= x as i64);
+            ans[insert_pos] = i;
+            seg.set(insert_pos, 0);
+        }
+
         Answer { ans }
     }
 
@@ -29,12 +40,13 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<usize>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        let msg = self.ans.iter().copied().map(|i| i + 1).collect_vec();
+        print_vec_1line(&msg);
     }
 }
 
@@ -118,6 +130,7 @@ mod tests {
     }
 }
 
+use ac_library::{Additive, Segtree};
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
@@ -128,6 +141,7 @@ use proconio::{
 };
 #[allow(unused_imports)]
 use std::cmp::Reverse;
+use std::collections::BTreeSet;
 #[allow(unused_imports)]
 use std::collections::{BinaryHeap, HashMap, HashSet};
 

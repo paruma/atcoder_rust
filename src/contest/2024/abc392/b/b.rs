@@ -2,6 +2,7 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
+    m: usize,
     xs: Vec<i64>,
 }
 
@@ -9,13 +10,18 @@ impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            m: usize,
+            xs: [i64; m],
         }
-        Problem { n, xs }
+        Problem { n, m, xs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let set = self.xs.iter().copied().collect::<HashSet<i64>>();
+
+        let ans = (1..=self.n as i64)
+            .filter(|i| !set.contains(i))
+            .collect_vec();
         Answer { ans }
     }
 
@@ -29,12 +35,13 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        println!("{}", self.ans.len());
+        print_vec_1line(&self.ans);
     }
 }
 
