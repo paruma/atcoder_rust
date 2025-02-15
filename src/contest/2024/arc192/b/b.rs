@@ -1,5 +1,6 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 struct Problem {
     n: usize,
     xs: Vec<i64>,
@@ -13,32 +14,80 @@ impl Problem {
         }
         Problem { n, xs }
     }
+    fn solve_sub(&self) -> bool {
+        let n = self.n;
+        let xs = &self.xs;
+        if n == 1 {
+            return true;
+        }
+        if n == 2 {
+            return false;
+        }
+        // A_i が偶数である i の数
 
+        let cnt_even = xs.iter().filter(|&&x| x % 2 == 0).count();
+        if n == 3 {
+            return cnt_even != 3;
+        }
+        // n = 4: cnt_even % 2 == 1
+        // n = 5: cnt_even % 2 == 0
+        // n = 6: cnt_even % 2 == 1
+        if n % 2 == 0 {
+            cnt_even % 2 == 1
+        } else {
+            cnt_even % 2 == 0
+        }
+    }
+    #[allow(dead_code)]
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = self.solve_sub();
         Answer { ans }
     }
 
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
-        todo!();
-        // let ans = 0;
-        // Answer { ans }
+        let xs = &self.xs;
+
+        // 先手勝ち？
+        fn rec(xs: &[i64], set: &HashSet<usize>) -> bool {
+            if set.len() == xs.len() {
+                return false;
+            }
+            let n = xs.len();
+
+            (0..n).filter(|&i| xs[i] > 0).any(|i| {
+                // 相手負け
+                let mut next_xs = xs.to_vec();
+                next_xs[i] -= 1;
+                let mut next_set = set.clone();
+                next_set.insert(i);
+                !rec(&next_xs, &next_set)
+            })
+        }
+
+        let ans = rec(xs, &HashSet::new());
+        Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool, // 先手勝ち？
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        if self.ans {
+            // 先手勝ち？
+            println!("Fennec");
+        } else {
+            println!("Snuke");
+        }
     }
 }
 
 fn main() {
+    //Problem::read().solve().print();
     Problem::read().solve().print();
 }
 
@@ -79,17 +128,17 @@ mod tests {
 
     #[allow(dead_code)]
     fn make_random_problem(rng: &mut SmallRng) -> Problem {
-        todo!()
-        // let n = rng.gen_range(1..=10);
-        // let p = Problem { _a: n };
-        // println!("{:?}", &p);
-        // p
+        let n = rng.gen_range(1..=8);
+        let xs = (0..n).map(|_| rng.gen_range(1..=2)).collect_vec();
+        let p = Problem { n, xs };
+        println!("{:?}", &p);
+        p
     }
 
     #[allow(unreachable_code)]
     #[test]
     fn test_with_naive() {
-        let num_tests = 0;
+        let num_tests = 109;
         let max_wrong_case = 10; // この件数間違いが見つかったら打ち切り
         let mut rng = SmallRng::seed_from_u64(42);
         // let mut rng = SmallRng::from_entropy();

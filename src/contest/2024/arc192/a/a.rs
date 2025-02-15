@@ -13,28 +13,53 @@ impl Problem {
         }
         Problem { n, xs }
     }
+    fn solve_sub(&self) -> bool {
+        let n = self.n;
+        let xs = &self.xs;
+        let pos1_opt = xs.iter().copied().position(|x| x == 1);
+
+        // ループ考慮したランレングス
+        let run_length = if let Some(pos1) = pos1_opt {
+            chain!(&xs[pos1..], &xs[..pos1])
+                .copied()
+                .dedup_with_count()
+                .collect_vec()
+        } else {
+            vec![(n, 0)]
+        };
+
+        // ARC か CRA を置ける数
+        let table = [0, 0, 0, 1];
+        let cnt = n / 4 * 2 + table[n % 4];
+
+        let cnt_req = run_length
+            .iter()
+            .filter_map(|&(cnt, x)| (x == 0).then_some(num_integer::div_ceil(cnt, 2)))
+            .sum::<usize>();
+        let ans = cnt_req <= cnt;
+        ans
+    }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = self.solve_sub();
         Answer { ans }
     }
 
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
-        todo!();
-        // let ans = 0;
-        // Answer { ans }
+        let ans = false;
+        Answer { ans }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_yesno(self.ans);
     }
 }
 
@@ -51,6 +76,11 @@ mod tests {
 
     #[test]
     fn test_problem() {
+        for n in 1..20 {
+            let table = [0, 0, 0, 1];
+            let cnt = n / 4 * 2 + table[n % 4];
+            // dbg!(n, cnt);
+        }
         assert_eq!(1 + 1, 2);
     }
 
@@ -79,17 +109,18 @@ mod tests {
 
     #[allow(dead_code)]
     fn make_random_problem(rng: &mut SmallRng) -> Problem {
-        todo!()
-        // let n = rng.gen_range(1..=10);
-        // let p = Problem { _a: n };
-        // println!("{:?}", &p);
-        // p
+        // todo!()
+        let n = rng.gen_range(5..=5);
+        let xs = (0..n).map(|_| rng.gen_range(0..=1)).collect_vec();
+        let p = Problem { n, xs };
+        println!("{:?}", &p);
+        p
     }
 
     #[allow(unreachable_code)]
     #[test]
     fn test_with_naive() {
-        let num_tests = 0;
+        let num_tests = 10;
         let max_wrong_case = 10; // この件数間違いが見つかったら打ち切り
         let mut rng = SmallRng::seed_from_u64(42);
         // let mut rng = SmallRng::from_entropy();
