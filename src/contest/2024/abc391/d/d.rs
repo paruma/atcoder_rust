@@ -100,11 +100,56 @@ impl Problem {
         }
         //dbg!(&exists);
 
-        while let Some((i, q)) = iqs_iter.next() {
-            // dbg!(i);
+        // 残りの iterator を消費
+        for (i, q) in iqs_iter {
             ans[i] = exists[q.block_id];
         }
 
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // ブロックがいつ消えるかを求める
+        let n = self.n;
+        let w = self.w;
+        let ps = &self.ps;
+        let qs = &self.qs;
+        let block_by_x = {
+            let mut block_by_x: Vec<Vec<usize>> = vec![vec![]; w];
+            for (i, p) in ps.iter().copied().enumerate() {
+                block_by_x[p.x as usize].push(i);
+            }
+            for x in 0..w {
+                block_by_x[x].sort_by_key(|i| ps[*i].y);
+            }
+            block_by_x
+        };
+
+        let cnt_row = block_by_x.iter().map(|col| col.len()).min().unwrap();
+        let mut vanish_time_list = vec![i64::MAX; n];
+
+        for row_i in 0..cnt_row {
+            // 行単位での消える時刻
+            let vanish_time = (0..w)
+                .map(|x| {
+                    let id = block_by_x[x][row_i];
+                    ps[id].y
+                })
+                .max()
+                .unwrap()
+                + 1;
+            for x in 0..w {
+                let id = block_by_x[x][row_i];
+                vanish_time_list[id] = vanish_time;
+            }
+        }
+
+        let ans = self
+            .qs
+            .iter()
+            .copied()
+            .map(|q| vanish_time_list[q.block_id] > q.time as i64)
+            .collect_vec();
         Answer { ans }
     }
 
@@ -132,7 +177,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
