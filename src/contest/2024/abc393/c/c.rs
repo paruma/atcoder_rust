@@ -1,21 +1,48 @@
-//#[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Edge {
+    u: Usize1,
+    v: Usize1,
+}
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    m: usize,
+    es: Vec<Edge>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            m: usize,
+            es: [Edge; m],
         }
-        Problem { n, xs }
+        Problem { n, m, es }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let es = &self.es;
+        let cnt_self_loop = es.iter().copied().filter(|e| e.u == e.v).count();
+        let cnt_multi_edge = {
+            //
+            let mut edge_set = HashSet::new();
+            let mut cnt = 0;
+            for e in es {
+                if e.u == e.v {
+                    continue;
+                }
+                if edge_set.contains(&(e.u, e.v)) {
+                    cnt += 1;
+                }
+                edge_set.insert((e.u, e.v));
+                edge_set.insert((e.v, e.u));
+            }
+            cnt
+        };
+
+        let ans = cnt_multi_edge + cnt_self_loop;
+
         Answer { ans }
     }
 
@@ -29,7 +56,7 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: usize,
 }
 
 impl Answer {

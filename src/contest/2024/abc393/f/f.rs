@@ -1,21 +1,90 @@
-//#[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Query {
+    right: Usize1,
+    x: i64,
+}
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
+    nq: usize,
     xs: Vec<i64>,
+    qs: Vec<Query>,
+}
+
+fn calc_lis(xs: &[i64]) -> Vec<usize> {
+    let n = xs.len();
+    let cc = CoordinateCompression::new(xs);
+    let xs_cc = cc.compress_vec(xs);
+
+    // lis_len[i] = xs[0..=i] での LIS の長さ
+    let mut dp = vec![0; n];
+
+    let mut seg = Segtree::<Max<usize>>::from(vec![0; cc.space_size() + 1]);
+
+    for (i, x) in xs_cc.iter().copied().enumerate() {
+        dp[i] = seg.prod(0..x) + 1;
+        seg.set(x, usize::max(dp[i], seg.get(x)));
+    }
+    dp
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
+            nq: usize,
             xs: [i64; n],
+            qs: [Query; nq]
         }
-        Problem { n, xs }
+        Problem { n, nq, xs, qs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let xs = &self.xs;
+        let qs = &self.qs;
+        let coards = chain!(xs.iter().copied(), qs.iter().copied().map(|q| q.x)).collect_vec();
+        let cc = CoordinateCompression::new(&coards);
+
+        let iqs = qs
+            .iter()
+            .copied()
+            .enumerate()
+            .sorted_by_key(|(_i, q)| q.right)
+            .collect_vec();
+
+        let mut ans = vec![i64::MAX; self.nq];
+
+        let mut dp = vec![0; n];
+
+        let mut seg = Segtree::<Max<usize>>::from(vec![0; cc.space_size() + 1]);
+
+        let xs_cc = cc.compress_vec(xs);
+
+        let mut iqs_iter = iqs.iter().copied().peekable();
+
+        for (i, x) in xs_cc.iter().copied().enumerate() {
+            // dbg!(segtree_to_vec(&seg, cc.space_size() + 1));
+            dp[i] = seg.prod(0..x) + 1;
+            seg.set(x, usize::max(dp[i], seg.get(x)));
+
+            while let Some(&(qi, q)) = iqs_iter.peek() {
+                if q.right <= i {
+                    ans[qi] = seg.prod(0..=cc.compress(q.x)) as i64;
+                    // dbg!(qi, ans[qi]);
+                    iqs_iter.next();
+                } else {
+                    break;
+                }
+            }
+        }
+
+        for (qi, q) in iqs_iter {
+            //
+            ans[qi] = seg.prod(0..=(q.x as usize)) as i64;
+        }
+
         Answer { ans }
     }
 
@@ -29,12 +98,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec(&self.ans);
     }
 }
 
@@ -118,6 +187,7 @@ mod tests {
     }
 }
 
+use ac_library::{Max, Segtree};
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
@@ -180,3 +250,50 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use coordinate_compression::*;
+pub mod coordinate_compression {
+    use itertools::Itertools;
+    use superslice::Ext;
+    pub struct CoordinateCompression {
+        space: Vec<i64>,
+    }
+    impl CoordinateCompression {
+        /// 計算量: O(|space|log(|space|))
+        pub fn new(space: &[i64]) -> Self {
+            let space = space.iter().copied().sorted().dedup().collect_vec();
+            Self { space }
+        }
+        /// 計算量: O(log(|space|))
+        pub fn compress(&self, x: i64) -> usize {
+            self.space.binary_search(&x).unwrap()
+        }
+        /// 座標圧縮前の空間のうち x 以上である最小の値を座標圧縮したものを返す
+        /// 計算量: O(log(|space|))
+        pub fn compress_floor(&self, x: i64) -> usize {
+            self.space.upper_bound(&x) - 1
+        }
+        /// 座標圧縮前の空間のうち x 以下である最大の値を座標圧縮したものを返す
+        /// 計算量: O(log(|space|))
+        pub fn compress_ceil(&self, x: i64) -> usize {
+            self.space.lower_bound(&x)
+        }
+        /// 計算量: O(|xs|log(|space|))
+        pub fn compress_vec(&self, xs: &[i64]) -> Vec<usize> {
+            xs.iter().copied().map(|x| self.compress(x)).collect_vec()
+        }
+        /// 計算量: O(1)
+        pub fn decompress(&self, i: usize) -> i64 {
+            self.space[i]
+        }
+        pub fn space_size(&self) -> usize {
+            self.space.len()
+        }
+    }
+}
+
+pub fn segtree_to_vec<M: ac_library::Monoid>(
+    seg: &ac_library::Segtree<M>,
+    len: usize,
+) -> Vec<M::S> {
+    (0..len).map(|i| seg.get(i)).collect()
+}

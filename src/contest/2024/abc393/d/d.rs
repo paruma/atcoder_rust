@@ -2,20 +2,66 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    xs: Vec<char>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            xs: Chars,
         }
         Problem { n, xs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let xs = self
+            .xs
+            .iter()
+            .copied()
+            .map(|ch| ((ch as u8) - b'0') as i64)
+            .collect_vec();
+
+        let cnt1 = xs.iter().copied().filter(|x| *x == 1).count();
+        // i番目の1の場所
+        let mut pos1 = vec![];
+        for (i, x) in xs.iter().copied().enumerate() {
+            if x == 1 {
+                pos1.push(i)
+            }
+        }
+
+        // dbg!(&pos1);
+
+        let mut dist = pos1
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(i, p)| i.abs_diff(p) as i64)
+            .sum::<i64>();
+
+        let mut dist_list = vec![];
+
+        let mut diffs = vec![0; n + 1]; // imos法で管理
+        diffs[0] = -(cnt1 as i64);
+        for (i, p) in pos1.iter().copied().enumerate() {
+            diffs[p - i] += 2;
+        }
+
+        // dbg!(&diffs);
+
+        for begin in 0..n - cnt1 + 1 {
+            dist_list.push(dist);
+            dist += diffs[begin];
+            diffs[begin + 1] += diffs[begin];
+        }
+
+        // dbg!(&diffs);
+        // dbg!(&dist_list);
+
+        let ans = dist_list.iter().copied().min().unwrap();
+
         Answer { ans }
     }
 

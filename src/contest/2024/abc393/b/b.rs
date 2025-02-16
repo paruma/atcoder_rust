@@ -1,21 +1,23 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    xs: Vec<char>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            xs: Chars
         }
-        Problem { n, xs }
+        Problem { xs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let xs = &self.xs;
+        let ans = (0..xs.len())
+            .tuple_combinations()
+            .filter(|&(i, j, k)| (j - i == k - j) && xs[i] == 'A' && xs[j] == 'B' && xs[k] == 'C')
+            .count() as i64;
         Answer { ans }
     }
 

@@ -1,21 +1,31 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    s1: String,
+    s2: String,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            s1: String,
+            s2: String,
         }
-        Problem { n, xs }
+        Problem { s1, s2 }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let s1 = &self.s1;
+        let s2 = &self.s2;
+        let ans = if s1 == "sick" && s2 == "sick" {
+            1
+        } else if s1 == "sick" && s2 == "fine" {
+            2
+        } else if s1 == "fine" && s2 == "sick" {
+            3
+        } else {
+            4
+        };
         Answer { ans }
     }
 
