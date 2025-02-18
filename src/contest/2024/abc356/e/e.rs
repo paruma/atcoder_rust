@@ -196,6 +196,52 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve4(&self) -> Answer {
+        // 平面走査で解く
+
+        let xs = &self.xs;
+        let max_xs = xs.iter().copied().max().unwrap();
+        let cnts: Vec<i64> = xs.iter().copied().fold(vec![0; max_xs + 1], |mut acc, x| {
+            acc[x] += 1;
+            acc
+        });
+
+        let term1 = {
+            // bit[x] = 「A_j = x となる j の数」 (jを降順に見て更新する)
+            let mut bit = FenwickTree::new(cnts.len(), 0);
+            let mut sum = 0;
+
+            for (x, cnt) in cnts.iter().copied().enumerate().rev() {
+                if x == 0 {
+                    continue;
+                }
+                // dbg!(x, cnt);
+                // bit[x..2*x], bit[2*x..3*x]
+                // ↓            ↓
+                // 1            2    ....
+                let tmp = (1..)
+                    .take_while(|i| x * i < cnts.len())
+                    .map(|i| {
+                        let begin = i * x;
+                        let end = usize::min((i + 1) * x, cnts.len());
+                        (i as i64) * bit.sum(begin..end)
+                    })
+                    .sum::<i64>();
+                // dbg!(tmp);
+                sum += tmp * cnt;
+
+                bit.add(x, cnt);
+            }
+            sum
+        };
+
+        let term2 = cnts.iter().map(|cnt| cnt * (cnt - 1) / 2).sum::<i64>();
+
+        let ans = term1 + term2;
+
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -216,7 +262,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve3().print();
+    Problem::read().solve4().print();
 }
 
 #[cfg(test)]
