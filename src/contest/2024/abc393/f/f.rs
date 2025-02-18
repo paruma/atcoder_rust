@@ -41,6 +41,7 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
+        // セグ木ベースの LIS (末尾がxのときのLIS長を求める)
         let n = self.n;
         let xs = &self.xs;
         let qs = &self.qs;
@@ -65,14 +66,12 @@ impl Problem {
         let mut iqs_iter = iqs.iter().copied().peekable();
 
         for (i, x) in xs_cc.iter().copied().enumerate() {
-            // dbg!(segtree_to_vec(&seg, cc.space_size() + 1));
             dp[i] = seg.prod(0..x) + 1;
             seg.set(x, usize::max(dp[i], seg.get(x)));
 
             while let Some(&(qi, q)) = iqs_iter.peek() {
                 if q.right <= i {
                     ans[qi] = seg.prod(0..=cc.compress(q.x)) as i64;
-                    // dbg!(qi, ans[qi]);
                     iqs_iter.next();
                 } else {
                     break;
@@ -80,11 +79,43 @@ impl Problem {
             }
         }
 
-        for (qi, q) in iqs_iter {
-            //
-            ans[qi] = seg.prod(0..=(q.x as usize)) as i64;
-        }
+        Answer { ans }
+    }
 
+    fn solve2(&self) -> Answer {
+        // solve のリファクタリング
+        let n = self.n;
+        let xs = &self.xs;
+        let qs = &self.qs;
+        let coards = chain!(xs.iter().copied(), qs.iter().copied().map(|q| q.x)).collect_vec();
+        let cc = CoordinateCompression::new(&coards);
+
+        // r ごとにまとめる
+        let iqs_by_r = qs
+            .iter()
+            .copied()
+            .enumerate()
+            .fold(vec![vec![]; n], |mut acc, (i, q)| {
+                acc[q.right].push((i, q));
+                acc
+            });
+
+        let mut ans = vec![i64::MAX; self.nq];
+
+        let mut dp = vec![0; n];
+
+        let mut seg = Segtree::<Max<usize>>::from(vec![0; cc.space_size() + 1]);
+
+        let xs_cc = cc.compress_vec(xs);
+
+        for (i, x) in xs_cc.iter().copied().enumerate() {
+            dp[i] = seg.prod(0..x) + 1;
+            seg.set(x, usize::max(dp[i], seg.get(x)));
+
+            for &(qid, q) in &iqs_by_r[i] {
+                ans[qid] = seg.prod(0..=cc.compress(q.x)) as i64;
+            }
+        }
         Answer { ans }
     }
 
@@ -108,7 +139,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
