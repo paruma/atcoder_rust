@@ -95,6 +95,83 @@ pub mod monoid_rolling_hash {
         }
     }
 }
+
+// 未テスト (ABC391 B は通ってる)
+/// 2次元ローリングハッシュ
+pub mod rolling_hash_2d {
+
+    type Mint = super::ModInt2305843009213693951;
+
+    #[derive(Clone, Debug)]
+    pub struct RollingHash2D {
+        hash_list: Vec<Vec<Mint>>, // hash_list[i][j] = xss[0..i][0..j] のハッシュ値
+        pow0_list: Vec<Mint>,      // pow_list[i] = base0^i
+        pow1_list: Vec<Mint>,      // pow_list[i] = base1^i
+        height: usize,
+        width: usize,
+    }
+
+    impl RollingHash2D {
+        pub fn new(xss: &[Vec<i64>], base0: i64, base1: i64) -> Self {
+            // base > 0 とする
+            let base0 = Mint::new(base0);
+            let base1 = Mint::new(base1);
+            let height = xss.len();
+            let width = xss[0].len();
+            let mut hash_list = vec![vec![Mint::new(0); width + 1]; height + 1];
+            let mut pow0_list = vec![Mint::new(1); height + 1];
+            let mut pow1_list = vec![Mint::new(1); width + 1];
+
+            for i in 0..height {
+                pow0_list[i + 1] = pow0_list[i] * base0;
+            }
+
+            for i in 0..width {
+                pow1_list[i + 1] = pow1_list[i] * base1;
+            }
+
+            for y in 0..height {
+                for x in 0..width {
+                    hash_list[y + 1][x + 1] = hash_list[y][x + 1] * base0
+                        + hash_list[y + 1][x] * base1
+                        - hash_list[y][x] * base0 * base1
+                        + xss[y][x]
+                }
+            }
+            Self {
+                hash_list,
+                pow0_list,
+                pow1_list,
+                height,
+                width,
+            }
+        }
+
+        pub fn hash(
+            &self,
+            row_begin: usize,
+            row_end: usize,
+            col_begin: usize,
+            col_end: usize,
+        ) -> u64 {
+            let x = self.hash_list[row_end][col_end]
+                - self.hash_list[row_begin][col_end] * self.pow0_list[row_end - row_begin]
+                - self.hash_list[row_end][col_begin] * self.pow1_list[col_end - col_begin]
+                + self.hash_list[row_begin][col_begin]
+                    * self.pow0_list[row_end - row_begin]
+                    * self.pow1_list[col_end - col_begin];
+            x.val()
+        }
+
+        pub fn width(&self) -> usize {
+            self.width
+        }
+
+        pub fn height(&self) -> usize {
+            self.height
+        }
+    }
+}
 #[cfg(test)]
 mod tests_rolling_hash {
     use super::rolling_hash::*;

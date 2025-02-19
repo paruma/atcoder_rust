@@ -55,8 +55,8 @@ impl Problem {
                     .collect_vec()
             })
             .collect_vec();
-        let rhs = RollingHash::new(&s, base0, base1);
-        let rht = RollingHash::new(&t, base0, base1);
+        let rhs = RollingHash2D::new(&s, base0, base1);
+        let rht = RollingHash2D::new(&t, base0, base1);
 
         let n = self.n;
         let m = self.m;
@@ -637,7 +637,7 @@ pub mod modint_u64 {
 type Mint = ModInt2305843009213693951;
 
 #[derive(Clone, Debug)]
-pub struct RollingHash {
+pub struct RollingHash2D {
     hash_list: Vec<Vec<Mint>>, // hash_list[i][j] = xss[0..i][0..j] のハッシュ値
     pow0_list: Vec<Mint>,      // pow_list[i] = base0^i
     pow1_list: Vec<Mint>,      // pow_list[i] = base1^i
@@ -645,7 +645,7 @@ pub struct RollingHash {
     width: usize,
 }
 
-impl RollingHash {
+impl RollingHash2D {
     pub fn new(xss: &[Vec<i64>], base0: i64, base1: i64) -> Self {
         // base > 0 とする
         let base0 = Mint::new(base0);
