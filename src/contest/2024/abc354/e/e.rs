@@ -134,6 +134,7 @@ impl Problem {
 
                 let player = tern % 2;
 
+                // できる操作ができない場合は負け (any の部分で false が返る)
                 let can_win = cards
                     .to_vec(self.n)
                     .iter()
