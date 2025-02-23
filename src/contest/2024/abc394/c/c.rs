@@ -1,21 +1,47 @@
-//#[derive_readable]
+#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    xs: Chars,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            p: Problem,
         }
-        Problem { n, xs }
+        p
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let mut xs = self.xs.clone();
+        let rle = xs.iter().copied().dedup_with_count().collect_vec();
+        let n = xs.len();
+
+        let mut ans = vec![];
+
+        let mut i = 0;
+
+        while i < rle.len() {
+            if i < rle.len() - 1 && rle[i].1 == 'W' && rle[i + 1].1 == 'A' {
+                // WWWWA → ACCCC
+                ans.push('A');
+                for _ in 0..rle[i].0 {
+                    ans.push('C');
+                }
+
+                for _ in 0..(rle[i + 1].0 - 1) {
+                    ans.push('A');
+                }
+
+                i += 2;
+            } else {
+                for _ in 0..rle[i].0 {
+                    ans.push(rle[i].1);
+                }
+                i += 1;
+            }
+        }
+
         Answer { ans }
     }
 
@@ -29,12 +55,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<char>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_chars(&self.ans);
     }
 }
 

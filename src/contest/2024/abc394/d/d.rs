@@ -1,21 +1,46 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    xs: Vec<char>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            xs: Chars,
         }
-        Problem { n, xs }
+        Problem { xs }
+    }
+    fn solve0(&self) -> bool {
+        let xs = &self.xs;
+
+        let mut stack: Stack<char> = Stack::new();
+
+        let map = maplit::hashmap! {
+            ')' => '(',
+            ']' => '[',
+            '>' => '<',
+        };
+
+        for &x in xs {
+            if x == '(' || x == '[' || x == '<' {
+                stack.push(x);
+            }
+            if x == ')' || x == ']' || x == '>' {
+                let req = map[&x];
+                if stack.peek() == Some(&req) {
+                    stack.pop();
+                } else {
+                    return false;
+                }
+            }
+        }
+
+        stack.is_empty()
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = self.solve0();
         Answer { ans }
     }
 
@@ -29,12 +54,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_yesno(self.ans);
     }
 }
 
@@ -180,3 +205,35 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use mod_stack::*;
+pub mod mod_stack {
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct Stack<T> {
+        raw: Vec<T>,
+    }
+    impl<T> Stack<T> {
+        pub fn new() -> Self {
+            Stack { raw: Vec::new() }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push(value)
+        }
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop()
+        }
+        pub fn peek(&self) -> Option<&T> {
+            self.raw.last()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.raw.is_empty()
+        }
+        pub fn len(&self) -> usize {
+            self.raw.len()
+        }
+    }
+    impl<T> Default for Stack<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+}

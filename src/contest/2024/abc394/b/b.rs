@@ -2,20 +2,26 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    xss: Vec<Vec<char>>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            xss: [Chars; n],
         }
-        Problem { n, xs }
+        Problem { n, xss }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = self
+            .xss
+            .iter()
+            .sorted_by_cached_key(|xs| xs.len())
+            .flatten()
+            .copied()
+            .collect_vec();
         Answer { ans }
     }
 
@@ -29,12 +35,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<char>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_chars(&self.ans);
     }
 }
 
