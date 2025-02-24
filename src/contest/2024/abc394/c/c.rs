@@ -13,7 +13,8 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
-        let mut xs = self.xs.clone();
+        // 解法1: ランレングス圧縮
+        let xs = self.xs.clone();
         let rle = xs.iter().copied().dedup_with_count().collect_vec();
         let n = xs.len();
 
@@ -45,6 +46,29 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        // 解法2: 置換したら戻る
+        let mut xs = self.xs.clone();
+        let n = xs.len();
+
+        let mut i = 0;
+
+        // i が n - 1 にたどり着いたら終わり
+        while i < n - 1 {
+            if [xs[i], xs[i + 1]] == ['W', 'A'] {
+                xs[i] = 'A';
+                xs[i + 1] = 'C';
+                i = i.saturating_sub(1);
+            } else {
+                i += 1;
+            }
+        }
+
+        let ans = xs.clone();
+
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -65,7 +89,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
