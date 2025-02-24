@@ -1,6 +1,6 @@
 use cargo_snippet::snippet;
 
-#[snippet(prefix = "use mod_ext_int::ExtInt::{self, *};")]
+#[snippet(prefix = "use mod_ext_int::*;")]
 
 pub mod mod_ext_int {
     use ac_library::Monoid;
