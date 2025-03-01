@@ -72,8 +72,7 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
-        // WA
-
+        // 全方位木DP
         let nv = self.nv;
         let es = &self.es;
 
@@ -83,6 +82,7 @@ impl Problem {
             acc
         });
 
+        // デバッグでわかりやすくするためにソート
         for next_list in adj.iter_mut() {
             next_list.sort();
         }
@@ -90,6 +90,9 @@ impl Problem {
         let degs = adj.iter().map(|xs| xs.len()).collect_vec();
 
         let carbons = (0..nv).filter(|v| degs[*v] >= 4).collect::<HashSet<_>>();
+
+        // dp[v][e] = (v, e) で定まる根付き木で、根から辺を3つ + eの逆方向を選んだ時の最大のアルカンの炭素数（eの逆の方向の炭素数は除く）
+        // （eの逆をあわせて4つ辺を選ぶイメージ）
 
         let mut dp: Vec<Vec<i64>> = adj
             .iter()
@@ -119,8 +122,8 @@ impl Problem {
                         dp[next]
                             .iter()
                             .copied()
-                            .sorted_by_key(|x| -x)
-                            .take(4)
+                            .sorted_by_key(|&x| Reverse(x))
+                            .take(3)
                             .sum::<i64>()
                             + 1
                     };
@@ -144,7 +147,7 @@ impl Problem {
                     .iter()
                     .copied()
                     .enumerate()
-                    .sorted_by_key(|(edge_i, x)| -x)
+                    .sorted_by_key(|&(_edge_i, x)| Reverse(x))
                     .collect_vec();
                 // let cum_monoid = CumMonoid::<Self::M>::new(&dp[current]);
                 for (edge_i, next) in adj[current].iter().copied().enumerate() {
@@ -163,7 +166,7 @@ impl Problem {
                                 .copied()
                                 .filter(|(edge_j, _)| edge_i != *edge_j)
                                 .map(|(_, v)| v)
-                                .take(4)
+                                .take(3)
                                 .sum::<i64>()
                         };
                         val + 1
@@ -171,25 +174,21 @@ impl Problem {
                 }
             }
         }
-        dbg!(&dp);
+        // dbg!(&dp);
 
         let ans = dp
             .iter()
             .enumerate()
-            .map(|(v, dp_v)| {
-                if !carbons.contains(&v) {
-                    0
-                } else {
-                    dp_v.iter()
-                        .copied()
-                        .sorted_by_key(|x| -x)
-                        .take(4)
-                        .sum::<i64>()
-                        + 1
-                }
+            .filter(|(v, _)| carbons.contains(v))
+            .map(|(_, dp_v)| {
+                dp_v.iter()
+                    .copied()
+                    .sorted_by_key(|&x| Reverse(x))
+                    .take(4)
+                    .sum::<i64>()
+                    + 1
             })
-            .filter(|x| *x > 0)
-            .map(|x| 3 * x + 2)
+            .map(|x| 3 * x + 2) // C_{x}H_{2x + 2} の原子の合計は 3x + 2
             .max();
 
         Answer { ans }
@@ -219,7 +218,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve2().print();
+    Problem::read().solve().print();
 }
 
 #[cfg(test)]
