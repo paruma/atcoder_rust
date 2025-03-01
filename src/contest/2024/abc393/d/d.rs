@@ -65,6 +65,30 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        // 解法: abs_diff の和の最小化は中央値
+
+        let n = self.n;
+        let xs = self
+            .xs
+            .iter()
+            .copied()
+            .map(|ch| ((ch as u8) - b'0') as i64)
+            .collect_vec();
+
+        let pos1 = xs.iter().copied().positions(|x| x == 1).collect_vec();
+        // sum |pos1[i] - i - x| を最小化する
+
+        let ys = (0..pos1.len()).map(|i| pos1[i] - i).collect_vec();
+
+        let argmin = ys[ys.len() / 2];
+
+        let ans = (0..pos1.len())
+            .map(|i| usize::abs_diff(pos1[i] - i, argmin))
+            .sum::<usize>() as i64;
+
+        Answer { ans }
+    }
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -85,7 +109,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]

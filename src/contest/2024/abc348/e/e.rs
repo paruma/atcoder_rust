@@ -212,11 +212,10 @@ impl Problem {
         let nv = self.nv;
         let adj = make_adj(nv, &self.edges);
 
-        // 頂点0を根とした根付き木を考える。
-
         // 木の重心
         // 参考: 高難易度木問題を解くテクニック集 - Speaker Deck https://speakerdeck.com/tatyam_prime/gao-nan-yi-du-mu-wen-ti-wojie-kutekunitukuji?slide=36
         let centroid = {
+            // 頂点0を根とした根付き木を考える。
             // sub_weights[v] は vを根とする部分木の重みの総和とする
             let sub_weights = {
                 let mut dp = vec![-1; nv];
