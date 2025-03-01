@@ -41,33 +41,28 @@ impl Problem {
 
         let ans = (0..n)
             .map(|v| {
-                // v に隣接している頂点のdegree を求める
-                let degrees = adj[v].iter().map(|x| adj[*x].len() - 1).collect_vec();
-                let max_degree = degrees.iter().copied().max().unwrap();
-                let mut degrees_cnt = vec![0; max_degree + 1];
-                for &d in &degrees {
-                    degrees_cnt[d] += 1;
-                }
-                degrees_cnt[0] = 0;
-                // dbg!(&degrees);
-                // dbg!(&degrees_cnt);
-                //let degree_cnt_cumsum = prefix_sum(&degrees_cnt);
-                let degree_cnt_cumsum = CumSum::new(&degrees_cnt);
-                // dbg!(&degree_cnt_cumsum);
-
-                (1..=max_degree)
-                    .map(|y| {
-                        let x = degree_cnt_cumsum.range_sum(y..) as usize;
-                        // dbg!(x);
-                        // dbg!(y);
-                        if x == 0 {
-                            0
-                        } else {
-                            1 + x + x * y
-                        }
+                // v に隣接している頂点の degree を求める
+                let degrees = adj[v]
+                    .iter()
+                    .map(|x| adj[*x].len())
+                    .sorted_by_key(|&d| Reverse(d))
+                    .collect_vec();
+                let degrees_cummin = {
+                    let mut tmp = vec![usize::MAX; degrees.len() + 1];
+                    for i in 0..degrees.len() {
+                        tmp[i + 1] = usize::min(tmp[i], degrees[i]);
+                    }
+                    tmp
+                };
+                // 旧実装では、degrees_cnt を作ったが TLE してしまった (degrees の値が大きい場合の計算量が重かった)
+                (1..=degrees.len())
+                    .map(|i| {
+                        let x = i;
+                        let y = degrees_cummin[i] - 1;
+                        1 + x + x * y
                     })
                     .max()
-                    .unwrap_or(0)
+                    .unwrap()
             })
             .max()
             .unwrap();
@@ -186,6 +181,7 @@ use proconio::{
 use std::cmp::Reverse;
 #[allow(unused_imports)]
 use std::collections::{BinaryHeap, HashMap, HashSet};
+use std::usize;
 
 // ====== output func ======
 #[allow(unused_imports)]
