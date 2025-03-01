@@ -80,7 +80,7 @@ trait Reroot {
         })
     }
 
-    fn reroot(&self, adj: &[Vec<usize>]) -> Vec<<Self::M as Monoid>::S> where {
+    fn reroot(&self, adj: &[Vec<usize>]) -> Vec<<Self::M as Monoid>::S> {
         let nv = adj.len();
         // dp[v][i]: 頂点v から生える i番目の有向辺の先にある部分木に関する値
         let mut dp: Vec<Vec<<Self::M as Monoid>::S>> = adj
@@ -199,10 +199,87 @@ impl Problem {
         Problem { nv, edges, costs }
     }
     fn solve(&self) -> Answer {
+        // 全方位木DP
         let nv = self.nv;
         let adj = make_adj(nv, &self.edges);
         let ans = CostDistSumReroot::new(&self.costs.clone()).reroot(&adj);
         let ans = ans.iter().copied().map(|x| x.cost_dist_sum).min().unwrap();
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // 木の重心
+        let nv = self.nv;
+        let adj = make_adj(nv, &self.edges);
+
+        // 頂点0を根とした根付き木を考える。
+
+        // 木の重心
+        // 参考: 高難易度木問題を解くテクニック集 - Speaker Deck https://speakerdeck.com/tatyam_prime/gao-nan-yi-du-mu-wen-ti-wojie-kutekunitukuji?slide=36
+        let centroid = {
+            // sub_weights[v] は vを根とする部分木の重みの総和とする
+            let sub_weights = {
+                let mut dp = vec![-1; nv];
+                let mut visited = vec![false; nv];
+
+                fn rec(
+                    v: usize,
+                    adj: &[Vec<usize>],
+                    costs: &[i64],
+                    visited: &mut [bool],
+                    dp: &mut [i64],
+                ) -> i64 {
+                    let mut sum = 0;
+                    for &next in &adj[v] {
+                        if !visited[next] {
+                            visited[next] = true;
+                            sum += rec(next, adj, costs, visited, dp);
+                        }
+                    }
+                    sum += costs[v];
+                    dp[v] = sum;
+                    sum
+                }
+
+                visited[0] = true; //行きがけ
+                rec(0, &adj, &self.costs, &mut visited, &mut dp);
+
+                dp
+            };
+            let weight_sum = sub_weights[0];
+            sub_weights
+                .iter()
+                .copied()
+                .enumerate()
+                .filter(|&(_i, w)| w * 2 >= weight_sum)
+                .min_by_key(|&(_, w)| w)
+                .unwrap()
+                .0
+        };
+
+        // 木の重心からの距離
+        let dists = {
+            let mut visited = vec![false; nv];
+            let mut open = Queue::new();
+            let mut dists = vec![i64::MAX; nv];
+
+            open.push(centroid);
+            visited[centroid] = true;
+            dists[centroid] = 0;
+
+            while let Some(current) = open.pop() {
+                for &next in &adj[current] {
+                    if !visited[next] {
+                        open.push(next);
+                        visited[next] = true;
+                        dists[next] = dists[current] + 1;
+                    }
+                }
+            }
+
+            dists
+        };
+        let ans = (0..nv).map(|i| dists[i] * self.costs[i]).sum::<i64>();
         Answer { ans }
     }
 
@@ -226,7 +303,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
