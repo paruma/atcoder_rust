@@ -15,7 +15,27 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let xs = &self.xs;
+        let max = xs.iter().copied().max().unwrap() as usize;
+        let pos_list =
+            xs.iter()
+                .copied()
+                .enumerate()
+                .fold(vec![vec![]; max + 1], |mut acc, (i, x)| {
+                    acc[x as usize].push(i);
+                    acc
+                });
+        let ans = pos_list
+            .iter()
+            .flat_map(|poss| {
+                poss.iter()
+                    .copied()
+                    .tuple_windows()
+                    .map(|(x, y)| y - x)
+                    .min()
+            })
+            .min()
+            .map(|x| x + 1);
         Answer { ans }
     }
 
@@ -29,12 +49,16 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Option<usize>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        if let Some(ans) = self.ans {
+            println!("{}", ans);
+        } else {
+            println!("{}", -1);
+        }
     }
 }
 

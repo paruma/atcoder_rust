@@ -1,21 +1,46 @@
-//#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    x: i64,
+    us: Vec<i64>,
+    ds: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            x: i64,
+            uds: [(i64, i64); n]
         }
-        Problem { n, xs }
+
+        let us = uds.iter().copied().map(|x| x.0).collect_vec();
+        let ds = uds.iter().copied().map(|x| x.1).collect_vec();
+        Problem { n, x, us, ds }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let x = self.x;
+        let us = &self.us;
+        let ds = &self.ds;
+
+        // 下の歯の範囲を求める
+
+        let h = bin_search(-1, 2_000_000_001, |h| {
+            // [lower, upper]
+            let mut lower = (0..n).map(|i| i64::max(0, h - us[i])).collect_vec();
+            let mut upper = (0..n).map(|i| i64::min(ds[i], h)).collect_vec();
+
+            for i in 0..n - 1 {
+                lower[i + 1] = i64::max(lower[i + 1], lower[i] - x);
+                upper[i + 1] = i64::min(upper[i + 1], upper[i] + x);
+            }
+            (0..n).all(|i| lower[i] <= upper[i])
+        });
+
+        let ans = us.iter().sum::<i64>() as i128 + ds.iter().sum::<i64>() as i128
+            - (n as i128 * h as i128);
         Answer { ans }
     }
 
@@ -29,7 +54,7 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: i128,
 }
 
 impl Answer {
@@ -180,3 +205,44 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+/// 二分探索をする
+/// ```text
+/// ng ng ng ok ok ok
+///          ↑ここの引数の値を返す
+/// ```
+/// 計算量: O(log(|ok - ng|))
+/// ## Arguments
+/// * ok != ng
+/// * |ok - ng| <= 2^63 - 1, |ok + ng| <= 2^63 - 1
+/// * p の定義域について
+///     * ng < ok の場合、p は区間 ng..ok で定義されている。
+///     * ok < ng の場合、p は区間 ok..ng で定義されている。
+/// * p の単調性について
+///     * ng < ok の場合、p は単調増加
+///     * ok < ng の場合、p は単調減少
+/// ## Return
+/// * ng < ok の場合: I = { i in ng..ok | p(i) == true } としたとき
+///     * I が空でなければ、min I を返す。
+///     * I が空ならば、ok を返す。
+/// * ok < ng の場合: I = { i in ok..ng | p(i) == true } としたとき
+///     * I が空でなければ、max I を返す。
+///     * I が空ならば、ok を返す。
+pub fn bin_search<F>(mut ok: i64, mut ng: i64, mut p: F) -> i64
+where
+    F: FnMut(i64) -> bool,
+{
+    debug_assert!(ok != ng);
+    debug_assert!(ok.checked_sub(ng).is_some());
+    debug_assert!(ok.checked_add(ng).is_some());
+    while num::abs(ok - ng) > 1 {
+        let mid = (ok + ng) / 2;
+        debug_assert!(mid != ok);
+        debug_assert!(mid != ng);
+        if p(mid) {
+            ok = mid;
+        } else {
+            ng = mid;
+        }
+    }
+    ok
+}

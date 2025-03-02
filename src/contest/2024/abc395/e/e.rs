@@ -1,21 +1,86 @@
-//#[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Edge {
+    from: Usize1,
+    to: Usize1,
+}
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    nv: usize,
+    ne: usize,
+    x: i64,
+    es: Vec<Edge>,
 }
 
+macro_rules! chmin {
+    ($a: expr, $b: expr) => {
+        if $a > $b {
+            $a = $b;
+            true
+        } else {
+            false
+        }
+    };
+}
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            nv: usize,
+            ne: usize,
+            x: i64,
+            es: [Edge; ne],
         }
-        Problem { n, xs }
+        Problem { nv, ne, x, es }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let nv = self.nv;
+        let ne = self.ne;
+        let x = self.x;
+
+        let normal_adj: Vec<Vec<usize>> = self.es.iter().fold(vec![vec![]; nv], |mut acc, e| {
+            acc[e.from].push(e.to);
+            acc
+        });
+
+        let rev_adj: Vec<Vec<usize>> = self.es.iter().fold(vec![vec![]; nv], |mut acc, e| {
+            acc[e.to].push(e.from);
+            acc
+        });
+
+        let adj = [normal_adj, rev_adj];
+
+        let mut pq: BinaryHeap<(Reverse<ExtInt>, (usize, usize))> = BinaryHeap::new();
+        let mut dist = vec![[INF; 2]; nv];
+        dist[0][0] = fin(0);
+        pq.push((Reverse(fin(0)), (0, 0)));
+
+        while let Some((Reverse(d), (current_pos, current_is_rev))) = pq.pop() {
+            if dist[current_pos][current_is_rev] < d {
+                continue;
+            }
+            for &next in &adj[current_is_rev][current_pos] {
+                if chmin!(
+                    dist[next][current_is_rev],
+                    dist[current_pos][current_is_rev] + fin(1)
+                ) {
+                    pq.push((Reverse(dist[next][current_is_rev]), (next, current_is_rev)));
+                }
+            }
+            // 反転世界に行く
+            if chmin!(
+                dist[current_pos][1 - current_is_rev],
+                dist[current_pos][current_is_rev] + fin(x)
+            ) {
+                pq.push((
+                    Reverse(dist[current_pos][1 - current_is_rev]),
+                    (current_pos, 1 - current_is_rev),
+                ));
+            }
+        }
+        // dbg!(&dist);
+
+        let ans = std::cmp::min(dist[nv - 1][0], dist[nv - 1][1]).get_fin();
         Answer { ans }
     }
 
@@ -180,3 +245,167 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use mod_ext_int::*;
+pub mod mod_ext_int {
+    use ac_library::Monoid;
+    use std::{
+        cmp::Ordering,
+        convert::Infallible,
+        fmt,
+        ops::{Add, AddAssign, Sub, SubAssign},
+    };
+    pub const INF: ExtInt = ExtInt::INF;
+    pub fn fin(x: i64) -> ExtInt {
+        ExtInt::fin(x)
+    }
+    #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+    pub struct ExtInt(i64);
+    impl ExtInt {
+        pub const INF: Self = Self(i64::MAX);
+        pub fn fin(x: i64) -> Self {
+            Self(x)
+        }
+        pub fn get_fin(self) -> i64 {
+            if self.is_fin() {
+                self.0
+            } else {
+                panic!("called `ExtInt::get_fin()` on a infinity")
+            }
+        }
+        pub fn get_fin_or(self, default: i64) -> i64 {
+            if self.is_fin() {
+                self.0
+            } else {
+                default
+            }
+        }
+        #[inline]
+        pub fn is_fin(self) -> bool {
+            self.0 != i64::MAX
+        }
+        pub fn is_inf(self) -> bool {
+            self.0 == i64::MAX
+        }
+        pub fn to_option(self) -> Option<i64> {
+            if self.is_fin() {
+                Some(self.0)
+            } else {
+                None
+            }
+        }
+        pub fn from_option(opt: Option<i64>) -> ExtInt {
+            match opt {
+                Some(a) => Self(a),
+                None => Self::INF,
+            }
+        }
+        pub fn times(self, t: i64) -> Self {
+            match t.cmp(&0) {
+                Ordering::Less => panic!("t must be non-negative."),
+                Ordering::Equal => Self(0),
+                Ordering::Greater => {
+                    if self.is_fin() {
+                        Self(self.0 * t)
+                    } else {
+                        Self::INF
+                    }
+                }
+            }
+        }
+    }
+    impl Add for ExtInt {
+        type Output = ExtInt;
+        fn add(self, rhs: Self) -> Self::Output {
+            if self.is_inf() || rhs.is_inf() {
+                Self::INF
+            } else {
+                Self::fin(self.0 + rhs.0)
+            }
+        }
+    }
+    impl AddAssign for ExtInt {
+        fn add_assign(&mut self, rhs: Self) {
+            *self = *self + rhs;
+        }
+    }
+    impl Add<i64> for ExtInt {
+        type Output = ExtInt;
+        fn add(self, rhs: i64) -> Self::Output {
+            if self.is_inf() {
+                Self::INF
+            } else {
+                Self::fin(self.0 + rhs)
+            }
+        }
+    }
+    impl AddAssign<i64> for ExtInt {
+        fn add_assign(&mut self, rhs: i64) {
+            *self = *self + rhs;
+        }
+    }
+    impl Sub<i64> for ExtInt {
+        type Output = ExtInt;
+        fn sub(self, rhs: i64) -> Self::Output {
+            if self.is_inf() {
+                Self::INF
+            } else {
+                Self::fin(self.0 - rhs)
+            }
+        }
+    }
+    impl SubAssign<i64> for ExtInt {
+        fn sub_assign(&mut self, rhs: i64) {
+            *self = *self - rhs;
+        }
+    }
+    impl std::iter::Sum for ExtInt {
+        fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+            let mut s = 0;
+            for x in iter {
+                if x.is_inf() {
+                    return Self::INF;
+                }
+                s += x.0;
+            }
+            Self::fin(s)
+        }
+    }
+    impl fmt::Display for ExtInt {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            if self.is_inf() {
+                write!(f, "+∞")
+            } else {
+                write!(f, "{}", self.0)
+            }
+        }
+    }
+    impl fmt::Debug for ExtInt {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            if self.is_inf() {
+                write!(f, "+∞")
+            } else {
+                write!(f, "{}", self.0)
+            }
+        }
+    }
+    pub struct ExtIntAdditive(Infallible);
+    impl Monoid for ExtIntAdditive {
+        type S = ExtInt;
+        fn identity() -> Self::S {
+            ExtInt::fin(0)
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            *a + *b
+        }
+    }
+    pub struct ExtIntMin(Infallible);
+    impl Monoid for ExtIntMin {
+        type S = ExtInt;
+        fn identity() -> Self::S {
+            ExtInt::INF
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            *a.min(b)
+        }
+    }
+}

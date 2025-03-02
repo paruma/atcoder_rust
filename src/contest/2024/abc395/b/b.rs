@@ -2,20 +2,31 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
         }
-        Problem { n, xs }
+        Problem { n }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let mut ans = vec![vec!['.'; n]; n];
+        for t in 0..((n - 1) / 4 + 1) {
+            // 2t
+            for y in 2 * t..n - 2 * t {
+                ans[y][2 * t] = '#';
+                ans[y][n - 2 * t - 1] = '#';
+            }
+            for x in 2 * t..n - 2 * t {
+                ans[2 * t][x] = '#';
+                ans[n - 2 * t - 1][x] = '#';
+            }
+        }
+
         Answer { ans }
     }
 
@@ -29,12 +40,14 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<Vec<char>>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        for row in &self.ans {
+            print_chars(row);
+        }
     }
 }
 

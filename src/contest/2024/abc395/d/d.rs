@@ -1,21 +1,77 @@
-//#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Query {
+    Move { p: usize, h: usize },
+    Swap { h1: usize, h2: usize },
+    Output { p: usize },
+}
+
+impl Query {
+    fn read() -> Self {
+        input! {
+            t: usize
+        }
+        if t == 1 {
+            input! {
+                p: Usize1,
+                h: Usize1,
+            }
+            Query::Move { p, h }
+        } else if t == 2 {
+            input! {
+                h1: Usize1,
+                h2: Usize1,
+            }
+            Query::Swap { h1, h2 }
+        } else {
+            input! {
+                p: Usize1,
+            }
+            Query::Output { p }
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    nq: usize,
+    qs: Vec<Query>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            nq: usize,
         }
-        Problem { n, xs }
+        let qs = (0..nq).map(|_| Query::read()).collect_vec();
+        Problem { n, nq, qs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let mut p_map = (0..n).collect_vec();
+        let mut h_map = (0..n).collect_vec();
+        let mut inv_h_map = (0..n).collect_vec();
+
+        let mut ans = vec![];
+
+        for &q in &self.qs {
+            match q {
+                Query::Move { p, h } => {
+                    p_map[p] = inv_h_map[h];
+                }
+                Query::Swap { h1, h2 } => {
+                    h_map.swap(inv_h_map[h1], inv_h_map[h2]);
+                    inv_h_map.swap(h1, h2);
+                }
+                Query::Output { p } => {
+                    let sub_ans = h_map[p_map[p]];
+                    ans.push(sub_ans);
+                }
+            }
+        }
+
         Answer { ans }
     }
 
@@ -29,12 +85,13 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<usize>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        let msg = self.ans.iter().copied().map(|x| x + 1).collect_vec();
+        print_vec(&msg);
     }
 }
 
@@ -121,6 +178,7 @@ mod tests {
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
+use proconio::source::Readable;
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,
