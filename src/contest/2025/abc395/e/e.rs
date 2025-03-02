@@ -34,6 +34,7 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
+        // ダイクストラ法を問題に合わせて実装
         let nv = self.nv;
         let ne = self.ne;
         let x = self.x;
@@ -84,6 +85,42 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        // グラフを再構築して、ダイクストラ法ライブラリを使用
+        // solve と比べると、多少メモリを消費し、実行時間が長くなる。
+
+        let nv = self.nv;
+        let ext_es = {
+            let mut ext_es = vec![];
+            let origin_es = &self.es;
+            for e in origin_es {
+                ext_es.push(EdgeCost::new(e.from, e.to, 1));
+                ext_es.push(EdgeCost::new(e.to + nv, e.from + nv, 1));
+            }
+
+            for v in 0..nv {
+                ext_es.push(EdgeCost::new(v, v + nv, self.x));
+                ext_es.push(EdgeCost::new(v + nv, v, self.x));
+            }
+
+            ext_es
+        };
+
+        let ext_nv = 2 * nv;
+
+        let adj = ext_es
+            .iter()
+            .copied()
+            .fold(vec![vec![]; ext_nv], |mut acc, e| {
+                acc[e.from].push(e);
+                acc
+            });
+
+        let dist = dijkstra(&adj, 0);
+        let ans = std::cmp::min(dist[nv - 1], dist[nv - 1 + nv]).get_fin();
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -104,7 +141,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -407,5 +444,35 @@ pub mod mod_ext_int {
         fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
             *a.min(b)
         }
+    }
+}
+fn dijkstra(adj: &[Vec<EdgeCost>], start: usize) -> Vec<ExtInt> {
+    let n_vertex = adj.len();
+    let mut pq: BinaryHeap<(Reverse<ExtInt>, usize)> = BinaryHeap::new();
+    let mut dist = vec![INF; n_vertex];
+    dist[start] = fin(0);
+    pq.push((Reverse(fin(0)), start));
+
+    while let Some((Reverse(d), current)) = pq.pop() {
+        if dist[current] < d {
+            continue;
+        }
+        for e in &adj[current] {
+            if chmin!(dist[e.to], dist[e.from] + fin(e.cost)) {
+                pq.push((Reverse(dist[e.to]), e.to));
+            }
+        }
+    }
+    dist
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct EdgeCost {
+    from: usize,
+    to: usize,
+    cost: i64,
+}
+impl EdgeCost {
+    fn new(from: usize, to: usize, cost: i64) -> Self {
+        Self { from, to, cost }
     }
 }
