@@ -12,6 +12,12 @@ _get_contest() {
     basename "$contest_path"
 }
 
+oj_download() {
+    contest="$(_get_contest)"
+    task="$(_get_task)"
+    oj download "https://atcoder.jp/contests/${contest}/tasks/${contest}_${task}"
+}
+
 _get_executable_path() {
     local contest=$(_get_contest)
     local task=$(_get_task)
