@@ -48,8 +48,8 @@ impl SubProblem {
         }
     }
 
-    /// xs[p..] の len 番目の 1 を求める
-    fn next1(&self, p: usize, len: i64) -> Option<usize> {
+    /// xs[p..] を先頭から見て '1' を len 回スキップした直後の添字を求める
+    fn skip_1s(&self, p: usize, len: i64) -> Option<usize> {
         if len == 0 {
             return Some(p);
         }
@@ -61,8 +61,8 @@ impl SubProblem {
         }
     }
 
-    /// xs[p..] の len 番目の / を求める
-    fn next_slash(&self, p: usize, len: i64) -> Option<usize> {
+    /// xs[p..] を先頭から見て '/' を len 回スキップした直後の添字を求める
+    fn skip_slashes(&self, p: usize, len: i64) -> Option<usize> {
         if len == 0 {
             return Some(p);
         }
@@ -74,8 +74,8 @@ impl SubProblem {
         }
     }
 
-    /// xs[p..] の len 番目の 2 を求める
-    fn next2(&self, p: usize, len: i64) -> Option<usize> {
+    /// xs[p..] を先頭から見て '2' を len 回スキップした直後の添字を求める
+    fn skip_2s(&self, p: usize, len: i64) -> Option<usize> {
         if len == 0 {
             return Some(p);
         }
@@ -111,9 +111,9 @@ impl Problem {
             .map(|q| {
                 let len = bin_search(-1, n as i64, |len| {
                     (|| {
-                        let cur1 = sub.next1(q.left, len)?;
-                        let cur2 = sub.next_slash(cur1, 1)?;
-                        let cur3 = sub.next2(cur2, len)?;
+                        let cur1 = sub.skip_1s(q.left, len)?;
+                        let cur2 = sub.skip_slashes(cur1, 1)?;
+                        let cur3 = sub.skip_2s(cur2, len)?;
                         Some([cur1, cur2, cur3].iter().all(|c| *c <= q.right + 1))
                     })()
                     .unwrap_or(false)
