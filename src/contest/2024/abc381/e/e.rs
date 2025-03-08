@@ -12,6 +12,82 @@ struct Problem {
     qs: Vec<Query>,
 }
 
+struct SubProblem {
+    n: usize,
+    ind1: Segtree<Additive<i64>>,
+    ind2: Segtree<Additive<i64>>,
+    ind_slash: Segtree<Additive<i64>>,
+}
+
+impl SubProblem {
+    fn new(xs: &[char]) -> SubProblem {
+        let ind1 = xs
+            .iter()
+            .copied()
+            .map(|ch| (ch == '1') as i64)
+            .collect_vec();
+        let ind2 = xs
+            .iter()
+            .copied()
+            .map(|ch| (ch == '2') as i64)
+            .collect_vec();
+        let ind_slash = xs
+            .iter()
+            .copied()
+            .map(|ch| (ch == '/') as i64)
+            .collect_vec();
+        let n = xs.len();
+        let ind1 = Segtree::<Additive<i64>>::from(ind1);
+        let ind2 = Segtree::<Additive<i64>>::from(ind2);
+        let ind_slash = Segtree::<Additive<i64>>::from(ind_slash);
+        SubProblem {
+            n,
+            ind1,
+            ind2,
+            ind_slash,
+        }
+    }
+
+    /// xs[p..] の len 番目の 1 を求める
+    fn next1(&self, p: usize, len: i64) -> Option<usize> {
+        if len == 0 {
+            return Some(p);
+        }
+        let right = self.ind1.max_right(p, |sum| *sum < len);
+        if right == self.n {
+            None
+        } else {
+            Some(right + 1)
+        }
+    }
+
+    /// xs[p..] の len 番目の / を求める
+    fn next_slash(&self, p: usize, len: i64) -> Option<usize> {
+        if len == 0 {
+            return Some(p);
+        }
+        let right = self.ind_slash.max_right(p, |sum| *sum < len);
+        if right == self.n {
+            None
+        } else {
+            Some(right + 1)
+        }
+    }
+
+    /// xs[p..] の len 番目の 2 を求める
+    fn next2(&self, p: usize, len: i64) -> Option<usize> {
+        if len == 0 {
+            return Some(p);
+        }
+        let right = self.ind2.max_right(p, |sum| *sum < len);
+        if right == self.n {
+            None
+        } else {
+            Some(right + 1)
+        }
+    }
+}
+
 impl Problem {
     fn read() -> Problem {
         input! {
@@ -26,50 +102,27 @@ impl Problem {
     fn solve(&self) -> Answer {
         let n = self.n;
         let xs = &self.xs;
-        let max_list = (0..n)
-            .map(|i| {
-                if xs[i] != '/' {
-                    return 0;
-                }
-                if i == 0 || i == n - 1 {
-                    return 1;
-                }
-                let cnt1 = {
-                    let mut j = i;
-                    loop {
-                        if j == 0 || xs[j - 1] != '1' {
-                            break;
-                        }
-                        j -= 1;
-                    }
-                    i - j
-                };
-
-                let cnt2 = {
-                    let mut j = i;
-                    loop {
-                        if j == n - 1 || xs[j + 1] != '2' {
-                            break;
-                        }
-                        j += 1;
-                    }
-                    j - i
-                };
-
-                cnt1.min(cnt2) * 2 + 1
-            })
-            .collect_vec();
-        dbg!(&max_list);
-
-        let seg = Segtree::<Max<usize>>::from(max_list);
+        let sub = SubProblem::new(xs);
 
         let ans = self
             .qs
             .iter()
             .copied()
             .map(|q| {
-                //
-                seg.prod(q.left..=q.right)
+                let len = bin_search(-1, n as i64, |len| {
+                    (|| {
+                        let cur1 = sub.next1(q.left, len)?;
+                        let cur2 = sub.next_slash(cur1, 1)?;
+                        let cur3 = sub.next2(cur2, len)?;
+                        Some([cur1, cur2, cur3].iter().all(|c| *c <= q.right + 1))
+                    })()
+                    .unwrap_or(false)
+                });
+                if len == -1 {
+                    0
+                } else {
+                    (2 * len + 1) as usize
+                }
             })
             .collect_vec();
         Answer { ans }
@@ -174,7 +227,7 @@ mod tests {
     }
 }
 
-use ac_library::{Max, Segtree};
+use ac_library::{Additive, Max, Segtree};
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
@@ -237,3 +290,44 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+/// 二分探索をする
+/// ```text
+/// ng ng ng ok ok ok
+///          ↑ここの引数の値を返す
+/// ```
+/// 計算量: O(log(|ok - ng|))
+/// ## Arguments
+/// * ok != ng
+/// * |ok - ng| <= 2^63 - 1, |ok + ng| <= 2^63 - 1
+/// * p の定義域について
+///     * ng < ok の場合、p は区間 ng..ok で定義されている。
+///     * ok < ng の場合、p は区間 ok..ng で定義されている。
+/// * p の単調性について
+///     * ng < ok の場合、p は単調増加
+///     * ok < ng の場合、p は単調減少
+/// ## Return
+/// * ng < ok の場合: I = { i in ng..ok | p(i) == true } としたとき
+///     * I が空でなければ、min I を返す。
+///     * I が空ならば、ok を返す。
+/// * ok < ng の場合: I = { i in ok..ng | p(i) == true } としたとき
+///     * I が空でなければ、max I を返す。
+///     * I が空ならば、ok を返す。
+pub fn bin_search<F>(mut ok: i64, mut ng: i64, mut p: F) -> i64
+where
+    F: FnMut(i64) -> bool,
+{
+    debug_assert!(ok != ng);
+    debug_assert!(ok.checked_sub(ng).is_some());
+    debug_assert!(ok.checked_add(ng).is_some());
+    while num::abs(ok - ng) > 1 {
+        let mid = (ok + ng) / 2;
+        debug_assert!(mid != ok);
+        debug_assert!(mid != ng);
+        if p(mid) {
+            ok = mid;
+        } else {
+            ng = mid;
+        }
+    }
+    ok
+}
