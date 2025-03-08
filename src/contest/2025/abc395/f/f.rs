@@ -20,6 +20,7 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
+        // 二分探索
         let n = self.n;
         let x = self.x;
         let us = &self.us;
@@ -39,8 +40,82 @@ impl Problem {
             (0..n).all(|i| lower[i] <= upper[i])
         });
 
-        let ans = us.iter().sum::<i64>() as i128 + ds.iter().sum::<i64>() as i128
-            - (n as i128 * h as i128);
+        let ans = us.iter().sum::<i64>() + ds.iter().sum::<i64>() - (n as i64 * h);
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // 差分制約系の最適化問題を立ててダイクストラ法をする
+
+        #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+        struct Edge {
+            from: usize,
+            to: usize,
+            cost: i64,
+        }
+
+        impl Edge {
+            fn new(from: usize, to: usize, cost: i64) -> Edge {
+                Edge { from, to, cost }
+            }
+        }
+
+        fn dijkstra(adj: &[Vec<Edge>], start: usize) -> Vec<ExtInt> {
+            let n_vertex = adj.len();
+            let mut pq: BinaryHeap<(Reverse<ExtInt>, usize)> = BinaryHeap::new();
+            let mut dist = vec![INF; n_vertex];
+            dist[start] = fin(0);
+            pq.push((Reverse(fin(0)), start));
+
+            while let Some((Reverse(d), current)) = pq.pop() {
+                if dist[current] < d {
+                    continue;
+                }
+                for e in &adj[current] {
+                    if chmin!(dist[e.to], dist[e.from] + fin(e.cost)) {
+                        pq.push((Reverse(dist[e.to]), e.to));
+                    }
+                }
+            }
+            dist
+        }
+        let nv = self.n + 2;
+
+        // x[i] (0 <= i < n) はi番目の歯の上下境界の高さ
+        // x[n] は下顎の高さ
+        // x[n+1]は上顎の高さ
+        // とすると、以下の差分制約系を解けば良いとなる
+        // maximize x[n+1] - x[n]
+        // s.t.
+        // - 0 <= x[i] - x[n] <= D[i]
+        // - 0 <= x[n+1] - x[i] <= U[i]
+        // - |x[i] - x[i+1]| <= X
+        let edges = {
+            let mut edges = vec![];
+            for i in 0..self.n {
+                edges.push(Edge::new(self.n, i, self.ds[i]));
+                edges.push(Edge::new(i, self.n, 0));
+
+                edges.push(Edge::new(i, self.n + 1, self.us[i]));
+                edges.push(Edge::new(self.n + 1, i, 0));
+            }
+
+            for i in 0..(self.n - 1) {
+                edges.push(Edge::new(i, i + 1, self.x));
+                edges.push(Edge::new(i + 1, i, self.x));
+            }
+            edges
+        };
+
+        let adj = edges.iter().fold(vec![vec![]; nv], |mut acc, e| {
+            acc[e.from].push(*e);
+            acc
+        });
+
+        let dist = dijkstra(&adj, self.n);
+
+        let h = dist[self.n + 1].get_fin();
+        let ans = self.us.iter().sum::<i64>() + self.ds.iter().sum::<i64>() - (self.n as i64 * h);
         Answer { ans }
     }
 
@@ -54,7 +129,7 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i128,
+    ans: i64,
 }
 
 impl Answer {
@@ -64,7 +139,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -245,4 +320,197 @@ where
         }
     }
     ok
+}
+
+#[allow(clippy::module_inception)]
+#[macro_use]
+pub mod chminmax {
+    #[allow(unused_macros)]
+    #[macro_export]
+    macro_rules! chmin {
+        ($ a : expr , $ b : expr ) => {
+            if $a > $b {
+                $a = $b;
+                true
+            } else {
+                false
+            }
+        };
+    }
+    #[allow(unused_macros)]
+    #[macro_export]
+    macro_rules! chmax {
+        ($ a : expr , $ b : expr ) => {
+            if $a < $b {
+                $a = $b;
+                true
+            } else {
+                false
+            }
+        };
+    }
+}
+use mod_ext_int::*;
+pub mod mod_ext_int {
+    use ac_library::Monoid;
+    use std::{
+        cmp::Ordering,
+        convert::Infallible,
+        fmt,
+        ops::{Add, AddAssign, Sub, SubAssign},
+    };
+    pub const INF: ExtInt = ExtInt::INF;
+    pub fn fin(x: i64) -> ExtInt {
+        ExtInt::fin(x)
+    }
+    #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+    pub struct ExtInt(i64);
+    impl ExtInt {
+        pub const INF: Self = Self(i64::MAX);
+        pub fn fin(x: i64) -> Self {
+            Self(x)
+        }
+        pub fn get_fin(self) -> i64 {
+            if self.is_fin() {
+                self.0
+            } else {
+                panic!("called `ExtInt::get_fin()` on a infinity")
+            }
+        }
+        pub fn get_fin_or(self, default: i64) -> i64 {
+            if self.is_fin() {
+                self.0
+            } else {
+                default
+            }
+        }
+        #[inline]
+        pub fn is_fin(self) -> bool {
+            self.0 != i64::MAX
+        }
+        pub fn is_inf(self) -> bool {
+            self.0 == i64::MAX
+        }
+        pub fn to_option(self) -> Option<i64> {
+            if self.is_fin() {
+                Some(self.0)
+            } else {
+                None
+            }
+        }
+        pub fn from_option(opt: Option<i64>) -> ExtInt {
+            match opt {
+                Some(a) => Self(a),
+                None => Self::INF,
+            }
+        }
+        pub fn times(self, t: i64) -> Self {
+            match t.cmp(&0) {
+                Ordering::Less => panic!("t must be non-negative."),
+                Ordering::Equal => Self(0),
+                Ordering::Greater => {
+                    if self.is_fin() {
+                        Self(self.0 * t)
+                    } else {
+                        Self::INF
+                    }
+                }
+            }
+        }
+    }
+    impl Add for ExtInt {
+        type Output = ExtInt;
+        fn add(self, rhs: Self) -> Self::Output {
+            if self.is_inf() || rhs.is_inf() {
+                Self::INF
+            } else {
+                Self::fin(self.0 + rhs.0)
+            }
+        }
+    }
+    impl AddAssign for ExtInt {
+        fn add_assign(&mut self, rhs: Self) {
+            *self = *self + rhs;
+        }
+    }
+    impl Add<i64> for ExtInt {
+        type Output = ExtInt;
+        fn add(self, rhs: i64) -> Self::Output {
+            if self.is_inf() {
+                Self::INF
+            } else {
+                Self::fin(self.0 + rhs)
+            }
+        }
+    }
+    impl AddAssign<i64> for ExtInt {
+        fn add_assign(&mut self, rhs: i64) {
+            *self = *self + rhs;
+        }
+    }
+    impl Sub<i64> for ExtInt {
+        type Output = ExtInt;
+        fn sub(self, rhs: i64) -> Self::Output {
+            if self.is_inf() {
+                Self::INF
+            } else {
+                Self::fin(self.0 - rhs)
+            }
+        }
+    }
+    impl SubAssign<i64> for ExtInt {
+        fn sub_assign(&mut self, rhs: i64) {
+            *self = *self - rhs;
+        }
+    }
+    impl std::iter::Sum for ExtInt {
+        fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+            let mut s = 0;
+            for x in iter {
+                if x.is_inf() {
+                    return Self::INF;
+                }
+                s += x.0;
+            }
+            Self::fin(s)
+        }
+    }
+    impl fmt::Display for ExtInt {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            if self.is_inf() {
+                write!(f, "+∞")
+            } else {
+                write!(f, "{}", self.0)
+            }
+        }
+    }
+    impl fmt::Debug for ExtInt {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            if self.is_inf() {
+                write!(f, "+∞")
+            } else {
+                write!(f, "{}", self.0)
+            }
+        }
+    }
+    pub struct ExtIntAdditive(Infallible);
+    impl Monoid for ExtIntAdditive {
+        type S = ExtInt;
+        fn identity() -> Self::S {
+            ExtInt::fin(0)
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            *a + *b
+        }
+    }
+    pub struct ExtIntMin(Infallible);
+    impl Monoid for ExtIntMin {
+        type S = ExtInt;
+        fn identity() -> Self::S {
+            ExtInt::INF
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            *a.min(b)
+        }
+    }
 }
