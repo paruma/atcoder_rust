@@ -37,7 +37,7 @@ fn solve(n_vertex: usize, edges: &[Edge]) -> ExtInt {
             to: usize,
             dp: &mut [Vec<Option<ExtInt>>],
         ) -> ExtInt {
-            if let Some(ans) = dp[planed_vertices.to_bit()][to] {
+            if let Some(ans) = dp[planed_vertices][to] {
                 return ans;
             }
 
@@ -53,12 +53,12 @@ fn solve(n_vertex: usize, edges: &[Edge]) -> ExtInt {
                     .map(|from| {
                         // 第1項が 0 →...→ from
                         // 第2項が from → to
-                        self.rec(planed_vertices.remove(to), from, dp) + self.adj_matrix[from][to]
+                        self.rec(planed_vertices.removed(to), from, dp) + self.adj_matrix[from][to]
                     })
                     .min()
                     .unwrap()
             };
-            dp[planed_vertices.to_bit()][to] = Some(ans);
+            dp[planed_vertices][to] = Some(ans);
             ans
         }
     }

@@ -5,7 +5,7 @@ use cargo_snippet::snippet;
 pub mod bitset {
     use std::{
         fmt::{Error, Formatter},
-        ops::{BitAnd, BitOr, BitXor},
+        ops::{BitAnd, BitOr, BitXor, Index, IndexMut},
     };
 
     use itertools::Itertools;
@@ -39,15 +39,15 @@ pub mod bitset {
             (self.bit >> x) & 1 == 1
         }
 
-        pub fn count(self) -> usize {
+        pub fn len(self) -> usize {
             self.bit.count_ones() as usize
         }
 
-        pub fn insert(self, x: usize) -> BitSet {
+        pub fn inserted(self, x: usize) -> BitSet {
             BitSet::new(self.bit | (1 << x))
         }
 
-        pub fn remove(self, x: usize) -> BitSet {
+        pub fn removed(self, x: usize) -> BitSet {
             BitSet::new(self.bit & !(1 << x))
         }
 
@@ -123,6 +123,35 @@ pub mod bitset {
             Ok(())
         }
     }
+
+    // [T] に対する実装
+    impl<T> Index<BitSet> for [T] {
+        type Output = T;
+
+        fn index(&self, s: BitSet) -> &Self::Output {
+            &self[s.to_bit()]
+        }
+    }
+
+    impl<T> IndexMut<BitSet> for [T] {
+        fn index_mut(&mut self, s: BitSet) -> &mut Self::Output {
+            &mut self[s.to_bit()]
+        }
+    }
+
+    impl<T> Index<BitSet> for Vec<T> {
+        type Output = T;
+
+        fn index(&self, s: BitSet) -> &Self::Output {
+            &self[..][s] // スライスの Index 実装を利用
+        }
+    }
+
+    impl<T> IndexMut<BitSet> for Vec<T> {
+        fn index_mut(&mut self, s: BitSet) -> &mut Self::Output {
+            &mut self[..][s] // スライスの IndexMut 実装を利用
+        }
+    }
 }
 #[cfg(test)]
 mod tests {
@@ -150,31 +179,31 @@ mod tests {
     }
 
     #[test]
-    fn test_count() {
+    fn test_len() {
         let b = BitSet::new(0b101);
-        assert_eq!(b.count(), 2);
+        assert_eq!(b.len(), 2);
 
         let b_empty = BitSet::new(0b0);
-        assert_eq!(b_empty.count(), 0);
+        assert_eq!(b_empty.len(), 0);
     }
 
     #[test]
-    fn test_insert() {
+    fn test_inserted() {
         let b = BitSet::new(0b101);
-        let b = b.insert(1);
+        let b = b.inserted(1);
         assert_eq!(b.to_bit(), 0b111);
 
-        let b = b.insert(1);
+        let b = b.inserted(1);
         assert_eq!(b.to_bit(), 0b111);
     }
 
     #[test]
-    fn test_remove() {
+    fn test_removed() {
         let b = BitSet::new(0b111);
-        let b = b.remove(1);
+        let b = b.removed(1);
         assert_eq!(b.to_bit(), 0b101);
 
-        let b = b.remove(1);
+        let b = b.removed(1);
         assert_eq!(b.to_bit(), 0b101);
     }
 
@@ -304,5 +333,20 @@ mod tests {
     fn test_debug() {
         let b1 = BitSet::new(0b100);
         assert_eq!(format!("{:?}", b1), "0b100");
+    }
+
+    #[test]
+    fn test_index() {
+        let vec = Vec::from([4, 5, 6, 7]);
+        let s = BitSet::new(0b010);
+        assert_eq!(vec[s], 6);
+    }
+
+    #[test]
+    fn test_index_mut() {
+        let mut vec = Vec::from([4, 5, 6, 7]);
+        let s = BitSet::new(0b010);
+        vec[s] = 60;
+        assert_eq!(vec, Vec::from([4, 5, 60, 7]));
     }
 }
