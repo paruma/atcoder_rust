@@ -11,6 +11,7 @@ pub mod graph;
 pub mod grid;
 pub mod imos;
 pub mod impartial_game;
+pub mod io;
 pub mod math;
 pub mod monoid;
 pub mod neg_ext_int;
