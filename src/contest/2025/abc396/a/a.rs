@@ -15,7 +15,8 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let rle = self.xs.iter().copied().dedup_with_count().collect_vec();
+        let ans = rle.iter().copied().any(|(cnt, _)| cnt >= 3);
         Answer { ans }
     }
 
@@ -29,12 +30,13 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_yesno(self.ans);
+        //println!("{}", self.ans);
     }
 }
 

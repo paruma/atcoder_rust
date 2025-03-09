@@ -1,21 +1,48 @@
 //#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Query {
+    Push { x: i64 },
+    Pop,
+}
+impl_readable_for_enum! {
+    Query {
+        1 => Push { x: i64 },
+        2 => Pop,
+    }
+}
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    qs: Vec<Query>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            qs: [Query; n],
         }
-        Problem { n, xs }
+        Problem { n, qs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let mut st = Stack::new();
+        for _ in 0..100 {
+            st.push(0);
+        }
+
+        let mut ans = vec![];
+
+        for &q in &self.qs {
+            match q {
+                Query::Push { x } => st.push(x),
+                Query::Pop => {
+                    let s = st.pop().unwrap();
+                    ans.push(s);
+                }
+            }
+        }
+
         Answer { ans }
     }
 
@@ -29,12 +56,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec(&self.ans);
     }
 }
 
@@ -180,3 +207,56 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use mod_stack::*;
+pub mod mod_stack {
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct Stack<T> {
+        raw: Vec<T>,
+    }
+    impl<T> Stack<T> {
+        pub fn new() -> Self {
+            Stack { raw: Vec::new() }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push(value)
+        }
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop()
+        }
+        pub fn peek(&self) -> Option<&T> {
+            self.raw.last()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.raw.is_empty()
+        }
+        pub fn len(&self) -> usize {
+            self.raw.len()
+        }
+    }
+    impl<T> Default for Stack<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+}
+
+pub mod impl_readable_for_enum {
+    /// 利用例
+    /// ```
+    /// #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    /// enum Query {
+    ///     Move { p: usize, h: usize },
+    ///     Swap { h1: usize, h2: usize },
+    ///     Output { p: usize },
+    /// }
+    /// impl_readable_for_enum! {
+    ///     Query {
+    ///         1 => Move { p: Usize1, h: Usize1 },
+    ///         2 => Swap { h1: Usize1, h2: Usize1 },
+    ///         3 => Output { p: Usize1 },
+    ///     }
+    /// }
+    /// ```
+    #[macro_export]
+    macro_rules ! impl_readable_for_enum {($ enum_name : ident {$ ($ idx : literal => $ variant : ident $ ({$ ($ field : ident : $ ty : ty ) ,* } ) ? ) ,* $ (, ) ? } ) => {impl proconio :: source :: Readable for $ enum_name {type Output = $ enum_name ; fn read < R : std :: io :: BufRead , S : proconio :: source :: Source < R >> (source : & mut S ) -> $ enum_name {input ! {from & mut * source , t : usize } match t {$ ($ idx => {impl_readable_for_enum ! (@ read_variant source , $ enum_name , $ variant $ ({$ ($ field : $ ty ) ,* } ) ? ) } ) ,*, _ => unreachable ! () , } } } } ; (@ read_variant $ source : ident , $ enum_name : ident , $ variant : ident {$ ($ field : ident : $ ty : ty ) ,* } ) => {{input ! {from & mut *$ source , $ ($ field : $ ty ) ,* } ; $ enum_name ::$ variant {$ ($ field ) ,* } } } ; (@ read_variant $ source : ident , $ enum_name : ident , $ variant : ident ) => {{$ enum_name ::$ variant } } ; }
+}

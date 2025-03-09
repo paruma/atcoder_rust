@@ -27,6 +27,7 @@ impl Problem {
             nq: usize,
             qs: [Query; nq],
         }
+
         Problem { n, nq, qs }
     }
 

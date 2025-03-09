@@ -1,21 +1,63 @@
-//#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    m: usize,
+    xs: Vec<usize>,
+}
+
+/// 転倒数 #{(i, j) | i < j and xs[i] > xs[j]} を求める
+/// 計算量: O(n log n)
+pub fn inversion_number(xs: &[usize]) -> i64 {
+    if xs.is_empty() {
+        return 0;
+    }
+    let max_val = xs.iter().copied().max().unwrap();
+    let mut fenwick = FenwickTree::new(max_val + 1, 0_i64);
+    let mut cnt = 0;
+    for &x in xs {
+        cnt += fenwick.sum(x + 1..);
+        fenwick.add(x, 1);
+    }
+    cnt
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            m: usize,
+            xs: [usize; n],
         }
-        Problem { n, xs }
+        Problem { n, m, xs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let m = self.m;
+        let xs = &self.xs;
+
+        let mut inv_num = inversion_number(xs);
+
+        let poss_map = xs
+            .iter()
+            .copied()
+            .enumerate()
+            .fold(vec![vec![]; m], |mut acc, (i, x)| {
+                acc[x].push(i);
+                acc
+            });
+
+        let mut ans = vec![inv_num];
+
+        for x in (1..m).rev() {
+            let mut diff_sum = 0;
+            for &i in &poss_map[x] {
+                let diff = (i as i64) - (n - i - 1) as i64;
+                diff_sum += diff;
+            }
+            inv_num += diff_sum;
+            ans.push(inv_num);
+        }
         Answer { ans }
     }
 
@@ -29,12 +71,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec(&self.ans);
     }
 }
 
@@ -51,6 +93,15 @@ mod tests {
 
     #[test]
     fn test_problem() {
+        // dbg!(inversion_number(&[2, 0, 1, 3]));
+        // dbg!(inversion_number(&[3, 1, 2, 0]));
+        // dbg!(inversion_number(&[0, 2, 3, 1]));
+        // dbg!(inversion_number(&[1, 3, 0, 2]));
+
+        // dbg!(inversion_number(&[1, 1, 2, 3]));
+        // dbg!(inversion_number(&[2, 2, 3, 0]));
+        // dbg!(inversion_number(&[3, 3, 0, 1]));
+        // dbg!(inversion_number(&[0, 0, 1, 2]));
         assert_eq!(1 + 1, 2);
     }
 
@@ -118,6 +169,7 @@ mod tests {
     }
 }
 
+use ac_library::FenwickTree;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
