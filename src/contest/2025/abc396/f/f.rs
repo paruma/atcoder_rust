@@ -8,6 +8,7 @@ struct Problem {
 /// 転倒数 #{(i, j) | i < j and xs[i] > xs[j]} を求める
 /// 計算量: O(n log n)
 pub fn inversion_number(xs: &[usize]) -> i64 {
+    use ac_library::FenwickTree;
     if xs.is_empty() {
         return 0;
     }
@@ -50,11 +51,30 @@ impl Problem {
         let mut ans = vec![inv_num];
 
         for x in (1..m).rev() {
-            let mut diff_sum = 0;
-            for &i in &poss_map[x] {
-                let diff = (i as i64) - (n - i - 1) as i64;
-                diff_sum += diff;
-            }
+            // let diff_sum = poss_map[x]
+            //     .iter()
+            //     .copied()
+            //     .map(|pos| pos as i64 - (n - pos - 1) as i64)
+            //     .sum::<i64>();
+
+            let poss = &poss_map[x];
+
+            let diff_sum = poss
+                .iter()
+                .copied()
+                .enumerate()
+                .map(|(i, pos)| {
+                    // i番目の x は pos にある
+                    let left_all = pos; // #[0, pos)
+                    let left_same = i; // #[0, i)
+                    let right_all = n - pos - 1; // #(pos, n)
+                    let right_same = poss.len() - i - 1; // #(i, poss.len())
+
+                    let left_cnt = left_all - left_same;
+                    let right_cnt = right_all - right_same;
+                    left_cnt as i64 - right_cnt as i64
+                })
+                .sum::<i64>();
             inv_num += diff_sum;
             ans.push(inv_num);
         }
@@ -169,7 +189,6 @@ mod tests {
     }
 }
 
-use ac_library::FenwickTree;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
