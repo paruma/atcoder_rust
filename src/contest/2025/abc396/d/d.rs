@@ -32,6 +32,7 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
+        // permutations を使う
         let es = &self.es;
         let nv = self.nv;
 
@@ -44,16 +45,8 @@ impl Problem {
             adj_mat
         };
 
-        // let adj = es
-        //     .iter()
-        //     .copied()
-        //     .fold(vec![vec![]; self.nv], |mut acc, e| {
-        //         acc[e.u].push(e);
-        //         acc[e.v].push(e.rev());
-        //         acc
-        //     });
         let ans = (0..=nv - 2)
-            .flat_map(|len| {
+            .filter_map(|len| {
                 (1..=nv - 2)
                     .permutations(len)
                     .filter_map(|path| {
@@ -61,12 +54,11 @@ impl Problem {
                             .tuple_windows()
                             .map(|(x, y)| adj_mat[x][y])
                             .fold(Some(0), |acc, x| {
-                                if acc.is_none() || x.is_none() {
-                                    None
-                                } else {
-                                    Some(acc.unwrap() ^ x.unwrap())
-                                }
+                                let acc = acc?;
+                                let x = x?;
+                                Some(acc ^ x)
                             })
+                        //.fold_options(0, |acc, x| acc ^ x) とも書ける
                     })
                     .min()
             })
