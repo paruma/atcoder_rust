@@ -15,7 +15,20 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let mut bag1: HashBag<i64> = HashBag::new();
+        let mut bag2: HashBag<i64> = self.xs.iter().copied().collect::<HashBag<i64>>();
+
+        let mut ans = 0;
+
+        for &x in &self.xs {
+            if !bag1.is_empty() && !bag2.is_empty() {
+                let sub_ans = bag1.set_len() + bag2.set_len();
+                ans = ans.max(sub_ans);
+            }
+            bag1.insert(x);
+            bag2.remove(&x);
+        }
+
         Answer { ans }
     }
 
@@ -29,7 +42,7 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: usize,
 }
 
 impl Answer {
@@ -118,6 +131,7 @@ mod tests {
     }
 }
 
+use hashbag::HashBag;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};

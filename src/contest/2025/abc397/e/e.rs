@@ -1,21 +1,94 @@
-//#[derive_readable]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Edge {
+    u: Usize1,
+    v: Usize1,
+}
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    k: usize,
+    es: Vec<Edge>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            k: usize,
+            es: [Edge; n * k -1],
         }
-        Problem { n, xs }
+        Problem { n, k, es }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let k = self.k;
+        let es = &self.es;
+
+        let mut adj = es
+            .iter()
+            .copied()
+            .fold(vec![BTreeSet::new(); n * k], |mut acc, e| {
+                acc[e.u].insert(e.v);
+                acc[e.v].insert(e.u);
+                acc
+            });
+
+        let n_leaves = adj.iter().filter(|nexts| nexts.len() == 1).count();
+        if n_leaves != n {
+            return Answer { ans: false };
+        }
+
+        let mut open: Queue<(usize, usize)> = Queue::new();
+
+        for i in 0..n * k {
+            if adj[i].len() == 1 {
+                open.push((i, 1));
+            }
+        }
+
+        while let Some((current, cnt)) = open.pop() {
+            let mut current = current;
+            let mut cnt = cnt;
+            loop {
+                if adj[current].len() == 1 {
+                    let next = *adj[current].iter().next().unwrap();
+                    adj[current].remove(&next);
+                    adj[next].remove(&current);
+
+                    cnt += 1;
+                    current = next;
+                    if cnt == k {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+
+            if cnt == k {
+                // cur で止まり
+                let next_list = adj[current].clone();
+                for next in next_list {
+                    adj[next].remove(&current);
+                    adj[current].remove(&next);
+                }
+            } else {
+                if adj[current].len() == 0 {
+                    return Answer { ans: false };
+                } else {
+                    let next_list = adj[current].clone();
+                    for next in next_list {
+                        adj[next].remove(&current);
+                        adj[current].remove(&next);
+                    }
+                    open.push((current, cnt));
+                }
+            }
+        }
+
+        let ans = true;
         Answer { ans }
     }
 
@@ -29,12 +102,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_yesno(self.ans);
     }
 }
 
@@ -128,6 +201,7 @@ use proconio::{
 };
 #[allow(unused_imports)]
 use std::cmp::Reverse;
+use std::collections::BTreeSet;
 #[allow(unused_imports)]
 use std::collections::{BinaryHeap, HashMap, HashSet};
 
@@ -180,3 +254,38 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use mod_queue::*;
+pub mod mod_queue {
+    use std::collections::VecDeque;
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct Queue<T> {
+        raw: VecDeque<T>,
+    }
+    impl<T> Queue<T> {
+        pub fn new() -> Self {
+            Queue {
+                raw: VecDeque::new(),
+            }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push_back(value)
+        }
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop_front()
+        }
+        pub fn peek(&self) -> Option<&T> {
+            self.raw.front()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.raw.is_empty()
+        }
+        pub fn len(&self) -> usize {
+            self.raw.len()
+        }
+    }
+    impl<T> Default for Queue<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+}

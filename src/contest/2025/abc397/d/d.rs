@@ -1,40 +1,90 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    n: i128,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            n: i128,
         }
-        Problem { n, xs }
+        Problem { n }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let n_cbrt = n.cbrt();
+
+        // x - y <= n_cbrt の場合
+
+        for d in 1..=n_cbrt {
+            let y = bin_search(0, n, |y| {
+                // オーバーフローが怖い
+                let t1 = (y + d).checked_pow(3);
+                let t2 = y.checked_pow(3);
+                if t1.is_none() || t2.is_none() {
+                    return false;
+                }
+                (y + d) * (y + d) * (y + d) - y * y * y <= n
+            });
+            let x = y + d;
+            if x > 0 && y > 0 && x * x * x - y * y * y == n {
+                return Answer { ans: Some((x, y)) };
+            }
+        }
+
+        // x^2 + xy + y^2 <= n / n_cbrt + 1 の場合
+
+        let max_x = (n / n_cbrt + 1).sqrt();
+
+        for x in 1..=max_x {
+            let y = (x * x * x - n).cbrt();
+            if x > 0 && y > 0 && x * x * x - y * y * y == n {
+                return Answer { ans: Some((x, y)) };
+            }
+        }
+
+        let ans = None;
         Answer { ans }
     }
 
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
-        todo!();
+        return self.solve();
+        let n = self.n;
+        for x in 1..=n {
+            let y = (x * x * x - n).cbrt();
+            if x > 0 && y > 0 && x * x * x - y * y * y == n {
+                return Answer { ans: Some((x, y)) };
+            }
+        }
+        Answer { ans: None }
         // let ans = 0;
         // Answer { ans }
+    }
+
+    fn check(&self, ans: &Answer) -> bool {
+        if let Some((x, y)) = ans.ans {
+            return x * x * x - y * y * y == self.n;
+        }
+
+        true
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Option<(i128, i128)>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        if let Some((x, y)) = self.ans {
+            println!("{} {}", x, y);
+        } else {
+            println!("{}", -1);
+        }
     }
 }
 
@@ -51,6 +101,8 @@ mod tests {
 
     #[test]
     fn test_problem() {
+        let x: i128 = 1_000_000_000_000_000_000;
+
         assert_eq!(1 + 1, 2);
     }
 
@@ -66,32 +118,38 @@ mod tests {
     fn check(p: &Problem) -> Option<WrongTestCase> {
         let main_ans = p.solve();
         let naive_ans = p.solve_naive();
-        if main_ans != naive_ans {
-            Some(WrongTestCase {
+        if main_ans.ans.is_none() != naive_ans.ans.is_none() {
+            return Some(WrongTestCase {
                 problem: p.clone(),
                 main_ans,
                 naive_ans,
-            })
-        } else {
-            None
+            });
         }
+
+        if !p.check(&main_ans) {
+            return Some(WrongTestCase {
+                problem: p.clone(),
+                main_ans,
+                naive_ans,
+            });
+        }
+        None
     }
 
     #[allow(dead_code)]
     fn make_random_problem(rng: &mut SmallRng) -> Problem {
-        todo!()
-        // let n = rng.gen_range(1..=10);
-        // let p = Problem { _a: n };
-        // println!("{:?}", &p);
-        // p
+        let n = rng.gen_range(1..=99977273855577088);
+        let p = Problem { n };
+        println!("{:?}", &p);
+        p
     }
 
     #[allow(unreachable_code)]
     #[test]
     fn test_with_naive() {
-        let num_tests = 0;
+        let num_tests = 100;
         let max_wrong_case = 10; // この件数間違いが見つかったら打ち切り
-        let mut rng = SmallRng::seed_from_u64(42);
+        let mut rng = SmallRng::seed_from_u64(45);
         // let mut rng = SmallRng::from_entropy();
         let mut wrong_cases: Vec<WrongTestCase> = vec![];
         for _ in 0..num_tests {
@@ -121,6 +179,7 @@ mod tests {
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
+use num_integer::Roots;
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,
@@ -180,3 +239,44 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+/// 二分探索をする
+/// ```text
+/// ng ng ng ok ok ok
+///          ↑ここの引数の値を返す
+/// ```
+/// 計算量: O(log(|ok - ng|))
+/// ## Arguments
+/// * ok != ng
+/// * |ok - ng| <= 2^63 - 1, |ok + ng| <= 2^63 - 1
+/// * p の定義域について
+///     * ng < ok の場合、p は区間 ng..ok で定義されている。
+///     * ok < ng の場合、p は区間 ok..ng で定義されている。
+/// * p の単調性について
+///     * ng < ok の場合、p は単調増加
+///     * ok < ng の場合、p は単調減少
+/// ## Return
+/// * ng < ok の場合: I = { i in ng..ok | p(i) == true } としたとき
+///     * I が空でなければ、min I を返す。
+///     * I が空ならば、ok を返す。
+/// * ok < ng の場合: I = { i in ok..ng | p(i) == true } としたとき
+///     * I が空でなければ、max I を返す。
+///     * I が空ならば、ok を返す。
+pub fn bin_search<F>(mut ok: i128, mut ng: i128, mut p: F) -> i128
+where
+    F: FnMut(i128) -> bool,
+{
+    debug_assert!(ok != ng);
+    debug_assert!(ok.checked_sub(ng).is_some());
+    debug_assert!(ok.checked_add(ng).is_some());
+    while num::abs(ok - ng) > 1 {
+        let mid = (ok + ng) / 2;
+        debug_assert!(mid != ok);
+        debug_assert!(mid != ng);
+        if p(mid) {
+            ok = mid;
+        } else {
+            ng = mid;
+        }
+    }
+    ok
+}

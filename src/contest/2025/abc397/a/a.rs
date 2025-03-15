@@ -1,22 +1,30 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    x: Vec<char>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            x: Chars,
         }
-        Problem { n, xs }
+        Problem { x }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
-        Answer { ans }
+        let x = &self.x;
+        if x[0] >= '4' {
+            return Answer { ans: 1 };
+        }
+
+        if x[1] == '9' || x[1] == '8' {
+            return Answer { ans: 1 };
+        }
+        if x[1] == '7' && x[3] >= '5' {
+            return Answer { ans: 2 };
+        }
+        Answer { ans: 3 }
     }
 
     #[allow(dead_code)]

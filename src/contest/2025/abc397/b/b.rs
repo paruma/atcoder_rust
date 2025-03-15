@@ -1,21 +1,35 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    xs: Vec<char>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            xs: Chars,
         }
-        Problem { n, xs }
+        Problem { xs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let mut cnt_seen = 0;
+        let mut ans = 0;
+
+        for &x in &self.xs {
+            let dst = if cnt_seen % 2 == 0 { 'i' } else { 'o' };
+
+            if dst != x {
+                cnt_seen += 2;
+                ans += 1;
+            } else {
+                cnt_seen += 1;
+            }
+        }
+
+        if cnt_seen % 2 != 0 {
+            ans += 1;
+        }
         Answer { ans }
     }
 
