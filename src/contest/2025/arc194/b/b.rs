@@ -2,20 +2,40 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    xs: Vec<usize>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            xs: [Usize1; n],
         }
         Problem { n, xs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let xs = &self.xs;
+        let mut bit = FenwickTree::new(n, 0);
+        let mut sum = 0;
+
+        for i in 0..n {
+            let cnt_bigger = bit.sum(xs[i]..);
+            // 今いる場所: i
+            // i + (i-1) + ... (cnt_bigger 項足す)
+            // 初項: i
+            // 末項: i - cnt_bigger + 1
+            // 項数: cnt_bigger
+
+            //let sub = (0..=i).rev().take(cnt_bigger).sum::<usize>();
+            let sub = (i + (i - cnt_bigger + 1)) * cnt_bigger / 2;
+
+            sum += sub;
+
+            bit.add(xs[i], 1);
+        }
+        let ans = sum as i64;
         Answer { ans }
     }
 
@@ -118,6 +138,7 @@ mod tests {
     }
 }
 
+use ac_library::FenwickTree;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};

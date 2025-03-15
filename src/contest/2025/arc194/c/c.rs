@@ -3,6 +3,8 @@
 struct Problem {
     n: usize,
     xs: Vec<i64>,
+    ys: Vec<i64>,
+    zs: Vec<i64>,
 }
 
 impl Problem {
@@ -10,12 +12,60 @@ impl Problem {
         input! {
             n: usize,
             xs: [i64; n],
+            ys: [i64; n],
+            zs: [i64; n],
         }
-        Problem { n, xs }
+        Problem { n, xs, ys, zs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        // WA
+        let n = self.n;
+        let mut xs = self.xs.clone();
+        let ys = &self.ys;
+        let costs = &self.zs;
+
+        let xs1_pos = xs.iter().positions(|x| *x == 1).collect_vec();
+        let ys1_pos = ys.iter().positions(|x| *x == 1).collect_vec();
+
+        let mut tmp_sum = (0..n)
+            .filter(|&i| (xs[i], ys[i]) != (0, 0))
+            .map(|i| costs[i])
+            .sum::<i64>();
+        let mut tmp_cnt = (0..n).filter(|&i| (xs[i], ys[i]) != (0, 0)).count();
+        let mut cost_sum = xs1_pos.iter().copied().map(|i| costs[i]).sum::<i64>();
+        let mut cost_sum_sum = 0;
+
+        for i in xs1_pos
+            .iter()
+            .copied()
+            .sorted_by_key(|i| Reverse(costs[*i]))
+        {
+            tmp_sum -= costs[i];
+            tmp_cnt -= 1;
+            if ys[i] == 1 {
+                // 比較する
+                if costs[i] * (tmp_cnt as i64 - 1) >= tmp_sum {
+                    xs[i] = 0;
+                    cost_sum -= costs[i];
+                    cost_sum_sum += cost_sum;
+                }
+            } else {
+                xs[i] = 0;
+                cost_sum -= costs[i];
+                cost_sum_sum += cost_sum;
+            }
+        }
+
+        for i in ys1_pos.iter().copied().sorted_by_key(|i| costs[*i]) {
+            if xs[i] == 0 {
+                xs[i] = 1;
+                cost_sum += costs[i];
+                cost_sum_sum += cost_sum;
+            }
+        }
+
+        let ans = cost_sum_sum;
         Answer { ans }
     }
 

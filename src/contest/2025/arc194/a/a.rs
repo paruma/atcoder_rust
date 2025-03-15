@@ -15,15 +15,41 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let xs = &self.xs;
+        let mut dp = vec![0; n + 1];
+
+        dp[0] = 0;
+        dp[1] = xs[0];
+
+        for i in 2..=n {
+            dp[i] = dp[i - 2].max(dp[i - 1] + xs[i - 1]);
+        }
+        let ans = dp[n];
         Answer { ans }
     }
 
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
-        todo!();
-        // let ans = 0;
-        // Answer { ans }
+        let n = self.n;
+        let xs = &self.xs;
+
+        let ans = BitSet::all_subset(n)
+            .filter_map(|set| {
+                let mut stack = Stack::new();
+                for i in 0..n {
+                    if set.contains(i) {
+                        stack.push(xs[i]);
+                    } else {
+                        stack.pop()?;
+                    }
+                }
+                let sub_ans = stack.raw.iter().copied().sum::<i64>();
+                Some(sub_ans)
+            })
+            .max()
+            .unwrap();
+        Answer { ans }
     }
 }
 
@@ -180,3 +206,155 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use mod_stack::*;
+pub mod mod_stack {
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct Stack<T> {
+        pub raw: Vec<T>,
+    }
+    impl<T> Stack<T> {
+        pub fn new() -> Self {
+            Stack { raw: Vec::new() }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push(value)
+        }
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop()
+        }
+        pub fn peek(&self) -> Option<&T> {
+            self.raw.last()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.raw.is_empty()
+        }
+        pub fn len(&self) -> usize {
+            self.raw.len()
+        }
+    }
+    impl<T> Default for Stack<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+}
+use bitset::*;
+#[allow(clippy::module_inception)]
+pub mod bitset {
+    use itertools::Itertools;
+    use std::{
+        fmt::{Error, Formatter},
+        ops::{BitAnd, BitOr, BitXor, Index, IndexMut},
+    };
+    #[derive(Clone, Copy, PartialEq, Eq)]
+    pub struct BitSet {
+        bit: usize,
+    }
+    impl BitSet {
+        #[inline]
+        pub fn new(bit: usize) -> BitSet {
+            BitSet { bit }
+        }
+        pub fn to_bit(self) -> usize {
+            self.bit
+        }
+        /// 持っている要素を Vec<usize> で返す
+        pub fn to_vec(self, len: usize) -> Vec<usize> {
+            (0..len).filter(|i| (self.bit >> i) & 1 == 1).collect_vec()
+        }
+        /// 持っている要素を Iterator で返す
+        pub fn to_iter(self, len: usize) -> impl Iterator<Item = usize> {
+            (0..len).filter(move |i| (self.bit >> i) & 1 == 1)
+        }
+        pub fn contains(self, x: usize) -> bool {
+            (self.bit >> x) & 1 == 1
+        }
+        pub fn len(self) -> usize {
+            self.bit.count_ones() as usize
+        }
+        pub fn inserted(self, x: usize) -> BitSet {
+            BitSet::new(self.bit | (1 << x))
+        }
+        pub fn removed(self, x: usize) -> BitSet {
+            BitSet::new(self.bit & !(1 << x))
+        }
+        pub fn empty() -> BitSet {
+            BitSet::new(0)
+        }
+        pub fn universal_set(size: usize) -> BitSet {
+            BitSet::new((1 << size) - 1)
+        }
+        pub fn complement(self, size: usize) -> BitSet {
+            BitSet::new(self.bit ^ ((1 << size) - 1))
+        }
+        pub fn set_minus(self, other: BitSet) -> BitSet {
+            BitSet::new(self.bit & !other.bit)
+        }
+        pub fn is_empty(self) -> bool {
+            self.bit == 0
+        }
+        pub fn is_subset(self, other: BitSet) -> bool {
+            self | other == other
+        }
+        pub fn all_subset(size: usize) -> impl Iterator<Item = BitSet> {
+            (0..(1 << size)).map(BitSet::new)
+        }
+        pub fn subsets(self) -> impl Iterator<Item = BitSet> {
+            std::iter::successors(Some(self.bit), move |x| {
+                if *x == 0 {
+                    None
+                } else {
+                    Some((x - 1) & self.bit)
+                }
+            })
+            .map(BitSet::new)
+        }
+    }
+    impl BitAnd for BitSet {
+        type Output = BitSet;
+        fn bitand(self, rhs: BitSet) -> BitSet {
+            BitSet::new(self.bit & rhs.bit)
+        }
+    }
+    impl BitOr for BitSet {
+        type Output = BitSet;
+        fn bitor(self, rhs: BitSet) -> BitSet {
+            BitSet::new(self.bit | rhs.bit)
+        }
+    }
+    impl BitXor for BitSet {
+        type Output = BitSet;
+        fn bitxor(self, rhs: BitSet) -> BitSet {
+            BitSet::new(self.bit ^ rhs.bit)
+        }
+    }
+    use std::fmt::Debug;
+    impl Debug for BitSet {
+        fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+            f.write_fmt(format_args!("{:#b}", self.bit))?;
+            Ok(())
+        }
+    }
+    impl<T> Index<BitSet> for [T] {
+        type Output = T;
+        fn index(&self, s: BitSet) -> &Self::Output {
+            &self[s.to_bit()]
+        }
+    }
+    impl<T> IndexMut<BitSet> for [T] {
+        fn index_mut(&mut self, s: BitSet) -> &mut Self::Output {
+            &mut self[s.to_bit()]
+        }
+    }
+    impl<T> Index<BitSet> for Vec<T> {
+        type Output = T;
+        fn index(&self, s: BitSet) -> &Self::Output {
+            &self[..][s]
+        }
+    }
+    impl<T> IndexMut<BitSet> for Vec<T> {
+        fn index_mut(&mut self, s: BitSet) -> &mut Self::Output {
+            &mut self[..][s]
+        }
+    }
+}
