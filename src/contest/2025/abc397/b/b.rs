@@ -13,7 +13,7 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
-        let mut cnt_seen = 0;
+        let mut cnt_seen = 0; // 条件をみたすように操作した後の S での見た文字数
         let mut ans = 0;
 
         for &x in &self.xs {

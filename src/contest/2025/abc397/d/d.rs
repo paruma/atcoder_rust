@@ -1,49 +1,58 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: i128,
+    n: i64,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: i128,
+            n: i64,
         }
         Problem { n }
     }
 
     fn solve(&self) -> Answer {
-        let n = self.n;
+        // i128 を使う
+        let n = self.n as i128;
         let n_cbrt = n.cbrt();
 
         // x - y <= n_cbrt の場合
 
         for d in 1..=n_cbrt {
-            let y = bin_search(0, n, |y| {
+            let y = bin_search(0, n.sqrt() as i64, |y| {
                 // オーバーフローが怖い
-                let t1 = (y + d).checked_pow(3);
-                let t2 = y.checked_pow(3);
-                if t1.is_none() || t2.is_none() {
-                    return false;
-                }
+                let y = y as i128;
+                // let t1 = (y + d).checked_pow(3);
+                // let t2 = y.checked_pow(3);
+                // if t1.is_none() || t2.is_none() {
+                //     return false;
+                // }
                 (y + d) * (y + d) * (y + d) - y * y * y <= n
             });
+            let y = y as i128;
             let x = y + d;
             if x > 0 && y > 0 && x * x * x - y * y * y == n {
+                let x = x as i64;
+                let y = y as i64;
                 return Answer { ans: Some((x, y)) };
             }
         }
 
         // x^2 + xy + y^2 <= n / n_cbrt + 1 の場合
+        // そんな場合は存在しないので計算不要だった
+        // x - y > n_cbrt のとき、x > n_cbrt なので、x^2 + xy + y^2 >= cbrt^2 になる
 
-        let max_x = (n / n_cbrt + 1).sqrt();
+        // let max_x = (n / n_cbrt + 1).sqrt();
 
-        for x in 1..=max_x {
-            let y = (x * x * x - n).cbrt();
-            if x > 0 && y > 0 && x * x * x - y * y * y == n {
-                return Answer { ans: Some((x, y)) };
-            }
-        }
+        // for x in 1..=max_x {
+        //     let y = (x * x * x - n).cbrt();
+        //     if x > 0 && y > 0 && x * x * x - y * y * y == n {
+        //         let x = x as i64;
+        //         let y = y as i64;
+        //         return Answer { ans: Some((x, y)) };
+        //     }
+        // }
 
         let ans = None;
         Answer { ans }
@@ -51,7 +60,6 @@ impl Problem {
 
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
-        return self.solve();
         let n = self.n;
         for x in 1..=n {
             let y = (x * x * x - n).cbrt();
@@ -66,6 +74,7 @@ impl Problem {
 
     fn check(&self, ans: &Answer) -> bool {
         if let Some((x, y)) = ans.ans {
+            // ここオーバーフローする
             return x * x * x - y * y * y == self.n;
         }
 
@@ -75,7 +84,7 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: Option<(i128, i128)>,
+    ans: Option<(i64, i64)>,
 }
 
 impl Answer {
@@ -101,7 +110,7 @@ mod tests {
 
     #[test]
     fn test_problem() {
-        let x: i128 = 1_000_000_000_000_000_000;
+        let x: i64 = 1_000_000_000_000_000_000;
 
         assert_eq!(1 + 1, 2);
     }
@@ -261,9 +270,9 @@ fn print_yesno(ans: bool) {
 /// * ok < ng の場合: I = { i in ok..ng | p(i) == true } としたとき
 ///     * I が空でなければ、max I を返す。
 ///     * I が空ならば、ok を返す。
-pub fn bin_search<F>(mut ok: i128, mut ng: i128, mut p: F) -> i128
+pub fn bin_search<F>(mut ok: i64, mut ng: i64, mut p: F) -> i64
 where
-    F: FnMut(i128) -> bool,
+    F: FnMut(i64) -> bool,
 {
     debug_assert!(ok != ng);
     debug_assert!(ok.checked_sub(ng).is_some());

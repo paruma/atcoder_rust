@@ -15,6 +15,7 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
+        // HashBag でシミュレーション
         let mut bag1: HashBag<i64> = HashBag::new();
         let mut bag2: HashBag<i64> = self.xs.iter().copied().collect::<HashBag<i64>>();
 
@@ -28,6 +29,45 @@ impl Problem {
             bag1.insert(x);
             bag2.remove(&x);
         }
+
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // 累積種類数を左右から求める
+        let n = self.n;
+        let xs = &self.xs;
+
+        // prefix_set_len[i] = xs[0, i) の種類数
+        let prefix_set_len = {
+            let mut prefix_setlen = vec![0; n + 1];
+            let mut set: HashSet<i64> = HashSet::new();
+            for i in 0..n {
+                set.insert(xs[i]);
+                prefix_setlen[i + 1] = set.len();
+            }
+            prefix_setlen
+        };
+
+        // suffix_set_len[i] = xs[i, n) の種類数
+
+        let suffix_set_len = {
+            let mut suffix_set_len = vec![0; n + 1];
+            let mut set: HashSet<i64> = HashSet::new();
+            for i in (0..n).rev() {
+                set.insert(xs[i]);
+                suffix_set_len[i] = set.len();
+            }
+            suffix_set_len
+        };
+
+        let ans = (1..=n - 1)
+            .map(|right_len| {
+                // [0, right_len), [right_len, n) と分割する
+                prefix_set_len[right_len] + suffix_set_len[right_len]
+            })
+            .max()
+            .unwrap();
 
         Answer { ans }
     }
@@ -52,7 +92,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]

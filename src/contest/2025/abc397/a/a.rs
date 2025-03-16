@@ -27,6 +27,22 @@ impl Problem {
         Answer { ans: 3 }
     }
 
+    fn solve2(&self) -> Answer {
+        // 小数を整数にする
+        let x = &self.x;
+        let x0 = (x[0] as u8 - b'0') as i64;
+        let x1 = (x[1] as u8 - b'0') as i64;
+        let x3 = (x[3] as u8 - b'0') as i64;
+        let n = 100 * x0 + 10 * x1 + x3;
+        let ans = if n >= 380 {
+            1
+        } else if n >= 375 {
+            2
+        } else {
+            3
+        };
+        Answer { ans }
+    }
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -47,7 +63,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
