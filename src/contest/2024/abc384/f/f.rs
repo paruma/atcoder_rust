@@ -6,14 +6,10 @@ struct Problem {
 }
 
 // x = 56 = 2^3 * 7 の場合は(3, 7) を返す
-fn g(x: i64) -> (i64, i64) {
-    let mut x = x;
-    let mut cnt = 0;
-    while x % 2 == 0 {
-        x /= 2;
-        cnt += 1;
-    }
-    (cnt, x)
+fn g(x: i64) -> (u32, i64) {
+    let cnt = x.trailing_zeros();
+    let remain = x >> cnt;
+    (cnt, remain)
 }
 
 impl Problem {
@@ -27,18 +23,73 @@ impl Problem {
 
     fn solve(&self) -> Answer {
         // オーバーフローに気をつける
+        let n = self.n;
 
-        let n =self.n;
+        let xs = &self.xs;
+        // x = 2^a * b (b は奇数) と表すときの a で分類する
 
-        // table[x][y] = 2 で x 回割れるとき、mod 2^y
-        let mut table = vec![vec![0; 30]; 30];
+        let groups = xs.iter().copied().fold(vec![vec![]; 30], |mut acc, x| {
+            let (a, _b) = g(x);
+            acc[a as usize].push(x);
+            acc
+        });
 
-        for j in 0..n{
-            // table に xs[j] を登録する
+        // a が異なる者同士で計算
+        let term1 = {
+            let sum_list = groups
+                .iter()
+                .map(|g| g.iter().copied().sum::<i64>())
+                .collect_vec();
 
-        }
+            let mut suffix_sum = 0;
+            let mut suffix_cnt = 0;
+            let mut sub_ans = 0;
 
-        let ans = 0;
+            for a in (0..30).rev() {
+                let sub_sub_ans =
+                    (suffix_sum * groups[a].len() as i64 + sum_list[a] * suffix_cnt as i64) >> a;
+                suffix_sum += sum_list[a];
+                suffix_cnt += groups[a].len();
+
+                sub_ans += sub_sub_ans;
+            }
+            sub_ans
+        };
+
+        let term2 = (0..30)
+            .map(|a| {
+                // a が同じ値同士で計算
+                let mut table_sum = vec![HashMap::<i64, i64>::new(); 30];
+                let mut table_cnt = vec![HashMap::<i64, i64>::new(); 30];
+                let group = &groups[a];
+                let mut sub_ans = 0;
+
+                for &x in group {
+                    let (_, y) = g(x);
+                    for i in 1..30 {
+                        let rem = y % (1 << i);
+                        *table_sum[i].entry(rem).or_insert(0) += y;
+                        *table_cnt[i].entry(rem).or_insert(0) += 1;
+                    }
+
+                    for i in 1..30 {
+                        // (y + z) % 2^i = 2^{i-1} となるような z に対して、
+                        // f(2^a(y + z)) = (y + z)/2^{i-1} である
+                        let m = 1 << i;
+                        let opposite_rem = (3 * m / 2 - y % m) % m;
+                        let opposite_sum = table_sum[i].get(&opposite_rem).copied().unwrap_or(0);
+                        let opposite_cnt = table_cnt[i].get(&opposite_rem).copied().unwrap_or(0);
+
+                        let sub_sub_ans = (opposite_sum + y * opposite_cnt) >> (i - 1);
+                        sub_ans += sub_sub_ans;
+                    }
+                }
+
+                sub_ans
+            })
+            .sum::<i64>();
+
+        let ans = term1 + term2;
         Answer { ans }
     }
 
