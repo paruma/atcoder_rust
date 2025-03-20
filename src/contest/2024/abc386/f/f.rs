@@ -14,14 +14,51 @@ impl Problem {
         p
     }
     fn solve0(&self) -> bool {
-        let mut s = &self.s;
-        let mut t = &self.t;
-        // s.len() <= t.len() とする
-        if s.len() > t.len() {
-            std::mem::swap(&mut s, &mut t);
+        let s = &self.s;
+        let t = &self.t;
+        let k = self.k;
+
+        // 通常のHashMap だと 1663ms
+        // FxHashMap を使うと 809ms
+        let mut dp = vec![FxHashMap::<usize, i64>::default(); s.len() + 1];
+
+        let inf = i64::MAX - 10;
+
+        for i in 0..=s.len() {
+            let (j_min, j_max) = {
+                let s_len = s.len() as i64;
+                let t_len = t.len() as i64;
+                let k = k as i64;
+                let i = i as i64;
+                let j_min = t_len - s_len - k + i;
+                let j_max = t_len - s_len + k + i;
+                (j_min, j_max)
+            };
+
+            for j in (j_min..=j_max).filter_map(|j| {
+                if (0..=t.len() as i64).contains(&j) {
+                    Some(j as usize)
+                } else {
+                    None
+                }
+            }) {
+                if i == 0 {
+                    dp[i].insert(j, j as i64);
+                } else if j == 0 {
+                    dp[i].insert(j, i as i64);
+                } else {
+                    //
+                    let cand1 = dp[i].get(&(j - 1)).copied().unwrap_or(inf) + 1;
+                    let cand2 = dp[i - 1].get(&j).copied().unwrap_or(inf) + 1;
+                    let cand3 = dp[i - 1].get(&(j - 1)).copied().unwrap_or(inf)
+                        + (s[i - 1] != t[j - 1]) as i64;
+                    dp[i].insert(j, cand1.min(cand2).min(cand3));
+                }
+                //
+            }
         }
 
-        false
+        dp[s.len()].get(&t.len()).copied().unwrap_or(inf) <= k as i64
     }
 
     fn solve(&self) -> Answer {
@@ -136,8 +173,10 @@ use proconio::{
     derive_readable, fastout, input,
     marker::{Bytes, Chars, Usize1},
 };
+use rustc_hash::FxHashMap;
 #[allow(unused_imports)]
 use std::cmp::Reverse;
+use std::collections::BTreeMap;
 #[allow(unused_imports)]
 use std::collections::{BinaryHeap, HashMap, HashSet};
 
