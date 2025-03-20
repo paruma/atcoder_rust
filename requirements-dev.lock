@@ -8,10 +8,13 @@
 #   with-sources: false
 
 -e file:.
+aclogin==0.1.0
+    # via atcoder-rust
 anyio==4.3.0
     # via httpx
     # via jupyter-server
 appdirs==1.4.4
+    # via aclogin
     # via online-judge-api-client
 argon2-cffi==23.1.0
     # via jupyter-server

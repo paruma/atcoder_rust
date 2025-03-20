@@ -8,7 +8,10 @@
 #   with-sources: false
 
 -e file:.
+aclogin==0.1.0
+    # via atcoder-rust
 appdirs==1.4.4
+    # via aclogin
     # via online-judge-api-client
 attrs==23.2.0
     # via jsonschema
