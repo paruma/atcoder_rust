@@ -73,6 +73,53 @@ impl Problem {
 
         Answer { ans }
     }
+
+    fn solve2(&self) -> Answer {
+        // Priority Queue ベースでシミュレーション (solve では BTreeMap でシミュレーションしていた)
+        let items = self
+            .items
+            .iter()
+            .copied()
+            .sorted_by_key(|i| i.time)
+            .collect_vec();
+
+        let mut item_itr = items.iter().copied().peekable();
+
+        let mut print_pq: BinaryHeap<Reverse<usize /* 期限切れの時刻 */>> = BinaryHeap::new();
+
+        let mut cur_time = 0;
+        let mut ans = 0;
+
+        while item_itr.peek().is_some() || print_pq.peek().is_some() {
+            // 期限切れを消す
+            while print_pq
+                .peek()
+                .map(|Reverse(expired_time)| *expired_time <= cur_time)
+                .unwrap_or(false)
+            {
+                print_pq.pop();
+            }
+
+            // print するものがなければ時間を進める
+            if print_pq.peek().is_none() && item_itr.peek().is_some() {
+                cur_time = item_itr.peek().unwrap().time;
+            }
+
+            // print_pq に詰める
+            while item_itr.peek().map(|i| i.time <= cur_time).unwrap_or(false) {
+                let item = item_itr.next().unwrap();
+                print_pq.push(Reverse(item.time + item.duration + 1));
+            }
+
+            // print_pq から1つ print する
+            if print_pq.pop().is_some() {
+                ans += 1;
+            }
+            cur_time += 1;
+        }
+
+        Answer { ans }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -87,7 +134,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -102,7 +149,8 @@ mod tests {
 }
 
 use std::{
-    collections::{BTreeMap, BTreeSet},
+    cmp::Reverse,
+    collections::{BTreeMap, BTreeSet, BinaryHeap},
     time::Duration,
 };
 
