@@ -426,6 +426,49 @@ impl Problem {
         let ans = ans.iter().copied().map(|x| x.val() as i64).collect_vec();
         Answer { ans }
     }
+
+    fn solve7(&self) -> Answer {
+        use ac_library::ModInt998244353 as Mint;
+
+        let n = self.n;
+        let xs = &self.xs;
+
+        if n == 1 {
+            return Answer { ans: vec![1] };
+        }
+
+        let mut dp = vec![vec![vec![Mint::new(0); n + 1]; n]; n];
+        // dp[i][j][l]: 末項を A の j 番目、末項の1つ手前を A の i 番目から取ってきたときの長さ l の等差数列の数
+
+        for i in 0..n {
+            for j in i + 1..n {
+                dp[i][j][2] = Mint::new(1);
+            }
+        }
+
+        for l in 2..n {
+            for i in 0..n {
+                for j in i + 1..n {
+                    for k in j + 1..n {
+                        if xs[i] + xs[k] == 2 * xs[j] {
+                            let addition = dp[i][j][l];
+                            dp[j][k][l + 1] += addition;
+                        }
+                    }
+                }
+            }
+        }
+        // l = 1 の答え
+        let mut ans = vec![n as i64];
+        for l in 2..=n {
+            let sub_ans = iproduct!(0..n, 0..n)
+                .map(|(i, j)| dp[i][j][l])
+                .sum::<Mint>()
+                .val() as i64;
+            ans.push(sub_ans);
+        }
+        Answer { ans }
+    }
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -446,7 +489,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve6().print();
+    Problem::read().solve7().print();
 }
 
 #[cfg(test)]
