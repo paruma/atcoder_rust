@@ -15,7 +15,28 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let xs = &self.xs;
+        // 番号→その番号を持っている人
+        let xs_inv = {
+            let mut xs_inv = HashMap::<i64, Vec<usize>>::new();
+
+            for (i, x) in xs.iter().copied().enumerate() {
+                xs_inv.entry(x).or_default().push(i);
+            }
+            xs_inv
+        };
+
+        let ans = xs_inv
+            .iter()
+            .filter_map(|(x, ys)| {
+                if ys.len() == 1 {
+                    Some((x, ys[0]))
+                } else {
+                    None
+                }
+            })
+            .max()
+            .map(|(_, y)| y);
         Answer { ans }
     }
 
@@ -29,12 +50,16 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Option<usize>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        if let Some(ans) = self.ans {
+            println!("{}", ans + 1);
+        } else {
+            println!("{}", -1);
+        }
     }
 }
 

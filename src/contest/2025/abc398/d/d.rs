@@ -2,20 +2,64 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    pos: Pos,
+    dirs: Vec<char>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            (r, c) :(i64, i64),
+            dirs: Chars,
         }
-        Problem { n, xs }
+        let pos = Pos::new(r, c);
+        Problem { n, pos, dirs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let pos = self.pos;
+        let dirs = self
+            .dirs
+            .iter()
+            .copied()
+            .map(|ch| {
+                if ch == 'N' {
+                    Pos::new(-1, 0)
+                } else if ch == 'W' {
+                    Pos::new(0, -1)
+                } else if ch == 'S' {
+                    Pos::new(1, 0)
+                } else {
+                    // ch == 'E'
+                    Pos::new(0, 1)
+                }
+            })
+            .collect_vec();
+
+        let prefix_dirs_sum = {
+            let mut tmp = vec![Pos::new(0, 0); n + 1];
+            for i in 0..n {
+                tmp[i + 1] = tmp[i] + dirs[i]
+            }
+
+            tmp
+        };
+
+        let mut prefix_sum_set: HashSet<Pos> = HashSet::new();
+        prefix_sum_set.insert(prefix_dirs_sum[0]);
+
+        let mut ans = vec![];
+
+        for t in 1..=n {
+            // prefix_dirs_sum[t] - prefix_dirs_sum[l]  == pos となるような l が存在するか
+            let target = prefix_dirs_sum[t] - pos;
+            ans.push(prefix_sum_set.contains(&target));
+
+            prefix_sum_set.insert(prefix_dirs_sum[t]);
+        }
+
         Answer { ans }
     }
 
@@ -29,12 +73,18 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<bool>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        let msg = self
+            .ans
+            .iter()
+            .copied()
+            .map(|p| if p { '1' } else { '0' })
+            .collect_vec();
+        print_chars(&msg);
     }
 }
 
@@ -180,3 +230,90 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use pos::*;
+pub mod pos {
+    use std::ops::{Add, AddAssign, Neg, Sub, SubAssign};
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    pub struct Pos {
+        pub x: i64,
+        pub y: i64,
+    }
+    impl Pos {
+        pub fn new(x: i64, y: i64) -> Pos {
+            Pos { x, y }
+        }
+    }
+    impl Pos {
+        pub fn scala_mul(self, rhs: i64) -> Pos {
+            Pos::new(self.x * rhs, self.y * rhs)
+        }
+    }
+    impl Pos {
+        pub fn inner_product(self, rhs: Self) -> i64 {
+            self.x * rhs.x + self.y * rhs.y
+        }
+        pub fn norm_square(self) -> i64 {
+            self.inner_product(self)
+        }
+    }
+    impl Add for Pos {
+        type Output = Pos;
+        fn add(self, rhs: Self) -> Self::Output {
+            Pos::new(self.x + rhs.x, self.y + rhs.y)
+        }
+    }
+    impl Sub for Pos {
+        type Output = Pos;
+        fn sub(self, rhs: Self) -> Self::Output {
+            Pos::new(self.x - rhs.x, self.y - rhs.y)
+        }
+    }
+    impl Neg for Pos {
+        type Output = Self;
+        fn neg(self) -> Self::Output {
+            Pos::new(-self.x, -self.y)
+        }
+    }
+    impl num_traits::Zero for Pos {
+        fn zero() -> Self {
+            Pos::new(0, 0)
+        }
+        fn is_zero(&self) -> bool {
+            self.x.is_zero() && self.y.is_zero()
+        }
+    }
+    impl AddAssign for Pos {
+        fn add_assign(&mut self, rhs: Self) {
+            *self = *self + rhs
+        }
+    }
+    impl SubAssign for Pos {
+        fn sub_assign(&mut self, rhs: Self) {
+            *self = *self - rhs
+        }
+    }
+    pub const DIR8_LIST: [Pos; 8] = [
+        Pos { x: 0, y: 1 },
+        Pos { x: 1, y: 1 },
+        Pos { x: 1, y: 0 },
+        Pos { x: 1, y: -1 },
+        Pos { x: 0, y: -1 },
+        Pos { x: -1, y: -1 },
+        Pos { x: -1, y: 0 },
+        Pos { x: -1, y: 1 },
+    ];
+    pub const DIR4_LIST: [Pos; 4] = [
+        Pos { x: 0, y: 1 },
+        Pos { x: 1, y: 0 },
+        Pos { x: 0, y: -1 },
+        Pos { x: -1, y: 0 },
+    ];
+    impl Pos {
+        pub fn around4_pos_iter(self) -> impl Iterator<Item = Pos> {
+            DIR4_LIST.iter().copied().map(move |d| self + d)
+        }
+        pub fn around8_pos_iter(self) -> impl Iterator<Item = Pos> {
+            DIR8_LIST.iter().copied().map(move |d| self + d)
+        }
+    }
+}

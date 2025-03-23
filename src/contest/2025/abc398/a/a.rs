@@ -2,20 +2,37 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
         }
-        Problem { n, xs }
+        Problem { n }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let ans = (0..n)
+            .map(|i| {
+                if n % 2 == 0 {
+                    //
+                    if i == n / 2 || i == n / 2 - 1 {
+                        '='
+                    } else {
+                        '-'
+                    }
+                } else {
+                    //
+                    if i == n / 2 {
+                        '='
+                    } else {
+                        '-'
+                    }
+                }
+            })
+            .collect_vec();
         Answer { ans }
     }
 
@@ -29,12 +46,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<char>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_chars(&self.ans);
     }
 }
 

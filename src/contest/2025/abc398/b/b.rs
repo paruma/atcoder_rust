@@ -1,21 +1,30 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
     xs: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            xs: [i64; 7],
         }
-        Problem { n, xs }
+        Problem { xs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let xs = &self.xs;
+        let ans = xs.iter().copied().combinations(5).any(|ys| {
+            let cnts = ys
+                .iter()
+                .copied()
+                .counts()
+                .values()
+                .copied()
+                .sorted()
+                .collect_vec();
+            cnts == vec![2, 3]
+        });
         Answer { ans }
     }
 
@@ -29,12 +38,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: bool,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_yesno(self.ans);
     }
 }
 
