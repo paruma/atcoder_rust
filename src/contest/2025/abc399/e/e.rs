@@ -2,20 +2,57 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    xs: Vec<u8>,
+    ys: Vec<u8>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            xs: Bytes,
+            ys: Bytes,
         }
-        Problem { n, xs }
+        Problem { n, xs, ys }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        // WA
+        let n = self.n;
+        let xs = self
+            .xs
+            .iter()
+            .copied()
+            .map(|x| (x - b'a') as usize)
+            .collect_vec();
+        let ys = self
+            .ys
+            .iter()
+            .copied()
+            .map(|x| (x - b'a') as usize)
+            .collect_vec();
+
+        let mut map = vec![128; 26];
+
+        for i in 0..n {
+            if map[xs[i]] != 128 && map[xs[i]] != ys[i] {
+                return Answer { ans: None };
+            }
+            map[xs[i]] = ys[i];
+        }
+
+        let mut scc = ac_library::scc::SccGraph::new(26);
+        for i in 0..n {
+            scc.add_edge(xs[i], ys[i]);
+        }
+
+        let result = scc.scc();
+
+        let xs_uniq_cnt = xs.iter().copied().unique().count();
+
+        let ans = xs_uniq_cnt + result.iter().filter(|g| g.len() >= 2).count()
+            - (0..26).filter(|&i| map[i] == i).count();
+        let ans = Some(ans);
         Answer { ans }
     }
 
@@ -29,12 +66,16 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Option<usize>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        if let Some(ans) = self.ans {
+            println!("{}", ans);
+        } else {
+            println!("{}", -1);
+        }
     }
 }
 

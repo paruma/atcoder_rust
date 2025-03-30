@@ -2,20 +2,58 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    xs: Vec<usize>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            xs: [Usize1; 2 * n],
         }
         Problem { n, xs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let xs = &self.xs;
+        let n = self.n;
+        let mut pos_1st = vec![2 * n; n];
+        let mut pos_2nd = vec![2 * n; n];
+
+        for (i, x) in xs.iter().copied().enumerate() {
+            if pos_1st[x] == 2 * n {
+                pos_1st[x] = i;
+            } else {
+                pos_2nd[x] = i;
+            }
+        }
+
+        let mut ans = 0;
+
+        for a in 0..n {
+            if pos_2nd[a] - pos_1st[a] == 1 {
+                continue;
+            }
+
+            // pos_1st[a] の両隣の値を見る。
+            if pos_1st[a] != 0 {
+                let b1 = xs[pos_1st[a] - 1];
+                if pos_2nd[b1] - pos_1st[b1] != 1 {
+                    if pos_2nd[b1].abs_diff(pos_2nd[a]) == 1 {
+                        ans += 1;
+                    }
+                }
+            }
+            let b2 = xs[pos_1st[a] + 1];
+            if pos_2nd[b2] - pos_1st[b2] != 1 {
+                if pos_2nd[b2].abs_diff(pos_2nd[a]) == 1 {
+                    ans += 1;
+                }
+            }
+        }
+
+        ans /= 2;
+
         Answer { ans }
     }
 
@@ -39,7 +77,12 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    input! {
+        t: usize
+    }
+    for _ in 0..t {
+        Problem::read().solve().print();
+    }
 }
 
 #[cfg(test)]

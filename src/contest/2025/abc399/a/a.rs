@@ -2,20 +2,22 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    xs: Vec<char>,
+    ys: Vec<char>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            xs: Chars,
+            ys: Chars,
         }
-        Problem { n, xs }
+        Problem { n, xs, ys }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = izip!(&self.xs, &self.ys).filter(|(x, y)| x != y).count() as i64;
         Answer { ans }
     }
 

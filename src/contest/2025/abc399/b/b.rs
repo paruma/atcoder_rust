@@ -15,7 +15,28 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let mut xs = self.xs.clone();
+        let mut r = 1;
+
+        let mut ans = vec![-1; n];
+
+        let mut cnt = 0;
+
+        while cnt < n {
+            let max = xs.iter().copied().max().unwrap();
+            let mut cnt_updated = 0;
+            for i in 0..n {
+                if xs[i] == max {
+                    ans[i] = r;
+                    xs[i] = -1;
+                    cnt += 1;
+                    cnt_updated += 1;
+                }
+            }
+            r += cnt_updated;
+        }
+
         Answer { ans }
     }
 
@@ -29,12 +50,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec(&self.ans);
     }
 }
 
