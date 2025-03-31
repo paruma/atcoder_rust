@@ -13,6 +13,7 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
+        // 全探索
         let xs = &self.xs;
         let ans = xs.iter().copied().combinations(5).any(|ys| {
             let cnts = ys
@@ -25,6 +26,24 @@ impl Problem {
                 .collect_vec();
             cnts == vec![2, 3]
         });
+        Answer { ans }
+    }
+    #[allow(clippy::get_first)]
+    fn solve2(&self) -> Answer {
+        // 賢く解く
+        let xs = &self.xs;
+        let cnts = xs
+            .iter()
+            .copied()
+            .counts()
+            .values()
+            .copied()
+            .sorted()
+            .rev()
+            .collect_vec();
+
+        let ans = *cnts.get(0).unwrap_or(&0) >= 3 && *cnts.get(1).unwrap_or(&0) >= 2;
+
         Answer { ans }
     }
 
@@ -48,7 +67,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]

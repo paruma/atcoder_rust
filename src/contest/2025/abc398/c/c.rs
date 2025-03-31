@@ -40,6 +40,16 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        // もう少し簡潔に書く
+        let xs = &self.xs;
+        let n = self.n;
+        let cnts = xs.iter().copied().counts();
+
+        let ans = (0..n).filter(|i| cnts[&xs[*i]] == 1).max_by_key(|i| xs[*i]);
+
+        Answer { ans }
+    }
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -64,7 +74,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
