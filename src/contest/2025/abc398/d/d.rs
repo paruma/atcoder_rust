@@ -63,6 +63,52 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        let n = self.n;
+        let pos = self.pos;
+        let dirs = self
+            .dirs
+            .iter()
+            .copied()
+            .map(|ch| {
+                if ch == 'N' {
+                    Pos::new(-1, 0)
+                } else if ch == 'W' {
+                    Pos::new(0, -1)
+                } else if ch == 'S' {
+                    Pos::new(1, 0)
+                } else {
+                    // ch == 'E'
+                    Pos::new(0, 1)
+                }
+            })
+            .collect_vec();
+
+        let mut offset = Pos::new(0, 0); // 相対座標の原点の位置
+
+        let mut rel_smokes = HashSet::new();
+
+        rel_smokes.insert(Pos::new(0, 0));
+
+        let mut ans = vec![];
+
+        for dir in dirs {
+            // 風が吹く
+            offset += dir;
+
+            // 原点に煙が発生する
+            let rel_src = -offset; // 煙の発生源 (相対座標)
+            rel_smokes.insert(rel_src);
+
+            // 風が吹いた後に指定の場所に煙が存在するか判定
+            let rel_target = pos - offset;
+            let sub_ans = rel_smokes.contains(&rel_target);
+            ans.push(sub_ans);
+        }
+
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -89,7 +135,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
