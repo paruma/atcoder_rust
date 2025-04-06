@@ -1,21 +1,20 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    a: usize,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            a: usize,
         }
-        Problem { n, xs }
+        Problem { a }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let a = self.a;
+        let ans = if 400 % a == 0 { Some(400 / a) } else { None };
         Answer { ans }
     }
 
@@ -29,12 +28,16 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Option<usize>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        if let Some(ans) = self.ans {
+            println!("{}", ans);
+        } else {
+            println!("{}", -1);
+        }
     }
 }
 

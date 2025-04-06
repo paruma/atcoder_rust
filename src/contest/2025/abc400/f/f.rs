@@ -2,19 +2,33 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    xs: Vec<usize>,
+    costs: Vec<i64>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            xs: [Usize1; n],
+            costs: [i64; n],
         }
-        Problem { n, xs }
+        Problem { n, xs, costs }
     }
 
     fn solve(&self) -> Answer {
+        let n = self.n;
+        let poss_map =
+            self.xs
+                .iter()
+                .copied()
+                .enumerate()
+                .fold(vec![vec![]; n], |mut acc, (i, x)| {
+                    //
+                    acc[x].push(i);
+                    acc
+                });
+
         let ans = 0;
         Answer { ans }
     }

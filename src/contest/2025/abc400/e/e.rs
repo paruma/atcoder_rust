@@ -15,7 +15,55 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let max = self.xs.iter().copied().max().unwrap() as usize;
+        let max_sqrt = max.sqrt() * 2;
+        let sieve = EratosthenesSieve::new(max_sqrt);
+
+        let primes = (1..=max_sqrt).filter(|p| sieve.is_prime(*p)).collect_vec();
+        let pow_primes = primes
+            .iter()
+            .flat_map(|&p| {
+                std::iter::successors(Some(p), move |acc| Some(acc * p))
+                    .take_while(|x| *x <= max_sqrt)
+            })
+            .sorted()
+            .collect_vec();
+
+        let num400s = {
+            let mut buf: Vec<usize> = vec![];
+
+            for i in 0..pow_primes.len() {
+                if pow_primes[i] * pow_primes[i] * pow_primes[i] * pow_primes[i] > max {
+                    break;
+                }
+                for j in i + 1..pow_primes.len() {
+                    let val = pow_primes[i] * pow_primes[i] * pow_primes[j] * pow_primes[j];
+                    if val > max {
+                        break;
+                    }
+                    if sieve.min_factor(pow_primes[i]) != sieve.min_factor(pow_primes[j]) {
+                        buf.push(val);
+                    }
+                }
+            }
+            buf.sort();
+            buf
+        };
+
+        let ans = self
+            .xs
+            .iter()
+            .copied()
+            .map(|x| {
+                //
+                let idx = bin_search(0, num400s.len() as i64, |i| {
+                    let i = i as usize;
+                    x as usize >= num400s[i]
+                }) as usize;
+
+                num400s[idx]
+            })
+            .collect_vec();
         Answer { ans }
     }
 
@@ -29,12 +77,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<usize>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec(&self.ans);
     }
 }
 
@@ -121,6 +169,8 @@ mod tests {
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
+use num_integer::Roots;
+use pathfinding::matrix::directions::E;
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,
@@ -130,6 +180,7 @@ use proconio::{
 use std::cmp::Reverse;
 #[allow(unused_imports)]
 use std::collections::{BinaryHeap, HashMap, HashSet};
+use superslice::Ext;
 
 // ====== output func ======
 #[allow(unused_imports)]
@@ -180,3 +231,116 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use eratosthenes_sieve::*;
+pub mod eratosthenes_sieve {
+    use std::collections::HashMap;
+    pub struct EratosthenesSieve {
+        is_prime_list: Vec<bool>,
+        min_factor_list: Vec<Option<usize>>,
+    }
+    impl EratosthenesSieve {
+        /// [0, n] の区間でエラトステネスのふるいをする
+        /// 計算量: O(n log(log(n)))
+        pub fn new(n: usize) -> Self {
+            let mut is_prime_list = vec![true; n + 1];
+            let mut min_factor_list = vec![None; n + 1];
+            is_prime_list[0] = false;
+            is_prime_list[1] = false;
+            for p in 2..=n {
+                if !is_prime_list[p] {
+                    continue;
+                }
+                min_factor_list[p] = Some(p);
+                for q in (p * 2..=n).step_by(p) {
+                    is_prime_list[q] = false;
+                    if min_factor_list[q].is_none() {
+                        min_factor_list[q] = Some(p);
+                    }
+                }
+            }
+            Self {
+                is_prime_list,
+                min_factor_list,
+            }
+        }
+
+        pub fn min_factor(&self, n: usize) -> usize {
+            self.min_factor_list[n].unwrap()
+        }
+        /// 計算量: O(1)
+        pub fn is_prime(&self, n: usize) -> bool {
+            self.is_prime_list[n]
+        }
+        /// 計算量: O(log n)
+        pub fn prime_factorize(&self, n: usize) -> HashMap<usize, usize> {
+            let mut n = n;
+            let mut cnt_table: HashMap<usize, usize> = HashMap::new();
+            while n > 1 {
+                let p = self.min_factor_list[n].unwrap();
+                let mut exp = 0;
+                while self.min_factor_list[n] == Some(p) {
+                    n /= p;
+                    exp += 1;
+                }
+                cnt_table.insert(p, exp);
+            }
+            cnt_table
+        }
+        /// 計算量: O(nの約数の個数)
+        pub fn divisors(&self, n: usize) -> Vec<usize> {
+            let mut res = vec![1];
+            let pf = self.prime_factorize(n);
+            for (p, e) in pf {
+                for i in 0..res.len() {
+                    let mut tmp = 1;
+                    for _ in 0..e {
+                        tmp *= p;
+                        res.push(res[i] * tmp);
+                    }
+                }
+            }
+            res
+        }
+    }
+}
+/// 二分探索をする
+/// ```text
+/// ng ng ng ok ok ok
+///          ↑ここの引数の値を返す
+/// ```
+/// 計算量: O(log(|ok - ng|))
+/// ## Arguments
+/// * ok != ng
+/// * |ok - ng| <= 2^63 - 1, |ok + ng| <= 2^63 - 1
+/// * p の定義域について
+///     * ng < ok の場合、p は区間 ng..ok で定義されている。
+///     * ok < ng の場合、p は区間 ok..ng で定義されている。
+/// * p の単調性について
+///     * ng < ok の場合、p は単調増加
+///     * ok < ng の場合、p は単調減少
+/// ## Return
+/// * ng < ok の場合: I = { i in ng..ok | p(i) == true } としたとき
+///     * I が空でなければ、min I を返す。
+///     * I が空ならば、ok を返す。
+/// * ok < ng の場合: I = { i in ok..ng | p(i) == true } としたとき
+///     * I が空でなければ、max I を返す。
+///     * I が空ならば、ok を返す。
+pub fn bin_search<F>(mut ok: i64, mut ng: i64, mut p: F) -> i64
+where
+    F: FnMut(i64) -> bool,
+{
+    debug_assert!(ok != ng);
+    debug_assert!(ok.checked_sub(ng).is_some());
+    debug_assert!(ok.checked_add(ng).is_some());
+    while num::abs(ok - ng) > 1 {
+        let mid = (ok + ng) / 2;
+        debug_assert!(mid != ok);
+        debug_assert!(mid != ng);
+        if p(mid) {
+            ok = mid;
+        } else {
+            ng = mid;
+        }
+    }
+    ok
+}

@@ -1,21 +1,32 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    n: i128,
+    m: i128,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            n: i128,
+            m: i128,
         }
-        Problem { n, xs }
+        Problem { n, m }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let m = self.m;
+        let ans = if n == 1 {
+            m + 1
+        } else {
+            let pow = n.checked_pow((m + 1) as u32);
+            if let Some(pow) = pow {
+                (pow - 1) / (n - 1)
+            } else {
+                i128::MAX
+            }
+        };
         Answer { ans }
     }
 
@@ -29,12 +40,16 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: i128,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        if self.ans <= 1_000_000_000 {
+            println!("{}", self.ans);
+        } else {
+            println!("inf");
+        }
     }
 }
 
