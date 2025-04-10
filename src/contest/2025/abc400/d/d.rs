@@ -117,13 +117,13 @@ impl Problem {
         dp[src] = 0;
         open.push_back(src);
 
-        while let Some(cur) = open.pop_back() {
+        while let Some(cur) = open.pop_front() {
             // 普通に移動
             for next in Pos::around4_pos_iter(cur).filter(|next| grid.can_move(*next)) {
                 let next_d = dp[cur];
                 if next_d < dp[next] {
                     dp[next] = next_d;
-                    open.push_back(next);
+                    open.push_front(next);
                 }
             }
 
@@ -136,8 +136,8 @@ impl Problem {
             {
                 let next_d = dp[cur] + 1;
                 if next_d < dp[next] {
-                    dp[next] = dp[cur] + 1;
-                    open.push_front(next);
+                    dp[next] = next_d;
+                    open.push_back(next);
                 }
             }
         }
