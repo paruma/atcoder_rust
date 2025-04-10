@@ -13,6 +13,7 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
+        // a を固定して、2^a b^2 <= N をみたす奇数 b の数を数える (二分探索)
         let n = self.n;
         let ans = (1..=61)
             .map(|a| {
@@ -21,6 +22,22 @@ impl Problem {
                 })
             })
             .sum::<i64>();
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // a を固定して、2^a b^2 <= N をみたす奇数 b の数を数える (num trait を使う)
+        let n = self.n;
+        let ans = (1..=61)
+            .map(|a| ((n / (1 << a)).sqrt() + 1) / 2)
+            .sum::<i64>();
+        Answer { ans }
+    }
+
+    fn solve3(&self) -> Answer {
+        // a=1 と a=2 の場合だけ考える
+        let n = self.n;
+        let ans = (n / 4).sqrt() + (n / 2).sqrt();
         Answer { ans }
     }
 
@@ -44,7 +61,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve3().print();
 }
 
 #[cfg(test)]
@@ -126,6 +143,7 @@ mod tests {
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
+use num_integer::Roots;
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,
