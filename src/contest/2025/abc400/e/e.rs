@@ -15,8 +15,9 @@ impl Problem {
     }
 
     fn solve(&self) -> Answer {
+        // 素数べき全列挙をする
         let max = self.xs.iter().copied().max().unwrap() as usize;
-        let max_sqrt = max.sqrt() * 2;
+        let max_sqrt = max.sqrt();
         let sieve = EratosthenesSieve::new(max_sqrt);
 
         let primes = (1..=max_sqrt).filter(|p| sieve.is_prime(*p)).collect_vec();
@@ -55,12 +56,39 @@ impl Problem {
             .iter()
             .copied()
             .map(|x| {
-                //
-                let idx = bin_search(0, num400s.len() as i64, |i| {
-                    let i = i as usize;
-                    x as usize >= num400s[i]
-                }) as usize;
+                let idx = num400s.upper_bound(&(x as usize)) - 1;
+                num400s[idx]
+            })
+            .collect_vec();
+        Answer { ans }
+    }
 
+    fn solve2(&self) -> Answer {
+        // 平方を取る前の数で素因数がちょうど2つのものをエラトステネスの篩で列挙する
+        let max = self.xs.iter().copied().max().unwrap();
+        let max_sqrt = max.sqrt() as usize;
+
+        let mut n_factor_map = vec![0; max_sqrt + 1];
+        for i in 2..=max_sqrt {
+            // 素数
+            if n_factor_map[i] == 0 {
+                for j in (1..).map(|k| i * k).take_while(|j| *j <= max_sqrt) {
+                    n_factor_map[j] += 1;
+                }
+            }
+        }
+        let factor2s = (0..=max_sqrt)
+            .filter(|i| n_factor_map[*i] == 2)
+            .collect_vec();
+
+        let num400s = factor2s.iter().map(|x| x * x).collect_vec();
+
+        let ans = self
+            .xs
+            .iter()
+            .copied()
+            .map(|x| {
+                let idx = num400s.upper_bound(&(x as usize)) - 1;
                 num400s[idx]
             })
             .collect_vec();
@@ -87,7 +115,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
