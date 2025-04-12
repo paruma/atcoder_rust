@@ -1,30 +1,12 @@
 use cargo_snippet::snippet;
 
 #[allow(clippy::module_inception)]
-#[snippet(prefix = "use lca_euler_tour::*;")]
-pub mod lca_euler_tour {
-    use std::convert::Infallible;
-
-    use ac_library::{Monoid, Segtree};
-    use itertools::Itertools;
-
-    pub struct MinI64Usize(Infallible);
-    impl Monoid for MinI64Usize {
-        type S = (i64, usize);
-        fn identity() -> Self::S {
-            (i64::MAX, usize::MAX)
-        }
-        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
-            std::cmp::min(*a, *b)
-        }
-    }
+pub mod lca_doubling {
+    use std::mem::swap;
 
     pub struct Lca {
-        dist: Vec<i64>,                        // dist[v]: ルートから v までの距離
-        euler_tour_dist: Segtree<MinI64Usize>, // 根からの距離を euler tour の順に並べたもの
-        euler_tour_in_time: Vec<usize>,
-        #[allow(dead_code)]
-        euler_tour_out_time: Vec<usize>,
+        dist: Vec<i64>,            // dist[v]: ルートから v までの距離
+        ancestor: Vec<Vec<usize>>, // ancestor[i][v]: v の 2^i 先の祖先
     }
 
     impl Lca {
@@ -57,60 +39,56 @@ pub mod lca_euler_tour {
                 dist
             };
 
-            let (euler_tour, euler_tour_in_time, euler_tour_out_time) = {
-                fn dfs(
-                    tour: &mut Vec<usize>,
-                    in_time: &mut [usize],
-                    out_time: &mut [usize],
-                    current: usize,
-                    tree_children: &[Vec<usize>],
-                ) {
-                    // 行きがけ
-                    in_time[current] = in_time[current].min(tour.len());
-                    out_time[current] = out_time[current].max(tour.len());
-                    tour.push(current);
-
-                    for &child in &tree_children[current] {
-                        dfs(tour, in_time, out_time, child, tree_children);
-                        in_time[current] = in_time[current].min(tour.len());
-                        out_time[current] = out_time[current].max(tour.len());
-                        tour.push(current);
+            let ancestor = {
+                // nv の２進展開の桁数
+                let k = (usize::BITS - nv.leading_zeros()) as usize;
+                let mut ancestor = vec![vec![0; nv]; k];
+                ancestor[0] = tree_parent.to_vec();
+                for i in 1..k {
+                    for v in 0..nv {
+                        let f = &ancestor[i - 1];
+                        ancestor[i][v] = f[f[v]]
                     }
                 }
-                let mut tour = vec![];
-                let mut in_time = vec![usize::MAX; nv];
-                let mut out_time = vec![usize::MIN; nv];
-                dfs(&mut tour, &mut in_time, &mut out_time, root, &tree_children);
-                (tour, in_time, out_time)
+
+                ancestor
             };
-
-            let euler_tour_dist = Segtree::<MinI64Usize>::from(
-                euler_tour
-                    .iter()
-                    .copied()
-                    .map(|v| (dist[v], v))
-                    .collect_vec(),
-            );
-
-            Lca {
-                dist,
-                euler_tour_dist,
-                euler_tour_in_time,
-                euler_tour_out_time,
-            }
+            Lca { dist, ancestor }
         }
 
         /// u と v の LCA を求める
         /// 計算量 O(log(頂点の数))
         pub fn lca(&self, u: usize, v: usize) -> usize {
-            let (time_min, time_max) = {
-                use std::cmp::{max, min};
-                let t1 = self.euler_tour_in_time[u];
-                let t2 = self.euler_tour_in_time[v];
-                (min(t1, t2), max(t1, t2))
-            };
-            // 区間 time_min..=time_max での根からの距離の最小値が LCA になる。
-            self.euler_tour_dist.prod(time_min..=time_max).1
+            let mut u = u;
+            let mut v = v;
+            // u のほうが深いとする (dist[u] >= dist[v] となるようにする)
+            if self.dist[u] < self.dist[v] {
+                swap(&mut u, &mut v);
+            }
+
+            // 深さを揃える (u を dist[u] - dist[v] だけ根の方向に動かす)
+            let dist_diff = self.dist[u] - self.dist[v];
+            u = self
+                .ancestor
+                .iter()
+                .enumerate()
+                .filter(|(k, _)| (dist_diff >> k) & 1 == 1)
+                .map(|(_, f)| f)
+                .fold(u, |acc, f| f[acc]);
+
+            if u == v {
+                return u;
+            }
+
+            // u を LCA の子まで進める
+            for f in self.ancestor.iter().rev() {
+                if f[u] != f[v] {
+                    u = f[u];
+                    v = f[v];
+                }
+            }
+
+            self.ancestor[0][u]
         }
 
         /// 計算量: O(log(頂点の数))
@@ -132,7 +110,7 @@ mod tests {
 
     use itertools::Itertools;
 
-    use super::lca_euler_tour::Lca;
+    use super::lca_doubling::Lca;
 
     fn lca_naive(tree_parent: &[usize], u: usize, v: usize) -> usize {
         let ancestor = |x| {
