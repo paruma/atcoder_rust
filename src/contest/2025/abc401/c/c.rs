@@ -2,20 +2,44 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    k: usize,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            k: usize,
         }
-        Problem { n, xs }
+        Problem { n, k }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        use static_mod_int::ModInt1e9 as Mint;
+        let n = self.n;
+        let k = self.k;
+        let mut dp = vec![Mint::new(0); n + 1];
+
+        let mut cumsum = vec![Mint::new(0); n + 2];
+
+        // n < k の場合もある
+        if n < k {
+            return Answer { ans: 1 };
+        }
+
+        for i in 0..k {
+            dp[i] = Mint::new(1);
+            cumsum[i + 1] = cumsum[i] + dp[i];
+        }
+
+        for i in k..=n {
+            // i-k,...,i-i
+            // [i-k, i)
+            dp[i] = cumsum[i] - cumsum[i - k];
+            cumsum[i + 1] = cumsum[i] + dp[i];
+        }
+
+        let ans = dp[n].val() as i64;
         Answer { ans }
     }
 
@@ -180,3 +204,26 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+
+use static_mod_int::ModInt1e9;
+pub mod static_mod_int {
+    use std::{cell::RefCell, thread::LocalKey};
+
+    use ac_library::{ButterflyCache, Modulus, StaticModInt};
+
+    #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
+    pub enum Mod1e9 {}
+
+    impl Modulus for Mod1e9 {
+        const VALUE: u32 = 1_000_000_000;
+        const HINT_VALUE_IS_PRIME: bool = false;
+
+        fn butterfly_cache() -> &'static LocalKey<RefCell<Option<ButterflyCache<Self>>>> {
+            thread_local! {
+                static BUTTERFLY_CACHE: RefCell<Option<ButterflyCache<Mod1e9>>> = RefCell::default();
+            }
+            &BUTTERFLY_CACHE
+        }
+    }
+    pub type ModInt1e9 = StaticModInt<Mod1e9>;
+}

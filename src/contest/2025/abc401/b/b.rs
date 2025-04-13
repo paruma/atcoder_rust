@@ -2,20 +2,39 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    xs: Vec<String>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            xs: [String; n],
         }
         Problem { n, xs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let mut ans = 0;
+        let mut is_login = false;
+
+        for x in &self.xs {
+            match x.as_str() {
+                "login" => {
+                    is_login = true;
+                }
+                "logout" => {
+                    is_login = false;
+                }
+                "public" => {}
+                "private" => {
+                    if !is_login {
+                        ans += 1;
+                    }
+                }
+                _ => {}
+            }
+        }
         Answer { ans }
     }
 

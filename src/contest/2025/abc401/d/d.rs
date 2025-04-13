@@ -2,20 +2,80 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    k: usize,
+    xs: Vec<char>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            k: usize,
+            xs: Chars,
         }
-        Problem { n, xs }
+        Problem { n, k, xs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let k = self.k;
+        let mut xs = self.xs.clone();
+
+        for i in 0..n {
+            if xs[i] == 'o' {
+                if i != 0 {
+                    xs[i - 1] = '.';
+                }
+                if i != n - 1 {
+                    xs[i + 1] = '.';
+                }
+            }
+        }
+
+        let cnt_o = xs.iter().copied().filter(|ch| *ch == 'o').count();
+
+        let rem_o = k - cnt_o; // ? を o にする数
+
+        let rle = xs.iter().copied().dedup_with_count().collect_vec();
+
+        let max_o_modifiable = rle
+            .iter()
+            .copied()
+            .map(|(cnt, ch)| {
+                if ch == '?' {
+                    num_integer::div_ceil(cnt, 2)
+                } else {
+                    0
+                }
+            })
+            .sum::<usize>();
+
+        // rem_o == 0 の場合: ? を全部 . にする
+        // rem_o == max_o_modifiable の場合: いろいろやる
+        // それ以外: 全部 ? のまま
+
+        let ans = if rem_o == 0 {
+            xs.iter()
+                .copied()
+                .map(|ch| if ch == '?' { '.' } else { ch })
+                .collect_vec()
+        } else if rem_o == max_o_modifiable {
+            rle.iter()
+                .copied()
+                .flat_map(|(cnt, ch)| {
+                    if ch == '?' && cnt % 2 == 1 {
+                        (0..cnt)
+                            .map(|i| if i % 2 == 0 { 'o' } else { '.' })
+                            .collect_vec()
+                    } else {
+                        std::iter::repeat(ch).take(cnt).collect_vec()
+                    }
+                })
+                .collect_vec()
+            //
+        } else {
+            xs
+        };
         Answer { ans }
     }
 
@@ -29,12 +89,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<char>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_chars(&self.ans);
     }
 }
 
