@@ -4,6 +4,36 @@ version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "abc402_a"
+path = "src/contest/2025/abc402/a/a.rs"
+
+[[bin]]
+name = "abc402_b"
+path = "src/contest/2025/abc402/b/b.rs"
+
+[[bin]]
+name = "abc402_c"
+path = "src/contest/2025/abc402/c/c.rs"
+
+[[bin]]
+name = "abc402_d"
+path = "src/contest/2025/abc402/d/d.rs"
+
+[[bin]]
+name = "abc402_e"
+path = "src/contest/2025/abc402/e/e.rs"
+
+[[bin]]
+name = "abc402_f"
+path = "src/contest/2025/abc402/f/f.rs"
+
+[[bin]]
+name = "abc402_g"
+path = "src/contest/2025/abc402/g/g.rs"
+
+
 [[bin]]
 name = "abc401_a"
 path = "src/contest/2025/abc401/a/a.rs"
