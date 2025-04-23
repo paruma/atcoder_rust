@@ -1,21 +1,24 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    xs: Vec<char>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            xs: Chars,
         }
-        Problem { n, xs }
+        Problem { xs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let ans = self
+            .xs
+            .iter()
+            .copied()
+            .filter(|ch| ch.is_uppercase())
+            .collect_vec();
         Answer { ans }
     }
 
@@ -29,12 +32,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<char>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_chars(&self.ans);
     }
 }
 

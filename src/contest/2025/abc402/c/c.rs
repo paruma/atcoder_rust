@@ -1,21 +1,74 @@
 //#[derive_readable]
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct Food {
+    k: usize,
+    xs: Vec<usize>, // 食材
+}
+
+impl Readable for Food {
+    type Output = Food;
+
+    fn read<R: std::io::BufRead, S: proconio::source::Source<R>>(source: &mut S) -> Self::Output {
+        input! {
+            from source,
+            k: usize,
+            xs: [Usize1; k]
+        }
+        Food { k, xs }
+    }
+}
+
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    n_ings: usize,
+    n_foods: usize,
+    foods: Vec<Food>,
+    ys: Vec<usize>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            n_ings: usize,
+            n_foods: usize,
+            foods: [Food; n_foods],
+            ys: [Usize1; n_ings],
         }
-        Problem { n, xs }
+        Problem {
+            n_ings,
+            n_foods,
+            foods,
+            ys,
+        }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n_foods = self.n_foods;
+        let n_ings = self.n_ings;
+        let mut cnt_eatable = 0; // 食べれる料理の数
+        let mut cnt_by_food = vec![0; n_foods]; // 各料理に対する食べれる食材の数
+
+        let mut ings_to_foods = vec![vec![]; n_ings];
+
+        for (food_i, food) in self.foods.iter().enumerate() {
+            for &ing in &food.xs {
+                ings_to_foods[ing].push(food_i);
+            }
+        }
+
+        let mut ans = vec![];
+
+        for &ing in &self.ys {
+            // 食材 ing を克服した
+            for &food in &ings_to_foods[ing] {
+                cnt_by_food[food] += 1;
+                if cnt_by_food[food] == self.foods[food].k {
+                    cnt_eatable += 1;
+                }
+            }
+            ans.push(cnt_eatable);
+        }
+
         Answer { ans }
     }
 
@@ -29,12 +82,12 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<i64>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        print_vec_1line(&self.ans);
     }
 }
 
@@ -121,6 +174,7 @@ mod tests {
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
+use proconio::source::Readable;
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,

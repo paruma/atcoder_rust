@@ -1,21 +1,72 @@
 //#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq)]
+struct Question {
+    score: i64,
+    cost: i64,
+    prob: f64,
+}
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    x: i64,
+    ps: Vec<Question>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            x: i64,
+            scps: [(i64, i64, i64); n],
         }
-        Problem { n, xs }
+
+        let ps = scps
+            .iter()
+            .copied()
+            .map(|(score, cost, prob)| Question {
+                score,
+                cost,
+                prob: (prob as f64) / 100.0,
+            })
+            .collect_vec();
+        Problem { n, x, ps }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let x = self.x;
+        let ps = &self.ps;
+        // dp[S][x]: 解いてないのが S、所持金 x のときの追加得点の期待値
+        let mut dp = vec![vec![-120.0; x as usize + 1]; 1 << n];
+
+        for s in BitSet::all_subset(n) {
+            for x in 0..=x {
+                if s.is_empty() {
+                    dp[s][x as usize] = 0.0;
+                } else if x == 0 {
+                    dp[s][x as usize] = 0.0;
+                } else {
+                    dp[s][x as usize] = s
+                        .to_iter(n)
+                        .map(|a| {
+                            if x - ps[a].cost < 0 {
+                                0.0
+                            } else {
+                                let term1 = ps[a].prob
+                                    * (dp[s.removed(a)][(x - ps[a].cost) as usize]
+                                        + ps[a].score as f64);
+
+                                let term2 = (1.0 - ps[a].prob) * dp[s][(x - ps[a].cost) as usize];
+                                term1 + term2
+                            }
+                        })
+                        .max_by(f64::total_cmp)
+                        .unwrap();
+                }
+            }
+        }
+
+        let ans = dp[BitSet::universal_set(n)][x as usize];
         Answer { ans }
     }
 
@@ -27,9 +78,9 @@ impl Problem {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 struct Answer {
-    ans: i64,
+    ans: f64,
 }
 
 impl Answer {
@@ -180,3 +231,123 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use bitset::*;
+#[allow(clippy::module_inception)]
+pub mod bitset {
+    use itertools::Itertools;
+    use std::{
+        fmt::{Error, Formatter},
+        ops::{BitAnd, BitOr, BitXor, Index, IndexMut},
+    };
+    #[derive(Clone, Copy, PartialEq, Eq)]
+    pub struct BitSet {
+        bit: usize,
+    }
+    impl BitSet {
+        #[inline]
+        pub fn new(bit: usize) -> BitSet {
+            BitSet { bit }
+        }
+        pub fn to_bit(self) -> usize {
+            self.bit
+        }
+        /// 持っている要素を Vec<usize> で返す
+        pub fn to_vec(self, len: usize) -> Vec<usize> {
+            (0..len).filter(|i| (self.bit >> i) & 1 == 1).collect_vec()
+        }
+        /// 持っている要素を Iterator で返す
+        pub fn to_iter(self, len: usize) -> impl Iterator<Item = usize> {
+            (0..len).filter(move |i| (self.bit >> i) & 1 == 1)
+        }
+        pub fn contains(self, x: usize) -> bool {
+            (self.bit >> x) & 1 == 1
+        }
+        pub fn len(self) -> usize {
+            self.bit.count_ones() as usize
+        }
+        pub fn inserted(self, x: usize) -> BitSet {
+            BitSet::new(self.bit | (1 << x))
+        }
+        pub fn removed(self, x: usize) -> BitSet {
+            BitSet::new(self.bit & !(1 << x))
+        }
+        pub fn empty() -> BitSet {
+            BitSet::new(0)
+        }
+        pub fn universal_set(size: usize) -> BitSet {
+            BitSet::new((1 << size) - 1)
+        }
+        pub fn complement(self, size: usize) -> BitSet {
+            BitSet::new(self.bit ^ ((1 << size) - 1))
+        }
+        pub fn set_minus(self, other: BitSet) -> BitSet {
+            BitSet::new(self.bit & !other.bit)
+        }
+        pub fn is_empty(self) -> bool {
+            self.bit == 0
+        }
+        pub fn is_subset(self, other: BitSet) -> bool {
+            self | other == other
+        }
+        pub fn all_subset(size: usize) -> impl Iterator<Item = BitSet> {
+            (0..(1 << size)).map(BitSet::new)
+        }
+        pub fn subsets(self) -> impl Iterator<Item = BitSet> {
+            std::iter::successors(Some(self.bit), move |x| {
+                if *x == 0 {
+                    None
+                } else {
+                    Some((x - 1) & self.bit)
+                }
+            })
+            .map(BitSet::new)
+        }
+    }
+    impl BitAnd for BitSet {
+        type Output = BitSet;
+        fn bitand(self, rhs: BitSet) -> BitSet {
+            BitSet::new(self.bit & rhs.bit)
+        }
+    }
+    impl BitOr for BitSet {
+        type Output = BitSet;
+        fn bitor(self, rhs: BitSet) -> BitSet {
+            BitSet::new(self.bit | rhs.bit)
+        }
+    }
+    impl BitXor for BitSet {
+        type Output = BitSet;
+        fn bitxor(self, rhs: BitSet) -> BitSet {
+            BitSet::new(self.bit ^ rhs.bit)
+        }
+    }
+    use std::fmt::Debug;
+    impl Debug for BitSet {
+        fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+            f.write_fmt(format_args!("{:#b}", self.bit))?;
+            Ok(())
+        }
+    }
+    impl<T> Index<BitSet> for [T] {
+        type Output = T;
+        fn index(&self, s: BitSet) -> &Self::Output {
+            &self[s.to_bit()]
+        }
+    }
+    impl<T> IndexMut<BitSet> for [T] {
+        fn index_mut(&mut self, s: BitSet) -> &mut Self::Output {
+            &mut self[s.to_bit()]
+        }
+    }
+    impl<T> Index<BitSet> for Vec<T> {
+        type Output = T;
+        fn index(&self, s: BitSet) -> &Self::Output {
+            &self[..][s]
+        }
+    }
+    impl<T> IndexMut<BitSet> for Vec<T> {
+        fn index_mut(&mut self, s: BitSet) -> &mut Self::Output {
+            &mut self[..][s]
+        }
+    }
+}

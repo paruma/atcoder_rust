@@ -2,20 +2,42 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    m: usize,
+    xs: Vec<(usize, usize)>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            m: usize,
+            xs: [(usize, usize); m],
         }
-        Problem { n, xs }
+        Problem { n, m, xs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let n = self.n;
+        let ys = self
+            .xs
+            .iter()
+            .copied()
+            .map(|(i, j)| (i + j) % n)
+            .collect_vec();
+
+        let cnts = ys.iter().copied().fold(vec![0; n], |mut acc, x| {
+            acc[x] += 1;
+            acc
+        });
+
+        let m = self.m;
+
+        let ans = m * (m - 1) / 2
+            - cnts
+                .iter()
+                .copied()
+                .map(|c| if c == 0 { 0 } else { c * (c - 1) / 2 })
+                .sum::<usize>();
         Answer { ans }
     }
 
@@ -29,7 +51,7 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: usize,
 }
 
 impl Answer {

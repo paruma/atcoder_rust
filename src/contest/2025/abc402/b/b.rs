@@ -1,21 +1,45 @@
 //#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Query {
+    Add { i: usize },
+    Guide,
+}
+
+impl_readable_for_enum! {
+    Query{
+        1 => Add{i: Usize1},
+        2 => Guide,
+    }
+}
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    q: usize,
+    qs: Vec<Query>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            q: usize,
+            qs: [Query; q],
         }
-        Problem { n, xs }
+        Problem { q, qs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let mut ans = vec![];
+        let mut que = Queue::new();
+
+        for q in &self.qs {
+            match *q {
+                Query::Add { i } => {
+                    que.push(i);
+                }
+                Query::Guide => {
+                    ans.push(que.pop().unwrap());
+                }
+            }
+        }
         Answer { ans }
     }
 
@@ -29,12 +53,13 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: i64,
+    ans: Vec<usize>,
 }
 
 impl Answer {
     fn print(&self) {
-        println!("{}", self.ans);
+        let msg = self.ans.iter().copied().map(|x| x + 1).collect_vec();
+        print_vec(&msg);
     }
 }
 
@@ -180,3 +205,58 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+pub mod impl_readable_for_enum {
+    /// 利用例
+    /// ```
+    /// #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    /// enum Query {
+    ///     Move { p: usize, h: usize },
+    ///     Swap { h1: usize, h2: usize },
+    ///     Output { p: usize },
+    /// }
+    /// impl_readable_for_enum! {
+    ///     Query {
+    ///         1 => Move { p: Usize1, h: Usize1 },
+    ///         2 => Swap { h1: Usize1, h2: Usize1 },
+    ///         3 => Output { p: Usize1 },
+    ///     }
+    /// }
+    /// ```
+    #[macro_export]
+    macro_rules ! impl_readable_for_enum {($ enum_name : ident {$ ($ idx : literal => $ variant : ident $ ({$ ($ field : ident : $ ty : ty ) ,* } ) ? ) ,* $ (, ) ? } ) => {impl proconio :: source :: Readable for $ enum_name {type Output = $ enum_name ; fn read < R : std :: io :: BufRead , S : proconio :: source :: Source < R >> (source : & mut S ) -> $ enum_name {input ! {from & mut * source , t : usize } match t {$ ($ idx => {impl_readable_for_enum ! (@ read_variant source , $ enum_name , $ variant $ ({$ ($ field : $ ty ) ,* } ) ? ) } ) ,*, _ => unreachable ! () , } } } } ; (@ read_variant $ source : ident , $ enum_name : ident , $ variant : ident {$ ($ field : ident : $ ty : ty ) ,* } ) => {{input ! {from & mut *$ source , $ ($ field : $ ty ) ,* } ; $ enum_name ::$ variant {$ ($ field ) ,* } } } ; (@ read_variant $ source : ident , $ enum_name : ident , $ variant : ident ) => {{$ enum_name ::$ variant } } ; }
+}
+use mod_queue::*;
+pub mod mod_queue {
+    use std::collections::VecDeque;
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct Queue<T> {
+        raw: VecDeque<T>,
+    }
+    impl<T> Queue<T> {
+        pub fn new() -> Self {
+            Queue {
+                raw: VecDeque::new(),
+            }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push_back(value)
+        }
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop_front()
+        }
+        pub fn peek(&self) -> Option<&T> {
+            self.raw.front()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.raw.is_empty()
+        }
+        pub fn len(&self) -> usize {
+            self.raw.len()
+        }
+    }
+    impl<T> Default for Queue<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+}
