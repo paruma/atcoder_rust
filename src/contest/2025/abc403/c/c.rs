@@ -1,10 +1,40 @@
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        n_people: usize,
+        n_pages: usize,
+        nq: usize,
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
+
+    let mut visible_all = vec![false; n_people];
+    let mut visible_per_user = vec![HashSet::<usize>::new(); n_people];
+
+    for _ in 0..nq {
+        input! {
+            t: usize
+        }
+
+        if t == 1 {
+            input! {
+                user_id: Usize1,
+                page_id: Usize1,
+            }
+            visible_per_user[user_id].insert(page_id);
+        } else if t == 2 {
+            input! {
+                user_id: Usize1,
+            }
+            visible_all[user_id] = true;
+        } else {
+            input! {
+                user_id: Usize1,
+                page_id: Usize1,
+            }
+            let visible = visible_all[user_id] || visible_per_user[user_id].contains(&page_id);
+            print_yesno(visible);
+        }
+    }
+    //let ans: i64 = 0;
+    //println!("{}", ans);
 }
 
 #[cfg(test)]

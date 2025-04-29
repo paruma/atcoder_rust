@@ -1,10 +1,27 @@
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        xs: Chars,
+        ys: Chars,
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
+    let ans: bool = std::iter::repeat('a'..='z')
+        .take(4)
+        .multi_cartesian_product()
+        .any(|zs| {
+            //
+            let next_xs = {
+                let mut next_xs = xs.clone();
+                let mut cnt = 0;
+                for i in 0..xs.len() {
+                    if xs[i] == '?' {
+                        next_xs[i] = zs[cnt];
+                        cnt += 1;
+                    }
+                }
+                next_xs
+            };
+            (0..next_xs.len() - ys.len() + 1).any(|i| next_xs[i..i + ys.len()] == ys)
+        });
+    print_yesno(ans);
 }
 
 #[cfg(test)]

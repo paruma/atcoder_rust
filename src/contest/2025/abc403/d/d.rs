@@ -1,9 +1,61 @@
+fn solve_sub(cnts: &[i64], idxes: &[usize]) -> i64 {
+    let n = idxes.len();
+    let mut dp = vec![[0; 2]; n + 1];
+    for i in 0..n {
+        dp[i + 1][0] = dp[i][1];
+        dp[i + 1][1] = i64::min(dp[i][0], dp[i][1]) + cnts[idxes[i]];
+    }
+    i64::min(dp[n][0], dp[n][1])
+}
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        d: usize,
+        xs: [usize; n],
     }
-    let ans: i64 = 0;
+
+    let max = xs.iter().copied().max().unwrap();
+    let cnts = xs.iter().copied().fold(vec![0; max + 1], |mut acc, x| {
+        acc[x] += 1;
+        acc
+    });
+
+    let exists = cnts.iter().copied().map(|cnt| cnt > 0).collect_vec();
+
+    let ans: i64 = if d == 0 {
+        cnts.iter()
+            .copied()
+            .map(|cnt| if cnt == 0 { 0 } else { cnt - 1 })
+            .sum::<i64>()
+    } else {
+        (0..d)
+            .map(|r| {
+                // d で割った余りが r
+                let idxes = (0..)
+                    .map(|i| i * d + r)
+                    .take_while(|i| *i <= max)
+                    .collect_vec();
+
+                let rle = idxes
+                    .iter()
+                    .copied()
+                    .map(|i| exists[i])
+                    .dedup_with_count()
+                    .collect_vec();
+
+                let mut cnt_all = 0;
+                let mut ans_sum = 0;
+                for (cnt, pred) in rle {
+                    if pred {
+                        let sub_ans = solve_sub(&cnts, &idxes[cnt_all..cnt_all + cnt]);
+                        ans_sum += sub_ans;
+                    }
+                    cnt_all += cnt;
+                }
+                ans_sum
+            })
+            .sum::<i64>()
+    };
     println!("{}", ans);
 }
 
