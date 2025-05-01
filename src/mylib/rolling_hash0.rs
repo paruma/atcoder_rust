@@ -3,8 +3,13 @@ use cargo_snippet::snippet;
 
 #[snippet(prefix = "use rolling_hash::*;", include = "modint_u64")]
 pub mod rolling_hash {
-
     type Mint = super::ModInt2305843009213693951;
+
+    pub fn generate_random_base() -> i64 {
+        use rand::{rngs::SmallRng, Rng, SeedableRng};
+        let mut rng = SmallRng::from_entropy();
+        rng.gen_range(2..Mint::modulus() as i64)
+    }
 
     #[derive(Clone, Debug)]
     pub struct RollingHash {
@@ -52,6 +57,12 @@ pub mod monoid_rolling_hash {
     use std::convert::Infallible;
 
     type Mint = super::ModInt2305843009213693951;
+
+    pub fn generate_random_base() -> i64 {
+        use rand::{rngs::SmallRng, Rng, SeedableRng};
+        let mut rng = SmallRng::from_entropy();
+        rng.gen_range(2..Mint::modulus() as i64)
+    }
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
     pub struct RollingHash {
@@ -101,6 +112,12 @@ pub mod monoid_rolling_hash {
 pub mod rolling_hash_2d {
 
     type Mint = super::ModInt2305843009213693951;
+
+    pub fn generate_random_base() -> i64 {
+        use rand::{rngs::SmallRng, Rng, SeedableRng};
+        let mut rng = SmallRng::from_entropy();
+        rng.gen_range(2..Mint::modulus() as i64)
+    }
 
     #[derive(Clone, Debug)]
     pub struct RollingHash2D {

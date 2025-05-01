@@ -37,8 +37,7 @@ fn main() {
         })
         .collect_vec();
 
-    let mut rng = SmallRng::from_entropy();
-    let base = rng.gen_range(123..=1_000_000);
+    let base = generate_random_base();
 
     let mut hash_to_min_left = HashMap::new();
     for i in 0..xs.len() {
@@ -97,7 +96,6 @@ use proconio::{
     derive_readable, fastout, input,
     marker::{Bytes, Chars, Usize1},
 };
-use rand::{rngs::SmallRng, Rng, SeedableRng};
 #[allow(unused_imports)]
 use std::cmp::Reverse;
 #[allow(unused_imports)]
@@ -556,6 +554,11 @@ pub mod modint_u64 {
 }
 pub mod rolling_hash {
     type Mint = super::ModInt2305843009213693951;
+    pub fn generate_random_base() -> i64 {
+        use rand::{rngs::SmallRng, Rng, SeedableRng};
+        let mut rng = SmallRng::from_entropy();
+        rng.gen_range(2..Mint::modulus() as i64)
+    }
     #[derive(Clone, Debug)]
     pub struct RollingHash {
         hash_list: Vec<Mint>,
