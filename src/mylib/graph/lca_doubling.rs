@@ -1,5 +1,3 @@
-use cargo_snippet::snippet;
-
 #[allow(clippy::module_inception)]
 pub mod lca_doubling {
     use std::mem::swap;
