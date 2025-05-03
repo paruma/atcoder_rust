@@ -1,15 +1,11 @@
-fn main() {
-    input! {
-        xs: Chars,
-        ys: Chars,
-    }
-    let ans: bool = std::iter::repeat('a'..='z')
+fn solve1(xs: &[char], ys: &[char]) -> bool {
+    std::iter::repeat('a'..='z')
         .take(4)
         .multi_cartesian_product()
         .any(|zs| {
             //
             let next_xs = {
-                let mut next_xs = xs.clone();
+                let mut next_xs = xs.to_vec();
                 let mut cnt = 0;
                 for i in 0..xs.len() {
                     if xs[i] == '?' {
@@ -19,8 +15,34 @@ fn main() {
                 }
                 next_xs
             };
-            (0..next_xs.len() - ys.len() + 1).any(|i| next_xs[i..i + ys.len()] == ys)
-        });
+            // windows を使うと良かった
+            // (0..next_xs.len() - ys.len() + 1).any(|i| next_xs[i..i + ys.len()] == ys)
+            next_xs.windows(ys.len()).any(|sub_xs| sub_xs == ys)
+        })
+}
+
+fn solve2(xs: &[char], ys: &[char]) -> bool {
+    // 全部 multi_cartesian_product
+    let alphabet = ('a'..='z').collect_vec();
+
+    xs.iter()
+        .copied()
+        .map(|x| if x == '?' { alphabet.clone() } else { vec![x] })
+        .multi_cartesian_product()
+        .any(|next_xs| next_xs.windows(ys.len()).contains(&ys))
+}
+
+fn solve3(xs: &[char], ys: &[char]) -> bool {
+    // 工夫する
+    xs.windows(ys.len())
+        .any(|sub_xs| izip!(sub_xs, ys).all(|(&x, &y)| x == '?' || x == y))
+}
+fn main() {
+    input! {
+        xs: Chars,
+        ys: Chars,
+    }
+    let ans: bool = solve3(&xs, &ys);
     print_yesno(ans);
 }
 

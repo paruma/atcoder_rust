@@ -43,10 +43,7 @@ fn main() {
     for i in 0..xs.len() {
         let (id, str) = &xs[i];
         let hash = RollingHash::new(str, base).hash(0, str.len());
-        #[allow(clippy::map_entry)]
-        if !hash_to_min_left.contains_key(&hash) {
-            hash_to_min_left.insert(hash, *id);
-        }
+        hash_to_min_left.entry(hash).or_insert(*id);
     }
 
     // dbg!(&hash_to_min_left);
