@@ -5,6 +5,10 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [[bin]]
+name = "edpc_v"
+path = "src/contest/2025/_misc/edpc/dp_v.rs"
+
+[[bin]]
 name = "abc403_a"
 path = "src/contest/2025/abc403/a/a.rs"
 
