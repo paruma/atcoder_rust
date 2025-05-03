@@ -1,17 +1,8 @@
 use ac_library::{ModInt as Mint, Monoid};
-pub struct MintProd(Infallible);
-impl Monoid for MintProd {
-    type S = Mint;
-    fn identity() -> Self::S {
-        Mint::new(1)
-    }
-    fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
-        a * b
-    }
-}
+
 struct DpvReroot();
 impl Reroot for DpvReroot {
-    type M = MintProd;
+    type M = MintMultiplicative<Mint>;
 
     fn add_vertex(&self, x: &<Self::M as Monoid>::S, _v: usize) -> <Self::M as Monoid>::S {
         *x
@@ -377,6 +368,37 @@ pub mod reroot {
             fn default() -> Self {
                 Self::new()
             }
+        }
+    }
+}
+use monoid_modint::*;
+pub mod monoid_modint {
+    use ac_library::{modint::ModIntBase, Monoid};
+    use std::{convert::Infallible, marker::PhantomData};
+    pub struct MintAdditive<Mint: ModIntBase>(Infallible, PhantomData<fn() -> Mint>);
+    impl<Mint> Monoid for MintAdditive<Mint>
+    where
+        Mint: ModIntBase,
+    {
+        type S = Mint;
+        fn identity() -> Self::S {
+            Mint::raw(0)
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            *a + *b
+        }
+    }
+    pub struct MintMultiplicative<Mint: ModIntBase>(Infallible, PhantomData<fn() -> Mint>);
+    impl<Mint> Monoid for MintMultiplicative<Mint>
+    where
+        Mint: ModIntBase,
+    {
+        type S = Mint;
+        fn identity() -> Self::S {
+            Mint::raw(1)
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            *a * *b
         }
     }
 }
