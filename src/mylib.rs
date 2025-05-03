@@ -18,6 +18,7 @@ pub mod neg_ext_int;
 pub mod old;
 pub mod pos0;
 pub mod random;
+pub mod reroot;
 pub mod rolling_hash0;
 pub mod scan_iter0;
 pub mod segtree_lib;
