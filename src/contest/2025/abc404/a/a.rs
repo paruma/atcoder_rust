@@ -1,9 +1,8 @@
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        xs: Chars,
     }
-    let ans: i64 = 0;
+    let ans: char = ('a'..='z').find(|x| !xs.contains(&x)).unwrap();
     println!("{}", ans);
 }
 

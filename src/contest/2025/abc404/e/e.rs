@@ -1,9 +1,29 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        mut lens: [usize; n - 1],
+        mut xs: [i64; n - 1],
     }
-    let ans: i64 = 0;
+
+    lens.insert(0, 0);
+    xs.insert(0, 0);
+
+    let mut dp = vec![0; n];
+
+    for i in 1..n {
+        let begin = i.saturating_sub(lens[i]);
+        let end = i;
+        let pos1 = (begin..end).rfind(|i| xs[*i] == 1);
+        if let Some(pos1) = pos1 {
+            dp[i] = dp[pos1] + 1;
+        } else {
+            dp[i] = (begin..end).map(|i| dp[i]).min().unwrap() + 1;
+        }
+    }
+
+    let final_pos = (0..n).rfind(|i| xs[*i] == 1).unwrap();
+
+    let ans: i64 = dp[final_pos];
     println!("{}", ans);
 }
 
