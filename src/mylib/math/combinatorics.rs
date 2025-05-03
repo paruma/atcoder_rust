@@ -26,14 +26,14 @@ pub mod i64_combinatorics {
 
 #[snippet(prefix = "use mod_combinatorics::*;")]
 pub mod mod_combinatorics {
-    use ac_library::ModInt998244353 as Mint;
+    use ac_library::modint::ModIntBase;
 
-    pub struct Comb {
+    pub struct Comb<Mint: ModIntBase> {
         fac: Vec<Mint>,
         invfac: Vec<Mint>,
     }
 
-    impl Comb {
+    impl<Mint: ModIntBase> Comb<Mint> {
         pub fn new(max_val: usize) -> Self {
             let mut inv = vec![Mint::new(0); max_val + 1];
             let mut fac = vec![Mint::new(0); max_val + 1];
@@ -120,11 +120,12 @@ mod tests_i64_combinatorics {
 mod tests_mod_combinatorics {
 
     use super::mod_combinatorics::*;
+    use ac_library::ModInt998244353 as Mint;
 
     #[test]
     fn test_comb() {
         {
-            let comb = Comb::new(10);
+            let comb = Comb::<Mint>::new(10);
             assert_eq!(comb.comb(5, 3), 10.into());
             assert_eq!(comb.comb(5, 0), 1.into());
             assert_eq!(comb.comb(5, 5), 1.into());
@@ -133,7 +134,7 @@ mod tests_mod_combinatorics {
             assert_eq!(comb.comb(0, 0), 1.into());
         }
         {
-            let comb = Comb::new(10000);
+            let comb = Comb::<Mint>::new(10000);
             assert_eq!(comb.comb(10000, 5000), 156178480.into());
         }
     }
@@ -141,14 +142,14 @@ mod tests_mod_combinatorics {
     #[test]
     fn test_perm() {
         {
-            let comb = Comb::new(10);
+            let comb = Comb::<Mint>::new(10);
             assert_eq!(comb.perm(5, 3), 60.into());
             assert_eq!(comb.perm(5, 0), 1.into());
             assert_eq!(comb.perm(5, 5), 120.into());
             assert_eq!(comb.perm(0, 0), 1.into());
         }
         {
-            let comb = Comb::new(10000);
+            let comb = Comb::<Mint>::new(10000);
             assert_eq!(comb.perm(10000, 5000), 709300690.into());
         }
     }
@@ -156,29 +157,27 @@ mod tests_mod_combinatorics {
     #[test]
     fn test_factorial() {
         {
-            let comb = Comb::new(5);
+            let comb = Comb::<Mint>::new(5);
             assert_eq!(comb.factorial(0), 1.into());
             assert_eq!(comb.factorial(1), 1.into());
             assert_eq!(comb.factorial(5), 120.into());
         }
         {
-            let comb = Comb::new(10000);
+            let comb = Comb::<Mint>::new(10000);
             assert_eq!(comb.factorial(10000), 777990065.into());
         }
     }
 
     #[test]
     fn test_inv_factorial() {
-        use ac_library::ModInt998244353 as Mint;
-
         {
-            let comb = Comb::new(5);
+            let comb = Comb::<Mint>::new(5);
             assert_eq!(comb.inv_factorial(0), 1.into());
             assert_eq!(comb.inv_factorial(1), 1.into());
             assert_eq!(comb.inv_factorial(5), Mint::new(120).inv());
         }
         {
-            let comb = Comb::new(10000);
+            let comb = Comb::<Mint>::new(10000);
             assert_eq!(comb.inv_factorial(10000), Mint::new(777990065).inv());
         }
     }

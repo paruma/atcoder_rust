@@ -237,33 +237,33 @@ pub mod monoid_gcd_lcm {
 pub mod monoid_modint {
     use std::{convert::Infallible, marker::PhantomData};
 
-    use ac_library::{Modulus, Monoid, StaticModInt};
+    use ac_library::{modint::ModIntBase, Monoid};
 
-    pub struct MintAdditive<Mod>(Infallible, PhantomData<fn() -> Mod>);
-    impl<Mod> Monoid for MintAdditive<Mod>
+    pub struct MintAdditive<Mint: ModIntBase>(Infallible, PhantomData<fn() -> Mint>);
+    impl<Mint> Monoid for MintAdditive<Mint>
     where
-        Mod: Modulus,
+        Mint: ModIntBase,
     {
-        type S = StaticModInt<Mod>;
+        type S = Mint;
         fn identity() -> Self::S {
-            StaticModInt::raw(0)
+            Mint::raw(0)
         }
         fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
-            a + b
+            *a + *b
         }
     }
 
-    pub struct MintMultiplicative<Mod>(Infallible, PhantomData<fn() -> Mod>);
-    impl<Mod> Monoid for MintMultiplicative<Mod>
+    pub struct MintMultiplicative<Mint: ModIntBase>(Infallible, PhantomData<fn() -> Mint>);
+    impl<Mint> Monoid for MintMultiplicative<Mint>
     where
-        Mod: Modulus,
+        Mint: ModIntBase,
     {
-        type S = StaticModInt<Mod>;
+        type S = Mint;
         fn identity() -> Self::S {
-            StaticModInt::raw(1)
+            Mint::raw(1)
         }
         fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
-            a * b
+            *a * *b
         }
     }
 }
@@ -590,14 +590,14 @@ mod test_monoid_gcd_lcm {
 }
 #[cfg(test)]
 mod test_monoid_modint {
-    use ac_library::{Mod998244353, ModInt998244353, Monoid};
+    use ac_library::{ModInt998244353, Monoid};
 
     use super::monoid_modint::*;
 
     #[test]
     fn test_monoid_mint_additive() {
         type Mint = ModInt998244353;
-        type M = MintAdditive<Mod998244353>;
+        type M = MintAdditive<Mint>;
         assert_eq!(
             M::binary_operation(&Mint::new(3), &Mint::new(4)),
             Mint::new(7)
@@ -611,7 +611,7 @@ mod test_monoid_modint {
     #[test]
     fn test_monoid_multiplicative() {
         type Mint = ModInt998244353;
-        type M = MintMultiplicative<Mod998244353>;
+        type M = MintMultiplicative<Mint>;
         assert_eq!(
             M::binary_operation(&Mint::new(3), &Mint::new(4)),
             Mint::new(12)

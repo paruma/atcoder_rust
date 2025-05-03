@@ -21,20 +21,39 @@ pub mod static_mod_int {
         }
     }
     pub type ModInt2 = StaticModInt<Mod2>;
+
+    #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
+    pub enum Mod1e9 {}
+
+    impl Modulus for Mod1e9 {
+        const VALUE: u32 = 1_000_000_000;
+        const HINT_VALUE_IS_PRIME: bool = false;
+
+        fn butterfly_cache() -> &'static LocalKey<RefCell<Option<ButterflyCache<Self>>>> {
+            thread_local! {
+                static BUTTERFLY_CACHE: RefCell<Option<ButterflyCache<Mod1e9>>> = RefCell::default();
+            }
+            &BUTTERFLY_CACHE
+        }
+    }
+    pub type ModInt1e9 = StaticModInt<Mod1e9>;
 }
 
 #[snippet(prefix = "use modint_to_rational::*;")]
 pub mod modint_to_rational {
+    use ac_library::modint::ModIntBase;
     use num_rational::Rational64;
 
     pub trait ToRational {
         fn to_rational(&self) -> Option<Rational64>;
         fn to_rational_str(&self) -> String {
-            self.to_rational().map(|x| x.to_string()).unwrap_or("cannot reconstruct".to_string())
+            self.to_rational()
+                .map(|x| x.to_string())
+                .unwrap_or("cannot reconstruct".to_string())
         }
     }
 
-    impl ToRational for ac_library::ModInt998244353 {
+    impl<M: ModIntBase> ToRational for M {
         /// 注意: 1000 * 2000 = 2*10^6 の計算をしている
         fn to_rational(&self) -> Option<Rational64> {
             if self.val() == 0 {
@@ -70,7 +89,11 @@ mod tests {
             assert_eq!(actual_rational, expected_rational);
             assert_eq!(actual_str, expected_str);
         }
-        sub(Mint::new(5) / Mint::new(12), Some(Rational64::new(5, 12)), "5/12".to_string());
+        sub(
+            Mint::new(5) / Mint::new(12),
+            Some(Rational64::new(5, 12)),
+            "5/12".to_string(),
+        );
 
         sub(Mint::new(4), Some(Rational64::new(4, 1)), "4".to_string());
 
@@ -78,8 +101,16 @@ mod tests {
 
         sub(Mint::new(0), Some(Rational64::new(0, 1)), "0".to_string());
 
-        sub(Mint::new(-5) / Mint::new(12), Some(Rational64::new(-5, 12)), "-5/12".to_string());
+        sub(
+            Mint::new(-5) / Mint::new(12),
+            Some(Rational64::new(-5, 12)),
+            "-5/12".to_string(),
+        );
 
-        sub(Mint::new(100000) / Mint::new(654321), None, "cannot reconstruct".to_string());
+        sub(
+            Mint::new(100000) / Mint::new(654321),
+            None,
+            "cannot reconstruct".to_string(),
+        );
     }
 }
