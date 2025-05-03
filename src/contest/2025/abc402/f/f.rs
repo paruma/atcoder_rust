@@ -26,27 +26,31 @@ impl Problem {
             return Answer { ans };
         }
 
-        let mut ans = 0;
-
         let mut first_list = vec![vec![]; n];
+
+        // for の中で毎回 Vec を作ると遅いので、外で作って都度 clear
+        let mut nums = Vec::with_capacity(n);
 
         for moves in BitSet::all_subset(n - 1) {
             let mut cx = 0;
             let mut cy = 0;
-            let mut acc = xss[cy][cx];
+            nums.clear();
+            nums.push(xss[cy][cx]);
             for i in 0..(n - 1) {
                 if moves.contains(i) {
                     cx += 1;
                 } else {
                     cy += 1;
                 }
+                nums.push(xss[cy][cx]);
+            }
 
-                acc = (acc * 10 + xss[cy][cx]) % m;
-            }
-            // n-1桁追加
+            // n-1桁 0 を追加
             for _ in 0..(n - 1) {
-                acc = (acc * 10) % m;
+                nums.push(0);
             }
+
+            let acc = nums.iter().copied().fold(0, |acc, x| (acc * 10 + x) % m);
             first_list[cy].push(acc);
         }
 
@@ -55,7 +59,9 @@ impl Problem {
         for moves in BitSet::all_subset(n - 1) {
             let mut cx = n - 1;
             let mut cy = n - 1;
-            let mut acc = xss[cy][cx];
+
+            nums.clear();
+            nums.push(xss[cy][cx]);
             for i in 0..(n - 1) {
                 if moves.contains(i) {
                     cx -= 1;
@@ -63,10 +69,16 @@ impl Problem {
                     cy -= 1;
                 }
 
-                if i + 1 < n - 1 {
-                    acc = (xss[cy][cx] * 10_i64.pow((i + 1) as u32) + acc) % m;
+                if i != n - 2 {
+                    nums.push(xss[cy][cx]);
                 }
             }
+            let acc = nums
+                .iter()
+                .copied()
+                .rev()
+                .fold(0, |acc, x| (acc * 10 + x) % m);
+
             second_list[cy].push(acc);
         }
 
@@ -77,29 +89,18 @@ impl Problem {
 
         let ans = (0..n)
             .flat_map(|i| {
-                //
                 first_list[i]
                     .iter()
                     .copied()
                     .map(|f| {
-                        let cand1 = second_list[i].upper_bound(&(m - 1 - f));
-                        let cand2 = second_list[i].upper_bound(&(2 * m - 1 - f));
-                        [
-                            if cand1 != 0 {
-                                (f + second_list[i][cand1 - 1]) % m
-                            } else {
-                                (f + second_list[i].last().unwrap()) % m
-                            },
-                            if cand2 != 0 {
-                                (f + second_list[i][cand2 - 1]) % m
-                            } else {
-                                (f + second_list[i].last().unwrap()) % m
-                            },
-                        ]
-                        .iter()
-                        .copied()
-                        .max()
-                        .unwrap()
+                        let cand1 = second_list[i]
+                            .lower_bound(&(m - f))
+                            .checked_sub(1)
+                            .map(|j| (f + second_list[i][j]) % m);
+
+                        let cand2 = second_list[i].last().copied().map(|s| (f + s) % m);
+
+                        [cand1, cand2].iter().copied().flatten().max().unwrap()
                     })
                     .max()
             })
