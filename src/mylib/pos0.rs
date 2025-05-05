@@ -4,7 +4,7 @@ use cargo_snippet::snippet;
 pub mod pos {
     use std::ops::{Add, AddAssign, Neg, Sub, SubAssign};
 
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     pub struct Pos {
         pub x: i64,
         pub y: i64,
@@ -74,6 +74,14 @@ pub mod pos {
     impl SubAssign for Pos {
         fn sub_assign(&mut self, rhs: Self) {
             *self = *self - rhs
+        }
+    }
+
+    use std::fmt::{Debug, Error, Formatter};
+    impl Debug for Pos {
+        fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+            f.write_fmt(format_args!("({}, {})", self.x, self.y))?;
+            Ok(())
         }
     }
 
@@ -274,7 +282,6 @@ mod tests_pos {
     fn test_pos_add() {
         let p1: Pos = Pos::new(2, 3);
         let p2: Pos = Pos::new(4, 7);
-
         assert_eq!(p1 + p2, Pos::new(6, 10));
     }
 
