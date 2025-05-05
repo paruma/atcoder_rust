@@ -1,21 +1,116 @@
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
-    n: usize,
-    xs: Vec<i64>,
+    h: usize,
+    w: usize,
+    xs: Vec<char>,
+}
+
+fn dirs_to_pos_list(dirs: &[char]) -> Vec<Pos> {
+    let mut cur_pos = Pos::new(0, 0);
+    let mut pos_list = vec![cur_pos];
+    for &dir_ch in dirs {
+        let dir = if dir_ch == 'R' {
+            Pos::new(1, 0)
+        } else {
+            Pos::new(0, 1)
+        };
+        cur_pos += dir;
+        pos_list.push(cur_pos)
+    }
+
+    pos_list
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
-            n: usize,
-            xs: [i64; n],
+            h: usize,
+            w: usize,
+            xs: Chars,
         }
-        Problem { n, xs }
+        Problem { h, w, xs }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        let h = self.h;
+        let w = self.w;
+        let xs = &self.xs;
+        // let xs = self
+        //     .xs
+        //     .iter()
+        //     .copied()
+        //     .map(|ch| if ch == 'D' { 1 } else { -1 })
+        //     .collect_vec();
+
+        let cnt_hatena = xs.iter().copied().filter(|ch| *ch == '?').count();
+        let cnt_right = xs.iter().copied().filter(|ch| *ch == 'R').count();
+        let cnt_down = xs.iter().copied().filter(|ch| *ch == 'D').count();
+
+        let required_right = w - 1 - cnt_right;
+        let required_down = h - 1 - cnt_down;
+
+        let down_dirs = {
+            let mut next_xs = xs.clone();
+            let mut cnt_changed = 0;
+            for i in 0..next_xs.len() {
+                if next_xs[i] == '?' {
+                    next_xs[i] = if cnt_changed < required_down {
+                        'D'
+                    } else {
+                        'R'
+                    };
+                    cnt_changed += 1;
+                }
+            }
+
+            next_xs
+        };
+
+        let down_pos_list = dirs_to_pos_list(&down_dirs);
+
+        let up_dirs = {
+            let mut next_xs = xs.clone();
+            let mut cnt_changed = 0;
+            for i in 0..next_xs.len() {
+                if next_xs[i] == '?' {
+                    next_xs[i] = if cnt_changed < required_right {
+                        'R'
+                    } else {
+                        'D'
+                    };
+                    cnt_changed += 1;
+                }
+            }
+
+            next_xs
+        };
+        let up_pos_list = dirs_to_pos_list(&up_dirs);
+
+        let down_max_y_list = {
+            let mut y_list = vec![-123; w];
+
+            for &p in &down_pos_list {
+                chmax!(y_list[p.x as usize], p.y);
+            }
+            y_list
+        };
+
+        let up_min_y_list = {
+            let mut y_list = vec![i64::MAX; w];
+
+            for &p in &up_pos_list {
+                chmin!(y_list[p.x as usize], p.y);
+            }
+            y_list
+        };
+
+        // dbg!(down_max_y_list);
+        // dbg!(up_min_y_list);
+
+        let ans = (0..w)
+            .map(|x| down_max_y_list[x] - up_min_y_list[x] + 1)
+            .sum::<i64>();
         Answer { ans }
     }
 
@@ -39,7 +134,12 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    input! {
+        t: usize
+    }
+    for _ in 0..t {
+        Problem::read().solve().print();
+    }
 }
 
 #[cfg(test)]
@@ -180,3 +280,118 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use pos::*;
+pub mod pos {
+    use std::ops::{Add, AddAssign, Neg, Sub, SubAssign};
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    pub struct Pos {
+        pub x: i64,
+        pub y: i64,
+    }
+    impl Pos {
+        pub fn new(x: i64, y: i64) -> Pos {
+            Pos { x, y }
+        }
+    }
+    impl Pos {
+        pub fn scala_mul(self, rhs: i64) -> Pos {
+            Pos::new(self.x * rhs, self.y * rhs)
+        }
+    }
+    impl Pos {
+        pub fn inner_product(self, rhs: Self) -> i64 {
+            self.x * rhs.x + self.y * rhs.y
+        }
+        pub fn norm_square(self) -> i64 {
+            self.inner_product(self)
+        }
+    }
+    impl Add for Pos {
+        type Output = Pos;
+        fn add(self, rhs: Self) -> Self::Output {
+            Pos::new(self.x + rhs.x, self.y + rhs.y)
+        }
+    }
+    impl Sub for Pos {
+        type Output = Pos;
+        fn sub(self, rhs: Self) -> Self::Output {
+            Pos::new(self.x - rhs.x, self.y - rhs.y)
+        }
+    }
+    impl Neg for Pos {
+        type Output = Self;
+        fn neg(self) -> Self::Output {
+            Pos::new(-self.x, -self.y)
+        }
+    }
+    impl num_traits::Zero for Pos {
+        fn zero() -> Self {
+            Pos::new(0, 0)
+        }
+        fn is_zero(&self) -> bool {
+            self.x.is_zero() && self.y.is_zero()
+        }
+    }
+    impl AddAssign for Pos {
+        fn add_assign(&mut self, rhs: Self) {
+            *self = *self + rhs
+        }
+    }
+    impl SubAssign for Pos {
+        fn sub_assign(&mut self, rhs: Self) {
+            *self = *self - rhs
+        }
+    }
+    pub const DIR8_LIST: [Pos; 8] = [
+        Pos { x: 0, y: 1 },
+        Pos { x: 1, y: 1 },
+        Pos { x: 1, y: 0 },
+        Pos { x: 1, y: -1 },
+        Pos { x: 0, y: -1 },
+        Pos { x: -1, y: -1 },
+        Pos { x: -1, y: 0 },
+        Pos { x: -1, y: 1 },
+    ];
+    pub const DIR4_LIST: [Pos; 4] = [
+        Pos { x: 0, y: 1 },
+        Pos { x: 1, y: 0 },
+        Pos { x: 0, y: -1 },
+        Pos { x: -1, y: 0 },
+    ];
+    impl Pos {
+        pub fn around4_pos_iter(self) -> impl Iterator<Item = Pos> {
+            DIR4_LIST.iter().copied().map(move |d| self + d)
+        }
+        pub fn around8_pos_iter(self) -> impl Iterator<Item = Pos> {
+            DIR8_LIST.iter().copied().map(move |d| self + d)
+        }
+    }
+}
+#[allow(clippy::module_inception)]
+#[macro_use]
+pub mod chminmax {
+    #[allow(unused_macros)]
+    #[macro_export]
+    macro_rules! chmin {
+        ($ a : expr , $ b : expr ) => {
+            if $a > $b {
+                $a = $b;
+                true
+            } else {
+                false
+            }
+        };
+    }
+    #[allow(unused_macros)]
+    #[macro_export]
+    macro_rules! chmax {
+        ($ a : expr , $ b : expr ) => {
+            if $a < $b {
+                $a = $b;
+                true
+            } else {
+                false
+            }
+        };
+    }
+}
