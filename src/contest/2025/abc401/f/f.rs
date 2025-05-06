@@ -82,6 +82,76 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve2(&self) -> Answer {
+        // 頻度分布の畳み込みを使う
+        let nv1 = self.nv1;
+        let nv2 = self.nv2;
+
+        let adj1 = self
+            .es1
+            .iter()
+            .copied()
+            .fold(vec![vec![]; nv1], |mut acc, e| {
+                acc[e.u].push(e.v);
+                acc[e.v].push(e.u);
+                acc
+            });
+        let adj2 = self
+            .es2
+            .iter()
+            .copied()
+            .fold(vec![vec![]; nv2], |mut acc, e| {
+                acc[e.u].push(e.v);
+                acc[e.v].push(e.u);
+                acc
+            });
+
+        let max_dist1 = DistMaxReroot {}
+            .reroot(&adj1)
+            .iter()
+            .map(|i| *i as i64)
+            .collect_vec();
+        let max_dist2 = DistMaxReroot {}
+            .reroot(&adj2)
+            .iter()
+            .map(|i| *i as i64)
+            .sorted()
+            .collect_vec();
+
+        let diam1 = max_dist1.iter().copied().max().unwrap();
+        let diam2 = max_dist2.iter().copied().max().unwrap();
+        let max_diam = i64::max(diam1, diam2);
+
+        let max_dist1_cnts = max_dist1
+            .iter()
+            .copied()
+            .fold(vec![0; nv1 + 1], |mut acc, d| {
+                acc[d as usize] += 1;
+                acc
+            });
+
+        let max_dist2_cnts = max_dist2
+            .iter()
+            .copied()
+            .fold(vec![0; nv2 + 1], |mut acc, d| {
+                acc[d as usize] += 1;
+                acc
+            });
+
+        let dist_sum_cnts = ac_library::convolution_i64(&max_dist1_cnts, &max_dist2_cnts);
+
+        let term1 = (0..max_diam - 1)
+            .map(|d| dist_sum_cnts[d as usize])
+            .sum::<i64>()
+            * max_diam;
+
+        let term2 = ((max_diam - 1) as usize..dist_sum_cnts.len())
+            .map(|d| dist_sum_cnts[d] * (d + 1) as i64)
+            .sum::<i64>();
+
+        let ans = term1 + term2;
+        Answer { ans }
+    }
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -102,7 +172,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
