@@ -1,0 +1,102 @@
+fn main() {
+    input! {
+        a: i64,
+        b: i64,
+    }
+
+    let gcd = num_integer::gcd(a, b);
+    let ans = if gcd == 1 {
+        let ext_gcd = num::Integer::extended_gcd(&b, &(-a));
+        let x = ext_gcd.x * 2;
+        let y = ext_gcd.y * 2;
+        Some((x, y))
+    } else if gcd == 2 {
+        let ext_gcd = num::Integer::extended_gcd(&b, &(-a));
+        let x = ext_gcd.x;
+        let y = ext_gcd.y;
+        Some((x, y))
+    } else {
+        None
+    };
+    if let Some((x, y)) = ans {
+        println!("{} {}", x, y);
+    } else {
+        println!("{}", -1);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[allow(unused_imports)]
+    use super::*;
+    #[allow(unused_imports)]
+    use rand::{rngs::SmallRng, seq::SliceRandom, *};
+
+    #[test]
+    fn test_problem() {
+        assert_eq!(1 + 1, 2);
+    }
+}
+
+// ====== import ======
+#[allow(unused_imports)]
+use itertools::{chain, iproduct, izip, Itertools};
+#[allow(unused_imports)]
+use proconio::{
+    derive_readable, fastout, input,
+    marker::{Bytes, Chars, Usize1},
+};
+#[allow(unused_imports)]
+use std::cmp::Reverse;
+#[allow(unused_imports)]
+use std::collections::{BinaryHeap, HashMap, HashSet};
+
+// ====== output func ======
+#[allow(unused_imports)]
+use print_vec::*;
+pub mod print_vec {
+
+    use itertools::Itertools;
+    use proconio::fastout;
+    #[fastout]
+    pub fn print_vec<T: std::fmt::Display>(arr: &[T]) {
+        for a in arr {
+            println!("{}", a);
+        }
+    }
+    #[fastout]
+    pub fn print_vec_1line<T: std::fmt::Display>(arr: &[T]) {
+        let msg = arr.iter().map(|x| format!("{}", x)).join(" ");
+        println!("{}", msg);
+    }
+    #[fastout]
+    pub fn print_vec2<T: std::fmt::Display>(arr: &Vec<Vec<T>>) {
+        for row in arr {
+            let msg = row.iter().map(|x| format!("{}", x)).join(" ");
+            println!("{}", msg);
+        }
+    }
+    pub fn print_bytes(bytes: &[u8]) {
+        let msg = String::from_utf8(bytes.to_vec()).unwrap();
+        println!("{}", msg);
+    }
+    pub fn print_chars(chars: &[char]) {
+        let msg = chars.iter().collect::<String>();
+        println!("{}", msg);
+    }
+    #[fastout]
+    pub fn print_vec_bytes(vec_bytes: &[Vec<u8>]) {
+        for row in vec_bytes {
+            let msg = String::from_utf8(row.to_vec()).unwrap();
+            println!("{}", msg);
+        }
+    }
+}
+
+#[allow(unused)]
+fn print_yesno(ans: bool) {
+    let msg = if ans { "Yes" } else { "No" };
+    println!("{}", msg);
+}
+
+// ====== snippet ======
