@@ -10,20 +10,28 @@ pub mod lca_doubling {
     impl Lca {
         /// tree_parent[i]: i の 親 を表す。根の場合は tree_parent[i] == i
         /// 計算量: O(nv log(nv)) (nv は頂点の数とする)
-        pub fn new(tree_parent: &[usize]) -> Self {
+        pub fn new(tree_parent: &[Option<usize>]) -> Self {
             let nv = tree_parent.len();
 
             let tree_children = tree_parent.iter().copied().enumerate().fold(
                 vec![vec![]; nv],
                 |mut acc, (child, parent)| {
-                    if child != parent {
+                    if let Some(parent) = parent {
                         acc[parent].push(child);
                     }
                     acc
                 },
             );
 
-            let root = (0..nv).find(|&v| tree_parent[v] == v).unwrap();
+            let root = (0..nv).find(|&v| tree_parent[v].is_none()).unwrap();
+
+            // root の親を root として扱う
+            let tree_parent = tree_parent
+                .iter()
+                .copied()
+                .enumerate()
+                .map(|(cur, parent)| parent.unwrap_or(cur))
+                .collect::<Vec<usize>>();
 
             let dist = {
                 fn dfs(dist: &mut [i64], current: usize, tree_children: &[Vec<usize>]) {
@@ -110,14 +118,8 @@ mod tests {
 
     use super::lca_doubling::Lca;
 
-    fn lca_naive(tree_parent: &[usize], u: usize, v: usize) -> usize {
-        let ancestor = |x| {
-            std::iter::successors(Some(x), |&acc| {
-                let next = tree_parent[acc];
-                (next != acc).then_some(next)
-            })
-            .collect_vec()
-        };
+    fn lca_naive(tree_parent: &[Option<usize>], u: usize, v: usize) -> usize {
+        let ancestor = |x| std::iter::successors(Some(x), |&acc| tree_parent[acc]).collect_vec();
         let u_ancestor = ancestor(u);
         let v_ancestor = ancestor(v).into_iter().collect::<HashSet<_>>();
         u_ancestor
@@ -141,7 +143,12 @@ mod tests {
         //   └ 5
         //     ├ 10
         //     └ 11
-        let tree_parent = vec![0, 0, 0, 1, 1, 2, 3, 4, 4, 4, 5, 5];
+        let tree_parent = [0, 0, 0, 1, 1, 2, 3, 4, 4, 4, 5, 5]
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(cur, parent)| if cur == parent { None } else { Some(parent) })
+            .collect_vec();
         let n = tree_parent.len();
         let lca = Lca::new(&tree_parent);
 
@@ -166,7 +173,12 @@ mod tests {
         // ├ 2
         // └ 0
         //   └ 3
-        let tree_parent = vec![1, 1, 1, 0];
+        let tree_parent = vec![1, 1, 1, 0]
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(cur, parent)| if cur == parent { None } else { Some(parent) })
+            .collect_vec();
         let n = tree_parent.len();
         let lca = Lca::new(&tree_parent);
 
@@ -182,7 +194,9 @@ mod tests {
         // 複数のサイズの木でテスト
         for n in 1..=8 {
             // 直線的な木 0 - 1 - ... - (n-1)
-            let tree_parent = (0..n).map(|i| if i == 0 { 0 } else { i - 1 }).collect_vec();
+            let tree_parent = (0..n)
+                .map(|i| if i == 0 { None } else { Some(i - 1) })
+                .collect_vec();
             let lca = Lca::new(&tree_parent);
             for u in 0..n {
                 for v in 0..n {
@@ -206,7 +220,12 @@ mod tests {
         //   └ 5
         //     ├ 10
         //     └ 11
-        let tree_parent = vec![0, 0, 0, 1, 1, 2, 3, 4, 4, 4, 5, 5];
+        let tree_parent = vec![0, 0, 0, 1, 1, 2, 3, 4, 4, 4, 5, 5]
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(cur, parent)| if cur == parent { None } else { Some(parent) })
+            .collect_vec();
         let lca = Lca::new(&tree_parent);
 
         assert_eq!(lca.dist(6, 9), 4);
@@ -229,7 +248,12 @@ mod tests {
         //   └ 5
         //     ├ 10
         //     └ 11
-        let tree_parent = vec![0, 0, 0, 1, 1, 2, 3, 4, 4, 4, 5, 5];
+        let tree_parent = vec![0, 0, 0, 1, 1, 2, 3, 4, 4, 4, 5, 5]
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(cur, parent)| if cur == parent { None } else { Some(parent) })
+            .collect_vec();
         let lca = Lca::new(&tree_parent);
 
         assert!(lca.is_path_on(6, 9, 4));
