@@ -74,31 +74,12 @@ impl IInteractive for TestInteractive {
 }
 
 fn solve<T: IInteractive>(asker: &mut T, n: usize, es: &[Edge]) {
-    let tree_parent = {
-        let mut tree_parent = vec![n + 1; n];
-        let adj = es.iter().copied().fold(vec![vec![]; n], |mut acc, e| {
-            acc[e.u].push(e.v);
-            acc[e.v].push(e.u);
-            acc
-        });
-        let root = 0;
-        let mut open = Queue::new();
-        let mut visited = vec![false; n];
-        open.push(root);
-        visited[root] = true;
-        tree_parent[root] = root;
-
-        while let Some(cur) = open.pop() {
-            for &to in &adj[cur] {
-                if !visited[to] {
-                    visited[to] = true;
-                    open.push(to);
-                    tree_parent[to] = cur;
-                }
-            }
-        }
-        tree_parent
-    };
+    let adj = es.iter().copied().fold(vec![vec![]; n], |mut acc, e| {
+        acc[e.u].push(e.v);
+        acc[e.v].push(e.u);
+        acc
+    });
+    let tree_parent = make_tree_parent(&adj, 0);
     let lca = Lca::new(&tree_parent);
 
     let mut cands = (0..n)
@@ -242,10 +223,9 @@ macro_rules! println_flush {
         stdout().flush().unwrap();
     }};
 }
-
-use lca_euler_tour::*;
+use lca::*;
 #[allow(clippy::module_inception)]
-pub mod lca_euler_tour {
+pub mod lca {
     use ac_library::{Monoid, Segtree};
     use itertools::Itertools;
     use std::convert::Infallible;
@@ -269,18 +249,18 @@ pub mod lca_euler_tour {
     impl Lca {
         /// tree_parent[i]: i の 親 を表す。根の場合は tree_parent[i] == i
         /// 計算量: O(nv log(nv)) (nv は頂点の数とする)
-        pub fn new(tree_parent: &[usize]) -> Self {
+        pub fn new(tree_parent: &[Option<usize>]) -> Self {
             let nv = tree_parent.len();
             let tree_children = tree_parent.iter().copied().enumerate().fold(
                 vec![vec![]; nv],
                 |mut acc, (child, parent)| {
-                    if child != parent {
+                    if let Some(parent) = parent {
                         acc[parent].push(child);
                     }
                     acc
                 },
             );
-            let root = (0..nv).find(|&v| tree_parent[v] == v).unwrap();
+            let root = (0..nv).find(|&v| tree_parent[v].is_none()).unwrap();
             let dist = {
                 fn dfs(dist: &mut [i64], current: usize, tree_children: &[Vec<usize>]) {
                     for &child in &tree_children[current] {
@@ -352,38 +332,22 @@ pub mod lca_euler_tour {
         }
     }
 }
-use mod_queue::*;
-pub mod mod_queue {
-    use std::collections::VecDeque;
-    #[derive(Clone, Debug, PartialEq, Eq)]
-    pub struct Queue<T> {
-        raw: VecDeque<T>,
-    }
-    impl<T> Queue<T> {
-        pub fn new() -> Self {
-            Queue {
-                raw: VecDeque::new(),
+/// 根付き木が隣接リストと根で与えられたとき、各頂点の親頂点を返す
+pub fn make_tree_parent(adj: &[Vec<usize>], root: usize) -> Vec<Option<usize>> {
+    let n = adj.len();
+    let mut parent = vec![None; n];
+    let mut visited = vec![false; n];
+    let mut queue = std::collections::VecDeque::new();
+    visited[root] = true;
+    queue.push_back(root);
+    while let Some(v) = queue.pop_front() {
+        for &u in &adj[v] {
+            if !visited[u] {
+                visited[u] = true;
+                parent[u] = Some(v);
+                queue.push_back(u);
             }
         }
-        pub fn push(&mut self, value: T) {
-            self.raw.push_back(value)
-        }
-        pub fn pop(&mut self) -> Option<T> {
-            self.raw.pop_front()
-        }
-        pub fn peek(&self) -> Option<&T> {
-            self.raw.front()
-        }
-        pub fn is_empty(&self) -> bool {
-            self.raw.is_empty()
-        }
-        pub fn len(&self) -> usize {
-            self.raw.len()
-        }
     }
-    impl<T> Default for Queue<T> {
-        fn default() -> Self {
-            Self::new()
-        }
-    }
+    parent
 }
