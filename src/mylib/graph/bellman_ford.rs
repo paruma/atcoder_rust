@@ -108,6 +108,7 @@ pub mod bellman_ford {
     }
 
     use mod_ext_int::*;
+    #[allow(dead_code)]
     mod mod_ext_int {
         use ac_library::Monoid;
         use std::{

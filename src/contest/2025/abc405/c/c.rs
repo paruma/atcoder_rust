@@ -3,7 +3,10 @@ fn main() {
         n: usize,
         xs: [i64; n],
     }
-    let ans: i64 = 0;
+    let xs_sq_sum = xs.iter().copied().map(|x| x * x).sum::<i64>();
+    let xs_sum = xs.iter().copied().sum::<i64>();
+
+    let ans: i64 = (xs_sum * xs_sum - xs_sq_sum) / 2;
     println!("{}", ans);
 }
 

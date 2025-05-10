@@ -1,10 +1,11 @@
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        r: usize,
+        x: usize,
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
+    let range = if x == 1 { 1600..3000 } else { 1200..2400 };
+    let ans: bool = range.contains(&r);
+    print_yesno(ans);
 }
 
 #[cfg(test)]

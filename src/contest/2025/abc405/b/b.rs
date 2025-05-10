@@ -1,9 +1,18 @@
 fn main() {
     input! {
         n: usize,
+        m: i64,
         xs: [i64; n],
     }
-    let ans: i64 = 0;
+
+    let x = (0..=n)
+        .filter(|&end| {
+            let ys = xs[0..end].iter().copied().collect::<HashSet<_>>();
+            !(1..=m).all(|x| ys.contains(&x))
+        })
+        .max()
+        .unwrap();
+    let ans: usize = n - x;
     println!("{}", ans);
 }
 

@@ -1,9 +1,25 @@
 fn main() {
+    use ac_library::ModInt998244353 as Mint;
     input! {
-        n: usize,
-        xs: [i64; n],
+        a: usize,
+        b: usize,
+        c: usize,
+        d: usize,
     }
-    let ans: i64 = 0;
+    let comb: Comb<Mint> = Comb::new(a + b + c + d + 1);
+
+    let ans = (a - 1..a + b)
+        .map(|i| {
+            let term1 = comb.comb(i, a - 1);
+            let term2 = comb.comb(a + b + c + d - i - 1, c);
+            // dbg!(i);
+            // dbg!(term1);
+            // dbg!(term2);
+
+            term1 * term2
+        })
+        .sum::<Mint>();
+    let ans = ans.val();
     println!("{}", ans);
 }
 
@@ -82,3 +98,50 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use mod_combinatorics::*;
+pub mod mod_combinatorics {
+    use ac_library::modint::ModIntBase;
+    pub struct Comb<Mint: ModIntBase> {
+        fac: Vec<Mint>,
+        invfac: Vec<Mint>,
+    }
+    impl<Mint: ModIntBase> Comb<Mint> {
+        pub fn new(max_val: usize) -> Self {
+            let mut inv = vec![Mint::new(0); max_val + 1];
+            let mut fac = vec![Mint::new(0); max_val + 1];
+            let mut invfac = vec![Mint::new(0); max_val + 1];
+            fac[0] = 1.into();
+            fac[1] = 1.into();
+            invfac[0] = 1.into();
+            invfac[1] = 1.into();
+            inv[1] = 1.into();
+            let modulus = Mint::modulus() as usize;
+            for i in 2..=max_val {
+                inv[i] = -inv[modulus % i] * Mint::new(modulus / i);
+                fac[i] = fac[i - 1] * Mint::new(i);
+                invfac[i] = invfac[i - 1] * inv[i];
+            }
+            Self { fac, invfac }
+        }
+        pub fn comb(&self, n: usize, k: usize) -> Mint {
+            if n < k {
+                0.into()
+            } else {
+                self.fac[n] * self.invfac[k] * self.invfac[n - k]
+            }
+        }
+        pub fn perm(&self, n: usize, k: usize) -> Mint {
+            if n < k {
+                0.into()
+            } else {
+                self.fac[n] * self.invfac[n - k]
+            }
+        }
+        pub fn factorial(&self, n: usize) -> Mint {
+            self.fac[n]
+        }
+        pub fn inv_factorial(&self, n: usize) -> Mint {
+            self.invfac[n]
+        }
+    }
+}
