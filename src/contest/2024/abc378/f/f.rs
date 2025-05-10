@@ -2,20 +2,133 @@
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
-    xs: Vec<i64>,
+    es: Vec<(usize, usize)>,
 }
 
 impl Problem {
     fn read() -> Problem {
         input! {
             n: usize,
-            xs: [i64; n],
+            es: [(Usize1, Usize1); n - 1],
         }
-        Problem { n, xs }
+        Problem { n, es }
     }
 
     fn solve(&self) -> Answer {
-        let ans = 0;
+        // UF
+        let n = self.n;
+        let adj = self.es.iter().copied().fold(vec![vec![]; n], |mut acc, e| {
+            acc[e.0].push(e.1);
+            acc[e.1].push(e.0);
+            acc
+        });
+
+        // 連結成分が3同士
+        let mut uf = UnionFind::new(n);
+
+        for current in 0..n {
+            if adj[current].len() == 3 {
+                for &next in &adj[current] {
+                    if adj[next].len() == 3 {
+                        uf.unite(current, next);
+                    }
+                }
+            }
+        }
+
+        let ans = uf
+            .groups()
+            .iter()
+            .filter(|group| adj[group[0]].len() == 3)
+            .map(|group| {
+                // group の隣にある頂点で次数が2のもの
+                let cnt_next_deg2 = group
+                    .iter()
+                    .copied()
+                    .map(|current| {
+                        adj[current]
+                            .iter()
+                            .copied()
+                            .filter(|&next| adj[next].len() == 2)
+                            .count()
+                    })
+                    .sum::<usize>() as i64;
+                cnt_next_deg2 * (cnt_next_deg2 - 1) / 2
+            })
+            .sum::<i64>();
+        Answer { ans }
+    }
+
+    fn solve2(&self) -> Answer {
+        // 木 DP
+
+        let n = self.n;
+        let adj = self.es.iter().copied().fold(vec![vec![]; n], |mut acc, e| {
+            acc[e.0].push(e.1);
+            acc[e.1].push(e.0);
+            acc
+        });
+
+        // dp0[v] = vを根とする部分木での条件をみたす個数 (v がパスの LCA となるもの)
+        // dp1[v] = vから下に下がるパスで次数列が 3 3 ... 2 となるものの個数
+        fn dfs(
+            n: usize,
+            adj: &[Vec<usize>],
+            parent: Option<usize>,
+            current: usize,
+            dp0: &mut Vec<i64>,
+            dp1: &mut Vec<i64>,
+        ) {
+            let children = adj[current]
+                .iter()
+                .copied()
+                .filter(|next| Some(*next) != parent)
+                .collect_vec();
+
+            for &next in &children {
+                dfs(n, adj, Some(current), next, dp0, dp1);
+            }
+
+            let dp1_children = children
+                .iter()
+                .copied()
+                .map(|child| dp1[child])
+                .collect_vec();
+            let dp1_children_sum = dp1_children.iter().copied().sum::<i64>();
+
+            let current_deg = adj[current].len();
+
+            dp0[current] = match current_deg {
+                2 => dp1_children_sum,
+                3 => {
+                    let dp1_children_sq_sum =
+                        dp1_children.iter().copied().map(|x| x * x).sum::<i64>();
+                    (dp1_children_sum * dp1_children_sum - dp1_children_sq_sum) / 2
+                }
+                _ => 0,
+            };
+
+            dp1[current] = match current_deg {
+                2 => 1,
+                3 => dp1_children_sum,
+                _ => 0,
+            };
+        }
+
+        let mut dp0 = vec![0; n];
+        let mut dp1 = vec![0; n];
+
+        dfs(n, &adj, None, 0, &mut dp0, &mut dp1);
+
+        // deg(2) - deg(2) みたいな辺を追加すると多重辺になるパターンを除く
+        let mult_edges = self
+            .es
+            .iter()
+            .copied()
+            .filter(|e| adj[e.0].len() == 2 && adj[e.1].len() == 2)
+            .count() as i64;
+
+        let ans = dp0.iter().sum::<i64>() - mult_edges;
         Answer { ans }
     }
 
@@ -39,7 +152,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve().print();
+    Problem::read().solve2().print();
 }
 
 #[cfg(test)]
@@ -180,3 +293,109 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
+use simple_union_find::*;
+pub mod simple_union_find {
+    use itertools::Itertools;
+    #[derive(Clone, Debug)]
+    struct RootInfo {
+        count: usize,
+    }
+    #[derive(Clone, Debug)]
+    struct NonRootInfo {
+        parent: usize,
+    }
+    #[derive(Clone, Debug)]
+    enum Node {
+        Root(RootInfo),
+        NonRoot(NonRootInfo),
+    }
+    impl Node {
+        fn root(count: usize) -> Node {
+            Node::Root(RootInfo { count })
+        }
+        fn non_root(parent: usize) -> Node {
+            Node::NonRoot(NonRootInfo { parent })
+        }
+        fn as_root(&self) -> &RootInfo {
+            match self {
+                Node::Root(info) => info,
+                Node::NonRoot(_) => panic!(),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct UnionFind {
+        nodes: Vec<Node>,
+        cnt_groups: usize,
+    }
+    impl UnionFind {
+        pub fn new(n: usize) -> UnionFind {
+            let nodes = (0..n).map(|_| Node::root(1)).collect_vec();
+            UnionFind {
+                nodes,
+                cnt_groups: n,
+            }
+        }
+        pub fn root(&mut self, index: usize) -> usize {
+            match &self.nodes[index] {
+                Node::Root(_) => index,
+                Node::NonRoot(info) => {
+                    let root = self.root(info.parent);
+                    self.nodes[index] = Node::non_root(root);
+                    root
+                }
+            }
+        }
+        pub fn same_count(&mut self, index: usize) -> usize {
+            let root_index = self.root(index);
+            self.nodes[root_index].as_root().count
+        }
+        pub fn same(&mut self, x: usize, y: usize) -> bool {
+            self.root(x) == self.root(y)
+        }
+        pub fn num_groups(&self) -> usize {
+            self.cnt_groups
+        }
+        pub fn unite(&mut self, x: usize, y: usize) -> bool {
+            if self.same(x, y) {
+                return false;
+            }
+            self.cnt_groups -= 1;
+            let (smaller_root, larger_root) = {
+                let x_root = self.root(x);
+                let y_root = self.root(y);
+                let x_count = self.nodes[x_root].as_root().count;
+                let y_count = self.nodes[y_root].as_root().count;
+                if x_count < y_count {
+                    (x_root, y_root)
+                } else {
+                    (y_root, x_root)
+                }
+            };
+            let count_sum =
+                self.nodes[smaller_root].as_root().count + self.nodes[larger_root].as_root().count;
+            self.nodes[smaller_root] = Node::non_root(larger_root);
+            self.nodes[larger_root] = Node::root(count_sum);
+            true
+        }
+        pub fn groups(&mut self) -> Vec<Vec<usize>> {
+            let n = self.nodes.len();
+            let roots = (0..n).map(|i| self.root(i)).collect_vec();
+            let group_size = (0..n).map(|i| roots[i]).fold(vec![0; n], |mut acc, x| {
+                acc[x] += 1;
+                acc
+            });
+            let result = {
+                let mut result = vec![Vec::new(); n];
+                for i in 0..n {
+                    result[i].reserve(group_size[i]);
+                }
+                for i in 0..n {
+                    result[roots[i]].push(i);
+                }
+                result
+            };
+            result.into_iter().filter(|x| !x.is_empty()).collect_vec()
+        }
+    }
+}
