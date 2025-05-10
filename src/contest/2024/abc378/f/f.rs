@@ -132,6 +132,74 @@ impl Problem {
         Answer { ans }
     }
 
+    fn solve3(&self) -> Answer {
+        // 木 DP (for ループ)
+        // 再帰で書くと変なところに処理を書いてしまう可能性がある。再帰を外に出すことである程度実装がやりやすくなる？
+
+        let n = self.n;
+        let adj = self.es.iter().copied().fold(vec![vec![]; n], |mut acc, e| {
+            acc[e.0].push(e.1);
+            acc[e.1].push(e.0);
+            acc
+        });
+
+        let mut visited = vec![false; n];
+
+        // dp0[v] = vを根とする部分木での条件をみたす個数 (v がパスの LCA となるもの)
+        // dp1[v] = vから下に下がるパスで次数列が 3 3 ... 2 となるものの個数
+        let mut dp0 = vec![0; n];
+        let mut dp1 = vec![0; n];
+
+        for current in dfs_post_order(&adj, 0) {
+            if visited[current] {
+                continue;
+            }
+            visited[current] = true;
+
+            let children = adj[current]
+                .iter()
+                .copied()
+                .filter(|next| visited[*next])
+                .collect_vec();
+
+            let dp1_children = children
+                .iter()
+                .copied()
+                .map(|child| dp1[child])
+                .collect_vec();
+            let dp1_children_sum = dp1_children.iter().copied().sum::<i64>();
+
+            let current_deg = adj[current].len();
+
+            dp0[current] = match current_deg {
+                2 => dp1_children_sum,
+                3 => {
+                    let dp1_children_sq_sum =
+                        dp1_children.iter().copied().map(|x| x * x).sum::<i64>();
+                    (dp1_children_sum * dp1_children_sum - dp1_children_sq_sum) / 2
+                }
+                _ => 0,
+            };
+
+            dp1[current] = match current_deg {
+                2 => 1,
+                3 => dp1_children_sum,
+                _ => 0,
+            };
+        }
+
+        // deg(2) - deg(2) みたいな辺を追加すると多重辺になるパターンを除く
+        let mult_edges = self
+            .es
+            .iter()
+            .copied()
+            .filter(|e| adj[e.0].len() == 2 && adj[e.1].len() == 2)
+            .count() as i64;
+
+        let ans = dp0.iter().sum::<i64>() - mult_edges;
+        Answer { ans }
+    }
+
     #[allow(dead_code)]
     fn solve_naive(&self) -> Answer {
         todo!();
@@ -152,7 +220,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve2().print();
+    Problem::read().solve3().print();
 }
 
 #[cfg(test)]
@@ -398,4 +466,57 @@ pub mod simple_union_find {
             result.into_iter().filter(|x| !x.is_empty()).collect_vec()
         }
     }
+}
+use mod_stack::*;
+pub mod mod_stack {
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct Stack<T> {
+        raw: Vec<T>,
+    }
+    impl<T> Stack<T> {
+        pub fn new() -> Self {
+            Stack { raw: Vec::new() }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push(value)
+        }
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop()
+        }
+        pub fn peek(&self) -> Option<&T> {
+            self.raw.last()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.raw.is_empty()
+        }
+        pub fn len(&self) -> usize {
+            self.raw.len()
+        }
+    }
+    impl<T> Default for Stack<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+}
+pub fn dfs_post_order(adj: &[Vec<usize>], init: usize) -> Vec<usize> {
+    fn dfs(
+        adj: &[Vec<usize>],
+        current: usize,
+        visited: &mut Vec<bool>,
+        post_order: &mut Vec<usize>,
+    ) {
+        visited[current] = true;
+        for &next in &adj[current] {
+            if !visited[next] {
+                dfs(adj, next, visited, post_order);
+            }
+        }
+        post_order.push(current);
+    }
+    let nv = adj.len();
+    let mut visited = vec![false; nv];
+    let mut post_order = vec![];
+    dfs(adj, init, &mut visited, &mut post_order);
+    post_order
 }
