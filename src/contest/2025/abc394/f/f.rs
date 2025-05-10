@@ -115,7 +115,7 @@ impl Problem {
                         continue;
                     }
 
-                    // dp[next] の中で top 4の和 + 1
+                    // dp[next] の中で top 3の和 + 1
                     dp[current][edge_i] = if !carbons.contains(&next) {
                         0
                     } else {

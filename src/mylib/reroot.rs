@@ -1,7 +1,7 @@
 use cargo_snippet::snippet;
 
 #[allow(clippy::module_inception)]
-#[snippet(prefix = "use random_test::*;")]
+#[snippet(prefix = "use reroot::*;")]
 pub mod reroot {
 
     // Reroot の実装サンプル
@@ -47,8 +47,8 @@ pub mod reroot {
             // dp[v][i]: 頂点v から生える i番目の有向辺の先にある部分木に関する値
             let mut dp: Vec<Vec<<Self::M as Monoid>::S>> = adj
                 .iter()
-                .map(|edges| {
-                    let degree = edges.len();
+                .map(|next_list| {
+                    let degree = next_list.len();
                     vec![Self::M::identity(); degree]
                 })
                 .collect_vec();
@@ -58,23 +58,23 @@ pub mod reroot {
                 let dfs_post_order = dfs_post_order(adj, 0);
                 let mut visited = vec![false; nv];
 
-                for &current in &dfs_post_order {
-                    visited[current] = true;
+                for &current_v in &dfs_post_order {
+                    visited[current_v] = true;
 
-                    for (edge_i, next) in adj[current].iter().copied().enumerate() {
-                        if !visited[next] {
+                    for (current_e, next_v) in adj[current_v].iter().copied().enumerate() {
+                        if !visited[next_v] {
                             continue;
                         }
 
-                        dp[current][edge_i] = {
-                            let edge_dp_next = dp[next]
+                        dp[current_v][current_e] = {
+                            let edge_dp_next = dp[next_v]
                                 .iter()
                                 .enumerate()
-                                .filter(|(ei, _)| adj[next][*ei] != current)
-                                .map(|(ei, x)| self.add_edge(x, next, ei))
+                                .filter(|(next_e, _)| adj[next_v][*next_e] != current_v)
+                                .map(|(next_e, x)| self.add_edge(x, next_v, next_e))
                                 .collect_vec();
                             let prod = Self::prod(&edge_dp_next);
-                            self.add_vertex(&prod, next)
+                            self.add_vertex(&prod, next_v)
                         };
                     }
                 }
@@ -83,37 +83,38 @@ pub mod reroot {
                 // 頂点を BFS の訪問順に並べたもの
                 let bfs_order = bfs_order(adj, 0);
                 let mut visited = vec![false; nv];
-                for &current in &bfs_order {
-                    visited[current] = true;
-                    let edge_dp_current = dp[current]
+                for &current_v in &bfs_order {
+                    visited[current_v] = true;
+                    let edge_dp_current = dp[current_v]
                         .iter()
                         .enumerate()
-                        .map(|(ei, x)| self.add_edge(x, current, ei))
+                        .map(|(current_e, x)| self.add_edge(x, current_v, current_e))
                         .collect_vec();
                     let cum_monoid = CumMonoid::<Self::M>::new(&edge_dp_current);
-                    for (edge_i, next) in adj[current].iter().copied().enumerate() {
-                        if visited[next] {
+                    for (current_e, next_v) in adj[current_v].iter().copied().enumerate() {
+                        if visited[next_v] {
                             continue;
                         }
                         // 償却 O(1) で計算可能
-                        let rev_edge_i = adj[next].iter().position(|&v| v == current).unwrap();
+                        let rev_current_e =
+                            adj[next_v].iter().position(|&v| v == current_v).unwrap();
 
-                        dp[next][rev_edge_i] = {
-                            let prod = cum_monoid.prod_without1(edge_i);
-                            self.add_vertex(&prod, current)
+                        dp[next_v][rev_current_e] = {
+                            let prod = cum_monoid.prod_without1(current_e);
+                            self.add_vertex(&prod, current_v)
                         };
                     }
                 }
             }
             dp.iter()
                 .enumerate()
-                .map(|(v, dp_v)| {
-                    let edge_dp_v = dp_v
+                .map(|(current_v, dp_current)| {
+                    let edge_dp_current = dp_current
                         .iter()
                         .enumerate()
-                        .map(|(ei, x)| self.add_edge(x, v, ei))
+                        .map(|(current_e, x)| self.add_edge(x, current_v, current_e))
                         .collect_vec();
-                    self.add_vertex(&Self::prod(&edge_dp_v), v)
+                    self.add_vertex(&Self::prod(&edge_dp_current), current_v)
                 })
                 .collect_vec()
         }

@@ -335,12 +335,27 @@ impl Reroot for DistMaxReroot {
 }
 
 use reroot::*;
+#[allow(clippy::module_inception)]
 pub mod reroot {
-
+    use ac_library::Max;
+    struct DistMaxReroot();
+    impl Reroot for DistMaxReroot {
+        type M = Max<u64>;
+        fn add_vertex(&self, x: &<Self::M as Monoid>::S, _v: usize) -> <Self::M as Monoid>::S {
+            *x
+        }
+        fn add_edge(
+            &self,
+            x: &<Self::M as Monoid>::S,
+            _v: usize,
+            _ei: usize,
+        ) -> <Self::M as Monoid>::S {
+            x + 1
+        }
+    }
     /// 全方位木DP
     pub trait Reroot {
-        type M: Monoid; // 可換モノイド
-
+        type M: Monoid;
         fn add_vertex(&self, x: &<Self::M as Monoid>::S, v: usize) -> <Self::M as Monoid>::S;
         fn add_edge(
             &self,
@@ -348,90 +363,79 @@ pub mod reroot {
             v: usize,
             ei: usize,
         ) -> <Self::M as Monoid>::S;
-
         fn prod(xs: &[<Self::M as Monoid>::S]) -> <Self::M as Monoid>::S {
             xs.iter().fold(Self::M::identity(), |acc, x| {
                 Self::M::binary_operation(&acc, x)
             })
         }
-
         fn reroot(&self, adj: &[Vec<usize>]) -> Vec<<Self::M as Monoid>::S> {
             let nv = adj.len();
-            // dp[v][i]: 頂点v から生える i番目の有向辺の先にある部分木に関する値
             let mut dp: Vec<Vec<<Self::M as Monoid>::S>> = adj
                 .iter()
-                .map(|edges| {
-                    let degree = edges.len();
+                .map(|next_list| {
+                    let degree = next_list.len();
                     vec![Self::M::identity(); degree]
                 })
                 .collect_vec();
-
             {
-                // 頂点を DFS 帰りかけ順に並べたもの
                 let dfs_post_order = dfs_post_order(adj, 0);
                 let mut visited = vec![false; nv];
-
-                for &current in &dfs_post_order {
-                    visited[current] = true;
-
-                    for (edge_i, next) in adj[current].iter().copied().enumerate() {
-                        if !visited[next] {
+                for &current_v in &dfs_post_order {
+                    visited[current_v] = true;
+                    for (current_e, next_v) in adj[current_v].iter().copied().enumerate() {
+                        if !visited[next_v] {
                             continue;
                         }
-
-                        dp[current][edge_i] = {
-                            let edge_dp_next = dp[next]
+                        dp[current_v][current_e] = {
+                            let edge_dp_next = dp[next_v]
                                 .iter()
                                 .enumerate()
-                                .filter(|(ei, _)| adj[next][*ei] != current)
-                                .map(|(ei, x)| self.add_edge(x, next, ei))
+                                .filter(|(next_e, _)| adj[next_v][*next_e] != current_v)
+                                .map(|(next_e, x)| self.add_edge(x, next_v, next_e))
                                 .collect_vec();
                             let prod = Self::prod(&edge_dp_next);
-                            self.add_vertex(&prod, next)
+                            self.add_vertex(&prod, next_v)
                         };
                     }
                 }
             }
             {
-                // 頂点を BFS の訪問順に並べたもの
                 let bfs_order = bfs_order(adj, 0);
                 let mut visited = vec![false; nv];
-                for &current in &bfs_order {
-                    visited[current] = true;
-                    let edge_dp_current = dp[current]
+                for &current_v in &bfs_order {
+                    visited[current_v] = true;
+                    let edge_dp_current = dp[current_v]
                         .iter()
                         .enumerate()
-                        .map(|(ei, x)| self.add_edge(x, current, ei))
+                        .map(|(current_e, x)| self.add_edge(x, current_v, current_e))
                         .collect_vec();
                     let cum_monoid = CumMonoid::<Self::M>::new(&edge_dp_current);
-                    for (edge_i, next) in adj[current].iter().copied().enumerate() {
-                        if visited[next] {
+                    for (current_e, next_v) in adj[current_v].iter().copied().enumerate() {
+                        if visited[next_v] {
                             continue;
                         }
-                        // 償却 O(1) で計算可能
-                        let rev_edge_i = adj[next].iter().position(|&v| v == current).unwrap();
-
-                        dp[next][rev_edge_i] = {
-                            let prod = cum_monoid.prod_without1(edge_i);
-                            self.add_vertex(&prod, current)
+                        let rev_current_e =
+                            adj[next_v].iter().position(|&v| v == current_v).unwrap();
+                        dp[next_v][rev_current_e] = {
+                            let prod = cum_monoid.prod_without1(current_e);
+                            self.add_vertex(&prod, current_v)
                         };
                     }
                 }
             }
             dp.iter()
                 .enumerate()
-                .map(|(v, dp_v)| {
-                    let edge_dp_v = dp_v
+                .map(|(current_v, dp_current)| {
+                    let edge_dp_current = dp_current
                         .iter()
                         .enumerate()
-                        .map(|(ei, x)| self.add_edge(x, v, ei))
+                        .map(|(current_e, x)| self.add_edge(x, current_v, current_e))
                         .collect_vec();
-                    self.add_vertex(&Self::prod(&edge_dp_v), v)
+                    self.add_vertex(&Self::prod(&edge_dp_current), current_v)
                 })
                 .collect_vec()
         }
     }
-
     fn bfs_order(adj: &[Vec<usize>], init: usize) -> Vec<usize> {
         let nv = adj.len();
         let mut order = vec![];
@@ -451,13 +455,11 @@ pub mod reroot {
         }
         order
     }
-
     fn dfs_post_order(adj: &[Vec<usize>], init: usize) -> Vec<usize> {
         enum State {
             Pre(usize),
             Post(usize),
         }
-
         let nv = adj.len();
         let mut order = vec![];
         let mut visited = vec![false; nv];
@@ -476,14 +478,12 @@ pub mod reroot {
                     }
                 }
                 State::Post(v) => {
-                    // 帰りがけ
                     order.push(v);
                 }
             }
         }
         order
     }
-
     use ac_library::Monoid;
     use cum_monoid::*;
     pub mod cum_monoid {
@@ -513,7 +513,6 @@ pub mod reroot {
                     suffix_prod,
                 }
             }
-
             /// [0, i), [i + 1, n) の区間で総積を取る
             pub fn prod_without1(&self, i: usize) -> M::S {
                 M::binary_operation(&self.prefix_prod[i], &self.suffix_prod[i + 1])
@@ -553,7 +552,6 @@ pub mod reroot {
             }
         }
     }
-
     use mod_queue::*;
     pub mod mod_queue {
         use std::collections::VecDeque;
@@ -590,6 +588,7 @@ pub mod reroot {
         }
     }
 }
+
 use cumsum::*;
 pub mod cumsum {
     pub fn prefix_sum(xs: &[i64]) -> Vec<i64> {
