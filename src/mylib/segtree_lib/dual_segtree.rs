@@ -233,18 +233,18 @@ pub mod range_add {
 
     pub struct AddMonoid(Infallible);
     impl MapMonoid for AddMonoid {
-        type F = i32;
-        type S = i32;
+        type F = i64;
+        type S = i64;
 
         fn identity_map() -> Self::F {
             0
         }
 
-        fn mapping(&f: &i32, &x: &i32) -> i32 {
+        fn mapping(&f: &i64, &x: &i64) -> i64 {
             f + x
         }
 
-        fn composition(&f: &i32, &g: &i32) -> i32 {
+        fn composition(&f: &i64, &g: &i64) -> i64 {
             f + g
         }
     }
@@ -263,7 +263,7 @@ mod tests_dual_segtree {
         let mut segtree: DualSegtree<AddMonoid> = base.clone().into();
         check_segtree(&base, &mut segtree);
 
-        let mut internal = vec![i32::min_value(); n];
+        let mut internal = vec![i64::min_value(); n];
         let mut segtree = DualSegtree::<AddMonoid>::from(internal.clone());
 
         for i in 0..n {
@@ -294,7 +294,7 @@ mod tests_dual_segtree {
     }
 
     //noinspection DuplicatedCode
-    fn check_segtree(base: &[i32], segtree: &mut DualSegtree<AddMonoid>) {
+    fn check_segtree(base: &[i64], segtree: &mut DualSegtree<AddMonoid>) {
         let n = base.len();
         #[allow(clippy::needless_range_loop)]
         for i in 0..n {
