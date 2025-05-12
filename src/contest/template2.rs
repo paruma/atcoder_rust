@@ -133,9 +133,8 @@ use std::collections::{BinaryHeap, HashMap, HashSet};
 
 // ====== output func ======
 #[allow(unused_imports)]
-use print_vec::*;
-pub mod print_vec {
-
+use print_util::*;
+pub mod print_util {
     use itertools::Itertools;
     use proconio::fastout;
     #[fastout]
@@ -171,12 +170,17 @@ pub mod print_vec {
             println!("{}", msg);
         }
     }
-}
-
-#[allow(unused)]
-fn print_yesno(ans: bool) {
-    let msg = if ans { "Yes" } else { "No" };
-    println!("{}", msg);
+    #[fastout]
+    pub fn print_vec_chars(vec_chars: &[Vec<char>]) {
+        for row in vec_chars {
+            let msg = row.iter().collect::<String>();
+            println!("{}", msg);
+        }
+    }
+    pub fn print_yesno(ans: bool) {
+        let msg = if ans { "Yes" } else { "No" };
+        println!("{}", msg);
+    }
 }
 
 // ====== snippet ======
