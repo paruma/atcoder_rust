@@ -365,18 +365,23 @@ impl Problem {
         // 二分探索をせずに DP & 貪欲法をする（想定解法）
         // 計算量: O(NX)
 
+        // todo: max_vit_within_cal って名前にする。
+
         /// カロリーごとのビタミン摂取量の最大値
-        fn max_vit_by_cal(foods: &[Food], x: i64) -> Vec<NegExtInt> {
+        /// 戻り値を dp としたとき
+        /// dp[cal] = カロリー摂取量 cal 以下となるように食べ物 foods を食べたときの得られるビタミンの最大値
+        /// である
+        fn max_vit_by_cal(foods: &[Food], max_cal: i64) -> Vec<NegExtInt> {
             let n = foods.len();
-            let mut dp = vec![NegExtInt::NEG_INF; x as usize + 1];
-            for cal in 0..=x as usize {
+            let mut dp = vec![NegExtInt::NEG_INF; max_cal as usize + 1];
+            for cal in 0..=max_cal as usize {
                 dp[cal] = NegExtInt::fin(0);
             }
 
             for i in 0..n {
-                let mut next_dp = vec![NegExtInt::NEG_INF; x as usize + 1];
+                let mut next_dp = vec![NegExtInt::NEG_INF; max_cal as usize + 1];
                 let food = foods[i];
-                for cal in 0..=x {
+                for cal in 0..=max_cal {
                     let choose = if cal < food.cal {
                         NegExtInt::NEG_INF
                     } else {
