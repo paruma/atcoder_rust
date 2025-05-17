@@ -1,9 +1,22 @@
 fn main() {
     input! {
         n: usize,
+        k: u32,
         xs: [i64; n],
     }
-    let ans: i64 = 0;
+    let border = 10_i64.pow(k);
+    let ans: i64 = xs.iter().copied().fold(1, |acc, x| {
+        let next = acc.checked_mul(x);
+        if let Some(next) = next {
+            if next < border {
+                next
+            } else {
+                1
+            }
+        } else {
+            1
+        }
+    });
     println!("{}", ans);
 }
 

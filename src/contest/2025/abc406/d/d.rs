@@ -1,10 +1,54 @@
 fn main() {
     input! {
+        h: usize,
+        w: usize,
         n: usize,
-        xs: [i64; n],
+        garbage_pos_list: [(Usize1, Usize1); n],
+        nq: usize,
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
+
+    let mut rows = vec![HashSet::<usize>::new(); h];
+    let mut cols = vec![HashSet::<usize>::new(); w];
+
+    for (i, (gy, gx)) in garbage_pos_list.iter().copied().enumerate() {
+        rows[gy].insert(i);
+        cols[gx].insert(i);
+    }
+
+    let mut ans: Vec<usize> = vec![];
+    for _ in 0..nq {
+        input! {
+            t: usize
+        }
+
+        if t == 1 {
+            input! {
+                y: Usize1
+            }
+            ans.push(rows[y].len());
+            for &i in &rows[y] {
+                let (_, x) = garbage_pos_list[i];
+                cols[x].remove(&i);
+            }
+
+            // rows[y].clear();
+            rows[y] = HashSet::new();
+        } else {
+            input! {
+                x: Usize1
+            }
+            ans.push(cols[x].len());
+            for &i in &cols[x] {
+                let (y, _) = garbage_pos_list[i];
+                rows[y].remove(&i);
+            }
+
+            // cols[x].clear();
+            cols[x] = HashSet::new();
+        }
+    }
+
+    print_vec(&ans);
 }
 
 #[cfg(test)]
@@ -16,6 +60,7 @@ mod tests {
 
     #[test]
     fn test_problem() {
+        dbg!(std::mem::needs_drop::<usize>());
         assert_eq!(1 + 1, 2);
     }
 }

@@ -1,10 +1,16 @@
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        a: usize,
+        b: usize,
+        c: usize,
+        d: usize,
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
+    // a:b 締め切り
+    // c:d 提出
+
+    let ans: bool = c < a || (c == a && d <= b);
+    print_yesno(ans);
+    //println!("{}", ans);
 }
 
 #[cfg(test)]
