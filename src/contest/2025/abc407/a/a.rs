@@ -1,9 +1,16 @@
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        a: usize,
+        b: usize,
     }
-    let ans: i64 = 0;
+    let r = a % b;
+    let ans = if r <= b / 2 {
+        // b = 5 → 0, 1, 2
+        a / b
+    } else {
+        a / b + 1
+    };
+    // (a + b/2)/b
     println!("{}", ans);
 }
 

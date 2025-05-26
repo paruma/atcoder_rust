@@ -1,9 +1,24 @@
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        xs: Bytes,
     }
-    let ans: i64 = 0;
+
+    let xs = xs
+        .iter()
+        .copied()
+        .map(|ch| (ch - b'0') as i64)
+        .collect_vec();
+
+    let mut cnt = 0;
+
+    for x in xs.iter().copied().rev() {
+        let current_x = ((x - cnt) % 10 + 10) % 10;
+        assert!((0..10).contains(&current_x));
+
+        cnt += current_x;
+    }
+
+    let ans: i64 = cnt + (xs.len() as i64);
     println!("{}", ans);
 }
 

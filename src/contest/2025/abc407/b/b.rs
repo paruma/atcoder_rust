@@ -1,9 +1,13 @@
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        x: i64,
+        y: i64,
     }
-    let ans: i64 = 0;
+    let cnt_not = iproduct!(1..=6, 1..=6)
+        .filter(|&(a, b)| (a + b) < x && i64::abs_diff(a, b) < (y as u64))
+        .count();
+    let cnt = 36 - cnt_not;
+    let ans: f64 = (cnt as f64) / 36.0;
     println!("{}", ans);
 }
 
