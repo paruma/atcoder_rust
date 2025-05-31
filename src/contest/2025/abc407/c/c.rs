@@ -12,7 +12,7 @@ fn main() {
     let mut cnt = 0;
 
     for x in xs.iter().copied().rev() {
-        let current_x = ((x - cnt) % 10 + 10) % 10;
+        let current_x = (x - cnt).rem_euclid(10);
         assert!((0..10).contains(&current_x));
 
         cnt += current_x;
