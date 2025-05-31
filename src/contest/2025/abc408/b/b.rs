@@ -3,8 +3,9 @@ fn main() {
         n: usize,
         xs: [i64; n],
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
+    let ans: Vec<i64> = xs.iter().copied().sorted().dedup().collect_vec();
+    println!("{}", ans.len());
+    print_vec_1line(&ans);
 }
 
 #[cfg(test)]

@@ -1,10 +1,12 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        s: i64,
+        mut xs: [i64; n],
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
+    xs.insert(0, 0);
+    let ans: bool = xs.iter().tuple_windows().all(|(x, y)| y - x <= s);
+    print_yesno(ans);
 }
 
 #[cfg(test)]
