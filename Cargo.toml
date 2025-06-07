@@ -5,33 +5,62 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [[bin]]
+name = "abc409_a"
+path = "src/contest/2025/abc409/a/a.rs"
+
+[[bin]]
+name = "abc409_b"
+path = "src/contest/2025/abc409/b/b.rs"
+
+[[bin]]
+name = "abc409_c"
+path = "src/contest/2025/abc409/c/c.rs"
+
+[[bin]]
+name = "abc409_d"
+path = "src/contest/2025/abc409/d/d.rs"
+
+[[bin]]
+name = "abc409_e"
+path = "src/contest/2025/abc409/e/e.rs"
+
+[[bin]]
+name = "abc409_f"
+path = "src/contest/2025/abc409/f/f.rs"
+
+[[bin]]
+name = "abc409_g"
+path = "src/contest/2025/abc409/g/g.rs"
+
+
+[[bin]]
 name = "abc408_a"
 path = "src/contest/2025/abc408/a/a.rs"
-        
+
 [[bin]]
 name = "abc408_b"
 path = "src/contest/2025/abc408/b/b.rs"
-        
+
 [[bin]]
 name = "abc408_c"
 path = "src/contest/2025/abc408/c/c.rs"
-        
+
 [[bin]]
 name = "abc408_d"
 path = "src/contest/2025/abc408/d/d.rs"
-        
+
 [[bin]]
 name = "abc408_e"
 path = "src/contest/2025/abc408/e/e.rs"
-        
+
 [[bin]]
 name = "abc408_f"
 path = "src/contest/2025/abc408/f/f.rs"
-        
+
 [[bin]]
 name = "abc408_g"
 path = "src/contest/2025/abc408/g/g.rs"
-        
+
 
 [[bin]]
 name = "abc407_a"
