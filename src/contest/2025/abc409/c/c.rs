@@ -1,9 +1,29 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        l: usize,
+        xs: [usize; n - 1],
     }
-    let ans: i64 = 0;
+
+    let ans = if l % 3 != 0 {
+        0_i64
+    } else {
+        let ps = xs
+            .iter()
+            .copied()
+            .scanl(0_usize, |acc, x| (*acc + x) % l)
+            .collect_vec();
+
+        let mut cnts = vec![0_i64; l];
+        for p in &ps {
+            cnts[*p] += 1;
+        }
+
+        (0..l / 3)
+            .map(|i| cnts[i] * cnts[i + l / 3] * cnts[i + 2 * l / 3])
+            .sum::<i64>()
+    };
+
     println!("{}", ans);
 }
 
@@ -86,3 +106,48 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use scan_iter::*;
+pub mod scan_iter {
+    #[derive(Clone)]
+    pub struct Scanl<I, B, F> {
+        iter: I,
+        state: Option<B>,
+        f: F,
+    }
+    impl<I, B, F> Scanl<I, B, F> {
+        fn new(iter: I, init: B, f: F) -> Scanl<I, B, F> {
+            Scanl {
+                iter,
+                state: Some(init),
+                f,
+            }
+        }
+    }
+    impl<I, B, F> Iterator for Scanl<I, B, F>
+    where
+        B: Copy,
+        I: Iterator,
+        F: FnMut(&mut B, I::Item) -> B,
+    {
+        type Item = B;
+        #[inline]
+        fn next(&mut self) -> Option<B> {
+            let retval = self.state?;
+            let a_opt = self.iter.next();
+            self.state = self
+                .state
+                .and_then(|mut s| a_opt.map(|a| (self.f)(&mut s, a)));
+            Some(retval)
+        }
+    }
+    pub trait IteratorExtScanLeft: Iterator + Sized {
+        fn scanl<B, F>(self, init: B, f: F) -> Scanl<Self, B, F>
+        where
+            Self: Sized,
+            F: FnMut(&mut B, Self::Item) -> B,
+        {
+            Scanl::new(self, init, f)
+        }
+    }
+    impl<T: Iterator> IteratorExtScanLeft for T {}
+}

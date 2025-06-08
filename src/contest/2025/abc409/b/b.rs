@@ -3,7 +3,13 @@ fn main() {
         n: usize,
         xs: [i64; n],
     }
-    let ans: i64 = 0;
+
+    let xs = xs.iter().copied().sorted().collect_vec();
+
+    let ans = bin_search(0, 1_000_000_000, |y| {
+        xs.iter().copied().filter(|&x| x >= y).count() as i64 >= y
+    });
+
     println!("{}", ans);
 }
 
@@ -86,3 +92,44 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+/// 二分探索をする
+/// ```text
+/// ng ng ng ok ok ok
+///          ↑ここの引数の値を返す
+/// ```
+/// 計算量: O(log(|ok - ng|))
+/// ## Arguments
+/// * ok != ng
+/// * |ok - ng| <= 2^63 - 1, |ok + ng| <= 2^63 - 1
+/// * p の定義域について
+///     * ng < ok の場合、p は区間 ng..ok で定義されている。
+///     * ok < ng の場合、p は区間 ok..ng で定義されている。
+/// * p の単調性について
+///     * ng < ok の場合、p は単調増加
+///     * ok < ng の場合、p は単調減少
+/// ## Return
+/// * ng < ok の場合: I = { i in ng..ok | p(i) == true } としたとき
+///     * I が空でなければ、min I を返す。
+///     * I が空ならば、ok を返す。
+/// * ok < ng の場合: I = { i in ok..ng | p(i) == true } としたとき
+///     * I が空でなければ、max I を返す。
+///     * I が空ならば、ok を返す。
+pub fn bin_search<F>(mut ok: i64, mut ng: i64, mut p: F) -> i64
+where
+    F: FnMut(i64) -> bool,
+{
+    debug_assert!(ok != ng);
+    debug_assert!(ok.checked_sub(ng).is_some());
+    debug_assert!(ok.checked_add(ng).is_some());
+    while num::abs(ok - ng) > 1 {
+        let mid = (ok + ng) / 2;
+        debug_assert!(mid != ok);
+        debug_assert!(mid != ng);
+        if p(mid) {
+            ok = mid;
+        } else {
+            ng = mid;
+        }
+    }
+    ok
+}

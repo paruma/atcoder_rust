@@ -1,10 +1,37 @@
-fn main() {
+fn solve() {
     input! {
         n: usize,
-        xs: [i64; n],
+        xs: Chars,
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
+    let ans = if n == 1 {
+        xs
+    } else {
+        let pos = xs.iter().copied().tuple_windows().position(|(x, y)| x > y);
+        if let Some(pos) = pos {
+            let ch = xs[pos];
+
+            let pos2 = (pos + 1..n).find(|&i| xs[i] > ch).unwrap_or(n);
+
+            // pos を pos2 に移動させる。
+
+            let mut ans = xs.clone();
+            ans.remove(pos);
+            ans.insert(pos2 - 1, ch);
+            ans
+        } else {
+            xs
+        }
+    };
+    print_chars(&ans);
+}
+fn main() {
+    input! {
+        t: usize,
+    }
+
+    for _ in 0..t {
+        solve();
+    }
 }
 
 #[cfg(test)]

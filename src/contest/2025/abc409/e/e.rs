@@ -1,9 +1,87 @@
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Edge {
+    u: Usize1,
+    v: Usize1,
+    w: i64,
+}
+impl Edge {
+    fn rev(&self) -> Self {
+        Self {
+            u: self.v,
+            v: self.u,
+            w: self.w,
+        }
+    }
+}
+
+fn post_order(adj: &Vec<Vec<Edge>>, init: usize) -> Vec<usize> {
+    struct DfsGraph<'a> {
+        adj: &'a Vec<Vec<Edge>>,
+        visited: Vec<bool>,
+        post_order: Vec<usize>,
+    }
+
+    impl DfsGraph<'_> {
+        fn new(adj: &Vec<Vec<Edge>>) -> DfsGraph<'_> {
+            // adj.len() は グラフの頂点の数
+            DfsGraph {
+                adj,
+                visited: vec![false; adj.len()],
+                post_order: vec![],
+            }
+        }
+        /// 計算量: O(頂点の数 + 辺の数)
+        fn exec(&mut self, v: usize) {
+            // 行きがけ
+            self.visited[v] = true;
+
+            for &edge in &self.adj[v] {
+                if !self.visited[edge.v] {
+                    self.exec(edge.v);
+                }
+            }
+            // 帰りがけ
+            self.post_order.push(v);
+        }
+    }
+    let mut dfs = DfsGraph::new(adj);
+    dfs.exec(init);
+    dfs.post_order
+}
+
+fn make_adj(n_vertex: usize, edges: &[Edge]) -> Vec<Vec<Edge>> {
+    let mut adj = vec![vec![]; n_vertex];
+    for &e in edges {
+        adj[e.u].push(e);
+        adj[e.v].push(e.rev());
+    }
+    adj
+}
 fn main() {
     input! {
         n: usize,
         xs: [i64; n],
+        edges: [Edge; n - 1]
     }
-    let ans: i64 = 0;
+
+    let adj = make_adj(n, &edges);
+
+    let post_order = post_order(&adj, 0);
+
+    let mut dp_電子 = vec![0; n];
+    let mut dp_エネルギー = vec![0; n];
+
+    for v in post_order {
+        dp_電子[v] = adj[v].iter().copied().map(|e| dp_電子[e.v]).sum::<i64>() + xs[v];
+        dp_エネルギー[v] = adj[v]
+            .iter()
+            .copied()
+            .map(|e| dp_電子[e.v].abs() * e.w + dp_エネルギー[e.v])
+            .sum::<i64>();
+    }
+
+    let ans: i64 = dp_エネルギー[0];
     println!("{}", ans);
 }
 
