@@ -1,10 +1,34 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        q: usize,
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
+
+    let mut xs = (0..n).map(|i| (i + 1) as i64).collect::<VecDeque<i64>>();
+
+    for _ in 0..q {
+        input! {
+            t: usize
+        }
+
+        if t == 1 {
+            input! {
+                p: Usize1,
+                x: i64,
+            }
+            xs[p] = x;
+        } else if t == 2 {
+            input! {
+                p: Usize1
+            }
+            println!("{}", xs[p]);
+        } else {
+            input! {
+                k: usize,
+            }
+            xs.rotate_left(k.rem_euclid(n));
+        }
+    }
 }
 
 #[cfg(test)]
@@ -30,6 +54,7 @@ use proconio::{
 };
 #[allow(unused_imports)]
 use std::cmp::Reverse;
+use std::collections::VecDeque;
 #[allow(unused_imports)]
 use std::collections::{BinaryHeap, HashMap, HashSet};
 

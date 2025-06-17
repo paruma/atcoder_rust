@@ -1,10 +1,30 @@
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        n_box: usize,
+        nq: usize,
+        xs: [i64; nq],
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
+
+    let mut box_cnt = vec![0_i64; n_box];
+    let mut ans: Vec<usize> = vec![111; nq];
+
+    for (qi, x) in xs.iter().copied().enumerate() {
+        if x == 0 {
+            let min_cnt = box_cnt.iter().copied().min().unwrap();
+            let min_bi = (0..n_box).find(|i| box_cnt[*i] == min_cnt).unwrap();
+
+            box_cnt[min_bi] += 1;
+            ans[qi] = min_bi;
+            //
+        } else {
+            let bi = (x - 1) as usize;
+            box_cnt[bi] += 1;
+            ans[qi] = bi;
+        }
+    }
+
+    let ans = ans.iter().copied().map(|i| i + 1).collect_vec();
+    print_vec_1line(&ans);
 }
 
 #[cfg(test)]

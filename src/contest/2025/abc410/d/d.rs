@@ -1,7 +1,21 @@
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Edge {
+    from: Usize1,
+    to: Usize1,
+    w: u64,
+}
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        nv: usize,
+        ne: usize,
+        es: [Edge; ne],
+    }
+
+    let n_iter = nv.max(ne) * 2;
+
+    for _ in 0..n_iter {
+        
     }
     let ans: i64 = 0;
     println!("{}", ans);

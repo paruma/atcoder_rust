@@ -2,8 +2,9 @@ fn main() {
     input! {
         n: usize,
         xs: [i64; n],
+        k: i64,
     }
-    let ans: i64 = 0;
+    let ans: usize = xs.iter().copied().filter(|&x| k <= x).count();
     println!("{}", ans);
 }
 
