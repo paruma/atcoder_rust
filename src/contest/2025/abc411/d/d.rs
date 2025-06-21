@@ -1,10 +1,77 @@
+#[derive(Clone, Debug, PartialEq, Eq)]
+enum Query {
+    ServerToPc { p: usize },
+    Append { p: usize, s: Vec<char> }, // これ大丈夫？作って MLE とかしない？
+    PcToServer { p: usize },
+}
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        q: usize,
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
+
+    let qs = (0..q)
+        .map(|_| {
+            input! {
+                t: usize
+            }
+            if t == 1 {
+                input! {
+                    p: Usize1,
+                }
+                Query::ServerToPc { p }
+            } else if t == 2 {
+                input! {
+                    p: Usize1,
+                    s: Chars,
+                }
+                Query::Append { p, s }
+            } else {
+                input! {
+                    p: Usize1,
+                }
+                Query::PcToServer { p }
+            }
+        })
+        .collect_vec();
+
+    // server は n 番目の PC として扱う
+    // k 個クエリを見た状態
+    fn rec(k: usize, p: usize, n: usize, qs: &[Query]) -> Vec<char> {
+        if k == 0 {
+            return vec![];
+        }
+        let query = &qs[k - 1];
+        match query {
+            Query::ServerToPc { p: qp } => {
+                if p == *qp {
+                    rec(k - 1, n, n, qs)
+                } else {
+                    rec(k - 1, p, n, qs)
+                }
+            }
+            Query::Append { p: qp, s } => {
+                if p == *qp {
+                    let mut prev = rec(k - 1, p, n, qs);
+                    prev.append(&mut s.clone());
+                    prev
+                } else {
+                    rec(k - 1, p, n, qs)
+                }
+            }
+            Query::PcToServer { p: qp } => {
+                // server の番号
+                if p == n {
+                    rec(k - 1, *qp, n, qs)
+                } else {
+                    rec(k - 1, p, n, qs)
+                }
+            }
+        }
+    }
+
+    let ans: Vec<char> = rec(q, n, n, &qs);
+    print_chars(&ans);
 }
 
 #[cfg(test)]

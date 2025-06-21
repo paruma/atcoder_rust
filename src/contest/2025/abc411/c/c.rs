@@ -1,10 +1,59 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        q: usize,
+        xs: [Usize1; q],
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
+
+    // false: 白, true: 黒
+    let mut board = vec![false; n];
+
+    let white = false;
+    let black = true;
+
+    let mut ans: i64 = 0; // 連続した黒の数
+
+    for x in xs {
+        if board[x] == white {
+            let next_cnt_black = {
+                let cnt1 = (x != 0 && board[x - 1] == black) as i64;
+                let cnt2 = (x != n - 1 && board[x + 1] == black) as i64;
+                cnt1 + cnt2
+            };
+            match next_cnt_black {
+                0 => {
+                    ans += 1;
+                }
+                1 => {}
+                2 => {
+                    ans -= 1;
+                }
+                _ => panic!(),
+            }
+
+            board[x] = black;
+        } else if board[x] == black {
+            let next_cnt_black = {
+                let cnt1 = (x != 0 && board[x - 1] == black) as i64;
+                let cnt2 = (x != n - 1 && board[x + 1] == black) as i64;
+                cnt1 + cnt2
+            };
+
+            match next_cnt_black {
+                0 => {
+                    ans -= 1;
+                }
+                1 => {}
+                2 => {
+                    ans += 1;
+                }
+                _ => panic!(),
+            }
+            board[x] = white;
+        }
+
+        println!("{}", ans);
+    }
 }
 
 #[cfg(test)]

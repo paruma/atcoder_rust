@@ -1,10 +1,10 @@
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        p: Chars,
+        l: usize,
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
+    let ans: bool = p.len() >= l;
+    print_yesno(ans);
 }
 
 #[cfg(test)]

@@ -1,10 +1,16 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        diffs: [i64; n-1],
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
+    let dists = CumSum::new(&diffs);
+
+    for i in 0..(n - 1) {
+        let msg = (1..=(n - i - 1))
+            .map(|j| dists.range_sum(i..i + j))
+            .collect_vec();
+        print_vec_1line(&msg);
+    }
 }
 
 #[cfg(test)]
@@ -86,3 +92,55 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use cumsum::*;
+pub mod cumsum {
+    pub fn prefix_sum(xs: &[i64]) -> Vec<i64> {
+        let mut prefix_sum = vec![0; xs.len() + 1];
+        for i in 1..xs.len() + 1 {
+            prefix_sum[i] = prefix_sum[i - 1] + xs[i - 1];
+        }
+        prefix_sum
+    }
+    use std::ops::{Bound, Range, RangeBounds};
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct CumSum {
+        pub cumsum: Vec<i64>,
+    }
+    impl CumSum {
+        /// 計算量: O(|xs|)
+        pub fn new(xs: &[i64]) -> CumSum {
+            let mut cumsum = vec![0; xs.len() + 1];
+            for i in 1..xs.len() + 1 {
+                cumsum[i] = cumsum[i - 1] + xs[i - 1];
+            }
+            CumSum { cumsum }
+        }
+        fn open(&self, range: impl RangeBounds<usize>) -> Range<usize> {
+            use Bound::Excluded;
+            use Bound::Included;
+            use Bound::Unbounded;
+            let begin = match range.start_bound() {
+                Unbounded => 0,
+                Included(&x) => x,
+                Excluded(&x) => x + 1,
+            };
+            let end = match range.end_bound() {
+                Excluded(&x) => x,
+                Included(&x) => x + 1,
+                Unbounded => self.cumsum.len() - 1,
+            };
+            begin..end
+        }
+        /// 計算量: O(1)
+        pub fn range_sum(&self, range: impl RangeBounds<usize>) -> i64 {
+            let range = self.open(range);
+            self.cumsum[range.end] - self.cumsum[range.start]
+        }
+        pub fn prefix_sum(&self, end: usize) -> i64 {
+            self.cumsum[end]
+        }
+        pub fn suffix_sum(&self, begin: usize) -> i64 {
+            self.cumsum[self.cumsum.len() - 1] - self.cumsum[begin]
+        }
+    }
+}
