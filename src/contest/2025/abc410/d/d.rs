@@ -5,6 +5,89 @@ struct Edge {
     to: Usize1,
     w: u64,
 }
+
+const W: usize = 1024;
+
+fn solve1(nv: usize, ne: usize, es: &[Edge]) -> Option<u64> {
+    // SCC を使う
+    // min{ w 上の辺重み xor sum | w: 頂点 0 から頂点 n-1 までの walk} を値域の空間で全探索する
+    // f(v, x) = 頂点 0 から頂点 v までの walk で xor sum が x のものが存在する
+    // とすると、f(v, x) = any i: B[i] = v s.t. f(A[i], x xor W[i])
+    // という再帰関数が成り立つ。
+    // このままだと f の呼び出しグラフにサイクルがある場合無限ループしてしまう。
+    // SCC でサイクルを潰せばよい。
+
+    // 頂点番号 * 1024 + xor の値 を新しいグラフの頂点番号にする
+
+    fn id(v: usize, x: u64) -> usize {
+        v * W + (x as usize)
+    }
+
+    let snv = nv * W;
+    let ses = (0..(W as u64))
+        .flat_map(|x| {
+            es.iter().map(move |e| {
+                let from_v = e.from;
+                let from_x = x;
+                let to_v = e.to;
+                let to_x = x ^ e.w;
+                (id(from_v, from_x), id(to_v, to_x))
+            })
+        })
+        .collect_vec();
+
+    let mut scc_graph = SccGraph::new(snv);
+
+    for &(from, to) in &ses {
+        scc_graph.add_edge(from, to);
+    }
+
+    let scc = scc_graph.scc();
+    let vid_to_scc_id = {
+        let mut vid_to_scc_id = vec![usize::MAX; nv * W];
+        for (gid, g) in scc.iter().enumerate() {
+            for &vid in g {
+                vid_to_scc_id[vid] = gid;
+            }
+        }
+        vid_to_scc_id
+    };
+
+    let scc_rev_adj = {
+        let mut scc_rev_adj = vec![HashSet::<usize>::new(); scc.len()];
+        for &(from, to) in &ses {
+            let from_scc_idx = vid_to_scc_id[from];
+            let to_scc_idx = vid_to_scc_id[to];
+            if from_scc_idx != to_scc_idx {
+                scc_rev_adj[to_scc_idx].insert(from_scc_idx);
+            }
+        }
+        scc_rev_adj
+            .iter()
+            .map(|s| s.iter().copied().collect_vec())
+            .collect_vec()
+    };
+
+    let mut dp = vec![None; scc.len()];
+    dp[vid_to_scc_id[id(0, 0)]] = Some(true);
+
+    fn f(sv: usize, dp: &mut [Option<bool>], rev_adj: &[Vec<usize>]) -> bool {
+        if let Some(ans) = dp[sv] {
+            return ans;
+        }
+
+        let ans = rev_adj[sv].iter().copied().any(|from| f(from, dp, rev_adj));
+
+        dp[sv] = Some(ans);
+        ans
+    }
+
+    // dbg!(scc);
+
+    // dbg!(&dp);
+
+    (0..(W as u64)).find(|x| f(vid_to_scc_id[id(nv - 1, *x)], &mut dp, &scc_rev_adj))
+}
 fn main() {
     input! {
         nv: usize,
@@ -12,13 +95,12 @@ fn main() {
         es: [Edge; ne],
     }
 
-    let n_iter = nv.max(ne) * 2;
-
-    for _ in 0..n_iter {
-        
+    let ans: Option<u64> = solve1(nv, ne, &es);
+    if let Some(ans) = ans {
+        println!("{}", ans);
+    } else {
+        println!("-1");
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
 }
 
 #[cfg(test)]
@@ -34,6 +116,7 @@ mod tests {
     }
 }
 
+use ac_library::SccGraph;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
