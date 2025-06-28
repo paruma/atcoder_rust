@@ -1,9 +1,62 @@
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        l: usize,
+        r: usize,
     }
-    let ans: i64 = 0;
+
+    let sqrt_r = num_integer::sqrt(r) as usize;
+
+    // sqrt(r) 以下の素数をふるう
+    let mut is_prime = vec![true; sqrt_r + 1];
+    is_prime[0] = false;
+    is_prime[1] = false;
+
+    for p in 2..=sqrt_r {
+        if !is_prime[p] {
+            continue;
+        }
+
+        for q in (p * 2..=sqrt_r).step_by(p) {
+            is_prime[q] = false;
+        }
+    }
+
+    // is_prime2[v - l] = v が素数か？
+    // ↓1が素数扱いになってるけど気にしない
+    // let mut is_prime2 = vec![true; r - l + 1];
+    // is_prime_pow[v - l] = v が 1 or 素数 or 素数のべき乗か
+    let mut is_prime_pow = vec![true; r - l + 1];
+
+    for p in 2..=sqrt_r {
+        if !is_prime[p] {
+            continue;
+        }
+
+        let start = num_integer::div_ceil(l, p) * p;
+        let start = if start == p { p * 2 } else { start };
+
+        for q in (start..=r).step_by(p) {
+            // is_prime2[q - l] = false;
+            is_prime_pow[q - l] = false;
+        }
+
+        for q in std::iter::successors(Some(p), |acc| acc.checked_mul(p)) {
+            if (l..=r).contains(&q) {
+                is_prime_pow[q - l] = true;
+            }
+        }
+        // p, p^2, p^4...
+    }
+
+    // dbg!(is_prime);
+    // dbg!(is_prime2);
+    // dbg!(&is_prime_pow);
+
+    let ans: usize = if !is_prime_pow[0] {
+        is_prime_pow.iter().filter(|&&p| p).count() + 1
+    } else {
+        is_prime_pow.iter().filter(|&&p| p).count()
+    };
     println!("{}", ans);
 }
 

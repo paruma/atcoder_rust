@@ -1,9 +1,9 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        abs: [(i64, i64); n],
     }
-    let ans: i64 = 0;
+    let ans: usize = abs.iter().copied().filter(|&(a, b)| a < b).count();
     println!("{}", ans);
 }
 

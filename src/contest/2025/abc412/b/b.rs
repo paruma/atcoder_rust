@@ -1,10 +1,14 @@
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        s: Chars,
+        t: Chars,
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
+    let t_set = t.iter().copied().collect::<HashSet<_>>();
+
+    let ans = (1..s.len())
+        .filter(|i| s[*i].is_uppercase())
+        .all(|i| t_set.contains(&s[i - 1]));
+    print_yesno(ans);
 }
 
 #[cfg(test)]

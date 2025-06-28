@@ -1,10 +1,52 @@
-fn main() {
+fn solve0(n: usize, xs: &[i64]) -> Option<i64> {
+    let first = *xs.first().unwrap();
+    let last = *xs.last().unwrap();
+
+    let mut xs = xs
+        .iter()
+        .copied()
+        .filter(|&x| first < x && x < last)
+        .sorted()
+        .collect_vec();
+    xs.push(last);
+
+    let mut ans = 0; //採用する個数
+    let mut current = first;
+
+    for i in 0..xs.len() {
+        let key = 2 * current;
+        if xs[i] > key {
+            return None;
+        }
+        if i + 1 == xs.len() || xs[i + 1] > key {
+            // i 番目を採用する (i+1番目は倒せない)
+            ans += 1;
+            current = xs[i];
+        }
+    }
+
+    Some(ans + 1)
+}
+fn solve() {
     input! {
         n: usize,
-        xs: [i64; n],
+        xs: [i64; n]
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
+    let ans = solve0(n, &xs);
+
+    if let Some(ans) = ans {
+        println!("{}", ans);
+    } else {
+        println!("{}", -1);
+    }
+}
+fn main() {
+    input! {
+        t: usize,
+    }
+    for _ in 0..t {
+        solve();
+    }
 }
 
 #[cfg(test)]

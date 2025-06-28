@@ -1,9 +1,74 @@
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Edge {
+    u: Usize1,
+    v: Usize1,
+}
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        nv: usize,
+        ne: usize,
+        es: [(Usize1, Usize1); ne],
     }
-    let ans: i64 = 0;
+
+    let es = es
+        .iter()
+        .copied()
+        .map(|(u, v)| (u.min(v), u.max(v)))
+        .collect::<HashSet<_>>();
+
+    let ans0 = (0..nv)
+        .permutations(nv)
+        .map(|ps| {
+            let dst_es = ps
+                .iter()
+                .copied()
+                .circular_tuple_windows()
+                .map(|(u, v)| (u.min(v), u.max(v)))
+                .collect::<HashSet<_>>();
+
+            es.symmetric_difference(&dst_es).count()
+        })
+        .min()
+        .unwrap();
+
+    let ans1 = if nv < 6 {
+        None
+    } else {
+        // ちょっと無駄な計算をしてる
+        let tmp = (3..=nv - 3)
+            .map(|c1| {
+                (0..nv)
+                    .permutations(nv)
+                    .map(|ps| {
+                        let g1 = &ps[0..c1];
+                        let g2 = &ps[c1..];
+
+                        let dst_es1 = g1
+                            .iter()
+                            .copied()
+                            .circular_tuple_windows()
+                            .map(|(u, v)| (u.min(v), u.max(v)))
+                            .collect::<HashSet<_>>();
+                        let dst_es2 = g2
+                            .iter()
+                            .copied()
+                            .circular_tuple_windows()
+                            .map(|(u, v)| (u.min(v), u.max(v)))
+                            .collect::<HashSet<_>>();
+
+                        let dst_es = dst_es1.union(&dst_es2).copied().collect::<HashSet<_>>();
+                        es.symmetric_difference(&dst_es).count()
+                    })
+                    .min()
+                    .unwrap()
+            })
+            .min()
+            .unwrap();
+        Some(tmp)
+    };
+
+    let ans: usize = [Some(ans0), ans1].iter().copied().flatten().min().unwrap();
     println!("{}", ans);
 }
 
