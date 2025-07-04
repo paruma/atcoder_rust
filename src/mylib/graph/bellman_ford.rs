@@ -73,11 +73,9 @@ pub mod bellman_ford {
         let mut visited = vec![false; n_vertex];
 
         for edge in edges {
-            if dist[edge.to] > dist[edge.from] + fin(edge.cost) {
-                if !visited[edge.to] {
-                    visited[edge.to] = true;
-                    queue.push_back(edge.to);
-                }
+            if dist[edge.to] > dist[edge.from] + fin(edge.cost) && !visited[edge.to] {
+                visited[edge.to] = true;
+                queue.push_back(edge.to);
             }
         }
 

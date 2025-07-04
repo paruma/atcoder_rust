@@ -385,7 +385,7 @@ pub mod range_chmin_range_min {
     use ac_library::lazysegtree::MapMonoid;
     use ac_library::Min;
     use std::convert::Infallible;
-    use std::usize;
+    
 
     pub struct RangeChminRangeMin(Infallible);
     impl MapMonoid for RangeChminRangeMin {

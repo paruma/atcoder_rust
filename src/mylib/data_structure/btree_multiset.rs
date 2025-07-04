@@ -15,6 +15,12 @@ pub mod btree_multiset {
         length: usize,
     }
 
+    impl<T> Default for BTreeMultiSet<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+
     impl<T> BTreeMultiSet<T> {
         pub const fn new() -> BTreeMultiSet<T> {
             BTreeMultiSet {
@@ -42,10 +48,10 @@ pub mod btree_multiset {
             self.length += 1;
         }
 
-        pub fn remove1<Q: ?Sized>(&mut self, value: &Q) -> bool
+        pub fn remove1<Q>(&mut self, value: &Q) -> bool
         where
             T: Borrow<Q> + Ord,
-            Q: Ord,
+            Q: ?Sized + Ord,
         {
             if let Some(cnt) = self.map.get_mut(value) {
                 *cnt -= 1;
@@ -58,10 +64,10 @@ pub mod btree_multiset {
             false
         }
 
-        pub fn remove_all<Q: ?Sized>(&mut self, value: &Q) -> bool
+        pub fn remove_all<Q>(&mut self, value: &Q) -> bool
         where
             T: Borrow<Q> + Ord,
-            Q: Ord,
+            Q: ?Sized + Ord,
         {
             if let Some(cnt) = self.map.get(value) {
                 self.length -= cnt;
@@ -83,18 +89,18 @@ pub mod btree_multiset {
             self.length == 0
         }
 
-        pub fn count<Q: ?Sized>(&self, value: &Q) -> usize
+        pub fn count<Q>(&self, value: &Q) -> usize
         where
             T: Borrow<Q> + Ord,
-            Q: Ord,
+            Q: ?Sized + Ord,
         {
             self.map.get(value).copied().unwrap_or(0)
         }
 
-        pub fn contains<Q: ?Sized>(&self, value: &Q) -> bool
+        pub fn contains<Q>(&self, value: &Q) -> bool
         where
             T: Borrow<Q> + Ord,
-            Q: Ord,
+            Q: ?Sized + Ord,
         {
             self.map.contains_key(value)
         }

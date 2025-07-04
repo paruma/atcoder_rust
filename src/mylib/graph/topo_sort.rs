@@ -3,18 +3,18 @@ use cargo_snippet::snippet;
 use crate::mylib::data_structure::queue0::mod_queue::Queue;
 
 #[snippet(include = "mod_queue")]
-pub fn topo_sort(adj: &Vec<Vec<usize>>) -> Vec<usize> {
+pub fn topo_sort(adj: &[Vec<usize>]) -> Vec<usize> {
     let n_vertex = adj.len();
     let mut in_deg = vec![0; n_vertex];
-    for current in 0..n_vertex {
-        for &next in &adj[current] {
+    for neighbors in adj {
+        for &next in neighbors {
             in_deg[next] += 1;
         }
     }
 
     let mut open: Queue<usize> = Queue::new();
-    for v in 0..n_vertex {
-        if in_deg[v] == 0 {
+    for (v, &deg) in in_deg.iter().enumerate() {
+        if deg == 0 {
             open.push(v);
         }
     }
@@ -34,7 +34,7 @@ pub fn topo_sort(adj: &Vec<Vec<usize>>) -> Vec<usize> {
 }
 
 #[snippet(include = "topo_sort")]
-pub fn has_cycle_directed_by_topo_sort(adj: &Vec<Vec<usize>>) -> bool {
+pub fn has_cycle_directed_by_topo_sort(adj: &[Vec<usize>]) -> bool {
     let topo_sorted = topo_sort(adj); // 戻り値にループの部分は入ってこない。
     topo_sorted.len() != adj.len()
 }

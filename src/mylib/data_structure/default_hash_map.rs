@@ -68,10 +68,10 @@ pub mod default_hash_map {
     where
         K: Eq + Hash,
     {
-        pub fn get<Q: ?Sized>(&self, k: &Q) -> &V
+        pub fn get<Q>(&self, k: &Q) -> &V
         where
             K: Borrow<Q>,
-            Q: Hash + Eq,
+            Q: ?Sized + Hash + Eq,
         {
             self.raw.get(k).unwrap_or(&self.default)
         }
@@ -88,10 +88,10 @@ pub mod default_hash_map {
             self.raw.insert(k, v)
         }
 
-        pub fn remove<Q: ?Sized>(&mut self, k: &Q) -> Option<V>
+        pub fn remove<Q>(&mut self, k: &Q) -> Option<V>
         where
             K: Borrow<Q>,
-            Q: Hash + Eq,
+            Q: ?Sized + Hash + Eq,
         {
             self.raw.remove(k)
         }

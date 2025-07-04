@@ -262,7 +262,7 @@ pub fn has_cycle_undirected(n_vertex: usize, edges: &[(usize, usize)]) -> bool {
     false
 }
 
-pub fn has_cycle_directed(adj: &Vec<Vec<usize>>) -> bool {
+pub fn has_cycle_directed(adj: &[Vec<usize>]) -> bool {
     // DFS を使って有向グラフの閉路判定をする
     fn dfs(
         adj: &[Vec<usize>],
