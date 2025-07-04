@@ -104,6 +104,80 @@ pub mod test {
     use super::grid_template::Grid;
 
     #[test]
+    fn test_grid_new_and_index() {
+        let grid_vec = vec![vec!['#', '.'], vec!['S', 'G']];
+        let grid = Grid::new(grid_vec.clone());
+        assert_eq!(grid.h, 2);
+        assert_eq!(grid.w, 2);
+        assert_eq!(grid[Pos::new(0, 0)], '#');
+        assert_eq!(grid[Pos::new(1, 0)], '.');
+        assert_eq!(grid[Pos::new(0, 1)], 'S');
+        assert_eq!(grid[Pos::new(1, 1)], 'G');
+    }
+
+    #[test]
+    fn test_is_within() {
+        let grid = Grid::new(vec![vec!['.'; 3]; 2]);
+        assert!(grid.is_within(Pos::new(0, 0)));
+        assert!(grid.is_within(Pos::new(2, 1)));
+        assert!(!grid.is_within(Pos::new(3, 1)));
+        assert!(!grid.is_within(Pos::new(2, 2)));
+        assert!(!grid.is_within(Pos::new(-1, 0)));
+    }
+
+    #[test]
+    fn test_can_move() {
+        let grid = Grid::new(vec![vec!['.', '#'], vec!['S', 'G']]);
+        assert!(grid.can_move(Pos::new(0, 0)));
+        assert!(!grid.can_move(Pos::new(1, 0)));
+    }
+
+    #[test]
+    fn test_all_pos_iter() {
+        let grid = Grid::new(vec![vec!['.'; 2]; 2]);
+        let positions = grid.all_pos_iter().collect::<Vec<_>>();
+        assert_eq!(
+            positions,
+            vec![
+                Pos::new(0, 0),
+                Pos::new(1, 0),
+                Pos::new(0, 1),
+                Pos::new(1, 1)
+            ]
+        );
+    }
+
+    #[test]
+    fn test_find_pos_of() {
+        let grid = Grid::new(vec![vec!['.', 'S'], vec!['#', 'G']]);
+        assert_eq!(grid.find_pos_of('S'), Some(Pos::new(1, 0)));
+        assert_eq!(grid.find_pos_of('G'), Some(Pos::new(1, 1)));
+        assert_eq!(grid.find_pos_of('A'), None);
+    }
+
+    #[test]
+    fn test_encode_decode() {
+        let grid = Grid::new(vec![vec!['.'; 4]; 3]);
+        let pos = Pos::new(2, 1);
+        let encoded = grid.encode(pos);
+        assert_eq!(encoded, 6);
+        let decoded = grid.decode(encoded);
+        assert_eq!(decoded, pos);
+
+        let pos = Pos::new(0, 0);
+        let encoded = grid.encode(pos);
+        assert_eq!(encoded, 0);
+        let decoded = grid.decode(encoded);
+        assert_eq!(decoded, pos);
+
+        let pos = Pos::new(3, 2);
+        let encoded = grid.encode(pos);
+        assert_eq!(encoded, 11);
+        let decoded = grid.decode(encoded);
+        assert_eq!(decoded, pos);
+    }
+
+    #[test]
     fn test_debug() {
         let g = Grid::new(vec![vec!['#', '.', '.'], vec!['.', '#', '.']]);
         g.debug();

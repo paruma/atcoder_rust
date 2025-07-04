@@ -283,3 +283,94 @@ pub mod reroot {
 // EDPC V - Subtree https://atcoder.jp/contests/dp/tasks/dp_v
 // ABC348 E - Minimize Sum of Distances https://atcoder.jp/contests/abc348/tasks/abc348_e
 // ABC401 F - Add One Edge3 https://atcoder.jp/contests/abc401/tasks/abc401_f
+
+#[cfg(test)]
+mod tests {
+    use ac_library::{Max, Monoid};
+
+    use super::reroot::*;
+
+    // 距離の最大値を求めるRerooting DPのテスト
+    struct DistMaxRerootTest();
+    impl Reroot for DistMaxRerootTest {
+        type M = Max<u64>;
+
+        fn add_vertex(&self, x: &<Self::M as Monoid>::S, _v: usize) -> <Self::M as Monoid>::S {
+            *x
+        }
+
+        fn add_edge(
+            &self,
+            x: &<Self::M as Monoid>::S,
+            _v: usize,
+            _ei: usize,
+        ) -> <Self::M as Monoid>::S {
+            x + 1
+        }
+    }
+
+    #[test]
+    fn test_reroot_path_graph() {
+        // 0 -- 1 -- 2 -- 3
+        let adj = vec![
+            vec![1],
+            vec![0, 2],
+            vec![1, 3],
+            vec![2],
+        ];
+        let reroot_solver = DistMaxRerootTest();
+        let result = reroot_solver.reroot(&adj);
+
+        // 各頂点からの最大距離
+        // 0: 3 (to 3)
+        // 1: 2 (to 3 or 0)
+        // 2: 2 (to 0 or 3)
+        // 3: 3 (to 0)
+        assert_eq!(result, vec![3, 2, 2, 3]);
+    }
+
+    #[test]
+    fn test_reroot_star_graph() {
+        //   1
+        //   |
+        // 0-+-2
+        //   |
+        //   3
+        let adj = vec![
+            vec![1, 2, 3],
+            vec![0],
+            vec![0],
+            vec![0],
+        ];
+        let reroot_solver = DistMaxRerootTest();
+        let result = reroot_solver.reroot(&adj);
+
+        // 各頂点からの最大距離
+        // 0: 1 (to 1, 2, or 3)
+        // 1: 2 (to 2 or 3 via 0)
+        // 2: 2 (to 1 or 3 via 0)
+        // 3: 2 (to 1 or 2 via 0)
+        assert_eq!(result, vec![1, 2, 2, 2]);
+    }
+
+    #[test]
+    fn test_reroot_single_node() {
+        // 0
+        let adj = vec![vec![]];
+        let reroot_solver = DistMaxRerootTest();
+        let result = reroot_solver.reroot(&adj);
+        assert_eq!(result, vec![0]);
+    }
+
+    #[test]
+    fn test_reroot_two_nodes() {
+        // 0 -- 1
+        let adj = vec![
+            vec![1],
+            vec![0],
+        ];
+        let reroot_solver = DistMaxRerootTest();
+        let result = reroot_solver.reroot(&adj);
+        assert_eq!(result, vec![1, 1]);
+    }
+}
