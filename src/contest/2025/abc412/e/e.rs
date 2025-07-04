@@ -45,7 +45,6 @@ fn main() {
                 is_prime_pow[q - l] = true;
             }
         }
-        // p, p^2, p^4...
     }
 
     // dbg!(is_prime);

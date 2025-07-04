@@ -1,14 +1,12 @@
-#[fastout]
 fn main() {
+    // VecDeque で回転
+    // VecDeque::rotate_left は O(1) ではなさそうなので、AC できるが嘘解法ぽい
     input! {
         n: usize,
         q: usize,
     }
 
-    // offset を持たせる。
-
-    let mut offset = 0_i64;
-    let mut xs = (0..n).map(|i| (i + 1) as i64).collect_vec();
+    let mut xs = (0..n).map(|i| (i + 1) as i64).collect::<VecDeque<i64>>();
 
     for _ in 0..q {
         input! {
@@ -20,19 +18,17 @@ fn main() {
                 p: Usize1,
                 x: i64,
             }
-            let idx = i64::rem_euclid(p as i64 - offset, n as i64) as usize;
-            xs[idx] = x;
+            xs[p] = x;
         } else if t == 2 {
             input! {
                 p: Usize1
             }
-            let idx = i64::rem_euclid(p as i64 - offset, n as i64) as usize;
-            println!("{}", xs[idx]);
+            println!("{}", xs[p]);
         } else {
             input! {
                 k: usize,
             }
-            offset = i64::rem_euclid(offset - (k as i64), n as i64);
+            xs.rotate_left(k.rem_euclid(n));
         }
     }
 }

@@ -1,16 +1,5 @@
-#[derive_readable]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-struct Edge {
-    u: Usize1,
-    v: Usize1,
-}
-fn main() {
-    input! {
-        nv: usize,
-        ne: usize,
-        es: [(Usize1, Usize1); ne],
-    }
-
+fn solve1(nv: usize, es: &[(usize, usize)]) -> usize {
+    // サイクルを考える
     let es = es
         .iter()
         .copied()
@@ -68,7 +57,50 @@ fn main() {
         Some(tmp)
     };
 
-    let ans: usize = [Some(ans0), ans1].iter().copied().flatten().min().unwrap();
+    [Some(ans0), ans1].iter().copied().flatten().min().unwrap()
+}
+
+fn solve2(nv: usize, es: &[(usize, usize)]) -> usize {
+    // 28C8 通り全探索
+    let es = es
+        .iter()
+        .copied()
+        .map(|(u, v)| (u.min(v), u.max(v)))
+        .collect::<HashSet<_>>();
+
+    let all_es: Vec<(usize, usize)> = (0..nv).tuple_combinations().collect_vec();
+
+    all_es
+        .iter()
+        .combinations(nv)
+        .filter(|target_es| {
+            // target_es でできるグラフがすべて次数2の単純無向グラフか？
+            let mut degs = vec![0_i64; nv];
+            for &&(u, v) in target_es {
+                degs[u] += 1;
+                degs[v] += 1;
+            }
+
+            degs.iter().all(|d| *d == 2)
+        })
+        .map(|target_es| {
+            let target_es = target_es.iter().copied().copied().collect::<HashSet<_>>();
+
+            es.symmetric_difference(&target_es).count()
+        })
+        .min()
+        .unwrap()
+}
+
+fn main() {
+    input! {
+        nv: usize,
+        ne: usize,
+        es: [(Usize1, Usize1); ne],
+    }
+
+    let ans = solve2(nv, &es);
+
     println!("{}", ans);
 }
 
