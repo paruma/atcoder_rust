@@ -1,6 +1,7 @@
 use cargo_snippet::snippet;
 
 pub mod map_monoid_template;
+pub mod range_add_range_sum;
 pub mod range_affine_range_minmax;
 pub mod range_affine_range_sum;
 pub mod range_chmax_range_max;
