@@ -1,5 +1,6 @@
 use cargo_snippet::snippet;
 
+#[allow(clippy::module_inception)]
 #[snippet(prefix = "use range_affine_range_minmax::*;")]
 pub mod range_affine_range_minmax {
     use std::{cmp::Ordering, convert::Infallible, ops::RangeBounds};

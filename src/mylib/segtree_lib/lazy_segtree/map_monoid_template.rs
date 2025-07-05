@@ -1,5 +1,7 @@
 use cargo_snippet::snippet;
 
+#[allow(unused_variables)]
+#[allow(clippy::module_inception)]
 #[snippet(prefix = "use map_monoid_template::*;")]
 pub mod map_monoid_template {
     use ac_library::lazysegtree::MapMonoid;

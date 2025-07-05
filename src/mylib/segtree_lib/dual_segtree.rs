@@ -263,7 +263,7 @@ mod tests_dual_segtree {
         let mut segtree: DualSegtree<AddMonoid> = base.clone().into();
         check_segtree(&base, &mut segtree);
 
-        let mut internal = vec![i64::min_value(); n];
+        let mut internal = vec![i64::MIN; n];
         let mut segtree = DualSegtree::<AddMonoid>::from(internal.clone());
 
         for i in 0..n {

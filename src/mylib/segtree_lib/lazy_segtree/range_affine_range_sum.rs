@@ -1,5 +1,6 @@
 use cargo_snippet::snippet;
 
+#[allow(clippy::module_inception)]
 #[snippet(prefix = "use range_affine_range_sum::*;")]
 pub mod range_affine_range_sum {
     use ac_library::{LazySegtree, MapMonoid, Monoid};

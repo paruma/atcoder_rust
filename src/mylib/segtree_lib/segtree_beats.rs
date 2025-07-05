@@ -667,7 +667,7 @@ mod test_range_chmax_range_sum {
 
     #[test]
     fn test_range_chmax_range_sum() {
-        let xs = vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+        let xs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
         let f = ChmaxFunc::new(6);
 
         let mut seg = SegtreeBeats::<RangeChmaxRangeSum>::from(
@@ -740,7 +740,7 @@ mod test_range_chmin_range_sum {
 
     #[test]
     fn test_range_chmax_range_sum() {
-        let xs = vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+        let xs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
         let f = ChminFunc::new(4);
 
         let mut seg = SegtreeBeats::<RangeChminRangeSum>::from(

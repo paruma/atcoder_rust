@@ -3569,6 +3569,8 @@
     "prefix": "map_monoid_template",
     "body": [
       "use map_monoid_template::*;",
+      "#[allow(unused_variables)]",
+      "#[allow(clippy::module_inception)]",
       "pub mod map_monoid_template {",
       "    use ac_library::lazysegtree::MapMonoid;",
       "    use ac_library::segtree::Monoid;",
@@ -6149,6 +6151,7 @@
     "prefix": "range_affine_range_minmax",
     "body": [
       "use range_affine_range_minmax::*;",
+      "#[allow(clippy::module_inception)]",
       "pub mod range_affine_range_minmax {",
       "    use ac_library::{LazySegtree, MapMonoid, Monoid};",
       "    use itertools::Itertools;",
@@ -6323,6 +6326,7 @@
     "prefix": "range_affine_range_sum",
     "body": [
       "use range_affine_range_sum::*;",
+      "#[allow(clippy::module_inception)]",
       "pub mod range_affine_range_sum {",
       "    use ac_library::{LazySegtree, MapMonoid, Monoid};",
       "    use itertools::Itertools;",
@@ -6943,6 +6947,7 @@
     "prefix": "range_chmin_range_min",
     "body": [
       "use range_chmin_range_min::*;",
+      "#[allow(clippy::module_inception)]",
       "pub mod range_chmin_range_min {",
       "    use ac_library::lazysegtree::MapMonoid;",
       "    use ac_library::Min;",

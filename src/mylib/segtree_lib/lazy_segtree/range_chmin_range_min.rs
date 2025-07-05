@@ -1,12 +1,12 @@
 use cargo_snippet::snippet;
 
+#[allow(clippy::module_inception)]
 #[snippet(prefix = "use range_chmin_range_min::*;")]
 pub mod range_chmin_range_min {
     // range chmax range max や range chmin range max なども同様に作れる
     use ac_library::lazysegtree::MapMonoid;
     use ac_library::Min;
     use std::convert::Infallible;
-    
 
     pub struct RangeChminRangeMin(Infallible);
     impl MapMonoid for RangeChminRangeMin {
