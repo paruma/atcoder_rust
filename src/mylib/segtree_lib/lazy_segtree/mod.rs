@@ -6,6 +6,7 @@ pub mod range_affine_range_minmax;
 pub mod range_affine_range_sum;
 pub mod range_chmax_range_max;
 pub mod range_chmin_range_min;
+pub mod range_update_range_sum;
 
 #[snippet]
 pub fn lazy_segtree_to_vec<F: ac_library::MapMonoid>(
