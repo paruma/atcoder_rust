@@ -40,8 +40,13 @@ pub mod test_range_chmin_range_min {
 
         let mut segtree: LazySegtree<RangeChminRangeMin> = LazySegtree::from(xs);
 
-        segtree.apply_range(3..7, 5); // [0, 1, 2, 5, 5, 5, 5, 7, 8, 9]
-        assert_eq!(segtree.prod(2..5), 2);
-        assert_eq!(segtree.prod(5..8), 5);
+        segtree.apply_range(3..8, 5); // [0, 1, 2, 3, 4, 5, 5, 5, 8, 9]
+        assert_eq!(segtree.get(4), 4);
+        assert_eq!(segtree.get(5), 5);
+        assert_eq!(segtree.get(6), 5);
+        assert_eq!(segtree.get(7), 5);
+        assert_eq!(segtree.get(8), 8);
+        assert_eq!(segtree.prod(2..7), 2);
+        assert_eq!(segtree.prod(6..8), 5);
     }
 }
