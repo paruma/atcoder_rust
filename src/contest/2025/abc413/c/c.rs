@@ -1,10 +1,45 @@
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        q: usize,
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
+
+    let mut que: VecDeque<(usize, i64)> = VecDeque::new();
+
+    for _ in 0..q {
+        input! {
+            t: usize
+        }
+        if t == 1 {
+            input! {
+                c: usize,
+                x: i64,
+            }
+            que.push_back((c, x));
+        } else {
+            input! {
+                k: usize,
+            }
+
+            let mut remain = k;
+            let mut sum = 0;
+            while remain != 0 {
+                let (c, x) = que.pop_front().unwrap();
+                if remain >= c {
+                    remain -= c;
+                    sum += x * (c as i64);
+                } else {
+                    // 一部だけ使う
+                    let next_c = c - remain;
+                    que.push_front((next_c, x)); // 先頭に入れる
+                    sum += (remain as i64) * x;
+                    remain = 0;
+                }
+            }
+            println!("{}", sum);
+        }
+    }
+    // let ans: i64 = 0;
+    // println!("{}", ans);
 }
 
 #[cfg(test)]
@@ -30,6 +65,7 @@ use proconio::{
 };
 #[allow(unused_imports)]
 use std::cmp::Reverse;
+use std::collections::VecDeque;
 #[allow(unused_imports)]
 use std::collections::{BinaryHeap, HashMap, HashSet};
 

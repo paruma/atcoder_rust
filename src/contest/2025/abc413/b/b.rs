@@ -1,9 +1,18 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        strs: [Chars; n],
     }
-    let ans: i64 = 0;
+
+    let ans: usize = iproduct!(0..n, 0..n)
+        .filter(|(i, j)| *i != *j)
+        .map(|(i, j)| {
+            let s1 = strs[i].clone();
+            let s2 = strs[j].clone();
+            chain!(s1, s2).collect_vec()
+        })
+        .unique()
+        .count();
     println!("{}", ans);
 }
 

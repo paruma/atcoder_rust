@@ -1,10 +1,36 @@
-fn main() {
+fn solve0() {
     input! {
         n: usize,
         xs: [i64; n],
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
+
+    let ans = if n == 2 {
+        true
+    } else if xs.iter().copied().all_equal() {
+        true
+    } else if xs.iter().copied().map(|x| x.abs()).all_equal() {
+        let cnt_positive = xs.iter().copied().filter(|x| *x > 0).count();
+        let cnt_negative = xs.iter().copied().filter(|x| *x < 0).count();
+
+        cnt_negative.abs_diff(cnt_positive) <= 1
+    } else {
+        let xs = xs.iter().copied().sorted_by_key(|x| x.abs()).collect_vec();
+        xs.iter()
+            .copied()
+            .tuple_windows()
+            .all(|(x, y, z)| x * z == y * y)
+    };
+
+    print_yesno(ans);
+}
+fn main() {
+    input! {
+        t: usize,
+    }
+
+    for _ in 0..t {
+        solve0();
+    }
 }
 
 #[cfg(test)]

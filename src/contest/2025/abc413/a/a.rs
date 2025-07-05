@@ -1,10 +1,11 @@
 fn main() {
     input! {
         n: usize,
+        m: i64,
         xs: [i64; n],
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
+    let ans: bool = xs.iter().sum::<i64>() <= m;
+    print_yesno(ans);
 }
 
 #[cfg(test)]

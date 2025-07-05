@@ -1,10 +1,35 @@
-fn main() {
+fn rec(xs: &mut [usize], n: usize) {
+    if n == 0 {
+        return;
+    }
+
+    let (first, last) = xs.split_at_mut(1 << (n - 1));
+
+    rec(first, n - 1);
+    rec(last, n - 1);
+
+    if first[0] > last[0] {
+        // first と last を入れ替える
+        for (x, y) in izip!(first, last) {
+            swap(x, y);
+        }
+    }
+}
+fn solve() -> Vec<usize> {
     input! {
         n: usize,
-        xs: [i64; n],
+        mut xs: [usize; 1<<n],
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
+    rec(&mut xs, n);
+    xs
+}
+fn main() {
+    input! {
+        t: usize
+    }
+
+    let ans = (0..t).map(|_| solve()).collect_vec();
+    print_vec2(&ans);
 }
 
 #[cfg(test)]
@@ -32,6 +57,7 @@ use proconio::{
 use std::cmp::Reverse;
 #[allow(unused_imports)]
 use std::collections::{BinaryHeap, HashMap, HashSet};
+use std::mem::swap;
 
 // ====== output func ======
 #[allow(unused_imports)]
