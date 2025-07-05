@@ -10,10 +10,10 @@ pub mod range_chmin_range_min {
 
     pub struct RangeChminRangeMin(Infallible);
     impl MapMonoid for RangeChminRangeMin {
-        type M = Min<usize>;
-        type F = usize;
+        type M = Min<i64>;
+        type F = i64;
         fn identity_map() -> Self::F {
-            usize::MAX
+            i64::MAX
         }
         fn mapping(
             f: &Self::F,
