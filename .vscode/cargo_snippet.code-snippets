@@ -3569,7 +3569,6 @@
     "prefix": "map_monoid_template",
     "body": [
       "use map_monoid_template::*;",
-      "#[allow(unused_variables)]",
       "pub mod map_monoid_template {",
       "    use ac_library::lazysegtree::MapMonoid;",
       "    use ac_library::segtree::Monoid;",
@@ -6934,6 +6933,35 @@
       "            ChmaxFunc {",
       "                chmax_val: max(f.chmax_val, g.chmax_val),",
       "            }",
+      "        }",
+      "    }",
+      "}"
+    ]
+  },
+  "range_chmin_range_min": {
+    "scope": "rust",
+    "prefix": "range_chmin_range_min",
+    "body": [
+      "use range_chmin_range_min::*;",
+      "pub mod range_chmin_range_min {",
+      "    use ac_library::lazysegtree::MapMonoid;",
+      "    use ac_library::Min;",
+      "    use std::convert::Infallible;",
+      "    pub struct RangeChminRangeMin(Infallible);",
+      "    impl MapMonoid for RangeChminRangeMin {",
+      "        type M = Min<usize>;",
+      "        type F = usize;",
+      "        fn identity_map() -> Self::F {",
+      "            usize::MAX",
+      "        }",
+      "        fn mapping(",
+      "            f: &Self::F,",
+      "            x: &<Self::M as ac_library::Monoid>::S,",
+      "        ) -> <Self::M as ac_library::Monoid>::S {",
+      "            *f.min(x)",
+      "        }",
+      "        fn composition(f: &Self::F, g: &Self::F) -> Self::F {",
+      "            *f.min(g)",
       "        }",
       "    }",
       "}"
