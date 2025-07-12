@@ -1,9 +1,31 @@
 fn main() {
     input! {
         n: usize,
+        m: usize,
         xs: [i64; n],
     }
-    let ans: i64 = 0;
+    let xs = xs.iter().copied().sorted().dedup().collect_vec();
+    let n = xs.len();
+    let diff = xs
+        .iter()
+        .copied()
+        .tuple_windows()
+        .map(|(x, y)| y - x)
+        .collect_vec();
+
+    let ans = if m >= n {
+        0
+    } else {
+        // diff から m-1 個取る
+        let without = diff
+            .iter()
+            .copied()
+            .sorted_by_key(|x| Reverse(*x))
+            .take(m - 1)
+            .sum::<i64>();
+
+        xs[n - 1] - xs[0] - without
+    };
     println!("{}", ans);
 }
 

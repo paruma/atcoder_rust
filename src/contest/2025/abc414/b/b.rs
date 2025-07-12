@@ -1,10 +1,25 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        cls: [(char, usize); n],
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
+    let len_sum = cls
+        .iter()
+        .copied()
+        .map(|(_, l)| l)
+        .fold(Some(0_usize), |acc, x| {
+            let acc = acc?;
+            acc.checked_add(x)
+        });
+    let is_too_long = len_sum.is_none() || len_sum.unwrap() > 100;
+    let ans: Vec<char> = if is_too_long {
+        "Too Long".chars().collect_vec()
+    } else {
+        cls.iter()
+            .flat_map(|(c, l)| std::iter::repeat(*c).take(*l))
+            .collect_vec()
+    };
+    print_chars(&ans);
 }
 
 #[cfg(test)]

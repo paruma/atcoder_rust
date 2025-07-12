@@ -1,9 +1,11 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        l: usize,
+        r: usize,
+        xys: [(usize, usize); n],
     }
-    let ans: i64 = 0;
+    let ans: usize = xys.iter().filter(|&&(x, y)| x <= l && r <= y).count();
     println!("{}", ans);
 }
 

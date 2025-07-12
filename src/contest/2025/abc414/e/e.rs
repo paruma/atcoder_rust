@@ -1,9 +1,17 @@
+use ac_library::ModInt998244353 as Mint;
+
+fn solve(n: i64) -> Mint {
+    let cnt1 = (1..=sqrt(n)).map(|b| n / b - b).sum::<i64>();
+    let cnt2 = sqrt(n);
+    let cnt = cnt1 * 2 + cnt2;
+    Mint::new(n) * Mint::new(n + 1) / Mint::new(2) - Mint::new(cnt)
+}
+
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        n: i64,
     }
-    let ans: i64 = 0;
+    let ans: u32 = solve(n).val();
     println!("{}", ans);
 }
 
@@ -23,6 +31,7 @@ mod tests {
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
+use num_integer::sqrt;
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,
