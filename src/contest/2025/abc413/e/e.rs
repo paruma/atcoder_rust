@@ -10,9 +10,7 @@ fn rec(xs: &mut [usize], n: usize) {
 
     if first[0] > last[0] {
         // first と last を入れ替える
-        for (x, y) in izip!(first, last) {
-            swap(x, y);
-        }
+        first.swap_with_slice(last);
     }
 }
 fn solve() -> Vec<usize> {
