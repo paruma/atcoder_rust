@@ -5,6 +5,35 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [[bin]]
+name = "abc415_a"
+path = "src/contest/2025/abc415/a/a.rs"
+
+[[bin]]
+name = "abc415_b"
+path = "src/contest/2025/abc415/b/b.rs"
+
+[[bin]]
+name = "abc415_c"
+path = "src/contest/2025/abc415/c/c.rs"
+
+[[bin]]
+name = "abc415_d"
+path = "src/contest/2025/abc415/d/d.rs"
+
+[[bin]]
+name = "abc415_e"
+path = "src/contest/2025/abc415/e/e.rs"
+
+[[bin]]
+name = "abc415_f"
+path = "src/contest/2025/abc415/f/f.rs"
+
+[[bin]]
+name = "abc415_g"
+path = "src/contest/2025/abc415/g/g.rs"
+
+
+[[bin]]
 name = "abc414_a"
 path = "src/contest/2025/abc414/a/a.rs"
 
@@ -149,290 +178,290 @@ name = "abc410_g"
 path = "src/contest/2025/abc410/g/g.rs"
 
 
-[[bin]]
-name = "abc409_a"
-path = "src/contest/2025/abc409/a/a.rs"
+# [[bin]]
+# name = "abc409_a"
+# path = "src/contest/2025/abc409/a/a.rs"
 
-[[bin]]
-name = "abc409_b"
-path = "src/contest/2025/abc409/b/b.rs"
+# [[bin]]
+# name = "abc409_b"
+# path = "src/contest/2025/abc409/b/b.rs"
 
-[[bin]]
-name = "abc409_c"
-path = "src/contest/2025/abc409/c/c.rs"
+# [[bin]]
+# name = "abc409_c"
+# path = "src/contest/2025/abc409/c/c.rs"
 
-[[bin]]
-name = "abc409_d"
-path = "src/contest/2025/abc409/d/d.rs"
+# [[bin]]
+# name = "abc409_d"
+# path = "src/contest/2025/abc409/d/d.rs"
 
-[[bin]]
-name = "abc409_e"
-path = "src/contest/2025/abc409/e/e.rs"
+# [[bin]]
+# name = "abc409_e"
+# path = "src/contest/2025/abc409/e/e.rs"
 
-[[bin]]
-name = "abc409_f"
-path = "src/contest/2025/abc409/f/f.rs"
+# [[bin]]
+# name = "abc409_f"
+# path = "src/contest/2025/abc409/f/f.rs"
 
-[[bin]]
-name = "abc409_g"
-path = "src/contest/2025/abc409/g/g.rs"
+# [[bin]]
+# name = "abc409_g"
+# path = "src/contest/2025/abc409/g/g.rs"
 
 
-[[bin]]
-name = "abc408_a"
-path = "src/contest/2025/abc408/a/a.rs"
+# [[bin]]
+# name = "abc408_a"
+# path = "src/contest/2025/abc408/a/a.rs"
 
-[[bin]]
-name = "abc408_b"
-path = "src/contest/2025/abc408/b/b.rs"
+# [[bin]]
+# name = "abc408_b"
+# path = "src/contest/2025/abc408/b/b.rs"
 
-[[bin]]
-name = "abc408_c"
-path = "src/contest/2025/abc408/c/c.rs"
+# [[bin]]
+# name = "abc408_c"
+# path = "src/contest/2025/abc408/c/c.rs"
 
-[[bin]]
-name = "abc408_d"
-path = "src/contest/2025/abc408/d/d.rs"
+# [[bin]]
+# name = "abc408_d"
+# path = "src/contest/2025/abc408/d/d.rs"
 
-[[bin]]
-name = "abc408_e"
-path = "src/contest/2025/abc408/e/e.rs"
+# [[bin]]
+# name = "abc408_e"
+# path = "src/contest/2025/abc408/e/e.rs"
 
-[[bin]]
-name = "abc408_f"
-path = "src/contest/2025/abc408/f/f.rs"
+# [[bin]]
+# name = "abc408_f"
+# path = "src/contest/2025/abc408/f/f.rs"
 
-[[bin]]
-name = "abc408_g"
-path = "src/contest/2025/abc408/g/g.rs"
+# [[bin]]
+# name = "abc408_g"
+# path = "src/contest/2025/abc408/g/g.rs"
 
 
-[[bin]]
-name = "abc407_a"
-path = "src/contest/2025/abc407/a/a.rs"
+# [[bin]]
+# name = "abc407_a"
+# path = "src/contest/2025/abc407/a/a.rs"
 
-[[bin]]
-name = "abc407_b"
-path = "src/contest/2025/abc407/b/b.rs"
+# [[bin]]
+# name = "abc407_b"
+# path = "src/contest/2025/abc407/b/b.rs"
 
-[[bin]]
-name = "abc407_c"
-path = "src/contest/2025/abc407/c/c.rs"
+# [[bin]]
+# name = "abc407_c"
+# path = "src/contest/2025/abc407/c/c.rs"
 
-[[bin]]
-name = "abc407_d"
-path = "src/contest/2025/abc407/d/d.rs"
+# [[bin]]
+# name = "abc407_d"
+# path = "src/contest/2025/abc407/d/d.rs"
 
-[[bin]]
-name = "abc407_e"
-path = "src/contest/2025/abc407/e/e.rs"
+# [[bin]]
+# name = "abc407_e"
+# path = "src/contest/2025/abc407/e/e.rs"
 
-[[bin]]
-name = "abc407_f"
-path = "src/contest/2025/abc407/f/f.rs"
+# [[bin]]
+# name = "abc407_f"
+# path = "src/contest/2025/abc407/f/f.rs"
 
-[[bin]]
-name = "abc407_g"
-path = "src/contest/2025/abc407/g/g.rs"
+# [[bin]]
+# name = "abc407_g"
+# path = "src/contest/2025/abc407/g/g.rs"
 
 
-[[bin]]
-name = "abc406_a"
-path = "src/contest/2025/abc406/a/a.rs"
+# [[bin]]
+# name = "abc406_a"
+# path = "src/contest/2025/abc406/a/a.rs"
 
-[[bin]]
-name = "abc406_b"
-path = "src/contest/2025/abc406/b/b.rs"
+# [[bin]]
+# name = "abc406_b"
+# path = "src/contest/2025/abc406/b/b.rs"
 
-[[bin]]
-name = "abc406_c"
-path = "src/contest/2025/abc406/c/c.rs"
+# [[bin]]
+# name = "abc406_c"
+# path = "src/contest/2025/abc406/c/c.rs"
 
-[[bin]]
-name = "abc406_d"
-path = "src/contest/2025/abc406/d/d.rs"
+# [[bin]]
+# name = "abc406_d"
+# path = "src/contest/2025/abc406/d/d.rs"
 
-[[bin]]
-name = "abc406_e"
-path = "src/contest/2025/abc406/e/e.rs"
+# [[bin]]
+# name = "abc406_e"
+# path = "src/contest/2025/abc406/e/e.rs"
 
-[[bin]]
-name = "abc406_f"
-path = "src/contest/2025/abc406/f/f.rs"
+# [[bin]]
+# name = "abc406_f"
+# path = "src/contest/2025/abc406/f/f.rs"
 
-[[bin]]
-name = "abc406_g"
-path = "src/contest/2025/abc406/g/g.rs"
+# [[bin]]
+# name = "abc406_g"
+# path = "src/contest/2025/abc406/g/g.rs"
 
 
-[[bin]]
-name = "abc405_a"
-path = "src/contest/2025/abc405/a/a.rs"
+# [[bin]]
+# name = "abc405_a"
+# path = "src/contest/2025/abc405/a/a.rs"
 
-[[bin]]
-name = "abc405_b"
-path = "src/contest/2025/abc405/b/b.rs"
+# [[bin]]
+# name = "abc405_b"
+# path = "src/contest/2025/abc405/b/b.rs"
 
-[[bin]]
-name = "abc405_c"
-path = "src/contest/2025/abc405/c/c.rs"
+# [[bin]]
+# name = "abc405_c"
+# path = "src/contest/2025/abc405/c/c.rs"
 
-[[bin]]
-name = "abc405_d"
-path = "src/contest/2025/abc405/d/d.rs"
+# [[bin]]
+# name = "abc405_d"
+# path = "src/contest/2025/abc405/d/d.rs"
 
-[[bin]]
-name = "abc405_e"
-path = "src/contest/2025/abc405/e/e.rs"
+# [[bin]]
+# name = "abc405_e"
+# path = "src/contest/2025/abc405/e/e.rs"
 
-[[bin]]
-name = "abc405_f"
-path = "src/contest/2025/abc405/f/f.rs"
+# [[bin]]
+# name = "abc405_f"
+# path = "src/contest/2025/abc405/f/f.rs"
 
-[[bin]]
-name = "abc405_g"
-path = "src/contest/2025/abc405/g/g.rs"
+# [[bin]]
+# name = "abc405_g"
+# path = "src/contest/2025/abc405/g/g.rs"
 
 
-[[bin]]
-name = "arc197_a"
-path = "src/contest/2025/arc197/a/a.rs"
+# [[bin]]
+# name = "arc197_a"
+# path = "src/contest/2025/arc197/a/a.rs"
 
-[[bin]]
-name = "arc197_b"
-path = "src/contest/2025/arc197/b/b.rs"
+# [[bin]]
+# name = "arc197_b"
+# path = "src/contest/2025/arc197/b/b.rs"
 
-[[bin]]
-name = "arc197_c"
-path = "src/contest/2025/arc197/c/c.rs"
+# [[bin]]
+# name = "arc197_c"
+# path = "src/contest/2025/arc197/c/c.rs"
 
-[[bin]]
-name = "arc197_d"
-path = "src/contest/2025/arc197/d/d.rs"
+# [[bin]]
+# name = "arc197_d"
+# path = "src/contest/2025/arc197/d/d.rs"
 
-[[bin]]
-name = "arc197_e"
-path = "src/contest/2025/arc197/e/e.rs"
+# [[bin]]
+# name = "arc197_e"
+# path = "src/contest/2025/arc197/e/e.rs"
 
 
-[[bin]]
-name = "abc404_a"
-path = "src/contest/2025/abc404/a/a.rs"
+# [[bin]]
+# name = "abc404_a"
+# path = "src/contest/2025/abc404/a/a.rs"
 
-[[bin]]
-name = "abc404_b"
-path = "src/contest/2025/abc404/b/b.rs"
+# [[bin]]
+# name = "abc404_b"
+# path = "src/contest/2025/abc404/b/b.rs"
 
-[[bin]]
-name = "abc404_c"
-path = "src/contest/2025/abc404/c/c.rs"
+# [[bin]]
+# name = "abc404_c"
+# path = "src/contest/2025/abc404/c/c.rs"
 
-[[bin]]
-name = "abc404_d"
-path = "src/contest/2025/abc404/d/d.rs"
+# [[bin]]
+# name = "abc404_d"
+# path = "src/contest/2025/abc404/d/d.rs"
 
-[[bin]]
-name = "abc404_e"
-path = "src/contest/2025/abc404/e/e.rs"
+# [[bin]]
+# name = "abc404_e"
+# path = "src/contest/2025/abc404/e/e.rs"
 
-[[bin]]
-name = "abc404_f"
-path = "src/contest/2025/abc404/f/f.rs"
+# [[bin]]
+# name = "abc404_f"
+# path = "src/contest/2025/abc404/f/f.rs"
 
-[[bin]]
-name = "abc404_g"
-path = "src/contest/2025/abc404/g/g.rs"
+# [[bin]]
+# name = "abc404_g"
+# path = "src/contest/2025/abc404/g/g.rs"
 
 
-[[bin]]
-name = "edpc_v"
-path = "src/contest/2025/_misc/edpc/dp_v.rs"
+# [[bin]]
+# name = "edpc_v"
+# path = "src/contest/2025/_misc/edpc/dp_v.rs"
 
-[[bin]]
-name = "abc403_a"
-path = "src/contest/2025/abc403/a/a.rs"
+# [[bin]]
+# name = "abc403_a"
+# path = "src/contest/2025/abc403/a/a.rs"
 
-[[bin]]
-name = "abc403_b"
-path = "src/contest/2025/abc403/b/b.rs"
+# [[bin]]
+# name = "abc403_b"
+# path = "src/contest/2025/abc403/b/b.rs"
 
-[[bin]]
-name = "abc403_c"
-path = "src/contest/2025/abc403/c/c.rs"
+# [[bin]]
+# name = "abc403_c"
+# path = "src/contest/2025/abc403/c/c.rs"
 
-[[bin]]
-name = "abc403_d"
-path = "src/contest/2025/abc403/d/d.rs"
+# [[bin]]
+# name = "abc403_d"
+# path = "src/contest/2025/abc403/d/d.rs"
 
-[[bin]]
-name = "abc403_e"
-path = "src/contest/2025/abc403/e/e.rs"
+# [[bin]]
+# name = "abc403_e"
+# path = "src/contest/2025/abc403/e/e.rs"
 
-[[bin]]
-name = "abc403_f"
-path = "src/contest/2025/abc403/f/f.rs"
+# [[bin]]
+# name = "abc403_f"
+# path = "src/contest/2025/abc403/f/f.rs"
 
-[[bin]]
-name = "abc403_g"
-path = "src/contest/2025/abc403/g/g.rs"
+# [[bin]]
+# name = "abc403_g"
+# path = "src/contest/2025/abc403/g/g.rs"
 
 
-[[bin]]
-name = "abc402_a"
-path = "src/contest/2025/abc402/a/a.rs"
+# [[bin]]
+# name = "abc402_a"
+# path = "src/contest/2025/abc402/a/a.rs"
 
-[[bin]]
-name = "abc402_b"
-path = "src/contest/2025/abc402/b/b.rs"
+# [[bin]]
+# name = "abc402_b"
+# path = "src/contest/2025/abc402/b/b.rs"
 
-[[bin]]
-name = "abc402_c"
-path = "src/contest/2025/abc402/c/c.rs"
+# [[bin]]
+# name = "abc402_c"
+# path = "src/contest/2025/abc402/c/c.rs"
 
-[[bin]]
-name = "abc402_d"
-path = "src/contest/2025/abc402/d/d.rs"
+# [[bin]]
+# name = "abc402_d"
+# path = "src/contest/2025/abc402/d/d.rs"
 
-[[bin]]
-name = "abc402_e"
-path = "src/contest/2025/abc402/e/e.rs"
+# [[bin]]
+# name = "abc402_e"
+# path = "src/contest/2025/abc402/e/e.rs"
 
-[[bin]]
-name = "abc402_f"
-path = "src/contest/2025/abc402/f/f.rs"
+# [[bin]]
+# name = "abc402_f"
+# path = "src/contest/2025/abc402/f/f.rs"
 
-[[bin]]
-name = "abc402_g"
-path = "src/contest/2025/abc402/g/g.rs"
+# [[bin]]
+# name = "abc402_g"
+# path = "src/contest/2025/abc402/g/g.rs"
 
 
-[[bin]]
-name = "abc401_a"
-path = "src/contest/2025/abc401/a/a.rs"
+# [[bin]]
+# name = "abc401_a"
+# path = "src/contest/2025/abc401/a/a.rs"
 
-[[bin]]
-name = "abc401_b"
-path = "src/contest/2025/abc401/b/b.rs"
+# [[bin]]
+# name = "abc401_b"
+# path = "src/contest/2025/abc401/b/b.rs"
 
-[[bin]]
-name = "abc401_c"
-path = "src/contest/2025/abc401/c/c.rs"
+# [[bin]]
+# name = "abc401_c"
+# path = "src/contest/2025/abc401/c/c.rs"
 
-[[bin]]
-name = "abc401_d"
-path = "src/contest/2025/abc401/d/d.rs"
+# [[bin]]
+# name = "abc401_d"
+# path = "src/contest/2025/abc401/d/d.rs"
 
-[[bin]]
-name = "abc401_e"
-path = "src/contest/2025/abc401/e/e.rs"
+# [[bin]]
+# name = "abc401_e"
+# path = "src/contest/2025/abc401/e/e.rs"
 
-[[bin]]
-name = "abc401_f"
-path = "src/contest/2025/abc401/f/f.rs"
+# [[bin]]
+# name = "abc401_f"
+# path = "src/contest/2025/abc401/f/f.rs"
 
-[[bin]]
-name = "abc401_g"
-path = "src/contest/2025/abc401/g/g.rs"
+# [[bin]]
+# name = "abc401_g"
+# path = "src/contest/2025/abc401/g/g.rs"
 
 
 # [[bin]]
