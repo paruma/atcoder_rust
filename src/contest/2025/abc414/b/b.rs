@@ -5,20 +5,19 @@ fn main() {
     }
     let len_sum = cls
         .iter()
-        .copied()
-        .map(|(_, l)| l)
-        .fold(Some(0_usize), |acc, x| {
-            let acc = acc?;
-            acc.checked_add(x)
-        });
-    let is_too_long = len_sum.is_none() || len_sum.unwrap() > 100;
-    let ans: Vec<char> = if is_too_long {
+        .map(|&(_, l)| l)
+        .try_fold(0_usize, |acc, x| acc.checked_add(x));
+
+    let too_long = matches!(len_sum, Some(len) if len <= 100);
+
+    let ans = if too_long {
         "Too Long".chars().collect_vec()
     } else {
         cls.iter()
-            .flat_map(|(c, l)| std::iter::repeat(*c).take(*l))
+            .flat_map(|&(c, l)| std::iter::repeat(c).take(l))
             .collect_vec()
     };
+
     print_chars(&ans);
 }
 
