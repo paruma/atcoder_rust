@@ -1,9 +1,41 @@
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        h: usize,
+        w: usize,
+        grid: [[i64; w]; h],
+        ps: [i64; w + h - 1],
     }
-    let ans: i64 = 0;
+    let ps_sum = ps.iter().copied().sum::<i64>();
+    let mut dp = vec![vec![i64::MIN; w]; h];
+
+    let ans = bin_search(ps_sum, -1, |x| {
+        for y in 0..h {
+            for x in 0..w {
+                dp[y][x] = i64::MIN;
+            }
+        }
+
+        dp[0][0] = x + grid[0][0] - ps[0];
+
+        for y in 0..h {
+            for x in 0..w {
+                if x != 0 {
+                    if dp[y][x - 1] >= 0 {
+                        let next_val = dp[y][x - 1] + grid[y][x] - ps[x + y];
+                        dp[y][x] = i64::max(dp[y][x], next_val);
+                    }
+                }
+                if y != 0 {
+                    if dp[y - 1][x] >= 0 {
+                        let next_val = dp[y - 1][x] + grid[y][x] - ps[x + y];
+                        dp[y][x] = i64::max(dp[y][x], next_val);
+                    }
+                }
+            }
+        }
+        //
+        dp[h - 1][w - 1] >= 0
+    });
     println!("{}", ans);
 }
 
@@ -32,6 +64,7 @@ use proconio::{
 use std::cmp::Reverse;
 #[allow(unused_imports)]
 use std::collections::{BinaryHeap, HashMap, HashSet};
+use std::i64;
 
 // ====== output func ======
 #[allow(unused_imports)]
@@ -86,3 +119,44 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+/// 二分探索をする
+/// ```text
+/// ng ng ng ok ok ok
+///          ↑ここの引数の値を返す
+/// ```
+/// 計算量: O(log(|ok - ng|))
+/// ## Arguments
+/// * ok != ng
+/// * |ok - ng| <= 2^63 - 1, |ok + ng| <= 2^63 - 1
+/// * p の定義域について
+///     * ng < ok の場合、p は区間 ng..ok で定義されている。
+///     * ok < ng の場合、p は区間 ok..ng で定義されている。
+/// * p の単調性について
+///     * ng < ok の場合、p は単調増加
+///     * ok < ng の場合、p は単調減少
+/// ## Return
+/// * ng < ok の場合: I = { i in ng..ok | p(i) == true } としたとき
+///     * I が空でなければ、min I を返す。
+///     * I が空ならば、ok を返す。
+/// * ok < ng の場合: I = { i in ok..ng | p(i) == true } としたとき
+///     * I が空でなければ、max I を返す。
+///     * I が空ならば、ok を返す。
+pub fn bin_search<F>(mut ok: i64, mut ng: i64, mut p: F) -> i64
+where
+    F: FnMut(i64) -> bool,
+{
+    debug_assert!(ok != ng);
+    debug_assert!(ok.checked_sub(ng).is_some());
+    debug_assert!(ok.checked_add(ng).is_some());
+    while num::abs(ok - ng) > 1 {
+        let mid = (ok + ng) / 2;
+        debug_assert!(mid != ok);
+        debug_assert!(mid != ng);
+        if p(mid) {
+            ok = mid;
+        } else {
+            ng = mid;
+        }
+    }
+    ok
+}

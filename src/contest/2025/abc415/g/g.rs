@@ -1,9 +1,50 @@
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        n: i64,
+        m: usize,
+        xys: [(i64, i64); m],
     }
-    let ans: i64 = 0;
+    // まずは愚直
+
+    let ans = if n <= 1200 {
+        let mut dp = vec![0; n as usize + 1];
+
+        dp[0] = 0;
+
+        for i in 1..=n {
+            for &(x, y) in &xys {
+                if i >= x {
+                    dp[i as usize] = i64::max(dp[i as usize], dp[(i - (x - y)) as usize] + x);
+                }
+                dp[i as usize] = i64::max(dp[i as usize], dp[(i - 1) as usize] + 1);
+            }
+        }
+
+        dp[n as usize]
+    } else {
+        let mut dp = vec![0; 1200 + 1];
+
+        dp[0] = 0;
+
+        for i in 1..=1200 {
+            for &(x, y) in &xys {
+                if i >= x {
+                    dp[i as usize] = i64::max(dp[i as usize], dp[(i - (x - y)) as usize] + x);
+                }
+                dp[i as usize] = i64::max(dp[i as usize], dp[(i - 1) as usize] + 1);
+            }
+        }
+
+        //let saikyo = xys.iter().max_by(|((x1, y1), (x2, y2))|)
+        let (saikyo_x, saikyo_y) = *xys
+            .iter()
+            .max_by_key(|(x, y)| (rational::Rational64::new(*x, x - y), Reverse(x - y)))
+            .unwrap();
+        let saikyo_diff = saikyo_x - saikyo_y;
+        let cnt = (n - saikyo_x) / saikyo_diff + 1;
+        let remain = n - saikyo_diff * cnt;
+        dp[remain as usize] + cnt * saikyo_x
+    };
     println!("{}", ans);
 }
 
@@ -23,6 +64,7 @@ mod tests {
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
+use num::rational;
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,

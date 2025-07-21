@@ -1,9 +1,27 @@
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        n: i64,
+        m: usize,
+        xys: [(i64, i64); m],
     }
-    let ans: i64 = 0;
+    let xys = xys
+        .iter()
+        .copied()
+        .sorted_by_key(|&(x, y)| (x - y, x))
+        .collect_vec();
+
+    let mut n = n;
+    let mut ans = 0_i64;
+
+    for (x, y) in xys {
+        let diff = x - y;
+        if n >= x {
+            let cnt = (n - x) / diff + 1;
+            n -= diff * cnt;
+            ans += cnt;
+        }
+    }
+
     println!("{}", ans);
 }
 

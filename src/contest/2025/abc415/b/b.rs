@@ -1,10 +1,14 @@
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        xs: Chars,
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
+    let poss = xs.iter().copied().positions(|x| x == '#').collect_vec();
+
+    let ans = poss.chunks(2).collect_vec();
+
+    for row in ans {
+        println!("{},{}", row[0] + 1, row[1] + 1);
+    }
 }
 
 #[cfg(test)]

@@ -2,9 +2,10 @@ fn main() {
     input! {
         n: usize,
         xs: [i64; n],
+        y: i64
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
+    let ans: bool = xs.contains(&y);
+    print_yesno(ans);
 }
 
 #[cfg(test)]
