@@ -4,4 +4,4 @@ pub mod default_hash_map;
 pub mod queue0;
 pub mod range_set;
 pub mod stack0;
-pub mod union_find0;
+pub mod union_find;

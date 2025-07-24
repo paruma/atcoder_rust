@@ -5462,6 +5462,7 @@
     "prefix": "monoid_union_find",
     "body": [
       "use monoid_union_find::*;",
+      "#[allow(clippy::module_inception)]",
       "/// 可換モノイドをのっけた Union Find",
       "pub mod monoid_union_find {",
       "    use ac_library::Monoid;",
@@ -5714,6 +5715,7 @@
     "prefix": "potentialized_union_find",
     "body": [
       "use potentialized_union_find::*;",
+      "#[allow(clippy::module_inception)]",
       "pub mod potentialized_union_find {",
       "    use itertools::Itertools;",
       "    #[derive(Clone, Debug)]",
@@ -6211,7 +6213,6 @@
       "    use ac_library::{LazySegtree, MapMonoid, Monoid};",
       "    use itertools::Itertools;",
       "    use std::convert::Infallible;",
-      "    use std::i64;",
       "    use std::marker::PhantomData;",
       "    use std::ops::{Add, RangeBounds};",
       "    pub struct RangeMin<T>(Infallible, PhantomData<fn() -> T>);",
@@ -9227,6 +9228,7 @@
     "prefix": "simple_union_find",
     "body": [
       "use simple_union_find::*;",
+      "#[allow(clippy::module_inception)]",
       "pub mod simple_union_find {",
       "    use itertools::Itertools;",
       "    #[derive(Clone, Debug)]",
