@@ -32,6 +32,7 @@
 - **解答の実行**: `cargo run --bin <problem_id>` (例: `cargo run --bin abc414_b`)
 - **解答のテスト**: `cargo test --bin <problem_id>` (例: `cargo test --bin abc414_b`)
 - **コードのフォーマット**: `cargo fmt`
+- **自作ライブラリのスニペット化**: `bash snippet.sh` (自作ライブラリ `src/mylib/` 内のファイルを変更した場合に実行)
 - **解答の提出**: 特定の問題ファイル（例: `src/contest/2025/abc414/b/b.rs`）の内容をコピーし、AtCoderの提出フォームに貼り付けます。
 
 ## 5. ディレクトリ構成
