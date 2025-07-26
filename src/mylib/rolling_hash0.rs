@@ -19,8 +19,23 @@ pub mod rolling_hash {
     }
 
     impl RollingHash {
+        /// # Arguments
+        /// * `xs` - 値は1以上にする。0があると違う長さが同じハッシュ値になってしまう可能性が高まる。
+        ///          char を i64 にする場合は `ch as i64` のように変換するとよい。
+        /// * `base` - generate_random_base() で乱数生成した値を使う
+        ///
+        /// # Examples
+        /// ```
+        /// use atcoder_rust::mylib::rolling_hash0::rolling_hash::*;
+        /// use atcoder_rust::mylib::rolling_hash0::rolling_hash::generate_random_base;
+        ///
+        /// let chars = ['a', 'b', 'a', 'b', 'a'];
+        /// let xs = chars.iter().copied().map(|ch| ch as i64).collect::<Vec<_>>();
+        /// let base = generate_random_base();
+        /// let rh = RollingHash::new(&xs, base);
+        /// assert!(rh.hash(0, 3) == rh.hash(2, 5));
+        /// ```
         pub fn new(xs: &[i64], base: i64) -> Self {
-            // base > 0 とする
             let base = Mint::new(base);
             let mut hash_list = vec![Mint::new(0); xs.len() + 1];
             let mut pow_list = vec![Mint::new(1); xs.len() + 1];
@@ -74,6 +89,8 @@ pub mod monoid_rolling_hash {
             self.hash.val()
         }
 
+        /// # Arguments
+        /// * `base` - generate_random_base() で乱数生成した値を使う
         pub fn unit(base: i64) -> impl (Fn(i64) -> RollingHash) {
             move |x| RollingHash {
                 hash: Mint::new(x),
@@ -129,6 +146,10 @@ pub mod rolling_hash_2d {
     }
 
     impl RollingHash2D {
+
+        /// # Arguments
+        /// * `base0` - generate_random_base() で乱数生成した値を使う
+        /// * `base1` - generate_random_base() で乱数生成した値を使う
         pub fn new(xss: &[Vec<i64>], base0: i64, base1: i64) -> Self {
             // base > 0 とする
             let base0 = Mint::new(base0);
