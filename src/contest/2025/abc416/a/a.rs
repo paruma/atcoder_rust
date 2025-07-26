@@ -1,10 +1,12 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        l: Usize1,
+        r: Usize1,
+        xs: Chars,
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
+    let ans: bool = xs[l..=r].iter().all(|x| *x == 'o');
+    print_yesno(ans);
 }
 
 #[cfg(test)]

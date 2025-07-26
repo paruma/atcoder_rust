@@ -1,10 +1,40 @@
+fn solve(n: usize, m: i64, xs: Vec<i64>, ys: Vec<i64>) -> i64 {
+    let xs = xs.iter().copied().sorted().collect_vec();
+    let ys = ys.iter().copied().sorted().collect_vec();
+
+    let mut cnt_m = 0;
+
+    let mut ys_iter = ys.iter().copied().peekable();
+
+    for x in xs.iter().copied().rev() {
+        // x + y >= m となるような y を探す
+
+        let y = ys_iter.find(|y| x + *y >= m);
+        if y.is_some() {
+            cnt_m += 1;
+        }
+    }
+
+    let xs_sum = xs.iter().copied().sum::<i64>();
+    let ys_sum = ys.iter().copied().sum::<i64>();
+    xs_sum + ys_sum - cnt_m * m
+}
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        t: usize
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
+    let ans: Vec<i64> = (0..t)
+        .map(|_| {
+            input! {
+                n: usize,
+                m: i64,
+                xs: [i64; n],
+                ys: [i64; n],
+            }
+            solve(n, m, xs, ys)
+        })
+        .collect_vec();
+    print_vec(&ans);
 }
 
 #[cfg(test)]

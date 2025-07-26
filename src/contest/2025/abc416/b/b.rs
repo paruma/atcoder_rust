@@ -1,10 +1,21 @@
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        xs: Chars,
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
+    let rle = xs.iter().copied().dedup_with_count().collect_vec();
+    let ans: Vec<char> = rle
+        .iter()
+        .flat_map(|&(cnt, ch)| {
+            if ch == '#' {
+                vec![ch; cnt]
+            } else {
+                let mut tmp = vec![ch; cnt - 1];
+                tmp.push('o');
+                tmp
+            }
+        })
+        .collect_vec();
+    print_chars(&ans);
 }
 
 #[cfg(test)]

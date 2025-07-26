@@ -86,7 +86,7 @@ fn warshall_floyd(edges: &[Edge], n_vertex: usize) -> Vec<Vec<ExtInt>> {
     let mut dist = vec![vec![INF; n_vertex]; n_vertex];
 
     for e in edges {
-        dist[e.from][e.to] = fin(e.cost)
+        chmin!(dist[e.from][e.to], fin(e.cost));
     }
     for v in 0..n_vertex {
         dist[v][v] = fin(0);

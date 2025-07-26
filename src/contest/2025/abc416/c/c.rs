@@ -1,10 +1,23 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        k: usize,
+        x: Usize1,
+        xss: [Chars; n],
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
+    let ans = std::iter::repeat(0..n)
+        .take(k)
+        .multi_cartesian_product()
+        .map(|ys| {
+            ys.iter()
+                .copied()
+                .flat_map(|y| xss[y].clone())
+                .collect_vec()
+        })
+        .sorted()
+        .nth(x)
+        .unwrap();
+    print_chars(&ans);
 }
 
 #[cfg(test)]
