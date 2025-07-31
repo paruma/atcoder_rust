@@ -16,6 +16,7 @@ anyio==4.3.0
 appdirs==1.4.4
     # via aclogin
     # via online-judge-api-client
+    # via ptpython
 argon2-cffi==23.1.0
     # via jupyter-server
 argon2-cffi-bindings==21.2.0
@@ -38,6 +39,9 @@ beautifulsoup4==4.12.3
     # via online-judge-api-client
 bleach==6.1.0
     # via nbconvert
+blessed==1.21.0
+    # via curtsies
+bpython==0.25
 certifi==2024.2.2
     # via httpcore
     # via httpx
@@ -53,6 +57,11 @@ colorlog==6.8.2
     # via online-judge-api-client
 comm==0.2.2
     # via ipykernel
+curtsies==0.4.3
+    # via bpython
+cwcwidth==0.1.10
+    # via bpython
+    # via curtsies
 debugpy==1.8.1
     # via ipykernel
 decorator==5.1.1
@@ -65,6 +74,8 @@ fastjsonschema==2.19.1
     # via nbformat
 fqdn==1.5.1
     # via jsonschema
+greenlet==3.2.3
+    # via bpython
 h11==0.14.0
     # via httpcore
     # via wsproto
@@ -86,6 +97,7 @@ isoduration==20.11.0
     # via jsonschema
 jedi==0.19.1
     # via ipython
+    # via ptpython
 jinja2==3.1.3
     # via jupyter-server
     # via jupyterlab
@@ -183,8 +195,10 @@ prometheus-client==0.20.0
     # via jupyter-server
 prompt-toolkit==3.0.43
     # via ipython
+    # via ptpython
 psutil==5.9.8
     # via ipykernel
+ptpython==3.0.30
 ptyprocess==0.7.0
     # via pexpect
     # via terminado
@@ -193,8 +207,10 @@ pure-eval==0.2.2
 pycparser==2.22
     # via cffi
 pygments==2.17.2
+    # via bpython
     # via ipython
     # via nbconvert
+    # via ptpython
 pysocks==1.7.1
     # via urllib3
 python-dateutil==2.9.0.post0
@@ -202,6 +218,8 @@ python-dateutil==2.9.0.post0
     # via jupyter-client
 python-json-logger==2.0.7
     # via jupyter-events
+pyxdg==0.28
+    # via bpython
 pyyaml==6.0.1
     # via jupyter-events
 pyzmq==26.0.2
@@ -213,6 +231,7 @@ referencing==0.34.0
     # via jsonschema-specifications
     # via jupyter-events
 requests==2.31.0
+    # via bpython
     # via jupyterlab-server
     # via online-judge-api-client
     # via online-judge-tools
@@ -292,6 +311,7 @@ urllib3==2.2.1
     # via requests
     # via selenium
 wcwidth==0.2.13
+    # via blessed
     # via prompt-toolkit
 webcolors==1.13
     # via jsonschema

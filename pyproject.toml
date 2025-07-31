@@ -21,7 +21,12 @@ build-backend = "hatchling.build"
 
 [tool.rye]
 managed = true
-dev-dependencies = ["jupyterlab>=4.1.6", "ruff>=0.4.4"]
+dev-dependencies = [
+    "jupyterlab>=4.1.6",
+    "ruff>=0.4.4",
+    "bpython>=0.25",
+    "ptpython>=3.0.30",
+]
 
 [tool.hatch.metadata]
 allow-direct-references = true
