@@ -9,6 +9,9 @@ readline.parse_and_bind('tab: complete')
 from math import prod, gcd, lcm, comb, perm, factorial, log10, log2
 import functools
 
+# === 文字列処理 ===
+assert sorted([int(x) for x in '7 11 3 9'.split()]) == [3, 7, 9, 11]
+
 # === 総和・総積 ===
 assert prod([1, 2, 3, 4]) == 24
 assert sum([1, 2, 3, 4]) == 10
