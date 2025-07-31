@@ -8,8 +8,7 @@
 #   with-sources: false
 
 -e file:.
-aclogin==0.1.0
-    # via atcoder-rust
+aclogin==0.2.1
 anyio==4.3.0
     # via httpx
     # via jupyter-server
@@ -53,7 +52,7 @@ charset-normalizer==3.3.2
     # via requests
 colorama==0.4.6
     # via online-judge-tools
-colorlog==6.8.2
+colorlog==6.9.0
     # via online-judge-api-client
 comm==0.2.2
     # via ipykernel
@@ -142,7 +141,7 @@ jupyterlab-pygments==0.3.0
     # via nbconvert
 jupyterlab-server==2.27.1
     # via jupyterlab
-lxml==5.2.1
+lxml==6.0.0
     # via online-judge-api-client
 markupsafe==2.1.5
     # via jinja2
@@ -172,7 +171,6 @@ numpy==1.26.4
 online-judge-api-client==10.10.1
     # via online-judge-tools
 online-judge-tools==11.5.1
-    # via atcoder-rust
 outcome==1.3.0.post0
     # via trio
 overrides==7.7.0
