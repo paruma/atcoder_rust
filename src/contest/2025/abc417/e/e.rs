@@ -1,10 +1,83 @@
+struct DfsGraph<'a> {
+    adj: &'a [Vec<usize>],
+    dst: usize,
+}
+
+impl DfsGraph<'_> {
+    fn new(adj: &[Vec<usize>], dst: usize) -> DfsGraph<'_> {
+        // adj.len() は グラフの頂点の数
+        DfsGraph { adj, dst }
+    }
+
+    /// 計算量: O(頂点の数 + 辺の数)
+    fn exec(&self, v: usize, visited: &mut Vec<bool>) -> Option<Vec<usize>> {
+        if v == self.dst {
+            if visited[v] {
+                return None;
+            } else {
+                return Some(vec![v]);
+            }
+        }
+        // 行きがけ
+        visited[v] = true;
+
+        for &next in &self.adj[v] {
+            if !visited[next] {
+                let mut ans_opt = self.exec(next, visited);
+                if let Some(ans) = &mut ans_opt {
+                    ans.push(v);
+                    visited[v] = false;
+                    return Some(ans_opt.unwrap());
+                }
+            }
+        }
+        // 帰りがけ
+        visited[v] = false;
+        None
+    }
+}
+fn solve(nv: usize, ne: usize, src: usize, dst: usize, es: &[(usize, usize)]) -> Vec<usize> {
+    let mut adj = es.iter().copied().fold(vec![vec![]; nv], |mut acc, e| {
+        acc[e.0].push(e.1);
+        acc[e.1].push(e.0);
+        acc
+    });
+
+    adj.iter_mut().for_each(|row| row.sort());
+
+    let d = DfsGraph::new(&adj, dst);
+
+    let mut ans = d.exec(src, &mut vec![false; nv]).unwrap();
+    ans.reverse();
+
+    ans
+}
+
+#[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        t: usize
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
+
+    let ans = (0..t)
+        .map(|_| {
+            input! {
+                nv: usize,
+                ne: usize,
+                src: Usize1,
+                dst: Usize1,
+                es: [(Usize1, Usize1); ne]
+            }
+
+            solve(nv, ne, src, dst, &es)
+        })
+        .collect_vec();
+
+    for row in ans {
+        let row = row.iter().copied().map(|x| x + 1).collect_vec();
+        let msg = row.iter().map(|x| format!("{}", x)).join(" ");
+        println!("{}", msg);
+    }
 }
 
 #[cfg(test)]

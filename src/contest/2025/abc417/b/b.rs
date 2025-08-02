@@ -1,10 +1,16 @@
 fn main() {
     input! {
         n: usize,
+        m: usize,
         xs: [i64; n],
+        ys: [i64; m],
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
+    let mut bag = xs.iter().copied().collect::<HashBag<_>>();
+    for y in ys {
+        bag.remove(&y);
+    }
+    let ans = bag.iter().copied().sorted().collect_vec();
+    print_vec(&ans);
 }
 
 #[cfg(test)]
@@ -20,6 +26,7 @@ mod tests {
     }
 }
 
+use hashbag::HashBag;
 // ====== import ======
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};

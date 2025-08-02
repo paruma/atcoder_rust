@@ -1,10 +1,14 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        a: usize,
+        b: usize,
+        xs: Chars,
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
+    let ans = &xs[a..n - b];
+    print_chars(&ans);
+    // println!("{}", ans);
+    // print_yesno(ans);
 }
 
 #[cfg(test)]

@@ -1,9 +1,30 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        xs: [usize; n],
     }
-    let ans: i64 = 0;
+
+    let max = xs
+        .iter()
+        .copied()
+        .enumerate()
+        .map(|(i, x)| i + x)
+        .max()
+        .unwrap();
+
+    //let mut cnts = FenwickTree::new(max + 1, 0);
+    let mut cnts = vec![0; max + 1];
+
+    let mut ans: i64 = 0;
+
+    for j in 0..n {
+        if j >= xs[j] {
+            ans += cnts[j - xs[j]];
+        }
+
+        cnts[xs[j] + j] += 1;
+    }
+
     println!("{}", ans);
 }
 
@@ -20,7 +41,8 @@ mod tests {
     }
 }
 
-// ====== import ======
+use ac_library::FenwickTree;
+// ====== import ======j
 #[allow(unused_imports)]
 use itertools::{chain, iproduct, izip, Itertools};
 #[allow(unused_imports)]
