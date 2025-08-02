@@ -2,12 +2,22 @@ fn main() {
     input! {
         xs: Chars,
     }
-    let poss = xs.iter().copied().positions(|x| x == '#').collect_vec();
+    // let poss = xs.iter().copied().positions(|x| x == '#').collect_vec();
+    // let ans = poss.chunks(2).collect_vec();
 
-    let ans = poss.chunks(2).collect_vec();
+    // for row in ans {
+    //     println!("{},{}", row[0] + 1, row[1] + 1);
+    // }
 
-    for row in ans {
-        println!("{},{}", row[0] + 1, row[1] + 1);
+    let ans: Vec<(usize, usize)> = xs
+        .iter()
+        .copied()
+        .positions(|x| x == '#')
+        .tuples()
+        .collect_vec();
+
+    for (i1, i2) in ans {
+        println!("{},{}", i1 + 1, i2 + 1);
     }
 }
 
