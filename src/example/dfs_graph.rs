@@ -12,14 +12,14 @@ impl DfsGraph<'_> {
         DfsGraph { adj }
     }
 
-    fn exec_init(&mut self, v: usize) -> Vec<bool> {
+    fn exec_init(&self, v: usize) -> Vec<bool> {
         let n_vertex = self.adj.len();
         let mut visited = vec![false; n_vertex];
         self.exec(v, &mut visited);
         visited
     }
     /// 計算量: O(頂点の数 + 辺の数)
-    fn exec(&mut self, v: usize, visited: &mut Vec<bool>) {
+    fn exec(&self, v: usize, visited: &mut Vec<bool>) {
         // 行きがけ
         visited[v] = true;
 
@@ -93,7 +93,6 @@ fn dfs_order_by_stack(adj: &[Vec<usize>], start: usize) -> (Vec<usize>, Vec<usiz
             }
         }
     }
-
     (pre_order, post_order)
 }
 #[cfg(test)]
