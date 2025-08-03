@@ -36,8 +36,14 @@ pub mod btree_multiset {
             self.map.range(range)
         }
 
-        pub fn iter(&self) -> impl Iterator<Item = (&T, &usize)> {
-            self.map.iter()
+        pub fn iter(&self) -> impl Iterator<Item = &T> {
+            self.map
+                .iter()
+                .flat_map(|(e, cnt)| std::iter::repeat(e).take(*cnt))
+        }
+
+        pub fn set_iter(&self) -> impl Iterator<Item = (&T, usize)> {
+            self.map.iter().map(|(e, cnt)| (e, *cnt))
         }
 
         pub fn insert(&mut self, value: T)
@@ -248,9 +254,22 @@ mod tests {
         assert_eq!(set.count(&1), 2);
         assert_eq!(set.count(&2), 1);
         assert_eq!(set.count(&3), 1);
+    }
 
-        let elements: Vec<_> = set.iter().collect();
-        assert_eq!(elements, vec![(&1, &2), (&2, &1), (&3, &1)]);
+    #[test]
+    fn test_iter() {
+        let vec = vec![1, 1, 2, 3];
+        let set: BTreeMultiSet<_> = vec.into_iter().collect();
+        let elements: Vec<_> = set.iter().copied().collect();
+        assert_eq!(elements, vec![1, 1, 2, 3]);
+    }
+
+    #[test]
+    fn test_set_iter() {
+        let vec = vec![1, 1, 2, 3];
+        let set: BTreeMultiSet<_> = vec.into_iter().collect();
+        let elements: Vec<_> = set.set_iter().collect();
+        assert_eq!(elements, vec![(&1, 2), (&2, 1), (&3, 1)]);
     }
 
     #[test]
