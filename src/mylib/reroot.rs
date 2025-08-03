@@ -312,12 +312,7 @@ mod tests {
     #[test]
     fn test_reroot_path_graph() {
         // 0 -- 1 -- 2 -- 3
-        let adj = vec![
-            vec![1],
-            vec![0, 2],
-            vec![1, 3],
-            vec![2],
-        ];
+        let adj = vec![vec![1], vec![0, 2], vec![1, 3], vec![2]];
         let reroot_solver = DistMaxRerootTest();
         let result = reroot_solver.reroot(&adj);
 
@@ -336,12 +331,7 @@ mod tests {
         // 0-+-2
         //   |
         //   3
-        let adj = vec![
-            vec![1, 2, 3],
-            vec![0],
-            vec![0],
-            vec![0],
-        ];
+        let adj = vec![vec![1, 2, 3], vec![0], vec![0], vec![0]];
         let reroot_solver = DistMaxRerootTest();
         let result = reroot_solver.reroot(&adj);
 
@@ -365,10 +355,7 @@ mod tests {
     #[test]
     fn test_reroot_two_nodes() {
         // 0 -- 1
-        let adj = vec![
-            vec![1],
-            vec![0],
-        ];
+        let adj = vec![vec![1], vec![0]];
         let reroot_solver = DistMaxRerootTest();
         let result = reroot_solver.reroot(&adj);
         assert_eq!(result, vec![1, 1]);

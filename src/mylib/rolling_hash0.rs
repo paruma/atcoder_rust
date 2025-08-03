@@ -146,7 +146,6 @@ pub mod rolling_hash_2d {
     }
 
     impl RollingHash2D {
-
         /// # Arguments
         /// * `base0` - generate_random_base() で乱数生成した値を使う
         /// * `base1` - generate_random_base() で乱数生成した値を使う
