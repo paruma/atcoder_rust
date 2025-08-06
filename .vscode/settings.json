@@ -88,5 +88,6 @@
         "clippy::int_plus_one",
         "-A",
         "clippy::comparison_chain"
-    ]
+    ],
+    "files.insertFinalNewline": false
 }
