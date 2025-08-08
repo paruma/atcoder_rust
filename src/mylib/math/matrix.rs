@@ -127,6 +127,8 @@ pub mod matrix22 {
 mod tests_matrix22 {
     use ac_library::Monoid;
 
+    use crate::mylib::monoid::extend_acl_monoid::MonoidExtPow;
+
     use super::matrix22::{Matrix22, Matrix22Mul};
 
     #[test]
@@ -204,6 +206,43 @@ mod tests_matrix22 {
         {
             let expected = Matrix22::from_array([[1, 0], [0, 1]]);
             assert_eq!(M::identity(), expected);
+        }
+    }
+
+    #[test]
+    fn test_matrix22_pow() {
+        type M = Matrix22Mul<i32>;
+        /*
+        import numpy as np
+
+        m1 = np.array([[2, 3], [4, 5]], dtype=np.int64)
+        np.linalg.matrix_power(m1, 4)
+        */
+        {
+            let m1 = Matrix22::from_array([[2, 3], [4, 5]]);
+            let expected = Matrix22::from_array([[844, 1113], [1484, 1957]]);
+
+            assert_eq!(M::pow(&m1, 4), expected);
+        }
+    }
+
+    #[test]
+    fn test_matrix22_modint() {
+        use ac_library::ModInt998244353 as Mint;
+        type M = Matrix22Mul<Mint>;
+        {
+            // (2 3) (6 7)   (36 41)
+            // (4 5) (8 9) = (64 73)
+            let m1 =
+                Matrix22::from_array([[Mint::new(2), Mint::new(3)], [Mint::new(4), Mint::new(5)]]);
+            let m2 =
+                Matrix22::from_array([[Mint::new(6), Mint::new(7)], [Mint::new(8), Mint::new(9)]]);
+            let expected = Matrix22::from_array([
+                [Mint::new(36), Mint::new(41)],
+                [Mint::new(64), Mint::new(73)],
+            ]);
+
+            assert_eq!(M::binary_operation(&m1, &m2), expected);
         }
     }
 }
