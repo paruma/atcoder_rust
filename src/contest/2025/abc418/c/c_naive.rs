@@ -1,10 +1,27 @@
 fn main() {
     input! {
         n: usize,
-        xs: Bytes,
+        q: usize,
+        xs: [i64; n],
+        qs: [i64; q],
     }
-    let ans: bool = xs.ends_with(b"tea");
-    print_yesno(ans);
+    dbg!("愚直実装");
+    let max_xs = xs.iter().copied().max().unwrap();
+
+    let ans: Vec<Option<i64>> = qs
+        .iter()
+        .copied()
+        .map(|q| {
+            if q > max_xs {
+                None
+            } else {
+                let ans = xs.iter().copied().map(|x| x.min(q - 1)).sum::<i64>() + 1;
+                Some(ans)
+            }
+        })
+        .collect_vec();
+    let ans = ans.iter().copied().map(|x| x.unwrap_or(-1)).collect_vec();
+    print_vec(&ans);
 }
 
 #[cfg(test)]

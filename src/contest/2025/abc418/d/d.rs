@@ -1,9 +1,87 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        xs: Chars,
     }
-    let ans: i64 = 0;
+    let xs = xs.iter().copied().map(|x| (x == '1') as i64).collect_vec();
+    let ss = prefix_sum(&xs); // 長さが n+1
+    let ind_even = ss
+        .iter()
+        .copied()
+        .map(|x| (x % 2 == 0) as i64)
+        .collect_vec();
+    let ind_odd = ss
+        .iter()
+        .copied()
+        .map(|x| (x % 2 == 1) as i64)
+        .collect_vec();
+
+    // 添字 even 抜き出し
+    let ind_even_even = (0..n + 1)
+        .filter(|&i| i % 2 == 0)
+        .map(|i| ind_even[i])
+        .collect_vec();
+    let ind_even_odd = (0..n + 1)
+        .filter(|&i| i % 2 == 1)
+        .map(|i| ind_even[i])
+        .collect_vec();
+
+    // 添字 odd 抜き出し
+    let ind_odd_even = (0..n + 1)
+        .filter(|&i| i % 2 == 0)
+        .map(|i| ind_odd[i])
+        .collect_vec();
+    let ind_odd_odd = (0..n + 1)
+        .filter(|&i| i % 2 == 1)
+        .map(|i| ind_odd[i])
+        .collect_vec();
+
+    let ind_even_even_cumsum = CumSum::new(&ind_even_even);
+    let ind_even_odd_cumsum = CumSum::new(&ind_even_odd);
+    let ind_odd_even_cumsum = CumSum::new(&ind_odd_even);
+    let ind_odd_odd_cumsum = CumSum::new(&ind_odd_odd);
+
+    let ans: i64 = (0..n)
+        .map(|j| {
+            if j % 2 == 0 {
+                if ss[j + 1] % 2 == 0 {
+                    // i が偶数, S_i 奇数
+                    // ind_odd_even_cumsum
+                    let term1 = ind_odd_even_cumsum.range_sum(0..j / 2 + 1);
+
+                    // i が奇数, S_i 偶数
+                    let term2 = ind_even_odd_cumsum.range_sum(0..j / 2);
+
+                    term1 + term2
+                } else {
+                    // i が偶数, S_i 偶数
+                    let term1 = ind_even_even_cumsum.range_sum(0..j / 2 + 1);
+
+                    // i が奇数, S_i 奇数
+                    let term2 = ind_odd_odd_cumsum.range_sum(0..j / 2);
+                    term1 + term2
+                }
+            } else {
+                if ss[j + 1] % 2 == 0 {
+                    // i が偶数, S_i 偶数
+                    // ind_odd_even_cumsum
+                    let term1 = ind_even_even_cumsum.range_sum(0..j / 2 + 1);
+
+                    // i が奇数, S_i 奇数
+                    let term2 = ind_odd_odd_cumsum.range_sum(0..j / 2 + 1);
+                    term1 + term2
+                } else {
+                    // i が偶数, S_i 奇数
+                    let term1 = ind_odd_even_cumsum.range_sum(0..j / 2 + 1);
+
+                    // i が奇数, S_i 偶数
+                    let term2 = ind_even_odd_cumsum.range_sum(0..j / 2 + 1);
+
+                    term1 + term2
+                }
+            }
+        })
+        .sum::<i64>();
     println!("{}", ans);
 }
 
@@ -86,3 +164,55 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use cumsum::*;
+pub mod cumsum {
+    pub fn prefix_sum(xs: &[i64]) -> Vec<i64> {
+        let mut prefix_sum = vec![0; xs.len() + 1];
+        for i in 1..xs.len() + 1 {
+            prefix_sum[i] = prefix_sum[i - 1] + xs[i - 1];
+        }
+        prefix_sum
+    }
+    use std::ops::{Bound, Range, RangeBounds};
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct CumSum {
+        pub cumsum: Vec<i64>,
+    }
+    impl CumSum {
+        /// 計算量: O(|xs|)
+        pub fn new(xs: &[i64]) -> CumSum {
+            let mut cumsum = vec![0; xs.len() + 1];
+            for i in 1..xs.len() + 1 {
+                cumsum[i] = cumsum[i - 1] + xs[i - 1];
+            }
+            CumSum { cumsum }
+        }
+        fn open(&self, range: impl RangeBounds<usize>) -> Range<usize> {
+            use Bound::Excluded;
+            use Bound::Included;
+            use Bound::Unbounded;
+            let begin = match range.start_bound() {
+                Unbounded => 0,
+                Included(&x) => x,
+                Excluded(&x) => x + 1,
+            };
+            let end = match range.end_bound() {
+                Excluded(&x) => x,
+                Included(&x) => x + 1,
+                Unbounded => self.cumsum.len() - 1,
+            };
+            begin..end
+        }
+        /// 計算量: O(1)
+        pub fn range_sum(&self, range: impl RangeBounds<usize>) -> i64 {
+            let range = self.open(range);
+            self.cumsum[range.end] - self.cumsum[range.start]
+        }
+        pub fn prefix_sum(&self, end: usize) -> i64 {
+            self.cumsum[end]
+        }
+        pub fn suffix_sum(&self, begin: usize) -> i64 {
+            self.cumsum[self.cumsum.len() - 1] - self.cumsum[begin]
+        }
+    }
+}

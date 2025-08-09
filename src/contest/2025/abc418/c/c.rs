@@ -1,10 +1,31 @@
 fn main() {
     input! {
         n: usize,
+        q: usize,
         xs: [i64; n],
+        qs: [i64; q],
     }
-    let ans: i64 = 0;
-    println!("{}", ans);
+    let max_xs = xs.iter().copied().max().unwrap();
+    let xs = xs.iter().copied().sorted().collect_vec();
+    let xs_cumsum = CumSum::new(&xs);
+
+    let ans: Vec<Option<i64>> = qs
+        .iter()
+        .copied()
+        .map(|q| {
+            if q > max_xs {
+                None
+            } else {
+                let border = xs.lower_bound(&(q - 1));
+                // 0..border, border..n で場合分け
+                //let ans = xs.iter().copied().map(|x| x.min(q - 1)).sum::<i64>() + 1;
+                let ans = xs_cumsum.range_sum(0..border) + (q - 1) * (n - border) as i64 + 1;
+                Some(ans)
+            }
+        })
+        .collect_vec();
+    let ans = ans.iter().copied().map(|x| x.unwrap_or(-1)).collect_vec();
+    print_vec(&ans);
 }
 
 #[cfg(test)]
@@ -32,6 +53,7 @@ use proconio::{
 use std::cmp::Reverse;
 #[allow(unused_imports)]
 use std::collections::{BinaryHeap, HashMap, HashSet};
+use superslice::Ext;
 
 // ====== output func ======
 #[allow(unused_imports)]
@@ -86,3 +108,96 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use cumsum::*;
+pub mod cumsum {
+    pub fn prefix_sum(xs: &[i64]) -> Vec<i64> {
+        let mut prefix_sum = vec![0; xs.len() + 1];
+        for i in 1..xs.len() + 1 {
+            prefix_sum[i] = prefix_sum[i - 1] + xs[i - 1];
+        }
+        prefix_sum
+    }
+    use std::ops::{Bound, Range, RangeBounds};
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct CumSum {
+        pub cumsum: Vec<i64>,
+    }
+    impl CumSum {
+        /// 計算量: O(|xs|)
+        pub fn new(xs: &[i64]) -> CumSum {
+            let mut cumsum = vec![0; xs.len() + 1];
+            for i in 1..xs.len() + 1 {
+                cumsum[i] = cumsum[i - 1] + xs[i - 1];
+            }
+            CumSum { cumsum }
+        }
+        fn open(&self, range: impl RangeBounds<usize>) -> Range<usize> {
+            use Bound::Excluded;
+            use Bound::Included;
+            use Bound::Unbounded;
+            let begin = match range.start_bound() {
+                Unbounded => 0,
+                Included(&x) => x,
+                Excluded(&x) => x + 1,
+            };
+            let end = match range.end_bound() {
+                Excluded(&x) => x,
+                Included(&x) => x + 1,
+                Unbounded => self.cumsum.len() - 1,
+            };
+            begin..end
+        }
+        /// 計算量: O(1)
+        pub fn range_sum(&self, range: impl RangeBounds<usize>) -> i64 {
+            let range = self.open(range);
+            self.cumsum[range.end] - self.cumsum[range.start]
+        }
+        pub fn prefix_sum(&self, end: usize) -> i64 {
+            self.cumsum[end]
+        }
+        pub fn suffix_sum(&self, begin: usize) -> i64 {
+            self.cumsum[self.cumsum.len() - 1] - self.cumsum[begin]
+        }
+    }
+}
+/// 二分探索をする
+/// ```text
+/// ng ng ng ok ok ok
+///          ↑ここの引数の値を返す
+/// ```
+/// 計算量: O(log(|ok - ng|))
+/// ## Arguments
+/// * ok != ng
+/// * |ok - ng| <= 2^63 - 1, |ok + ng| <= 2^63 - 1
+/// * p の定義域について
+///     * ng < ok の場合、p は区間 ng..ok で定義されている。
+///     * ok < ng の場合、p は区間 ok..ng で定義されている。
+/// * p の単調性について
+///     * ng < ok の場合、p は単調増加
+///     * ok < ng の場合、p は単調減少
+/// ## Return
+/// * ng < ok の場合: I = { i in ng..ok | p(i) == true } としたとき
+///     * I が空でなければ、min I を返す。
+///     * I が空ならば、ok を返す。
+/// * ok < ng の場合: I = { i in ok..ng | p(i) == true } としたとき
+///     * I が空でなければ、max I を返す。
+///     * I が空ならば、ok を返す。
+pub fn bin_search<F>(mut ok: i64, mut ng: i64, mut p: F) -> i64
+where
+    F: FnMut(i64) -> bool,
+{
+    debug_assert!(ok != ng);
+    debug_assert!(ok.checked_sub(ng).is_some());
+    debug_assert!(ok.checked_add(ng).is_some());
+    while num::abs(ok - ng) > 1 {
+        let mid = (ok + ng) / 2;
+        debug_assert!(mid != ok);
+        debug_assert!(mid != ng);
+        if p(mid) {
+            ok = mid;
+        } else {
+            ng = mid;
+        }
+    }
+    ok
+}

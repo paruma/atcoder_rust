@@ -1,9 +1,27 @@
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        xs: Chars,
     }
-    let ans: i64 = 0;
+    let t_pos = xs.iter().copied().positions(|ch| ch == 't').collect_vec();
+
+    let ans = t_pos
+        .iter()
+        .copied()
+        .tuple_combinations()
+        .map(|(left, right)| {
+            //
+            let sub_str = &xs[left..=right];
+            let cnt_t = sub_str.iter().copied().filter(|x| *x == 't').count();
+            if sub_str.len() <= 2 {
+                0.0
+            } else {
+                let up = (cnt_t - 2) as f64;
+                let down = (sub_str.len() - 2) as f64;
+                up / down
+            }
+        })
+        .max_by(f64::total_cmp)
+        .unwrap_or(0.0);
     println!("{}", ans);
 }
 
