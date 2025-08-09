@@ -111,7 +111,7 @@ mod tests {
         let n_vertex = 5;
         let edges = [(0, 1), (1, 2), (2, 0), (3, 4)];
         let adj = make_adj_from_directed(n_vertex, &edges);
-        let mut dfs = DfsGraph::new(&adj);
+        let dfs = DfsGraph::new(&adj);
         let visited = dfs.exec_init(0);
         assert_eq!(visited[0], true);
         assert_eq!(visited[1], true);
