@@ -1,9 +1,10 @@
 use cargo_snippet::snippet;
 
 #[snippet(prefix = "use dynamic_matrix::*;")]
+#[allow(clippy::module_inception)]
 pub mod dynamic_matrix {
-    use std::ops::{Add, AddAssign, Index, IndexMut, Mul, Sub, SubAssign};
     use std::iter::{Product, Sum};
+    use std::ops::{Add, AddAssign, Index, IndexMut, Mul, Sub, SubAssign};
 
     // Helper functions for zero and one, similar to matrix.rs
     fn t_zero<T>() -> T
@@ -52,7 +53,11 @@ pub mod dynamic_matrix {
             let rows = data.len();
             let cols = data[0].len();
             for row in &data {
-                assert_eq!(row.len(), cols, "All rows must have the same number of columns");
+                assert_eq!(
+                    row.len(),
+                    cols,
+                    "All rows must have the same number of columns"
+                );
             }
             Self { rows, cols, data }
         }
@@ -79,8 +84,14 @@ pub mod dynamic_matrix {
     {
         type Output = Self;
         fn add(self, rhs: Self) -> Self::Output {
-            assert_eq!(self.rows, rhs.rows, "Matrices must have the same number of rows for addition.");
-            assert_eq!(self.cols, rhs.cols, "Matrices must have the same number of columns for addition.");
+            assert_eq!(
+                self.rows, rhs.rows,
+                "Matrices must have the same number of rows for addition."
+            );
+            assert_eq!(
+                self.cols, rhs.cols,
+                "Matrices must have the same number of columns for addition."
+            );
 
             let mut result = Self::new(self.rows, self.cols, t_zero());
             for i in 0..self.rows {
@@ -98,8 +109,14 @@ pub mod dynamic_matrix {
         T: Copy + Sum + Product + AddAssign + Sub<Output = T> + Mul<Output = T>,
     {
         fn add_assign(&mut self, rhs: Self) {
-            assert_eq!(self.rows, rhs.rows, "Matrices must have the same number of rows for addition.");
-            assert_eq!(self.cols, rhs.cols, "Matrices must have the same number of columns for addition.");
+            assert_eq!(
+                self.rows, rhs.rows,
+                "Matrices must have the same number of rows for addition."
+            );
+            assert_eq!(
+                self.cols, rhs.cols,
+                "Matrices must have the same number of columns for addition."
+            );
 
             for i in 0..self.rows {
                 for j in 0..self.cols {
@@ -116,8 +133,14 @@ pub mod dynamic_matrix {
     {
         type Output = Self;
         fn sub(self, rhs: Self) -> Self::Output {
-            assert_eq!(self.rows, rhs.rows, "Matrices must have the same number of rows for subtraction.");
-            assert_eq!(self.cols, rhs.cols, "Matrices must have the same number of columns for subtraction.");
+            assert_eq!(
+                self.rows, rhs.rows,
+                "Matrices must have the same number of rows for subtraction."
+            );
+            assert_eq!(
+                self.cols, rhs.cols,
+                "Matrices must have the same number of columns for subtraction."
+            );
 
             let mut result = Self::new(self.rows, self.cols, t_zero());
             for i in 0..self.rows {
@@ -135,8 +158,14 @@ pub mod dynamic_matrix {
         T: Copy + Sum + Product + SubAssign + Add<Output = T> + Mul<Output = T>,
     {
         fn sub_assign(&mut self, rhs: Self) {
-            assert_eq!(self.rows, rhs.rows, "Matrices must have the same number of rows for subtraction.");
-            assert_eq!(self.cols, rhs.cols, "Matrices must have the same number of columns for subtraction.");
+            assert_eq!(
+                self.rows, rhs.rows,
+                "Matrices must have the same number of rows for subtraction."
+            );
+            assert_eq!(
+                self.cols, rhs.cols,
+                "Matrices must have the same number of columns for subtraction."
+            );
 
             for i in 0..self.rows {
                 for j in 0..self.cols {
@@ -190,7 +219,10 @@ pub mod dynamic_matrix {
         T: Copy + Sum + Product + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
     {
         pub fn pow(self, mut n: u64) -> Self {
-            assert_eq!(self.rows, self.cols, "Matrix must be square for exponentiation.");
+            assert_eq!(
+                self.rows, self.cols,
+                "Matrix must be square for exponentiation."
+            );
             let mut res = DynamicMatrix::identity(self.rows);
             let mut base = self;
             while n > 0 {
@@ -306,7 +338,9 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "The number of columns of the left matrix must equal the number of rows of the right matrix for multiplication.")]
+    #[should_panic(
+        expected = "The number of columns of the left matrix must equal the number of rows of the right matrix for multiplication."
+    )]
     fn test_mul_matrix_mismatched_dims_panic() {
         let m1 = DynamicMatrix::<i32>::new(2, 3, 0);
         let m2 = DynamicMatrix::<i32>::new(2, 2, 0);
@@ -336,7 +370,9 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "The number of columns of the matrix must equal the length of the vector for application.")]
+    #[should_panic(
+        expected = "The number of columns of the matrix must equal the length of the vector for application."
+    )]
     fn test_apply_mismatched_dims_panic() {
         let m = DynamicMatrix::<i32>::new(2, 3, 0);
         let x = vec![1, 2];
@@ -346,8 +382,13 @@ mod tests {
     #[test]
     fn test_modint_dynamic_matrix() {
         let m = DynamicMatrix::<Mint>::identity(3);
-        assert_eq!(m.data, vec![vec![Mint::new(1), Mint::new(0), Mint::new(0)],
-                                vec![Mint::new(0), Mint::new(1), Mint::new(0)],
-                                vec![Mint::new(0), Mint::new(0), Mint::new(1)]]);
+        assert_eq!(
+            m.data,
+            vec![
+                vec![Mint::new(1), Mint::new(0), Mint::new(0)],
+                vec![Mint::new(0), Mint::new(1), Mint::new(0)],
+                vec![Mint::new(0), Mint::new(0), Mint::new(1)]
+            ]
+        );
     }
 }

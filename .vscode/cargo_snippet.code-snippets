@@ -2271,6 +2271,7 @@
     "prefix": "dynamic_matrix",
     "body": [
       "use dynamic_matrix::*;",
+      "#[allow(clippy::module_inception)]",
       "pub mod dynamic_matrix {",
       "    use std::iter::{Product, Sum};",
       "    use std::ops::{Add, AddAssign, Index, IndexMut, Mul, Sub, SubAssign};",
