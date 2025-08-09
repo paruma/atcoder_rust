@@ -5,33 +5,62 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [[bin]]
+name = "abc418_a"
+path = "src/contest/2025/abc418/a/a.rs"
+
+[[bin]]
+name = "abc418_b"
+path = "src/contest/2025/abc418/b/b.rs"
+
+[[bin]]
+name = "abc418_c"
+path = "src/contest/2025/abc418/c/c.rs"
+
+[[bin]]
+name = "abc418_d"
+path = "src/contest/2025/abc418/d/d.rs"
+
+[[bin]]
+name = "abc418_e"
+path = "src/contest/2025/abc418/e/e.rs"
+
+[[bin]]
+name = "abc418_f"
+path = "src/contest/2025/abc418/f/f.rs"
+
+[[bin]]
+name = "abc418_g"
+path = "src/contest/2025/abc418/g/g.rs"
+
+
+[[bin]]
 name = "abc417_a"
 path = "src/contest/2025/abc417/a/a.rs"
-        
+
 [[bin]]
 name = "abc417_b"
 path = "src/contest/2025/abc417/b/b.rs"
-        
+
 [[bin]]
 name = "abc417_c"
 path = "src/contest/2025/abc417/c/c.rs"
-        
+
 [[bin]]
 name = "abc417_d"
 path = "src/contest/2025/abc417/d/d.rs"
-        
+
 [[bin]]
 name = "abc417_e"
 path = "src/contest/2025/abc417/e/e.rs"
-        
+
 [[bin]]
 name = "abc417_f"
 path = "src/contest/2025/abc417/f/f.rs"
-        
+
 [[bin]]
 name = "abc417_g"
 path = "src/contest/2025/abc417/g/g.rs"
-        
+
 
 [[bin]]
 name = "abc416_a"
