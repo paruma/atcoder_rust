@@ -1,48 +1,40 @@
-// [0の個数に着目、累積和]
-// S が美しい文字列 ⟺ S の0の個数が偶数 と捉えた。
-// j を固定して T[i..=j] が美しい文字列になるような i の個数をカウントする
-// S[k] = T[0..k] での0の個数とすると、
-// T[i..=j] が美しい文字列 ⟺ S[j+1] - S[i] が偶数
-// といえる。
-// つまり、S[j+1] - S[i] が偶数となるような i の数を数えれば良い。
-// S[j+1] の偶奇で場合分け
-// (1) S[j+1] が偶数のとき: S[i] が偶数となるような i の数をカウント
-// (2) S[j+1] が奇数のとき: S[i] が奇数となるような i の数をカウント
-// U[k] = S[0..k] での偶数の個数とすると、(1) は U[j] で求まる。
-// V[k] = S[0..k] での奇数の個数とすると、(2) は V[j] で求まる。
-//
-// 累積和で解く場合は、1の個数を数えるより0の個数を数える方が楽
+// [1の個数に着目、DP]
+// S が美しい文字列 ⟺ S の1の個数の偶奇 = |S| の偶奇 と捉えた
+// dp_eq[j] = 「S[i..=j] の1の数の偶奇 == j - i + 1 の偶奇」となる i の数
+// dp_neq[j] = 「S[i..=j] の1の数の偶奇 != j - i + 1 の偶奇」となる i の数
+// とするとうまく DP が回る。Kadane's Algorithm と同じタイプの DP。
+// S が美しい文字列 ⟺ S の1の個数が偶数
+// と捉えても同じ遷移のDP になる
 fn main() {
     input! {
         n: usize,
         xs: Chars,
     }
-    let ind = xs.iter().copied().map(|x| (x == '0') as i64).collect_vec();
+    let xs = xs.iter().copied().map(|x| (x == '1') as i64).collect_vec();
 
-    let ss = prefix_sum(&ind);
+    // dp_eq[j] = 「xs[i..=j] の1の数の偶奇 == j - i + 1 の偶奇」となる i の数
+    let mut dp_eq = vec![i64::MAX; n];
+    // dp_neq[j] = 「xs[i..=j] の1の数の偶奇 != j - i + 1 の偶奇」となる i の数
+    let mut dp_neq = vec![i64::MAX; n];
 
-    let ss_ind0 = ss
-        .iter()
-        .copied()
-        .map(|s| (s % 2 == 0) as i64)
-        .collect_vec();
-    let ss_ind1 = ss
-        .iter()
-        .copied()
-        .map(|s| (s % 2 == 1) as i64)
-        .collect_vec();
+    dp_eq[0] = (xs[0] == 1) as i64;
+    dp_neq[0] = (xs[0] == 0) as i64;
 
-    let ss_ind0_cumsum = CumSum::new(&ss_ind0);
-    let ss_ind1_cumsum = CumSum::new(&ss_ind1);
-    let ans = (0..n)
-        .map(|j| {
-            if ss[j + 1] % 2 == 0 {
-                ss_ind0_cumsum.range_sum(0..=j)
-            } else {
-                ss_ind1_cumsum.range_sum(0..=j)
-            }
-        })
-        .sum::<i64>();
+    for j in 1..n {
+        dp_eq[j] = if xs[j] == 1 {
+            dp_eq[j - 1] + 1
+        } else {
+            dp_neq[j - 1]
+        };
+
+        dp_neq[j] = if xs[j] == 1 {
+            dp_neq[j - 1]
+        } else {
+            dp_eq[j - 1] + 1
+        };
+    }
+
+    let ans = dp_eq.iter().copied().sum::<i64>();
     println!("{}", ans);
 }
 

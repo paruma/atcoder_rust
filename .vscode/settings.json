@@ -89,5 +89,8 @@
         "-A",
         "clippy::comparison_chain"
     ],
+    "rust-analyzer.diagnostics.disabled": [
+        "unlinked-file"
+    ],
     "files.insertFinalNewline": false
 }

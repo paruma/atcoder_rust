@@ -1,45 +1,95 @@
-// [0の個数に着目、累積和]
-// S が美しい文字列 ⟺ S の0の個数が偶数 と捉えた。
-// j を固定して T[i..=j] が美しい文字列になるような i の個数をカウントする
-// S[k] = T[0..k] での0の個数とすると、
-// T[i..=j] が美しい文字列 ⟺ S[j+1] - S[i] が偶数
-// といえる。
-// つまり、S[j+1] - S[i] が偶数となるような i の数を数えれば良い。
-// S[j+1] の偶奇で場合分け
-// (1) S[j+1] が偶数のとき: S[i] が偶数となるような i の数をカウント
-// (2) S[j+1] が奇数のとき: S[i] が奇数となるような i の数をカウント
-// U[k] = S[0..k] での偶数の個数とすると、(1) は U[j] で求まる。
-// V[k] = S[0..k] での奇数の個数とすると、(2) は V[j] で求まる。
-//
-// 累積和で解く場合は、1の個数を数えるより0の個数を数える方が楽
+// コンテスト中の実装 (1の個数に着目、累積和)
+// S が美しい文字列 ⟺ S の1の個数の偶奇 = |S| の偶奇 と捉えた
+// j を固定して T[i..=j] が美しい文字列になるような i の数を累積和で求めた。
+// T[0..k] にある1の個数をS[k]としたとき、
+// T[i..=j] の1の個数 = S[j+1] - S[i]
+// |T[i..=j]| = j - i + 1
+// なので、以下が言える。
+// T[i..=j] が美しい文字列 ⟺ S[j+1] - S[i] ≡ j - i + 1 (mod 2)
+// j と S[j+1] の偶奇で場合分けして頑張って数え上げる。
+// メモ: 移項したら楽だったかも？ (考察時は mod 2 じゃなくて偶奇一致って書いてたから移項が見えなかった)
 fn main() {
     input! {
         n: usize,
         xs: Chars,
     }
-    let ind = xs.iter().copied().map(|x| (x == '0') as i64).collect_vec();
-
-    let ss = prefix_sum(&ind);
-
-    let ss_ind0 = ss
+    let xs = xs.iter().copied().map(|x| (x == '1') as i64).collect_vec();
+    let ss = prefix_sum(&xs); // 長さが n+1
+    let ind_even = ss
         .iter()
         .copied()
-        .map(|s| (s % 2 == 0) as i64)
+        .map(|x| (x % 2 == 0) as i64)
         .collect_vec();
-    let ss_ind1 = ss
+    let ind_odd = ss
         .iter()
         .copied()
-        .map(|s| (s % 2 == 1) as i64)
+        .map(|x| (x % 2 == 1) as i64)
+        .map(|x| (x % 2 == 1) as i64)
         .collect_vec();
 
-    let ss_ind0_cumsum = CumSum::new(&ss_ind0);
-    let ss_ind1_cumsum = CumSum::new(&ss_ind1);
-    let ans = (0..n)
+    // 添字 even 抜き出し
+    let ind_even_even = (0..n + 1)
+        .filter(|&i| i % 2 == 0)
+        .map(|i| ind_even[i])
+        .collect_vec();
+    let ind_even_odd = (0..n + 1)
+        .filter(|&i| i % 2 == 1)
+        .map(|i| ind_even[i])
+        .collect_vec();
+
+    // 添字 odd 抜き出し
+    let ind_odd_even = (0..n + 1)
+        .filter(|&i| i % 2 == 0)
+        .map(|i| ind_odd[i])
+        .collect_vec();
+    let ind_odd_odd = (0..n + 1)
+        .filter(|&i| i % 2 == 1)
+        .map(|i| ind_odd[i])
+        .collect_vec();
+
+    let ind_even_even_cumsum = CumSum::new(&ind_even_even);
+    let ind_even_odd_cumsum = CumSum::new(&ind_even_odd);
+    let ind_odd_even_cumsum = CumSum::new(&ind_odd_even);
+    let ind_odd_odd_cumsum = CumSum::new(&ind_odd_odd);
+
+    let ans: i64 = (0..n)
         .map(|j| {
-            if ss[j + 1] % 2 == 0 {
-                ss_ind0_cumsum.range_sum(0..=j)
+            if j % 2 == 0 {
+                if ss[j + 1] % 2 == 0 {
+                    // i が偶数, S_i 奇数
+                    // ind_odd_even_cumsum
+                    let term1 = ind_odd_even_cumsum.range_sum(0..j / 2 + 1);
+
+                    // i が奇数, S_i 偶数
+                    let term2 = ind_even_odd_cumsum.range_sum(0..j / 2);
+
+                    term1 + term2
+                } else {
+                    // i が偶数, S_i 偶数
+                    let term1 = ind_even_even_cumsum.range_sum(0..j / 2 + 1);
+
+                    // i が奇数, S_i 奇数
+                    let term2 = ind_odd_odd_cumsum.range_sum(0..j / 2);
+                    term1 + term2
+                }
             } else {
-                ss_ind1_cumsum.range_sum(0..=j)
+                if ss[j + 1] % 2 == 0 {
+                    // i が偶数, S_i 偶数
+                    // ind_odd_even_cumsum
+                    let term1 = ind_even_even_cumsum.range_sum(0..j / 2 + 1);
+
+                    // i が奇数, S_i 奇数
+                    let term2 = ind_odd_odd_cumsum.range_sum(0..j / 2 + 1);
+                    term1 + term2
+                } else {
+                    // i が偶数, S_i 奇数
+                    let term1 = ind_odd_even_cumsum.range_sum(0..j / 2 + 1);
+
+                    // i が奇数, S_i 偶数
+                    let term2 = ind_even_odd_cumsum.range_sum(0..j / 2 + 1);
+
+                    term1 + term2
+                }
             }
         })
         .sum::<i64>();
@@ -71,7 +121,6 @@ use proconio::{
 use std::cmp::Reverse;
 #[allow(unused_imports)]
 use std::collections::{BinaryHeap, HashMap, HashSet};
-use std::i64;
 
 // ====== output func ======
 #[allow(unused_imports)]
