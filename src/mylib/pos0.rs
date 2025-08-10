@@ -2,6 +2,7 @@ use cargo_snippet::snippet;
 
 #[snippet(prefix = "use pos::*;")]
 pub mod pos {
+    use std::io::BufRead;
     use std::ops::{Add, AddAssign, Neg, Sub, SubAssign};
 
     #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -78,10 +79,44 @@ pub mod pos {
     }
 
     use std::fmt::{Debug, Error, Formatter};
+
     impl Debug for Pos {
         fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
             f.write_fmt(format_args!("({}, {})", self.x, self.y))?;
             Ok(())
+        }
+    }
+
+    use proconio::source::{Readable, Source};
+
+    pub enum PosXY {}
+    impl Readable for PosXY {
+        type Output = Pos;
+        fn read<R: BufRead, S: Source<R>>(source: &mut S) -> Pos {
+            let x = i64::read(source);
+            let y = i64::read(source);
+            Pos::new(x, y)
+        }
+    }
+
+    pub enum PosYX {}
+    impl Readable for PosYX {
+        type Output = Pos;
+        fn read<R: BufRead, S: Source<R>>(source: &mut S) -> Pos {
+            let y = i64::read(source);
+            let x = i64::read(source);
+            Pos::new(x, y)
+        }
+    }
+
+    /// 1-indexed で与えられた座標(YX)
+    pub enum PosYX1 {}
+    impl Readable for PosYX1 {
+        type Output = Pos;
+        fn read<R: BufRead, S: Source<R>>(source: &mut S) -> Pos {
+            let y = i64::read(source) - 1;
+            let x = i64::read(source) - 1;
+            Pos::new(x, y)
         }
     }
 

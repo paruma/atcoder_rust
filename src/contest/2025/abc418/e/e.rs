@@ -1,13 +1,8 @@
 fn main() {
     input! {
         n: usize,
-        xys: [(i64, i64); n],
+        ps: [PosXY; n],
     }
-    let ps = xys
-        .iter()
-        .copied()
-        .map(|(x, y)| Pos::new(x, y))
-        .collect_vec();
 
     let diffs = ps
         .iter()
@@ -171,6 +166,7 @@ pub mod print_util {
 // ====== snippet ======
 use pos::*;
 pub mod pos {
+    use std::io::BufRead;
     use std::ops::{Add, AddAssign, Neg, Sub, SubAssign};
     #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     pub struct Pos {
@@ -236,6 +232,25 @@ pub mod pos {
         fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
             f.write_fmt(format_args!("({}, {})", self.x, self.y))?;
             Ok(())
+        }
+    }
+    use proconio::source::{Readable, Source};
+    pub enum PosXY {}
+    impl Readable for PosXY {
+        type Output = Pos;
+        fn read<R: BufRead, S: Source<R>>(source: &mut S) -> Pos {
+            let x = i64::read(source);
+            let y = i64::read(source);
+            Pos::new(x, y)
+        }
+    }
+    pub enum PosYX {}
+    impl Readable for PosYX {
+        type Output = Pos;
+        fn read<R: BufRead, S: Source<R>>(source: &mut S) -> Pos {
+            let y = i64::read(source);
+            let x = i64::read(source);
+            Pos::new(x, y)
         }
     }
     pub const DIR8_LIST: [Pos; 8] = [
