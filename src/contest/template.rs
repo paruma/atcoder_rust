@@ -3,7 +3,7 @@ fn main() {
         n: usize,
         xs: [i64; n],
     }
-    let ans: i64 = 0;
+    let ans: i64 = 0_i64;
     println!("{}", ans);
 }
 
@@ -17,6 +17,50 @@ mod tests {
     #[test]
     fn test_problem() {
         assert_eq!(1 + 1, 2);
+    }
+
+    /// 間違っていたら false を返す
+    fn process_one_test(rng: &mut SmallRng) -> bool {
+        // ==== 問題を作る ====
+        let n = rng.gen_range(1..=10);
+        let xs = (0..n).map(|_| rng.gen_range(0..10)).collect_vec();
+
+        // ==== 解く ====
+        let main_ans = xs.len();
+        let naive_ans = 1;
+
+        if main_ans != naive_ans {
+            // 問題を出力
+            println!("{:?}", (n, xs));
+            println!("main ans : {:?}", main_ans);
+            println!("naive ans: {:?}", naive_ans);
+            return false;
+        }
+        true
+    }
+
+    #[allow(unreachable_code)]
+    #[test]
+    #[ignore]
+    fn test_with_naive() {
+        let num_tests = 100;
+        let max_wrong_case = 10; // この件数間違いが見つかったら打ち切り
+        let mut cnt_wrong = 0;
+        let mut rng = SmallRng::seed_from_u64(42);
+        // let mut rng = SmallRng::from_entropy();
+        for _ in 0..num_tests {
+            let is_ok = process_one_test(&mut rng);
+            if !is_ok {
+                cnt_wrong += 1;
+            }
+            if cnt_wrong >= max_wrong_case {
+                break;
+            }
+        }
+        if cnt_wrong > 0 {
+            println!("{} cases are wrong.", cnt_wrong);
+            panic!();
+        }
     }
 }
 

@@ -88,6 +88,7 @@ mod tests {
 
     #[allow(unreachable_code)]
     #[test]
+    #[ignore]
     fn test_with_naive() {
         let num_tests = 0;
         let max_wrong_case = 10; // この件数間違いが見つかったら打ち切り
