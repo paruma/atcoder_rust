@@ -105,21 +105,21 @@ mod test_subtraction_game {
         //dbg!(subtraction_game_grundy(&[1, 3, 6], 40));
     }
 
-    fn experiment() {
-        use rand::{rngs::SmallRng, seq::SliceRandom, *};
-        let mut rng = SmallRng::from_entropy();
-        // let mut rng = SmallRng::seed_from_u64(42);
-        let n = 3;
-        let xs = (0..n).map(|_| rng.gen_range(0..8)).collect_vec();
-        let grundy = subtraction_game_grundy(&xs, 100);
-        if !is_periodic(&grundy) {
-            dbg!(xs);
-            dbg!(grundy);
-        }
-    }
+    // fn experiment() {
+    //     use rand::{rngs::SmallRng, seq::SliceRandom, *};
+    //     let mut rng = SmallRng::from_entropy();
+    //     // let mut rng = SmallRng::seed_from_u64(42);
+    //     let n = 3;
+    //     let xs = (0..n).map(|_| rng.gen_range(0..8)).collect_vec();
+    //     let grundy = subtraction_game_grundy(&xs, 100);
+    //     if !is_periodic(&grundy) {
+    //         dbg!(xs);
+    //         dbg!(grundy);
+    //     }
+    // }
 
-    // 雑に判定
-    fn is_periodic(xs: &[usize]) -> bool {
-        xs[1..].windows(10).any(|sub| *sub == xs[..10])
-    }
+    // // 雑に判定
+    // fn is_periodic(xs: &[usize]) -> bool {
+    //     xs[1..].windows(10).any(|sub| *sub == xs[..10])
+    // }
 }
