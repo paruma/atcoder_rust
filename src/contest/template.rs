@@ -66,16 +66,18 @@ mod tests {
 
 // ====== import ======
 #[allow(unused_imports)]
-use itertools::{chain, iproduct, izip, Itertools};
-#[allow(unused_imports)]
-use proconio::{
-    derive_readable, fastout, input,
-    marker::{Bytes, Chars, Usize1},
+use {
+    itertools::{chain, iproduct, izip, Itertools},
+    proconio::{
+        derive_readable, fastout, input,
+        marker::{Bytes, Chars, Usize1},
+    },
+    rand::{rngs::SmallRng, seq::SliceRandom, Rng, SeedableRng},
+    std::{
+        cmp::Reverse,
+        collections::{BinaryHeap, HashMap, HashSet},
+    },
 };
-#[allow(unused_imports)]
-use std::cmp::Reverse;
-#[allow(unused_imports)]
-use std::collections::{BinaryHeap, HashMap, HashSet};
 
 // ====== output func ======
 #[allow(unused_imports)]
