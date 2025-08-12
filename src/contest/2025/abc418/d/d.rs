@@ -71,7 +71,6 @@ use proconio::{
 use std::cmp::Reverse;
 #[allow(unused_imports)]
 use std::collections::{BinaryHeap, HashMap, HashSet};
-use std::i64;
 
 // ====== output func ======
 #[allow(unused_imports)]

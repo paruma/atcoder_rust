@@ -152,6 +152,7 @@ impl Problem {
         let xs = &self.xs;
         let ys = &xs[1..];
 
+        // chunks_exact の代わりに tuples を使っても良い
         // xs の添字でいうと次のように区切る: [0, 1], [2, 3],...
         let xs1 = xs
             .chunks_exact(2)
