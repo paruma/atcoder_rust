@@ -2,27 +2,26 @@ fn main() {
     input! {
         xs: Chars,
     }
+    let t_pos = xs.iter().copied().positions(|ch| ch == 't').collect_vec();
 
-    let n = xs.len();
-    let ans = (0..=n)
+    let ans = t_pos
+        .iter()
+        .copied()
         .tuple_combinations()
-        .map(|(begin, end)| {
-            if xs[begin] == 't' && xs[end - 1] == 't' && end - begin >= 3 {
-                let cnt = xs[begin..end]
-                    .iter()
-                    .copied()
-                    .filter(|ch| *ch == 't')
-                    .count();
-                let numer = (cnt - 2) as f64;
-                let denom = ((end - begin) - 2) as f64;
-                numer / denom
-            } else {
+        .map(|(left, right)| {
+            //
+            let sub_str = &xs[left..=right];
+            let cnt_t = sub_str.iter().copied().filter(|x| *x == 't').count();
+            if sub_str.len() <= 2 {
                 0.0
+            } else {
+                let up = (cnt_t - 2) as f64;
+                let down = (sub_str.len() - 2) as f64;
+                up / down
             }
         })
         .max_by(f64::total_cmp)
-        .unwrap();
-
+        .unwrap_or(0.0);
     println!("{}", ans);
 }
 
