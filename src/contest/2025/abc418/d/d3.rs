@@ -1,26 +1,46 @@
-// [0の個数に着目・累積和・nC2]
-// S が美しい文字列 ⟺ S の0の個数が偶数 と捉えた。
-// j を固定して T[i..=j] が美しい文字列になるような i の個数をカウントする
-// S[k] = T[0..k] での0の個数とすると、次が言える
+// [1の個数に着目・累積和・移項あり]
+// S が美しい文字列 ⟺ S の1の個数の偶奇 = |S| の偶奇 と捉えた
+// j を固定して T[i..=j] が美しい文字列になるような i の数を累積和で求めた。
+// T[0..k] にある1の個数をS[k]としたとき、
+// T[i..=j] の1の個数 = S[j+1] - S[i]
+// |T[i..=j]| = j - i + 1
+// なので、以下が言える。
 // T[i..=j] が美しい文字列
-// ⟺ S[j+1] - S[i] ≡ 0 (mod 2)
-// ⟺ S[j+1] ≡ S[i] (mod 2) (移項して変数分離)
-// といえる。
-// S[j+1] ≡ S[i] (mod 2) をみたす (i, j + 1) の個数を kC2 で求める
+// ⟺ S[j+1] - S[i] ≡ j - i + 1 (mod 2)
+// ⟺ i - S[i] ≡ j + 1 - S[j+1] (mod 2) (移項をして変数分離する)
+// U[k] = i - S[i] とすると
+// U[i] ≡ U[j+1] (mod2) と書ける
+// (0に着目とほとんど同じ解法になる)
 fn main() {
     input! {
         n: usize,
         xs: Chars,
     }
-    let ind0 = xs.iter().copied().map(|x| (x == '0') as i64).collect_vec();
-    let ss = prefix_sum(&ind0); // 長さが n+1
-    let cnt0 = ss.iter().copied().filter(|x| *x % 2 == 0).count() as i64;
-    let cnt1 = ss.iter().copied().filter(|x| *x % 2 == 1).count() as i64;
+    let xs = xs.iter().copied().map(|x| (x == '1') as i64).collect_vec();
+    let ss = prefix_sum(&xs); // 長さが n+1
+    let us = (0..=n).map(|i| (i as i64) - ss[i]).collect_vec();
+    let ind0 = us
+        .iter()
+        .copied()
+        .map(|x| (x % 2 == 0) as i64)
+        .collect_vec();
+    let ind1 = us
+        .iter()
+        .copied()
+        .map(|x| (x % 2 == 1) as i64)
+        .collect_vec();
+    let ind0_cumsum = CumSum::new(&ind0);
+    let ind1_cumsum = CumSum::new(&ind1);
 
-    let nc2 = |x: i64| x * (x - 1) / 2;
-
-    let ans = nc2(cnt0) + nc2(cnt1);
-
+    let ans: i64 = (0..n)
+        .map(|j| {
+            if us[j + 1] % 2 == 0 {
+                ind0_cumsum.range_sum(0..=j)
+            } else {
+                ind1_cumsum.range_sum(0..=j)
+            }
+        })
+        .sum::<i64>();
     println!("{}", ans);
 }
 
