@@ -1,10 +1,26 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        m: usize,
+        s: Chars,
+        t: Chars,
+        lrs: [(Usize1, Usize1); m]
     }
-    let ans: i64 = 0_i64;
-    println!("{}", ans);
+
+    let mut seg = RangeAffineRangeSumSegtree::new(&vec![0_i64; n]);
+
+    for (l, r) in lrs {
+        seg.apply_range_affine(l..=r, -1, 1); // 1-x
+    }
+
+    let ans: Vec<char> = seg
+        .to_vec()
+        .iter()
+        .copied()
+        .enumerate()
+        .map(|(i, x)| if x == 0 { s[i] } else { t[i] })
+        .collect_vec();
+    print_chars(&ans);
 }
 
 #[cfg(test)]
@@ -134,3 +150,156 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use range_affine_range_sum::*;
+#[allow(clippy::module_inception)]
+pub mod range_affine_range_sum {
+    use ac_library::{LazySegtree, MapMonoid, Monoid};
+    use itertools::Itertools;
+    use std::convert::Infallible;
+    use std::marker::PhantomData;
+    use std::ops::{Add, Mul, RangeBounds};
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub struct RangeSum<T> {
+        pub sum: T,
+        pub len: i64,
+    }
+    impl<T> RangeSum<T> {
+        pub fn unit(x: T) -> RangeSum<T> {
+            RangeSum { sum: x, len: 1 }
+        }
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub struct Affine<T> {
+        pub slope: T,
+        pub intercept: T,
+    }
+    impl<T> Affine<T>
+    where
+        T: From<i64>,
+    {
+        /// 区間変更用（定数関数）
+        pub fn constant_func(x: T) -> Affine<T> {
+            Affine {
+                slope: 0.into(),
+                intercept: x,
+            }
+        }
+        /// 区間加算用
+        pub fn addition_func(x: T) -> Affine<T> {
+            Affine {
+                slope: 1.into(),
+                intercept: x,
+            }
+        }
+    }
+    pub struct ValueLenSum<T>(Infallible, PhantomData<fn() -> T>);
+    impl<T> Monoid for ValueLenSum<T>
+    where
+        T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
+    {
+        type S = RangeSum<T>;
+        fn identity() -> RangeSum<T> {
+            RangeSum {
+                sum: 0.into(),
+                len: 0,
+            }
+        }
+        fn binary_operation(a: &RangeSum<T>, b: &RangeSum<T>) -> RangeSum<T> {
+            RangeSum {
+                sum: a.sum + b.sum,
+                len: a.len + b.len,
+            }
+        }
+    }
+    pub struct RangeAffineRangeSum<T>(Infallible, PhantomData<fn() -> T>);
+    impl<T> MapMonoid for RangeAffineRangeSum<T>
+    where
+        T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
+    {
+        type M = ValueLenSum<T>;
+        type F = Affine<T>;
+        fn identity_map() -> Affine<T> {
+            Affine {
+                slope: 1.into(),
+                intercept: 0.into(),
+            }
+        }
+        fn composition(a: &Affine<T>, b: &Affine<T>) -> Affine<T> {
+            Affine {
+                slope: a.slope * b.slope,
+                intercept: a.slope * b.intercept + a.intercept,
+            }
+        }
+        fn mapping(f: &Affine<T>, x: &RangeSum<T>) -> RangeSum<T> {
+            RangeSum {
+                sum: f.slope * x.sum + f.intercept * x.len.into(),
+                len: x.len,
+            }
+        }
+    }
+    pub struct RangeAffineRangeSumSegtree<T>
+    where
+        T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
+    {
+        segtree: LazySegtree<RangeAffineRangeSum<T>>,
+        len: usize,
+    }
+    impl<T> RangeAffineRangeSumSegtree<T>
+    where
+        T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
+    {
+        pub fn new(xs: &[T]) -> RangeAffineRangeSumSegtree<T> {
+            let xs = xs.iter().copied().map(RangeSum::unit).collect_vec();
+            let len = xs.len();
+            RangeAffineRangeSumSegtree {
+                segtree: LazySegtree::from(xs),
+                len,
+            }
+        }
+        pub fn set(&mut self, p: usize, x: T) {
+            self.segtree.set(p, RangeSum::unit(x));
+        }
+        pub fn get(&mut self, p: usize) -> T {
+            self.segtree.get(p).sum
+        }
+        pub fn range_sum<R>(&mut self, range: R) -> T
+        where
+            R: RangeBounds<usize>,
+        {
+            self.segtree.prod(range).sum
+        }
+        pub fn all_sum(&self) -> T {
+            self.segtree.all_prod().sum
+        }
+        pub fn apply_affine(&mut self, p: usize, slope: T, intercept: T) {
+            self.segtree.apply(p, Affine { slope, intercept })
+        }
+        pub fn apply_update(&mut self, p: usize, x: T) {
+            self.segtree.apply(p, Affine::constant_func(x))
+        }
+        pub fn apply_add(&mut self, p: usize, x: T) {
+            self.segtree.apply(p, Affine::addition_func(x))
+        }
+        pub fn apply_range_affine<R>(&mut self, range: R, slope: T, intercept: T)
+        where
+            R: RangeBounds<usize>,
+        {
+            self.segtree.apply_range(range, Affine { slope, intercept })
+        }
+        pub fn apply_range_update<R>(&mut self, range: R, x: T)
+        where
+            R: RangeBounds<usize>,
+        {
+            self.segtree.apply_range(range, Affine::constant_func(x))
+        }
+        pub fn apply_range_add<R>(&mut self, range: R, x: T)
+        where
+            R: RangeBounds<usize>,
+        {
+            self.segtree.apply_range(range, Affine::addition_func(x))
+        }
+        pub fn to_vec(&mut self) -> Vec<T> {
+            (0..self.len).map(|i| self.get(i)).collect_vec()
+        }
+    }
+}

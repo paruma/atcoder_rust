@@ -1,9 +1,15 @@
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        s: String,
     }
-    let ans: i64 = 0_i64;
+
+    let ans = match s.as_str() {
+        "red" => "SSS",
+        "blue" => "FFF",
+        "green" => "MMM",
+        _ => "Unknown",
+    };
+
     println!("{}", ans);
 }
 

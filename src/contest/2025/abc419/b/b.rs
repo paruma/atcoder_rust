@@ -1,10 +1,26 @@
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        q: usize,
     }
-    let ans: i64 = 0_i64;
-    println!("{}", ans);
+
+    let mut set = BTreeMultiSet::new();
+
+    for _ in 0..q {
+        input! {
+            t: usize,
+        }
+
+        if t == 1 {
+            input! {
+                x: i64,
+            }
+            set.insert(x);
+        } else {
+            let min = *set.iter().next().unwrap();
+            set.remove1(&min);
+            println!("{}", min);
+        }
+    }
 }
 
 #[cfg(test)]
@@ -134,3 +150,111 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use btree_multiset::*;
+#[allow(clippy::module_inception)]
+pub mod btree_multiset {
+    use std::{
+        borrow::Borrow,
+        collections::{btree_map::Range, BTreeMap},
+        ops::RangeBounds,
+    };
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct BTreeMultiSet<T> {
+        map: BTreeMap<T, usize>,
+        length: usize,
+    }
+    impl<T> Default for BTreeMultiSet<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+    impl<T> BTreeMultiSet<T> {
+        pub const fn new() -> BTreeMultiSet<T> {
+            BTreeMultiSet {
+                map: BTreeMap::new(),
+                length: 0,
+            }
+        }
+        pub fn range<R>(&self, range: R) -> Range<'_, T, usize>
+        where
+            T: Ord,
+            R: RangeBounds<T>,
+        {
+            self.map.range(range)
+        }
+        pub fn iter(&self) -> impl Iterator<Item = &T> {
+            self.map
+                .iter()
+                .flat_map(|(e, cnt)| std::iter::repeat(e).take(*cnt))
+        }
+        pub fn set_iter(&self) -> impl Iterator<Item = (&T, usize)> {
+            self.map.iter().map(|(e, cnt)| (e, *cnt))
+        }
+        pub fn insert(&mut self, value: T)
+        where
+            T: Ord,
+        {
+            *self.map.entry(value).or_insert(0) += 1;
+            self.length += 1;
+        }
+        pub fn remove1<Q>(&mut self, value: &Q) -> bool
+        where
+            T: Borrow<Q> + Ord,
+            Q: ?Sized + Ord,
+        {
+            if let Some(cnt) = self.map.get_mut(value) {
+                *cnt -= 1;
+                if *cnt == 0 {
+                    self.map.remove(value);
+                }
+                self.length -= 1;
+                return true;
+            }
+            false
+        }
+        pub fn remove_all<Q>(&mut self, value: &Q) -> bool
+        where
+            T: Borrow<Q> + Ord,
+            Q: ?Sized + Ord,
+        {
+            if let Some(cnt) = self.map.get(value) {
+                self.length -= cnt;
+                self.map.remove(value);
+                return true;
+            }
+            false
+        }
+        pub fn len(&self) -> usize {
+            self.length
+        }
+        pub fn set_len(&self) -> usize {
+            self.map.len()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.length == 0
+        }
+        pub fn count<Q>(&self, value: &Q) -> usize
+        where
+            T: Borrow<Q> + Ord,
+            Q: ?Sized + Ord,
+        {
+            self.map.get(value).copied().unwrap_or(0)
+        }
+        pub fn contains<Q>(&self, value: &Q) -> bool
+        where
+            T: Borrow<Q> + Ord,
+            Q: ?Sized + Ord,
+        {
+            self.map.contains_key(value)
+        }
+    }
+    impl<T: Ord> FromIterator<T> for BTreeMultiSet<T> {
+        fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> BTreeMultiSet<T> {
+            let mut set = BTreeMultiSet::new();
+            for x in iter {
+                set.insert(x);
+            }
+            set
+        }
+    }
+}
