@@ -29,6 +29,7 @@ mod tests {
         let main_ans = xs.len();
         let naive_ans = 1;
 
+        // ==== 間違っていたら報告をする ====
         if main_ans != naive_ans {
             // 問題を出力
             println!("{:?}", (n, xs));
@@ -65,6 +66,7 @@ mod tests {
 }
 
 // ====== import ======
+use std::sync::Arc;
 #[allow(unused_imports)]
 use {
     itertools::{chain, iproduct, izip, Itertools},
