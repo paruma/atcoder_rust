@@ -4,58 +4,84 @@ fn main() {
         ps: [PosXY; n],
     }
 
-    // 偏角が [0, pi) になるようにする
     let diffs = ps
         .iter()
         .copied()
         .tuple_combinations()
         .map(|(p, q)| {
-            let d = p - q;
-            if d.y < 0 || (d.y == 0 && d.x < 0) {
-                -d
-            } else {
-                d
+            //
+            let d = q - p;
+            let mut dx = d.x;
+            let mut dy = d.y;
+            if dx < 0 {
+                dx *= -1;
+                dy *= -1;
             }
+            if dx == 0 {
+                dy = dy.abs();
+            }
+            (dx, dy)
         })
         .collect_vec();
 
-    let diffs_sorted = diffs
+    let angles = ps
         .iter()
         .copied()
-        .sorted_by(|p, q| {
-            // 偏角でソート
-            (p.x * q.y - p.y * q.x).cmp(&0)
+        .tuple_combinations()
+        .map(|(p, q)| {
+            //
+            let d = q - p;
+            let mut dx = d.x;
+            let mut dy = d.y;
+            if dx < 0 {
+                dx *= -1;
+                dy *= -1;
+            }
+            if dx == 0 {
+                dy = dy.abs();
+            }
+            let gcd = num_integer::gcd(dx.abs(), dy.abs());
+            dx /= gcd;
+            dy /= gcd;
+            (dx, dy)
         })
         .collect_vec();
+    let mut angle_cnt_map: HashMap<(i64, i64), i64> = HashMap::new();
 
-    fn is_parallel(p: Pos, q: Pos) -> bool {
-        p.x * q.y - p.y * q.x == 0
+    for &(dx, dy) in &angles {
+        *angle_cnt_map.entry((dx, dy)).or_insert(0_i64) += 1
     }
-    let cnt_平行ペア = diffs_sorted
+
+    let angle_cnts = angle_cnt_map.values().copied().collect_vec();
+
+    let mut diff_cnt_map: HashMap<(i64, i64), i64> = HashMap::new();
+
+    for &(dx, dy) in &diffs {
+        *diff_cnt_map.entry((dx, dy)).or_insert(0_i64) += 1
+    }
+
+    let diff_cnts = diff_cnt_map.values().copied().collect_vec();
+
+    let term1 = angle_cnts
         .iter()
         .copied()
-        .dedup_by_with_count(|&d1, &d2| is_parallel(d1, d2))
-        .map(|(cnt, _)| {
-            let cnt = cnt as i64;
-            cnt * (cnt - 1) / 2
-        })
+        .map(|cnt| cnt * (cnt - 1) / 2)
         .sum::<i64>();
 
-    let cnt_平行四辺形 = {
-        let tmp = diffs
-            .iter()
-            .copied()
-            .counts()
-            .values()
-            .map(|&x| {
-                let x = x as i64;
-                x * (x - 1) / 2
-            })
-            .sum::<i64>();
-        tmp / 2
-    };
+    let term2 = diff_cnts
+        .iter()
+        .copied()
+        .map(|cnt| cnt * (cnt - 1) / 2)
+        .sum::<i64>();
 
-    let ans: i64 = cnt_平行ペア - cnt_平行四辺形;
+    // dbg!(&angle_cnts);
+    // dbg!(&angle_cnt_map);
+    // dbg!(&diff_cnts);
+    // dbg!(&diff_cnt_map);
+    // dbg!(term1);
+    // dbg!(term2);
+
+    let ans: i64 = term1 - term2 / 2;
     println!("{}", ans);
 }
 
