@@ -66,7 +66,6 @@ mod tests {
 }
 
 // ====== import ======
-use std::sync::Arc;
 #[allow(unused_imports)]
 use {
     itertools::{chain, iproduct, izip, Itertools},
