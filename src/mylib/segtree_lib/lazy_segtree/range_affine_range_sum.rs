@@ -528,7 +528,6 @@ mod test_range_affine_range_sum {
                         let l = rng.gen_range(0..=n);
                         let r = rng.gen_range(l..=n);
 
-
                         let slope = rng.gen_range(-2..=2); // Keep slope small
                         let intercept = rng.gen_range(-50..=50);
 
@@ -553,7 +552,6 @@ mod test_range_affine_range_sum {
                         // apply_range_add(range, x)
                         let l = rng.gen_range(0..=n);
                         let r = rng.gen_range(l..=n);
-
 
                         let x = rng.gen_range(-50..=50);
 

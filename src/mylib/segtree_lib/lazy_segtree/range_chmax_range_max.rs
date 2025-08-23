@@ -186,7 +186,6 @@ pub mod test_range_chmax_range_max {
                         let l = rng.gen_range(0..=n);
                         let r = rng.gen_range(l..=n);
 
-
                         let x = rng.gen_range(-50..=50);
 
                         for i in l..r {
