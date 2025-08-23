@@ -259,44 +259,98 @@ pub mod test_range_linear_add_range_sum {
         );
     }
 
-    #[test]
     #[ignore]
+    #[test]
     fn test_random_linear_add() {
-        use rand::Rng;
-        let mut rng = rand::thread_rng();
+        use rand::{rngs::SmallRng, Rng, SeedableRng};
+
+        let mut rng = SmallRng::seed_from_u64(42);
 
         for _ in 0..100 {
-            // 100回のテストケース
-            let n = rng.gen_range(1..=100);
-            let mut xs: Vec<i64> = (0..n).map(|_| rng.gen_range(-100..=100)).collect();
-            let mut segtree = RangeLinearAddRangeSumSegtree::<i64>::new(&xs);
+            let n = rng.gen_range(1..=20);
+            let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.gen_range(-100..=100)).collect();
+            let mut segtree = RangeLinearAddRangeSumSegtree::<i64>::new(&naive_vec);
 
-            for _ in 0..10 {
-                // 各テストケースで10回の操作
-                let l = rng.gen_range(0..n);
-                let r = rng.gen_range(l + 1..=n);
-                let init = rng.gen_range(-50..=50);
-                let diff = rng.gen_range(-10..=10);
+            for _ in 0..100 {
+                // 100 random operations per set
+                let op_type = rng.gen_range(0..5); // 5 operations
 
-                // 愚直な更新
-                for i in l..r {
-                    xs[i] += init + diff * (i as i64 - l as i64);
+                match op_type {
+                    0 => {
+                        // set(p, x)
+                        if n == 0 {
+                            continue;
+                        }
+                        let p = rng.gen_range(0..n);
+                        let x = rng.gen_range(-100..=100);
+                        naive_vec[p] = x;
+                        segtree.set(p, x);
+                    }
+                    1 => {
+                        // apply_range_linear_add(range, init, diff)
+                        if n == 0 {
+                            continue;
+                        }
+                        let mut p1 = rng.gen_range(0..=n);
+                        let mut p2 = rng.gen_range(0..=n);
+                        if p1 == p2 {
+                            continue;
+                        }
+                        if p1 > p2 {
+                            std::mem::swap(&mut p1, &mut p2);
+                        }
+                        let l = p1;
+                        let r = p2;
+
+                        let init = rng.gen_range(-50..=50);
+                        let diff = rng.gen_range(-10..=10);
+
+                        for i in l..r {
+                            naive_vec[i] += init + diff * (i as i64 - l as i64);
+                        }
+                        segtree.apply_range_linear_add(l..r, init, diff);
+                    }
+                    2 => {
+                        // get(p)
+                        if n == 0 {
+                            continue;
+                        }
+                        let p = rng.gen_range(0..n);
+                        assert_eq!(segtree.get(p), naive_vec[p], "get({}) failed", p);
+                    }
+                    3 => {
+                        // range_sum(range)
+                        if n == 0 {
+                            continue;
+                        }
+                        let mut p1 = rng.gen_range(0..=n);
+                        let mut p2 = rng.gen_range(0..=n);
+                        if p1 > p2 {
+                            std::mem::swap(&mut p1, &mut p2);
+                        }
+                        let l = p1;
+                        let r = p2;
+
+                        let expected_sum: i64 = naive_vec[l..r].iter().sum();
+                        assert_eq!(
+                            segtree.range_sum(l..r),
+                            expected_sum,
+                            "range_sum({}..{}) failed",
+                            l,
+                            r
+                        );
+                    }
+                    4 => {
+                        // all_sum()
+                        let expected_sum: i64 = naive_vec.iter().sum();
+                        assert_eq!(segtree.all_sum(), expected_sum, "all_sum() failed");
+                    }
+                    _ => unreachable!(),
                 }
-
-                // セグメントツリーの更新
-                segtree.apply_range_linear_add(l..r, init, diff);
-
-                // 結果の比較
-                assert_eq!(
-                    segtree.to_vec(),
-                    xs,
-                    "Failed on range {}:{} with init={}, diff={}",
-                    l,
-                    r,
-                    init,
-                    diff
-                );
             }
+
+            // Final check
+            assert_eq!(segtree.to_vec(), naive_vec, "final to_vec() check failed");
         }
     }
 }

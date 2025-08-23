@@ -527,4 +527,207 @@ mod test_range_affine_range_minmax {
             .collect_vec();
         assert_eq!(segtree_as_vec, vec![3, 4, 2, 5, 5, 5, 6, 7, 23, 25]);
     }
+
+    #[ignore]
+    #[test]
+    fn test_random_affine_minmax() {
+        use rand::{rngs::SmallRng, Rng, SeedableRng};
+
+        let mut rng = SmallRng::seed_from_u64(42);
+
+        for _ in 0..100 {
+            let n = rng.gen_range(1..=20);
+            let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.gen_range(-100..=100)).collect();
+            let mut segtree = RangeAffineRangeMinMaxSegtree::new(&naive_vec);
+
+            for _ in 0..100 {
+                // 100 random operations per set
+                let op_type = rng.gen_range(0..10); // More operations
+
+                match op_type {
+                    0 => {
+                        // set(p, x)
+                        if n == 0 {
+                            continue;
+                        }
+                        let p = rng.gen_range(0..n);
+                        let x = rng.gen_range(-100..=100);
+                        naive_vec[p] = x;
+                        segtree.set(p, x);
+                    }
+                    1 => {
+                        // apply_affine(p, slope, intercept)
+                        if n == 0 {
+                            continue;
+                        }
+                        let p = rng.gen_range(0..n);
+                        let slope = rng.gen_range(-2..=2); // Keep slope small
+                        let intercept = rng.gen_range(-50..=50);
+                        naive_vec[p] = naive_vec[p] * slope + intercept;
+                        segtree.apply_affine(p, slope, intercept);
+                    }
+                    2 => {
+                        // apply_update(p, x)
+                        if n == 0 {
+                            continue;
+                        }
+                        let p = rng.gen_range(0..n);
+                        let x = rng.gen_range(-100..=100);
+                        naive_vec[p] = x;
+                        segtree.apply_update(p, x);
+                    }
+                    3 => {
+                        // apply_add(p, x)
+                        if n == 0 {
+                            continue;
+                        }
+                        let p = rng.gen_range(0..n);
+                        let x = rng.gen_range(-50..=50);
+                        naive_vec[p] += x;
+                        segtree.apply_add(p, x);
+                    }
+                    4 => {
+                        // apply_range_affine(range, slope, intercept)
+                        if n == 0 {
+                            continue;
+                        }
+                        let mut p1 = rng.gen_range(0..=n);
+                        let mut p2 = rng.gen_range(0..=n);
+                        if p1 == p2 {
+                            continue;
+                        }
+                        if p1 > p2 {
+                            std::mem::swap(&mut p1, &mut p2);
+                        }
+                        let l = p1;
+                        let r = p2;
+
+                        let slope = rng.gen_range(-2..=2); // Keep slope small
+                        let intercept = rng.gen_range(-50..=50);
+
+                        for i in l..r {
+                            naive_vec[i] = naive_vec[i] * slope + intercept;
+                        }
+                        segtree.apply_range_affine(l..r, slope, intercept);
+                    }
+                    5 => {
+                        // apply_range_update(range, x)
+                        if n == 0 {
+                            continue;
+                        }
+                        let mut p1 = rng.gen_range(0..=n);
+                        let mut p2 = rng.gen_range(0..=n);
+                        if p1 == p2 {
+                            continue;
+                        }
+                        if p1 > p2 {
+                            std::mem::swap(&mut p1, &mut p2);
+                        }
+                        let l = p1;
+                        let r = p2;
+
+                        let x = rng.gen_range(-100..=100);
+
+                        for i in l..r {
+                            naive_vec[i] = x;
+                        }
+                        segtree.apply_range_update(l..r, x);
+                    }
+                    6 => {
+                        // apply_range_add(range, x)
+                        if n == 0 {
+                            continue;
+                        }
+                        let mut p1 = rng.gen_range(0..=n);
+                        let mut p2 = rng.gen_range(0..=n);
+                        if p1 == p2 {
+                            continue;
+                        }
+                        if p1 > p2 {
+                            std::mem::swap(&mut p1, &mut p2);
+                        }
+                        let l = p1;
+                        let r = p2;
+
+                        let x = rng.gen_range(-50..=50);
+
+                        for i in l..r {
+                            naive_vec[i] += x;
+                        }
+                        segtree.apply_range_add(l..r, x);
+                    }
+                    7 => {
+                        // get(p)
+                        if n == 0 {
+                            continue;
+                        }
+                        let p = rng.gen_range(0..n);
+                        assert_eq!(segtree.get(p), naive_vec[p], "get({}) failed", p);
+                    }
+                    8 => {
+                        // range_min(range)
+                        if n == 0 {
+                            continue;
+                        }
+                        let mut p1 = rng.gen_range(0..=n);
+                        let mut p2 = rng.gen_range(0..=n);
+                        if p1 > p2 {
+                            continue;
+                        }
+                        let l = p1;
+                        let r = p2;
+
+                        let expected_min =
+                            naive_vec[l..r].iter().copied().min().unwrap_or(i64::MAX);
+                        assert_eq!(
+                            segtree.range_min(l..r),
+                            expected_min,
+                            "range_min({}..{}) failed",
+                            l,
+                            r
+                        );
+                    }
+                    9 => {
+                        // range_max(range)
+                        if n == 0 {
+                            continue;
+                        }
+                        let mut p1 = rng.gen_range(0..=n);
+                        let mut p2 = rng.gen_range(0..=n);
+                        if p1 > p2 {
+                            continue;
+                        }
+                        let l = p1;
+                        let r = p2;
+
+                        let expected_max =
+                            naive_vec[l..r].iter().copied().max().unwrap_or(-i64::MAX);
+                        assert_eq!(
+                            segtree.range_max(l..r),
+                            expected_max,
+                            "range_max({}..{}) failed",
+                            l,
+                            r
+                        );
+                    }
+                    _ => unreachable!(),
+                }
+            }
+
+            // Final check
+            let final_expected_min = naive_vec.iter().copied().min().unwrap_or(i64::MAX);
+            let final_expected_max = naive_vec.iter().copied().max().unwrap_or(-i64::MAX);
+            assert_eq!(
+                segtree.all_min(),
+                final_expected_min,
+                "final all_min() check failed"
+            );
+            assert_eq!(
+                segtree.all_max(),
+                final_expected_max,
+                "final all_max() check failed"
+            );
+            assert_eq!(segtree.to_vec(), naive_vec, "final to_vec() check failed");
+        }
+    }
 }

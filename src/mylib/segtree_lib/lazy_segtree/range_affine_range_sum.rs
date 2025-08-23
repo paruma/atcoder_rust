@@ -476,4 +476,176 @@ mod test_range_affine_range_sum {
 
         assert_eq!(segtree.all_prod().sum, 85);
     }
+
+    #[ignore]
+    #[test]
+    fn test_random_affine_sum() {
+        use rand::{rngs::SmallRng, Rng, SeedableRng};
+
+        let mut rng = SmallRng::seed_from_u64(42);
+
+        for _ in 0..100 {
+            let n = rng.gen_range(1..=20);
+            let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.gen_range(-100..=100)).collect();
+            let mut segtree = RangeAffineRangeSumSegtree::<i64>::new(&naive_vec);
+
+            for _ in 0..100 {
+                // 100 random operations per set
+                let op_type = rng.gen_range(0..10); // 10 operations
+
+                match op_type {
+                    0 => {
+                        // set(p, x)
+                        if n == 0 {
+                            continue;
+                        }
+                        let p = rng.gen_range(0..n);
+                        let x = rng.gen_range(-100..=100);
+                        naive_vec[p] = x;
+                        segtree.set(p, x);
+                    }
+                    1 => {
+                        // apply_affine(p, slope, intercept)
+                        if n == 0 {
+                            continue;
+                        }
+                        let p = rng.gen_range(0..n);
+                        let slope = rng.gen_range(-2..=2); // Keep slope small
+                        let intercept = rng.gen_range(-50..=50);
+                        naive_vec[p] = naive_vec[p] * slope + intercept;
+                        segtree.apply_affine(p, slope, intercept);
+                    }
+                    2 => {
+                        // apply_update(p, x)
+                        if n == 0 {
+                            continue;
+                        }
+                        let p = rng.gen_range(0..n);
+                        let x = rng.gen_range(-100..=100);
+                        naive_vec[p] = x;
+                        segtree.apply_update(p, x);
+                    }
+                    3 => {
+                        // apply_add(p, x)
+                        if n == 0 {
+                            continue;
+                        }
+                        let p = rng.gen_range(0..n);
+                        let x = rng.gen_range(-50..=50);
+                        naive_vec[p] += x;
+                        segtree.apply_add(p, x);
+                    }
+                    4 => {
+                        // apply_range_affine(range, slope, intercept)
+                        if n == 0 {
+                            continue;
+                        }
+                        let mut p1 = rng.gen_range(0..=n);
+                        let mut p2 = rng.gen_range(0..=n);
+                        if p1 == p2 {
+                            continue;
+                        }
+                        if p1 > p2 {
+                            std::mem::swap(&mut p1, &mut p2);
+                        }
+                        let l = p1;
+                        let r = p2;
+
+                        let slope = rng.gen_range(-2..=2); // Keep slope small
+                        let intercept = rng.gen_range(-50..=50);
+
+                        for i in l..r {
+                            naive_vec[i] = naive_vec[i] * slope + intercept;
+                        }
+                        segtree.apply_range_affine(l..r, slope, intercept);
+                    }
+                    5 => {
+                        // apply_range_update(range, x)
+                        if n == 0 {
+                            continue;
+                        }
+                        let mut p1 = rng.gen_range(0..=n);
+                        let mut p2 = rng.gen_range(0..=n);
+                        if p1 == p2 {
+                            continue;
+                        }
+                        if p1 > p2 {
+                            std::mem::swap(&mut p1, &mut p2);
+                        }
+                        let l = p1;
+                        let r = p2;
+
+                        let x = rng.gen_range(-100..=100);
+
+                        for i in l..r {
+                            naive_vec[i] = x;
+                        }
+                        segtree.apply_range_update(l..r, x);
+                    }
+                    6 => {
+                        // apply_range_add(range, x)
+                        if n == 0 {
+                            continue;
+                        }
+                        let mut p1 = rng.gen_range(0..=n);
+                        let mut p2 = rng.gen_range(0..=n);
+                        if p1 == p2 {
+                            continue;
+                        }
+                        if p1 > p2 {
+                            std::mem::swap(&mut p1, &mut p2);
+                        }
+                        let l = p1;
+                        let r = p2;
+
+                        let x = rng.gen_range(-50..=50);
+
+                        for i in l..r {
+                            naive_vec[i] += x;
+                        }
+                        segtree.apply_range_add(l..r, x);
+                    }
+                    7 => {
+                        // get(p)
+                        if n == 0 {
+                            continue;
+                        }
+                        let p = rng.gen_range(0..n);
+                        assert_eq!(segtree.get(p), naive_vec[p], "get({}) failed", p);
+                    }
+                    8 => {
+                        // range_sum(range)
+                        if n == 0 {
+                            continue;
+                        }
+                        let mut p1 = rng.gen_range(0..=n);
+                        let mut p2 = rng.gen_range(0..=n);
+                        if p1 > p2 {
+                            std::mem::swap(&mut p1, &mut p2);
+                        }
+                        let l = p1;
+                        let r = p2;
+
+                        let expected_sum: i64 = naive_vec[l..r].iter().sum();
+                        assert_eq!(
+                            segtree.range_sum(l..r),
+                            expected_sum,
+                            "range_sum({}..{}) failed",
+                            l,
+                            r
+                        );
+                    }
+                    9 => {
+                        // all_sum()
+                        let expected_sum: i64 = naive_vec.iter().sum();
+                        assert_eq!(segtree.all_sum(), expected_sum, "all_sum() failed");
+                    }
+                    _ => unreachable!(),
+                }
+            }
+
+            // Final check
+            assert_eq!(segtree.to_vec(), naive_vec, "final to_vec() check failed");
+        }
+    }
 }

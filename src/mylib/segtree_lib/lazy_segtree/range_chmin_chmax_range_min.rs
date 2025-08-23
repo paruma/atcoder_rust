@@ -284,4 +284,134 @@ pub mod test_range_chmin_chmax_range_min {
         segtree.apply_range_chmin(0..3, 20);
         assert_eq!(segtree.to_vec(), vec![20, 20, 20, 30]);
     }
+
+    #[ignore]
+    #[test]
+    fn test_random_chmin_chmax_min() {
+        use rand::{rngs::SmallRng, Rng, SeedableRng};
+
+        let mut rng = SmallRng::seed_from_u64(42);
+
+        for _ in 0..100 {
+            let n = rng.gen_range(1..=20);
+            let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.gen_range(-100..=100)).collect();
+            let mut segtree = RangeChminChmaxRangeMinSegtree::<i64>::new(&naive_vec);
+
+            for _ in 0..100 {
+                // 100 random operations per set
+                let op_type = rng.gen_range(0..7); // 7 operations
+
+                match op_type {
+                    0 => {
+                        // set(p, x)
+                        if n == 0 {
+                            continue;
+                        }
+                        let p = rng.gen_range(0..n);
+                        let x = rng.gen_range(-100..=100);
+                        naive_vec[p] = x;
+                        segtree.set(p, x);
+                    }
+                    1 => {
+                        // apply_chmin(p, x)
+                        if n == 0 {
+                            continue;
+                        }
+                        let p = rng.gen_range(0..n);
+                        let x = rng.gen_range(-50..=50);
+                        naive_vec[p] = naive_vec[p].min(x);
+                        segtree.apply_chmin(p, x);
+                    }
+                    2 => {
+                        // apply_chmax(p, x)
+                        if n == 0 {
+                            continue;
+                        }
+                        let p = rng.gen_range(0..n);
+                        let x = rng.gen_range(-50..=50);
+                        naive_vec[p] = naive_vec[p].max(x);
+                        segtree.apply_chmax(p, x);
+                    }
+                    3 => {
+                        // apply_range_chmin(range, x)
+                        if n == 0 {
+                            continue;
+                        }
+                        let mut p1 = rng.gen_range(0..=n);
+                        let mut p2 = rng.gen_range(0..=n);
+                        if p1 == p2 {
+                            continue;
+                        }
+                        if p1 > p2 {
+                            std::mem::swap(&mut p1, &mut p2);
+                        }
+                        let l = p1;
+                        let r = p2;
+
+                        let x = rng.gen_range(-50..=50);
+
+                        for i in l..r {
+                            naive_vec[i] = naive_vec[i].min(x);
+                        }
+                        segtree.apply_range_chmin(l..r, x);
+                    }
+                    4 => {
+                        // apply_range_chmax(range, x)
+                        if n == 0 {
+                            continue;
+                        }
+                        let mut p1 = rng.gen_range(0..=n);
+                        let mut p2 = rng.gen_range(0..=n);
+                        if p1 == p2 {
+                            continue;
+                        }
+                        if p1 > p2 {
+                            std::mem::swap(&mut p1, &mut p2);
+                        }
+                        let l = p1;
+                        let r = p2;
+
+                        let x = rng.gen_range(-50..=50);
+
+                        for i in l..r {
+                            naive_vec[i] = naive_vec[i].max(x);
+                        }
+                        segtree.apply_range_chmax(l..r, x);
+                    }
+                    5 => {
+                        // range_min(range)
+                        if n == 0 {
+                            continue;
+                        }
+                        let mut p1 = rng.gen_range(0..=n);
+                        let mut p2 = rng.gen_range(0..=n);
+                        if p1 > p2 {
+                            std::mem::swap(&mut p1, &mut p2);
+                        }
+                        let l = p1;
+                        let r = p2;
+
+                        let expected_min =
+                            naive_vec[l..r].iter().copied().min().unwrap_or(i64::MAX);
+                        assert_eq!(
+                            segtree.range_min(l..r),
+                            expected_min,
+                            "range_min({}..{}) failed",
+                            l,
+                            r
+                        );
+                    }
+                    6 => {
+                        // all_min()
+                        let expected_min = naive_vec.iter().copied().min().unwrap_or(i64::MAX);
+                        assert_eq!(segtree.all_min(), expected_min, "all_min() failed");
+                    }
+                    _ => unreachable!(),
+                }
+            }
+
+            // Final check
+            assert_eq!(segtree.to_vec(), naive_vec, "final to_vec() check failed");
+        }
+    }
 }
