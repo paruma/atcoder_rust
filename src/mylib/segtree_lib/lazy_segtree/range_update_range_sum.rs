@@ -213,4 +213,108 @@ pub mod test_range_update_range_sum {
             vec![Mint::new(10), Mint::new(10), Mint::new(10)]
         );
     }
+
+    #[ignore]
+    #[test]
+    fn test_random_update() {
+        use rand::{rngs::SmallRng, Rng, SeedableRng};
+
+        let mut rng = SmallRng::seed_from_u64(42);
+
+        for _ in 0..100 {
+            let n = rng.gen_range(1..=20);
+            let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.gen_range(-100..=100)).collect();
+            let mut segtree = RangeUpdateRangeSumSegtree::<i64>::new(&naive_vec);
+
+            for _ in 0..100 {
+                // 100 random operations per set
+                let op_type = rng.gen_range(0..6);
+
+                match op_type {
+                    0 => {
+                        // set(p, x)
+                        if n == 0 {
+                            continue;
+                        }
+                        let p = rng.gen_range(0..n);
+                        let x = rng.gen_range(-100..=100);
+                        naive_vec[p] = x;
+                        segtree.set(p, x);
+                    }
+                    1 => {
+                        // apply_range_update(range, x)
+                        if n == 0 {
+                            continue;
+                        }
+                        let mut p1 = rng.gen_range(0..=n);
+                        let mut p2 = rng.gen_range(0..=n);
+                        if p1 == p2 {
+                            continue;
+                        }
+                        if p1 > p2 {
+                            std::mem::swap(&mut p1, &mut p2);
+                        }
+                        let l = p1;
+                        let r = p2;
+
+                        let x = rng.gen_range(-50..=50);
+
+                        for i in l..r {
+                            naive_vec[i] = x;
+                        }
+                        segtree.apply_range_update(l..r, x);
+                    }
+                    2 => {
+                        // get(p)
+                        if n == 0 {
+                            continue;
+                        }
+                        let p = rng.gen_range(0..n);
+                        assert_eq!(segtree.get(p), naive_vec[p], "get({}) failed", p);
+                    }
+                    3 => {
+                        // range_sum(range)
+                        if n == 0 {
+                            continue;
+                        }
+                        let mut p1 = rng.gen_range(0..=n);
+                        let mut p2 = rng.gen_range(0..=n);
+                        if p1 > p2 {
+                            std::mem::swap(&mut p1, &mut p2);
+                        }
+                        let l = p1;
+                        let r = p2;
+
+                        let expected_sum: i64 = naive_vec[l..r].iter().sum();
+                        assert_eq!(
+                            segtree.range_sum(l..r),
+                            expected_sum,
+                            "range_sum({}..{}) failed",
+                            l,
+                            r
+                        );
+                    }
+                    4 => {
+                        // all_sum()
+                        let expected_sum: i64 = naive_vec.iter().sum();
+                        assert_eq!(segtree.all_sum(), expected_sum, "all_sum() failed");
+                    }
+                    5 => {
+                        // apply_update(p, x)
+                        if n == 0 {
+                            continue;
+                        }
+                        let p = rng.gen_range(0..n);
+                        let x = rng.gen_range(-100..=100);
+                        naive_vec[p] = x;
+                        segtree.apply_update(p, x);
+                    }
+                    _ => unreachable!(),
+                }
+            }
+
+            // Final check
+            assert_eq!(segtree.to_vec(), naive_vec, "final to_vec() check failed");
+        }
+    }
 }
