@@ -288,13 +288,8 @@ pub mod test_range_linear_update_range_sum {
                     }
                     1 => {
                         // apply_range_linear_update(range, init, diff)
-                        let mut p1 = rng.gen_range(0..=n);
-                        let mut p2 = rng.gen_range(0..=n);
-                        if p1 > p2 {
-                            std::mem::swap(&mut p1, &mut p2);
-                        }
-                        let l = p1;
-                        let r = p2;
+                        let l = rng.gen_range(0..=n);
+                        let r = rng.gen_range(l..=n);
 
                         let init = rng.gen_range(-50..=50);
                         let diff = rng.gen_range(-10..=10);
@@ -311,13 +306,8 @@ pub mod test_range_linear_update_range_sum {
                     }
                     3 => {
                         // range_sum(range)
-                        let mut p1 = rng.gen_range(0..=n);
-                        let mut p2 = rng.gen_range(0..=n);
-                        if p1 > p2 {
-                            std::mem::swap(&mut p1, &mut p2);
-                        }
-                        let l = p1;
-                        let r = p2;
+                        let l = rng.gen_range(0..=n);
+                        let r = rng.gen_range(l..=n);
 
                         let expected_sum: i64 = naive_vec[l..r].iter().sum();
                         assert_eq!(

@@ -169,9 +169,6 @@ pub mod test_range_chmax_range_max {
                 match op_type {
                     0 => {
                         // set(p, x)
-                        if n == 0 {
-                            continue;
-                        }
                         let p = rng.gen_range(0..n);
                         let x = rng.gen_range(-100..=100);
                         naive_vec[p] = x;
@@ -179,9 +176,6 @@ pub mod test_range_chmax_range_max {
                     }
                     1 => {
                         // apply_chmax(p, x)
-                        if n == 0 {
-                            continue;
-                        }
                         let p = rng.gen_range(0..n);
                         let x = rng.gen_range(-50..=50);
                         naive_vec[p] = naive_vec[p].max(x);
@@ -189,19 +183,9 @@ pub mod test_range_chmax_range_max {
                     }
                     2 => {
                         // apply_range_chmax(range, x)
-                        if n == 0 {
-                            continue;
-                        }
-                        let mut p1 = rng.gen_range(0..=n);
-                        let mut p2 = rng.gen_range(0..=n);
-                        if p1 == p2 {
-                            continue;
-                        }
-                        if p1 > p2 {
-                            std::mem::swap(&mut p1, &mut p2);
-                        }
-                        let l = p1;
-                        let r = p2;
+                        let l = rng.gen_range(0..=n);
+                        let r = rng.gen_range(l..=n);
+
 
                         let x = rng.gen_range(-50..=50);
 
@@ -212,24 +196,13 @@ pub mod test_range_chmax_range_max {
                     }
                     3 => {
                         // get(p)
-                        if n == 0 {
-                            continue;
-                        }
                         let p = rng.gen_range(0..n);
                         assert_eq!(segtree.get(p), naive_vec[p], "get({}) failed", p);
                     }
                     4 => {
                         // range_max(range)
-                        if n == 0 {
-                            continue;
-                        }
-                        let mut p1 = rng.gen_range(0..=n);
-                        let mut p2 = rng.gen_range(0..=n);
-                        if p1 > p2 {
-                            std::mem::swap(&mut p1, &mut p2);
-                        }
-                        let l = p1;
-                        let r = p2;
+                        let l = rng.gen_range(0..=n);
+                        let r = rng.gen_range(l..=n);
 
                         let expected_max =
                             naive_vec[l..r].iter().copied().max().unwrap_or(i64::MIN);

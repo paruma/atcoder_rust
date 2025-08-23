@@ -547,9 +547,6 @@ mod test_range_affine_range_minmax {
                 match op_type {
                     0 => {
                         // set(p, x)
-                        if n == 0 {
-                            continue;
-                        }
                         let p = rng.gen_range(0..n);
                         let x = rng.gen_range(-100..=100);
                         naive_vec[p] = x;
@@ -557,9 +554,6 @@ mod test_range_affine_range_minmax {
                     }
                     1 => {
                         // apply_affine(p, slope, intercept)
-                        if n == 0 {
-                            continue;
-                        }
                         let p = rng.gen_range(0..n);
                         let slope = rng.gen_range(-2..=2); // Keep slope small
                         let intercept = rng.gen_range(-50..=50);
@@ -568,9 +562,6 @@ mod test_range_affine_range_minmax {
                     }
                     2 => {
                         // apply_update(p, x)
-                        if n == 0 {
-                            continue;
-                        }
                         let p = rng.gen_range(0..n);
                         let x = rng.gen_range(-100..=100);
                         naive_vec[p] = x;
@@ -578,9 +569,6 @@ mod test_range_affine_range_minmax {
                     }
                     3 => {
                         // apply_add(p, x)
-                        if n == 0 {
-                            continue;
-                        }
                         let p = rng.gen_range(0..n);
                         let x = rng.gen_range(-50..=50);
                         naive_vec[p] += x;
@@ -588,19 +576,8 @@ mod test_range_affine_range_minmax {
                     }
                     4 => {
                         // apply_range_affine(range, slope, intercept)
-                        if n == 0 {
-                            continue;
-                        }
-                        let mut p1 = rng.gen_range(0..=n);
-                        let mut p2 = rng.gen_range(0..=n);
-                        if p1 == p2 {
-                            continue;
-                        }
-                        if p1 > p2 {
-                            std::mem::swap(&mut p1, &mut p2);
-                        }
-                        let l = p1;
-                        let r = p2;
+                        let l = rng.gen_range(0..=n);
+                        let r = rng.gen_range(l..=n);
 
                         let slope = rng.gen_range(-2..=2); // Keep slope small
                         let intercept = rng.gen_range(-50..=50);
@@ -612,19 +589,8 @@ mod test_range_affine_range_minmax {
                     }
                     5 => {
                         // apply_range_update(range, x)
-                        if n == 0 {
-                            continue;
-                        }
-                        let mut p1 = rng.gen_range(0..=n);
-                        let mut p2 = rng.gen_range(0..=n);
-                        if p1 == p2 {
-                            continue;
-                        }
-                        if p1 > p2 {
-                            std::mem::swap(&mut p1, &mut p2);
-                        }
-                        let l = p1;
-                        let r = p2;
+                        let l = rng.gen_range(0..=n);
+                        let r = rng.gen_range(l..=n);
 
                         let x = rng.gen_range(-100..=100);
 
@@ -635,19 +601,8 @@ mod test_range_affine_range_minmax {
                     }
                     6 => {
                         // apply_range_add(range, x)
-                        if n == 0 {
-                            continue;
-                        }
-                        let mut p1 = rng.gen_range(0..=n);
-                        let mut p2 = rng.gen_range(0..=n);
-                        if p1 == p2 {
-                            continue;
-                        }
-                        if p1 > p2 {
-                            std::mem::swap(&mut p1, &mut p2);
-                        }
-                        let l = p1;
-                        let r = p2;
+                        let l = rng.gen_range(0..=n);
+                        let r = rng.gen_range(l..=n);
 
                         let x = rng.gen_range(-50..=50);
 
@@ -658,24 +613,13 @@ mod test_range_affine_range_minmax {
                     }
                     7 => {
                         // get(p)
-                        if n == 0 {
-                            continue;
-                        }
                         let p = rng.gen_range(0..n);
                         assert_eq!(segtree.get(p), naive_vec[p], "get({}) failed", p);
                     }
                     8 => {
                         // range_min(range)
-                        if n == 0 {
-                            continue;
-                        }
-                        let mut p1 = rng.gen_range(0..=n);
-                        let mut p2 = rng.gen_range(0..=n);
-                        if p1 > p2 {
-                            continue;
-                        }
-                        let l = p1;
-                        let r = p2;
+                        let l = rng.gen_range(0..=n);
+                        let r = rng.gen_range(l..=n);
 
                         let expected_min =
                             naive_vec[l..r].iter().copied().min().unwrap_or(i64::MAX);
@@ -689,16 +633,8 @@ mod test_range_affine_range_minmax {
                     }
                     9 => {
                         // range_max(range)
-                        if n == 0 {
-                            continue;
-                        }
-                        let mut p1 = rng.gen_range(0..=n);
-                        let mut p2 = rng.gen_range(0..=n);
-                        if p1 > p2 {
-                            continue;
-                        }
-                        let l = p1;
-                        let r = p2;
+                        let l = rng.gen_range(0..=n);
+                        let r = rng.gen_range(l..=n);
 
                         let expected_max =
                             naive_vec[l..r].iter().copied().max().unwrap_or(-i64::MAX);
