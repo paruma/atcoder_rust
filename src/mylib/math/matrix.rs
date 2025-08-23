@@ -330,9 +330,14 @@ mod tests {
     fn test_modint_matrix() {
         use ac_library::ModInt998244353 as Mint;
         let m = Matrix::<Mint, 3, 3>::identity();
-        assert_eq!(m.data, [[Mint::new(1), Mint::new(0), Mint::new(0)],
-                            [Mint::new(0), Mint::new(1), Mint::new(0)],
-                            [Mint::new(0), Mint::new(0), Mint::new(1)]]);
+        assert_eq!(
+            m.data,
+            [
+                [Mint::new(1), Mint::new(0), Mint::new(0)],
+                [Mint::new(0), Mint::new(1), Mint::new(0)],
+                [Mint::new(0), Mint::new(0), Mint::new(1)]
+            ]
+        );
     }
 
     #[test]
