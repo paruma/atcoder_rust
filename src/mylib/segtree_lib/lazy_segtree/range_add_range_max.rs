@@ -190,4 +190,99 @@ pub mod test_range_add_range_max {
         segtree.apply_range_add(0..0, 100);
         assert_eq!(segtree.all_max(), i64::MIN);
     }
+
+    #[ignore]
+    #[test]
+    fn test_random_add_max() {
+        use rand::{rngs::SmallRng, Rng, SeedableRng};
+
+        let mut rng = SmallRng::seed_from_u64(42);
+
+        for _ in 0..100 {
+            let n = rng.gen_range(1..=20);
+            let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.gen_range(-100..=100)).collect();
+            let mut segtree = RangeAddRangeMaxSegtree::<i64>::new(&naive_vec);
+
+            for _ in 0..100 {
+                // 100 random operations per set
+                let op_type = rng.gen_range(0..5);
+
+                match op_type {
+                    0 => {
+                        // set(p, x)
+                        if n == 0 {
+                            continue;
+                        }
+                        let p = rng.gen_range(0..n);
+                        let x = rng.gen_range(-100..=100);
+                        naive_vec[p] = x;
+                        segtree.set(p, x);
+                    }
+                    1 => {
+                        // apply_range_add(range, x)
+                        if n == 0 {
+                            continue;
+                        }
+                        let mut p1 = rng.gen_range(0..=n);
+                        let mut p2 = rng.gen_range(0..=n);
+                        if p1 == p2 {
+                            continue;
+                        }
+                        if p1 > p2 {
+                            std::mem::swap(&mut p1, &mut p2);
+                        }
+                        let l = p1;
+                        let r = p2;
+
+                        let x = rng.gen_range(-50..=50);
+
+                        for i in l..r {
+                            naive_vec[i] += x;
+                        }
+                        segtree.apply_range_add(l..r, x);
+                    }
+                    2 => {
+                        // get(p)
+                        if n == 0 {
+                            continue;
+                        }
+                        let p = rng.gen_range(0..n);
+                        assert_eq!(segtree.get(p), naive_vec[p], "get({}) failed", p);
+                    }
+                    3 => {
+                        // range_max(range)
+                        if n == 0 {
+                            continue;
+                        }
+                        let mut p1 = rng.gen_range(0..=n);
+                        let mut p2 = rng.gen_range(0..=n);
+                        if p1 > p2 {
+                            std::mem::swap(&mut p1, &mut p2);
+                        }
+                        let l = p1;
+                        let r = p2;
+
+                        let expected_max =
+                            naive_vec[l..r].iter().copied().max().unwrap_or(i64::MIN);
+                        assert_eq!(
+                            segtree.range_max(l..r),
+                            expected_max,
+                            "range_max({}..{}) failed",
+                            l,
+                            r
+                        );
+                    }
+                    4 => {
+                        // all_max()
+                        let expected_max = naive_vec.iter().copied().max().unwrap_or(i64::MIN);
+                        assert_eq!(segtree.all_max(), expected_max, "all_max() failed");
+                    }
+                    _ => unreachable!(),
+                }
+            }
+
+            // Final check
+            assert_eq!(segtree.to_vec(), naive_vec, "final to_vec() check failed");
+        }
+    }
 }
