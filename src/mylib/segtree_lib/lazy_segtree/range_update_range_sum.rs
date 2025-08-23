@@ -52,10 +52,10 @@ pub mod range_update_range_sum {
             None
         }
         fn composition(a: &Option<T>, b: &Option<T>) -> Option<T> {
-            if b.is_some() {
-                *b
-            } else {
+            if a.is_some() {
                 *a
+            } else {
+                *b
             }
         }
 
@@ -187,9 +187,11 @@ pub mod test_range_update_range_sum {
         let xs = vec![10, 20, 30, 40, 50];
         let mut segtree = RangeUpdateRangeSumSegtree::<i64>::new(&xs);
         segtree.apply_range_update(1..4, 5);
-        assert_eq!(segtree.to_vec(), vec![10, 5, 5, 5, 50]);
+        // assert_eq!(segtree.to_vec(), vec![10, 5, 5, 5, 50]);
+        segtree.apply_range_update(1..4, 20);
+        assert_eq!(segtree.to_vec(), vec![10, 20, 20, 20, 50]);
         segtree.apply_range_update(0..3, 100);
-        assert_eq!(segtree.to_vec(), vec![100, 100, 100, 5, 50]);
+        assert_eq!(segtree.to_vec(), vec![100, 100, 100, 20, 50]);
     }
 
     #[test]

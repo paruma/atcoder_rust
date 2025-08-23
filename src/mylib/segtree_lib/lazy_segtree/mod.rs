@@ -11,6 +11,7 @@ pub mod range_chmin_chmax_add_range_min;
 pub mod range_chmin_chmax_range_min;
 pub mod range_chmin_range_min;
 pub mod range_linear_add_range_sum;
+pub mod range_linear_update_range_sum;
 pub mod range_quadratic_add_range_sum;
 pub mod range_update_range_sum;
 
