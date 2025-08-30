@@ -1,13 +1,14 @@
-// ACL のラッパーを使う
+// ACL を使う
 #[fastout]
 fn main() {
     input! {
         n: usize,
         q: usize,
     }
-    let mut uf = UnionFindCore::new(n);
+    //let mut uf: MonoidUnionFind<Additive<i64>> = MonoidUnionFind::new(&vec![0; n]);
+    let mut uf = ac_library::Dsu::new(n);
     let mut is_black = vec![false; n];
-    let mut group_black_cnt = vec![Some(0); n];
+    let mut group_black_cnt = vec![0; n];
 
     for _ in 0..q {
         input! {
@@ -19,9 +20,13 @@ fn main() {
                 u: Usize1,
                 v: Usize1,
             }
-            if let Some((root, merged)) = uf.unite(u, v) {
-                *group_black_cnt[root].as_mut().unwrap() += group_black_cnt[merged].unwrap();
-                group_black_cnt[merged] = None;
+            if !uf.same(u, v) {
+                let u_root = uf.leader(u);
+                let v_root = uf.leader(v);
+                let root = uf.merge(u, v);
+                let non_root = if root == u_root { v_root } else { u_root };
+                group_black_cnt[root] += group_black_cnt[non_root];
+                group_black_cnt[non_root] = 0;
             }
         } else if t == 2 {
             input! {
@@ -29,14 +34,14 @@ fn main() {
             }
             is_black[v] = !is_black[v];
 
-            let root = uf.root(v);
-            *group_black_cnt[root].as_mut().unwrap() += if is_black[v] { 1 } else { -1 };
+            let root = uf.leader(v);
+            group_black_cnt[root] += if is_black[v] { 1 } else { -1 };
         } else {
             input! {
                 v: Usize1,
             }
-            let root = uf.root(v);
-            let ans = group_black_cnt[root].unwrap() > 0;
+            let root = uf.leader(v);
+            let ans = group_black_cnt[root] > 0;
             print_yesno(ans);
         }
     }
@@ -168,47 +173,3 @@ pub mod print_util {
 }
 
 // ====== snippet ======
-use union_find_core::*;
-#[allow(clippy::module_inception)]
-/// ac_library::Dsu のラッパー
-pub mod union_find_core {
-    use ac_library::Dsu;
-    pub struct UnionFindCore {
-        uf: Dsu,
-    }
-    impl UnionFindCore {
-        pub fn new(n: usize) -> UnionFindCore {
-            UnionFindCore { uf: Dsu::new(n) }
-        }
-        pub fn root(&mut self, v: usize) -> usize {
-            self.uf.leader(v)
-        }
-        pub fn same_count(&mut self, v: usize) -> usize {
-            self.uf.size(v)
-        }
-        pub fn same(&mut self, x: usize, y: usize) -> bool {
-            self.uf.same(x, y)
-        }
-        /// 2 つの要素 `x` と `y` が属する集合を統合します。
-        /// # 戻り値
-        /// - `Some((root, merged))`:
-        ///   - `root` は統合後の集合の代表元（リーダー）
-        ///   - `merged` は統合されて消える側の旧代表元
-        /// - `None`:
-        ///   - `x` と `y` がすでに同じ集合に属していた場合
-        /// ```
-        pub fn unite(&mut self, x: usize, y: usize) -> Option<(usize, usize)> {
-            let rx = self.uf.leader(x);
-            let ry = self.uf.leader(y);
-            if rx == ry {
-                return None;
-            }
-            let root = self.uf.merge(rx, ry);
-            let merged = root ^ rx ^ ry;
-            Some((root, merged))
-        }
-        pub fn groups(&mut self) -> Vec<Vec<usize>> {
-            self.uf.groups()
-        }
-    }
-}
