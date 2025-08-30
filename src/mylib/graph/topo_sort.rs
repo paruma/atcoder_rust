@@ -41,8 +41,6 @@ pub fn has_cycle_directed_by_topo_sort(adj: &[Vec<usize>]) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use itertools::Itertools;
-
     use crate::mylib::graph::{
         graph::make_adj_from_directed, topo_sort::has_cycle_directed_by_topo_sort,
     };
@@ -57,10 +55,7 @@ mod tests {
         // 2
         // 3 → 4
         let n_vertex = 5;
-        let edges = [(0, 1), (0, 2), (2, 1), (3, 4)]
-            .into_iter()
-            .map(|(from, to)| (from, to))
-            .collect_vec();
+        let edges = vec![(0, 1), (0, 2), (2, 1), (3, 4)];
         let adj = make_adj_from_directed(n_vertex, &edges);
 
         let sorted = topo_sort(&adj);

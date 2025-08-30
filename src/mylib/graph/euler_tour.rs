@@ -154,7 +154,7 @@ mod tests {
         let tree_parent = vec![0, 0, 0, 1, 1, 2, 3, 4, 4, 4, 5, 5];
         let euler_tour = EulerTour::new(&tree_parent);
         // 頂点の番号 + 10 をスコアとする
-        let score = vec![10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
+        let score = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
 
         // 部分木のスコアを求める
         let subtree_segtree = Segtree::<Additive<i64>>::from(

@@ -14,7 +14,7 @@ mod tests {
             xs.next_permutation()
         } {}
         assert_eq!(buf.len(), 30); // 5!/(2! 2! 1!)
-        let expected = vec![0, 0, 1, 1, 2]
+        let expected = [0, 0, 1, 1, 2]
             .iter()
             .copied()
             .permutations(5)

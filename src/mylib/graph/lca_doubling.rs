@@ -173,7 +173,7 @@ mod tests {
         // ├ 2
         // └ 0
         //   └ 3
-        let tree_parent = vec![1, 1, 1, 0]
+        let tree_parent = [1, 1, 1, 0]
             .iter()
             .copied()
             .enumerate()
@@ -220,7 +220,7 @@ mod tests {
         //   └ 5
         //     ├ 10
         //     └ 11
-        let tree_parent = vec![0, 0, 0, 1, 1, 2, 3, 4, 4, 4, 5, 5]
+        let tree_parent = [0, 0, 0, 1, 1, 2, 3, 4, 4, 4, 5, 5]
             .iter()
             .copied()
             .enumerate()
@@ -248,7 +248,7 @@ mod tests {
         //   └ 5
         //     ├ 10
         //     └ 11
-        let tree_parent = vec![0, 0, 0, 1, 1, 2, 3, 4, 4, 4, 5, 5]
+        let tree_parent = [0, 0, 0, 1, 1, 2, 3, 4, 4, 4, 5, 5]
             .iter()
             .copied()
             .enumerate()
