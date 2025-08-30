@@ -1,9 +1,10 @@
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        x: usize,
+        y: usize,
     }
-    let ans: i64 = 0_i64;
+    let sum = x + y;
+    let ans: usize = if sum > 12 { sum - 12 } else { sum };
     println!("{}", ans);
 }
 

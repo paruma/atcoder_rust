@@ -1,10 +1,53 @@
+fn solve(x: i64, p: i64, q: i64) -> Option<(i64, i64)> {
+    let n = if (p + q - 2) % 4 != 0 {
+        return None;
+    } else {
+        (p + q - 2) / 4
+    };
+
+    let y = if (p - 1) % 2 != 0 {
+        return None;
+    } else {
+        (p - 1) / 2 - n
+    };
+    if y < 0 {
+        return None;
+    }
+    if n * n + n + x != y * y {
+        return None;
+    }
+    Some((n, y))
+}
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        x: i64,
     }
-    let ans: i64 = 0_i64;
-    println!("{}", ans);
+
+    let d = -4 * x + 1;
+    let mut ans = vec![];
+    if d > 0 {
+        let div = divisors(d);
+        for p in iproduct!(div.iter(), [-1, 1].iter()).map(|(x, y)| x * y) {
+            let q = d / p;
+            if let Some((n, _)) = solve(x, p, q) {
+                ans.push(n);
+            }
+        }
+    } else {
+        let div = divisors(-d);
+
+        for p in iproduct!(div.iter(), [-1, 1].iter()).map(|(x, y)| x * y) {
+            let q = d / p;
+
+            if let Some((n, _)) = solve(x, p, q) {
+                ans.push(n);
+            }
+        }
+    }
+
+    ans.sort();
+    println!("{}", ans.len());
+    print_vec_1line(&ans);
 }
 
 #[cfg(test)]
@@ -133,3 +176,20 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+pub fn divisors(n: i64) -> Vec<i64> {
+    use num::Integer;
+    use num_integer::Roots;
+
+    assert!(n >= 1);
+    let mut retval: Vec<i64> = Vec::new();
+    for i in 1..=n.sqrt() {
+        if n.is_multiple_of(&i) {
+            retval.push(i);
+            if i * i != n {
+                retval.push(n / i);
+            }
+        }
+    }
+
+    retval
+}

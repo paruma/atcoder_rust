@@ -1,10 +1,39 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        m: usize,
+        xss: [Chars; n],
     }
-    let ans: i64 = 0_i64;
-    println!("{}", ans);
+    let mut scores = vec![0_i64; n];
+    // 入出力例1間違ってる？
+    for j in 0..m {
+        let cnt0 = (0..n).filter(|&i| xss[i][j] == '0').count();
+        let cnt1 = (0..n).filter(|&i| xss[i][j] == '1').count();
+        if cnt0 == 0 || cnt1 == 0 {
+            for i in 0..n {
+                scores[i] += 1;
+            }
+        } else if cnt0 < cnt1 {
+            for i in 0..n {
+                if xss[i][j] == '0' {
+                    scores[i] += 1;
+                }
+            }
+        } else {
+            for i in 0..n {
+                if xss[i][j] == '1' {
+                    scores[i] += 1;
+                }
+            }
+        }
+    }
+    let max_score = scores.iter().copied().max().unwrap();
+    let max_players = (0..n)
+        .filter(|i| scores[*i] == max_score)
+        .map(|i| i + 1)
+        .collect_vec();
+
+    print_vec_1line(&max_players);
 }
 
 #[cfg(test)]

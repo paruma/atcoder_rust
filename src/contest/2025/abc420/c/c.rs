@@ -1,10 +1,39 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        q: usize,
+        mut cs: [i64; n],
+        mut ds: [i64; n],
     }
-    let ans: i64 = 0_i64;
-    println!("{}", ans);
+
+    let mut ans = (0..n).map(|i| i64::min(cs[i], ds[i])).sum::<i64>();
+
+    for _ in 0..q {
+        input! {
+            ch: char,
+            x: Usize1,
+            v: i64,
+        }
+
+        let prev = i64::min(cs[x], ds[x]);
+
+        if ch == 'A' {
+            cs[x] = v;
+            //
+        } else {
+            //
+            ds[x] = v;
+        }
+
+        let current = i64::min(cs[x], ds[x]);
+
+        let diff = current - prev;
+        ans += diff;
+
+        println!("{}", ans);
+    }
+    // let ans: i64 = 0_i64;
+    // println!("{}", ans);
 }
 
 #[cfg(test)]

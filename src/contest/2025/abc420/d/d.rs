@@ -1,10 +1,135 @@
+use std::ops::{Index, IndexMut};
+pub struct Grid {
+    pub grid: Vec<Vec<char>>,
+    pub h: usize,
+    pub w: usize,
+}
+impl Index<Pos> for Grid {
+    type Output = char;
+    fn index(&self, index: Pos) -> &Self::Output {
+        if self.is_within(index) {
+            self.grid.index(index)
+        } else {
+            &'#'
+        }
+    }
+}
+impl IndexMut<Pos> for Grid {
+    fn index_mut(&mut self, index: Pos) -> &mut Self::Output {
+        self.grid.index_mut(index)
+    }
+}
+impl Grid {
+    pub fn new(grid: Vec<Vec<char>>) -> Grid {
+        let h = grid.len();
+        let w = grid[0].len();
+        Grid { grid, h, w }
+    }
+    pub fn is_within(&self, pos: Pos) -> bool {
+        let h = self.h as i64;
+        let w = self.w as i64;
+        0 <= pos.y && pos.y < h && 0 <= pos.x && pos.x < w
+    }
+    pub fn can_move_normal(&self, pos: Pos) -> bool {
+        ['.', 'S', 'G', 'o', '?'].contains(&self[pos])
+    }
+    pub fn can_move_reverse(&self, pos: Pos) -> bool {
+        ['.', 'S', 'G', 'x', '?'].contains(&self[pos])
+    }
+
+    pub fn is_hatena(&self, pos: Pos) -> bool {
+        ['?'].contains(&self[pos])
+    }
+    pub fn all_pos_iter(&self) -> impl Iterator<Item = Pos> {
+        iproduct!(0..self.h, 0..self.w).map(|(y, x)| Pos::new(x as i64, y as i64))
+    }
+    pub fn find_pos_of(&self, ch: char) -> Option<Pos> {
+        self.all_pos_iter().find(|pos| self[*pos] == ch)
+    }
+    pub fn encode(&self, pos: Pos) -> usize {
+        (pos.y * self.w as i64 + pos.x) as usize
+    }
+    pub fn decode(&self, i: usize) -> Pos {
+        let y = (i / self.w) as i64;
+        let x = (i % self.w) as i64;
+        Pos::new(x, y)
+    }
+    pub fn debug(&self) {
+        for row in &self.grid {
+            eprintln!("{}", row.iter().collect::<String>());
+        }
+        eprintln!();
+    }
+    /// pos の部分は背景を灰色にして出力する
+    pub fn debug_with_pos(&self, pos: Pos) {
+        const GRAY: &str = "\x1b[48;2;127;127;127;37m";
+        const RESET: &str = "\x1b[0m";
+        for y in 0..self.h {
+            let row = (0..self.w)
+                .map(|x| {
+                    if pos == Pos::new(x as i64, y as i64) {
+                        format!("{}{}{}", GRAY, self.grid[y][x], RESET)
+                    } else {
+                        self.grid[y][x].to_string()
+                    }
+                })
+                .join("");
+            eprintln!("{}", row);
+        }
+        eprintln!();
+    }
+}
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        h: usize,
+        w: usize,
+        grid: [Chars; h],
     }
-    let ans: i64 = 0_i64;
-    println!("{}", ans);
+
+    let grid = Grid::new(grid);
+
+    let mut open: Queue<(Pos, bool)> = Queue::new();
+    let mut visited = vec![vec![[false, false]; w]; h];
+    let mut dist = vec![vec![[i64::MAX, i64::MAX]; w]; h];
+    let start = grid.find_pos_of('S').unwrap();
+    let goal = grid.find_pos_of('G').unwrap();
+    let init = (start, false); // false: 表世界
+
+    open.push(init);
+    visited[init.0][init.1 as usize] = true;
+    dist[init.0][init.1 as usize] = 0;
+
+    while let Some((current_pos, current_is_rev)) = open.pop() {
+        for next in Pos::around4_pos_iter(current_pos) {
+            let can_move = if current_is_rev {
+                grid.can_move_reverse(next)
+            } else {
+                grid.can_move_normal(next)
+            };
+            if !can_move {
+                continue;
+            }
+
+            let next_is_rev = if grid.is_hatena(next) {
+                !current_is_rev
+            } else {
+                current_is_rev
+            };
+
+            if !visited[next][next_is_rev as usize] {
+                visited[next][next_is_rev as usize] = true;
+                open.push((next, next_is_rev));
+                dist[next][next_is_rev as usize] = dist[current_pos][current_is_rev as usize] + 1;
+            }
+        }
+    }
+
+    let ans: i64 = i64::min(dist[goal][0], dist[goal][1]);
+    if ans == i64::MAX {
+        println!("{}", -1);
+    } else {
+        println!("{}", ans);
+    }
 }
 
 #[cfg(test)]
@@ -133,3 +258,201 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use pos::*;
+pub mod pos {
+    use std::io::BufRead;
+    use std::ops::{Add, AddAssign, Neg, Sub, SubAssign};
+    #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    pub struct Pos {
+        pub x: i64,
+        pub y: i64,
+    }
+    impl Pos {
+        pub fn new(x: i64, y: i64) -> Pos {
+            Pos { x, y }
+        }
+    }
+    impl Pos {
+        pub fn scala_mul(self, rhs: i64) -> Pos {
+            Pos::new(self.x * rhs, self.y * rhs)
+        }
+    }
+    impl Pos {
+        pub fn inner_product(self, rhs: Self) -> i64 {
+            self.x * rhs.x + self.y * rhs.y
+        }
+        pub fn norm_square(self) -> i64 {
+            self.inner_product(self)
+        }
+    }
+    impl Add for Pos {
+        type Output = Pos;
+        fn add(self, rhs: Self) -> Self::Output {
+            Pos::new(self.x + rhs.x, self.y + rhs.y)
+        }
+    }
+    impl Sub for Pos {
+        type Output = Pos;
+        fn sub(self, rhs: Self) -> Self::Output {
+            Pos::new(self.x - rhs.x, self.y - rhs.y)
+        }
+    }
+    impl Neg for Pos {
+        type Output = Self;
+        fn neg(self) -> Self::Output {
+            Pos::new(-self.x, -self.y)
+        }
+    }
+    impl num_traits::Zero for Pos {
+        fn zero() -> Self {
+            Pos::new(0, 0)
+        }
+        fn is_zero(&self) -> bool {
+            self.x.is_zero() && self.y.is_zero()
+        }
+    }
+    impl AddAssign for Pos {
+        fn add_assign(&mut self, rhs: Self) {
+            *self = *self + rhs
+        }
+    }
+    impl SubAssign for Pos {
+        fn sub_assign(&mut self, rhs: Self) {
+            *self = *self - rhs
+        }
+    }
+    use std::fmt::{Debug, Error, Formatter};
+    impl Debug for Pos {
+        fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+            f.write_fmt(format_args!("({}, {})", self.x, self.y))?;
+            Ok(())
+        }
+    }
+    use proconio::source::{Readable, Source};
+    pub enum PosXY {}
+    impl Readable for PosXY {
+        type Output = Pos;
+        fn read<R: BufRead, S: Source<R>>(source: &mut S) -> Pos {
+            let x = i64::read(source);
+            let y = i64::read(source);
+            Pos::new(x, y)
+        }
+    }
+    pub enum PosYX {}
+    impl Readable for PosYX {
+        type Output = Pos;
+        fn read<R: BufRead, S: Source<R>>(source: &mut S) -> Pos {
+            let y = i64::read(source);
+            let x = i64::read(source);
+            Pos::new(x, y)
+        }
+    }
+    /// 1-indexed で与えられた座標(YX)
+    pub enum PosYX1 {}
+    impl Readable for PosYX1 {
+        type Output = Pos;
+        fn read<R: BufRead, S: Source<R>>(source: &mut S) -> Pos {
+            let y = i64::read(source) - 1;
+            let x = i64::read(source) - 1;
+            Pos::new(x, y)
+        }
+    }
+    pub const DIR8_LIST: [Pos; 8] = [
+        Pos { x: 0, y: 1 },
+        Pos { x: 1, y: 1 },
+        Pos { x: 1, y: 0 },
+        Pos { x: 1, y: -1 },
+        Pos { x: 0, y: -1 },
+        Pos { x: -1, y: -1 },
+        Pos { x: -1, y: 0 },
+        Pos { x: -1, y: 1 },
+    ];
+    pub const DIR4_LIST: [Pos; 4] = [
+        Pos { x: 0, y: 1 },
+        Pos { x: 1, y: 0 },
+        Pos { x: 0, y: -1 },
+        Pos { x: -1, y: 0 },
+    ];
+    impl Pos {
+        pub fn around4_pos_iter(self) -> impl Iterator<Item = Pos> {
+            DIR4_LIST.iter().copied().map(move |d| self + d)
+        }
+        pub fn around8_pos_iter(self) -> impl Iterator<Item = Pos> {
+            DIR8_LIST.iter().copied().map(move |d| self + d)
+        }
+    }
+}
+use vec_vec_at::*;
+pub mod vec_vec_at {
+    use super::pos::*;
+    use easy_ext::ext;
+    use std::ops::{Index, IndexMut};
+    #[ext(ExtVecVec)]
+    impl<T> Vec<Vec<T>> {
+        pub fn width(&self) -> usize {
+            if self.is_empty() {
+                0
+            } else {
+                self[0].len()
+            }
+        }
+        pub fn height(&self) -> usize {
+            self.len()
+        }
+        pub fn is_within(&self, pos: Pos) -> bool {
+            (0..self.width() as i64).contains(&pos.x) && (0..self.height() as i64).contains(&pos.y)
+        }
+    }
+    impl<T> Index<Pos> for Vec<Vec<T>> {
+        type Output = T;
+        fn index(&self, index: Pos) -> &Self::Output {
+            if cfg!(debug_assertions) && !self.is_within(index) {
+                panic ! ("index out of bounds: the size (w, h) is ({}, {}) but the index (x, y) is ({}, {})" , self . width () , self . height () , index . x , index . y );
+            }
+            &self[index.y as usize][index.x as usize]
+        }
+    }
+    impl<T> IndexMut<Pos> for Vec<Vec<T>> {
+        fn index_mut(&mut self, index: Pos) -> &mut Self::Output {
+            if cfg!(debug_assertions) && !self.is_within(index) {
+                panic ! ("index out of bounds: the size (w, h) is ({}, {}) but the index (x, y) is ({}, {})" , self . width () , self . height () , index . x , index . y );
+            }
+            &mut self[index.y as usize][index.x as usize]
+        }
+    }
+}
+use mod_queue::*;
+pub mod mod_queue {
+    use std::collections::VecDeque;
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct Queue<T> {
+        raw: VecDeque<T>,
+    }
+    impl<T> Queue<T> {
+        pub fn new() -> Self {
+            Queue {
+                raw: VecDeque::new(),
+            }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push_back(value)
+        }
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop_front()
+        }
+        pub fn peek(&self) -> Option<&T> {
+            self.raw.front()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.raw.is_empty()
+        }
+        pub fn len(&self) -> usize {
+            self.raw.len()
+        }
+    }
+    impl<T> Default for Queue<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+}
