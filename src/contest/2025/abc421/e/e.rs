@@ -1,7 +1,6 @@
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        xs: [i64; 6],
     }
     let ans: i64 = 0_i64;
     println!("{}", ans);

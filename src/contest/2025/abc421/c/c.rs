@@ -1,9 +1,19 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        xs: Chars,
     }
-    let ans: i64 = 0_i64;
+    assert_eq!(xs.len(), 2 * n);
+    let apos = xs.iter().copied().positions(|x| x == 'A').collect_vec();
+
+    let cand1 = (0..n)
+        .map(|i| usize::abs_diff(2 * i, apos[i]))
+        .sum::<usize>();
+    let cand2 = (0..n)
+        .map(|i| usize::abs_diff(2 * i + 1, apos[i]))
+        .sum::<usize>();
+
+    let ans: usize = usize::min(cand1, cand2);
     println!("{}", ans);
 }
 

@@ -1,9 +1,22 @@
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        x: i64,
+        y: i64,
     }
-    let ans: i64 = 0_i64;
+
+    let mut dp = [i64::MAX; 10];
+
+    dp[0] = x;
+    dp[1] = y;
+
+    for i in 2..10 {
+        let tmp = dp[i - 1] + dp[i - 2];
+        let mut tmp2 = to_base_n_value(tmp, 10);
+        tmp2.reverse();
+
+        dp[i] = eval_base_n_value(&tmp2, 10);
+    }
+    let ans: i64 = dp[9];
     println!("{}", ans);
 }
 
@@ -133,3 +146,24 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use positional_notation::*;
+#[allow(clippy::module_inception)]
+pub mod positional_notation {
+    /// 配列 xs で表された base 進数の値を評価する
+    /// 例: `eval_base_n_value(&[1, 2, 3], 10) == 123`
+    pub fn eval_base_n_value(xs: &[i64], base: i64) -> i64 {
+        xs.iter().fold(0, |acc, &x| acc * base + x)
+    }
+    /// n の base 進数での表記を Vec で表す
+    /// 例: `to_base_n_value(123, 10) == vec![1, 2, 3]`
+    pub fn to_base_n_value(x: i64, base: i64) -> Vec<i64> {
+        let mut ret = vec![];
+        let mut x = x;
+        while x > 0 {
+            ret.push(x % base);
+            x /= base;
+        }
+        ret.reverse();
+        ret
+    }
+}

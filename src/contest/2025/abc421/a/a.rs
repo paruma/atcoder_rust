@@ -1,10 +1,13 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        ss: [String; n],
+        x: Usize1,
+        y: String
     }
-    let ans: i64 = 0_i64;
-    println!("{}", ans);
+    let ans: bool = ss[x] == y;
+
+    print_yesno(ans);
 }
 
 #[cfg(test)]
