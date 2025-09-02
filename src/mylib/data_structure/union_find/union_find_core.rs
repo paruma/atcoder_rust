@@ -29,8 +29,8 @@ pub mod union_find_core {
         /// 2 つの要素 `x` と `y` が属する集合を統合します。
         ///
         /// # 戻り値
-        /// - `Some((root, merged))`:
-        ///   - `root` は統合後の集合の代表元（リーダー）
+        /// - `Some((leader, merged))`:
+        ///   - `leader` は統合後の集合の代表元（リーダー）
         ///   - `merged` は統合されて消える側の旧代表元
         /// - `None`:
         ///   - `x` と `y` がすでに同じ集合に属していた場合
@@ -42,10 +42,10 @@ pub mod union_find_core {
                 return None;
             }
 
-            let root = self.uf.merge(rx, ry);
-            let merged = root ^ rx ^ ry; // rx と ry のうち root でない方
+            let leader = self.uf.merge(rx, ry);
+            let merged = leader ^ rx ^ ry; // rx と ry のうち leader でない方
 
-            Some((root, merged))
+            Some((leader, merged))
         }
 
         pub fn groups(&mut self) -> Vec<Vec<usize>> {
@@ -89,5 +89,72 @@ mod tests_union_find_core {
             sorted(uf.groups()),
             sorted(vec![vec![0, 1, 3, 4, 5, 6], vec![2], vec![7]])
         );
+    }
+
+    #[test]
+    fn test_merge() {
+        use super::union_find_core::*;
+        let mut uf = UnionFindCore::new(5);
+
+        // Merge 0 and 1
+        // {0}, {1}, {2}, {3}, {4}
+        // ↓
+        // {0, 1}, {2}, {3}, {4}
+        let res1 = uf.merge(0, 1);
+        assert!(res1.is_some());
+        let (leader1, merged1) = res1.unwrap();
+        // The new leader is either 0 or 1, the merged is the other
+        assert!((leader1 == 0 && merged1 == 1) || (leader1 == 1 && merged1 == 0));
+        assert_eq!(uf.leader(0), leader1);
+        assert_eq!(uf.leader(1), leader1);
+
+        // Merge 2 and 3
+        // {0, 1}, {2}, {3}, {4}
+        // ↓
+        // {0, 1}, {2, 3}, {4}
+        let res2 = uf.merge(2, 3);
+        assert!(res2.is_some());
+        let (leader2, merged2) = res2.unwrap();
+        assert!((leader2 == 2 && merged2 == 3) || (leader2 == 3 && merged2 == 2));
+        assert_eq!(uf.leader(2), leader2);
+        assert_eq!(uf.leader(3), leader2);
+
+        // Merge the two sets {0, 1} and {2, 3}
+        // {0, 1}, {2, 3}, {4}
+        // ↓
+        // {0, 1, 2, 3}, {4}
+        let old_leader1 = uf.leader(0); // This is leader1
+        let old_leader2 = uf.leader(2); // This is leader2
+        let res3 = uf.merge(0, 2);
+        assert!(res3.is_some());
+        let (leader3, merged3) = res3.unwrap();
+        assert!(
+            (leader3 == old_leader1 && merged3 == old_leader2)
+                || (leader3 == old_leader2 && merged3 == old_leader1)
+        );
+        assert_eq!(uf.leader(0), leader3);
+        assert_eq!(uf.leader(3), leader3);
+
+        // Try merging already connected components
+        // {0, 1, 2, 3}, {4} (no change)
+        assert_eq!(uf.merge(0, 1), None);
+        assert_eq!(uf.merge(2, 3), None);
+        assert_eq!(uf.merge(0, 3), None);
+
+        // Merge with a single element component
+        // {0, 1, 2, 3}, {4}
+        // ↓
+        // // {0, 1, 2, 3, 4}
+        let old_leader3 = uf.leader(0);
+        let old_leader4 = uf.leader(4); // this is 4
+        let res4 = uf.merge(4, 1);
+        assert!(res4.is_some());
+        let (leader4, merged4) = res4.unwrap();
+        assert!(
+            (leader4 == old_leader3 && merged4 == old_leader4)
+                || (leader4 == old_leader4 && merged4 == old_leader3)
+        );
+        assert_eq!(uf.leader(4), leader4);
+        assert_eq!(uf.leader(0), leader4);
     }
 }
