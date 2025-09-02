@@ -10,6 +10,7 @@ fn main() {
         q: usize,
     }
 
+    // 普通に map で書けばよかった
     let qs = {
         let mut qs = vec![];
         // クエリ先読み
