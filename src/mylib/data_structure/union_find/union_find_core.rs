@@ -14,11 +14,11 @@ pub mod union_find_core {
             UnionFindCore { uf: Dsu::new(n) }
         }
 
-        pub fn root(&mut self, v: usize) -> usize {
+        pub fn leader(&mut self, v: usize) -> usize {
             self.uf.leader(v)
         }
 
-        pub fn same_count(&mut self, v: usize) -> usize {
+        pub fn size(&mut self, v: usize) -> usize {
             self.uf.size(v)
         }
 
@@ -35,7 +35,7 @@ pub mod union_find_core {
         /// - `None`:
         ///   - `x` と `y` がすでに同じ集合に属していた場合
         ///
-        pub fn unite(&mut self, x: usize, y: usize) -> Option<(usize, usize)> {
+        pub fn merge(&mut self, x: usize, y: usize) -> Option<(usize, usize)> {
             let rx = self.uf.leader(x);
             let ry = self.uf.leader(y);
             if rx == ry {
@@ -68,12 +68,12 @@ mod tests_union_find_core {
     fn test_uf() {
         use super::union_find_core::*;
         let mut uf = UnionFindCore::new(8);
-        assert!(uf.unite(0, 1).is_some());
-        assert!(uf.unite(3, 4).is_some());
-        assert!(uf.unite(4, 5).is_some());
-        assert!(uf.unite(4, 6).is_some());
-        assert!(uf.unite(1, 4).is_some());
-        assert!(uf.unite(1, 5).is_none()); // すでにつながっている
+        assert!(uf.merge(0, 1).is_some());
+        assert!(uf.merge(3, 4).is_some());
+        assert!(uf.merge(4, 5).is_some());
+        assert!(uf.merge(4, 6).is_some());
+        assert!(uf.merge(1, 4).is_some());
+        assert!(uf.merge(1, 5).is_none()); // すでにつながっている
 
         /*
         |           [6]
