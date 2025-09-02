@@ -3,7 +3,7 @@ fn main() {
         n: usize,
         xs: [i64; n],
     }
-    let ans: i64 = 0_i64;
+    let ans: i64 = -2_i64;
     println!("{}", ans);
 }
 
