@@ -3,6 +3,7 @@ use cargo_snippet::snippet;
 #[snippet(prefix = "use pos::*;")]
 pub mod pos {
     use std::io::BufRead;
+    use std::iter::Sum;
     use std::ops::{Add, AddAssign, Neg, Sub, SubAssign};
 
     #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -53,6 +54,18 @@ pub mod pos {
 
         fn neg(self) -> Self::Output {
             Pos::new(-self.x, -self.y)
+        }
+    }
+
+    impl Sum for Pos {
+        fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+            iter.fold(Pos::new(0, 0), |acc, x| acc + x)
+        }
+    }
+
+    impl<'a> Sum<&'a Pos> for Pos {
+        fn sum<I: Iterator<Item = &'a Self>>(iter: I) -> Self {
+            iter.fold(Pos::new(0, 0), |a, b| a + *b)
         }
     }
 
@@ -356,6 +369,17 @@ mod tests_pos {
         p2 -= p1;
         assert_eq!(p2.x, 2);
         assert_eq!(p2.y, 4);
+    }
+
+    #[test]
+    fn test_sum() {
+        let ps = [Pos::new(1, 2), Pos::new(3, 4), Pos::new(5, 6)];
+        assert_eq!(ps.iter().copied().sum::<Pos>(), Pos::new(9, 12));
+        assert_eq!(ps.iter().sum::<Pos>(), Pos::new(9, 12));
+
+        let empty: [Pos; 0] = [];
+        assert_eq!(empty.iter().copied().sum::<Pos>(), Pos::new(0, 0));
+        assert_eq!(empty.iter().sum::<Pos>(), Pos::new(0, 0));
     }
 
     #[test]
