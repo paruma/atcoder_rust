@@ -233,34 +233,35 @@ pub mod monoid_gcd_lcm {
     }
 }
 
-#[snippet(prefix = "use monoid_modint::*;")]
-pub mod monoid_modint {
-    use std::{convert::Infallible, marker::PhantomData};
+#[snippet(prefix = "use general_additive_monoid::*;")]
+pub mod general_additive_monoid {
+    use std::{convert::Infallible, iter::Sum, marker::PhantomData, ops::Add};
 
-    use ac_library::{modint::ModIntBase, Monoid};
+    use ac_library::Monoid;
 
-    pub struct MintAdditive<Mint: ModIntBase>(Infallible, PhantomData<fn() -> Mint>);
-    impl<Mint> Monoid for MintAdditive<Mint>
-    where
-        Mint: ModIntBase,
-    {
-        type S = Mint;
+    pub struct GeneralAdditive<T>(Infallible, PhantomData<fn() -> T>);
+    impl<T: Sum + Add<Output = T> + Copy> Monoid for GeneralAdditive<T> {
+        type S = T;
         fn identity() -> Self::S {
-            Mint::raw(0)
+            std::iter::empty().sum()
         }
         fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
             *a + *b
         }
     }
+}
 
-    pub struct MintMultiplicative<Mint: ModIntBase>(Infallible, PhantomData<fn() -> Mint>);
-    impl<Mint> Monoid for MintMultiplicative<Mint>
-    where
-        Mint: ModIntBase,
-    {
-        type S = Mint;
+#[snippet(prefix = "use general_multiplicative_monoid::*;")]
+pub mod general_multiplicative_monoid {
+    use std::{convert::Infallible, iter::Product, marker::PhantomData, ops::Mul};
+
+    use ac_library::Monoid;
+
+    pub struct GeneralMultiplicative<T>(Infallible, PhantomData<fn() -> T>);
+    impl<T: Product + Mul<Output = T> + Copy> Monoid for GeneralMultiplicative<T> {
+        type S = T;
         fn identity() -> Self::S {
-            Mint::raw(1)
+            std::iter::empty().product()
         }
         fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
             *a * *b
@@ -435,6 +436,7 @@ mod test_extend_acl_monoid {
         assert_eq!(M::pow(&3, 0), 1);
     }
 }
+
 #[cfg(test)]
 mod test_cum_monoid {
     use ac_library::Additive;
@@ -588,16 +590,19 @@ mod test_monoid_gcd_lcm {
         assert_eq!(M::binary_operation(&12, &M::identity()), 12);
     }
 }
+
 #[cfg(test)]
-mod test_monoid_modint {
+mod test_general_additive_monoid {
     use ac_library::{ModInt998244353, Monoid};
 
-    use super::monoid_modint::*;
+    use crate::mylib::pos0::pos::Pos;
+
+    use super::general_additive_monoid::*;
 
     #[test]
     fn test_monoid_mint_additive() {
         type Mint = ModInt998244353;
-        type M = MintAdditive<Mint>;
+        type M = GeneralAdditive<Mint>;
         assert_eq!(
             M::binary_operation(&Mint::new(3), &Mint::new(4)),
             Mint::new(7)
@@ -609,9 +614,29 @@ mod test_monoid_modint {
     }
 
     #[test]
-    fn test_monoid_multiplicative() {
+    fn test_monoid_pos_additive() {
+        type M = GeneralAdditive<Pos>;
+        assert_eq!(
+            M::binary_operation(&Pos::new(1, 2), &Pos::new(3, 4)),
+            Pos::new(4, 6)
+        );
+        assert_eq!(
+            M::binary_operation(&Pos::new(1, 2), &M::identity()),
+            Pos::new(1, 2)
+        );
+    }
+}
+
+#[cfg(test)]
+mod test_general_multiplicative_monoid {
+    use ac_library::{ModInt998244353, Monoid};
+
+    use super::general_multiplicative_monoid::*;
+
+    #[test]
+    fn test_monoid_mint_multiplicative() {
         type Mint = ModInt998244353;
-        type M = MintMultiplicative<Mint>;
+        type M = GeneralMultiplicative<Mint>;
         assert_eq!(
             M::binary_operation(&Mint::new(3), &Mint::new(4)),
             Mint::new(12)
@@ -622,6 +647,7 @@ mod test_monoid_modint {
         );
     }
 }
+
 #[cfg(test)]
 mod test_monoid_affine {
     use super::monoid_affine::*;

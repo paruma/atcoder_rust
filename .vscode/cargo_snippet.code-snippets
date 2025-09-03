@@ -3086,6 +3086,48 @@
       "}"
     ]
   },
+  "general_additive_monoid": {
+    "scope": "rust",
+    "prefix": "general_additive_monoid",
+    "body": [
+      "use general_additive_monoid::*;",
+      "pub mod general_additive_monoid {",
+      "    use ac_library::Monoid;",
+      "    use std::{convert::Infallible, iter::Sum, marker::PhantomData, ops::Add};",
+      "    pub struct GeneralAdditive<T>(Infallible, PhantomData<fn() -> T>);",
+      "    impl<T: Sum + Add<Output = T> + Copy> Monoid for GeneralAdditive<T> {",
+      "        type S = T;",
+      "        fn identity() -> Self::S {",
+      "            std::iter::empty().sum()",
+      "        }",
+      "        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {",
+      "            *a + *b",
+      "        }",
+      "    }",
+      "}"
+    ]
+  },
+  "general_multiplicative_monoid": {
+    "scope": "rust",
+    "prefix": "general_multiplicative_monoid",
+    "body": [
+      "use general_multiplicative_monoid::*;",
+      "pub mod general_multiplicative_monoid {",
+      "    use ac_library::Monoid;",
+      "    use std::{convert::Infallible, iter::Product, marker::PhantomData, ops::Mul};",
+      "    pub struct GeneralMultiplicative<T>(Infallible, PhantomData<fn() -> T>);",
+      "    impl<T: Product + Mul<Output = T> + Copy> Monoid for GeneralMultiplicative<T> {",
+      "        type S = T;",
+      "        fn identity() -> Self::S {",
+      "            std::iter::empty().product()",
+      "        }",
+      "        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {",
+      "            *a * *b",
+      "        }",
+      "    }",
+      "}"
+    ]
+  },
   "has_cycle_directed_by_topo_sort": {
     "scope": "rust",
     "prefix": "has_cycle_directed_by_topo_sort",
@@ -5589,43 +5631,6 @@
       "                        .collect_vec()",
       "                })",
       "                .collect_vec()",
-      "        }",
-      "    }",
-      "}"
-    ]
-  },
-  "monoid_modint": {
-    "scope": "rust",
-    "prefix": "monoid_modint",
-    "body": [
-      "use monoid_modint::*;",
-      "pub mod monoid_modint {",
-      "    use ac_library::{modint::ModIntBase, Monoid};",
-      "    use std::{convert::Infallible, marker::PhantomData};",
-      "    pub struct MintAdditive<Mint: ModIntBase>(Infallible, PhantomData<fn() -> Mint>);",
-      "    impl<Mint> Monoid for MintAdditive<Mint>",
-      "    where",
-      "        Mint: ModIntBase,",
-      "    {",
-      "        type S = Mint;",
-      "        fn identity() -> Self::S {",
-      "            Mint::raw(0)",
-      "        }",
-      "        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {",
-      "            *a + *b",
-      "        }",
-      "    }",
-      "    pub struct MintMultiplicative<Mint: ModIntBase>(Infallible, PhantomData<fn() -> Mint>);",
-      "    impl<Mint> Monoid for MintMultiplicative<Mint>",
-      "    where",
-      "        Mint: ModIntBase,",
-      "    {",
-      "        type S = Mint;",
-      "        fn identity() -> Self::S {",
-      "            Mint::raw(1)",
-      "        }",
-      "        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {",
-      "            *a * *b",
       "        }",
       "    }",
       "}"
