@@ -4,4 +4,3 @@ pub mod monoid_union_find;
 pub mod potentialized_union_find;
 pub mod root_tracking_union_find;
 pub mod simple_union_find;
-pub mod union_find_core;

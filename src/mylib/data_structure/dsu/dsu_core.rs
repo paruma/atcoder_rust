@@ -1,73 +1,105 @@
 use cargo_snippet::snippet;
 
 #[allow(clippy::module_inception)]
-#[snippet(prefix = "use union_find_core::*;")]
-/// ac_library::Dsu のラッパー
-pub mod union_find_core {
-    use ac_library::Dsu;
-    pub struct UnionFindCore {
-        uf: Dsu,
+#[snippet(prefix = "use dsu_core::*;")]
+/// ac_library::Dsu の merge のみ実装を変えたもの
+pub mod dsu_core {
+    pub struct DsuCore {
+        n: usize,
+        // root node: -1 * component size
+        // otherwise: parent
+        parent_or_size: Vec<i32>,
     }
 
-    impl UnionFindCore {
-        pub fn new(n: usize) -> UnionFindCore {
-            UnionFindCore { uf: Dsu::new(n) }
+    impl DsuCore {
+        pub fn new(size: usize) -> Self {
+            Self {
+                n: size,
+                parent_or_size: vec![-1; size],
+            }
         }
 
-        pub fn leader(&mut self, v: usize) -> usize {
-            self.uf.leader(v)
-        }
-
-        pub fn size(&mut self, v: usize) -> usize {
-            self.uf.size(v)
-        }
-
-        pub fn same(&mut self, x: usize, y: usize) -> bool {
-            self.uf.same(x, y)
-        }
-
-        /// 2 つの要素 `x` と `y` が属する集合を統合します。
+        /// 2 つの要素 `a` と `b` が属する集合を統合する
         ///
         /// # 戻り値
         /// - `Some((leader, merged))`:
         ///   - `leader` は統合後の集合の代表元（リーダー）
         ///   - `merged` は統合されて消える側の旧代表元
         /// - `None`:
-        ///   - `x` と `y` がすでに同じ集合に属していた場合
+        ///   - `a` と `b` がすでに同じ集合に属していた場合
         ///
-        pub fn merge(&mut self, x: usize, y: usize) -> Option<(usize, usize)> {
-            let rx = self.uf.leader(x);
-            let ry = self.uf.leader(y);
-            if rx == ry {
+        pub fn merge(&mut self, a: usize, b: usize) -> Option<(usize, usize)> {
+            assert!(a < self.n);
+            assert!(b < self.n);
+            let (mut x, mut y) = (self.leader(a), self.leader(b));
+            if x == y {
                 return None;
             }
+            if -self.parent_or_size[x] < -self.parent_or_size[y] {
+                std::mem::swap(&mut x, &mut y);
+            }
+            self.parent_or_size[x] += self.parent_or_size[y];
+            self.parent_or_size[y] = x as i32;
+            Some((x, y))
+        }
 
-            let leader = self.uf.merge(rx, ry);
-            let merged = leader ^ rx ^ ry; // rx と ry のうち leader でない方
+        pub fn same(&mut self, a: usize, b: usize) -> bool {
+            assert!(a < self.n);
+            assert!(b < self.n);
+            self.leader(a) == self.leader(b)
+        }
 
-            Some((leader, merged))
+        pub fn leader(&mut self, a: usize) -> usize {
+            assert!(a < self.n);
+            if self.parent_or_size[a] < 0 {
+                return a;
+            }
+            self.parent_or_size[a] = self.leader(self.parent_or_size[a] as usize) as i32;
+            self.parent_or_size[a] as usize
+        }
+
+        pub fn size(&mut self, a: usize) -> usize {
+            assert!(a < self.n);
+            let x = self.leader(a);
+            -self.parent_or_size[x] as usize
         }
 
         pub fn groups(&mut self) -> Vec<Vec<usize>> {
-            self.uf.groups()
+            let mut leader_buf = vec![0; self.n];
+            let mut group_size = vec![0; self.n];
+            for i in 0..self.n {
+                leader_buf[i] = self.leader(i);
+                group_size[leader_buf[i]] += 1;
+            }
+            let mut result = vec![Vec::new(); self.n];
+            for i in 0..self.n {
+                result[i].reserve(group_size[i]);
+            }
+            for i in 0..self.n {
+                result[leader_buf[i]].push(i);
+            }
+            result
+                .into_iter()
+                .filter(|x| !x.is_empty())
+                .collect::<Vec<Vec<usize>>>()
         }
     }
 }
 
 #[cfg(test)]
-mod tests_union_find_core {
+mod tests_dsu_core {
     use itertools::Itertools;
 
     fn sorted(xss: Vec<Vec<usize>>) -> Vec<Vec<usize>> {
         xss.iter()
-            .map(|xs| xs.iter().copied().collect_vec())
+            .map(|xs| xs.iter().copied().sorted().collect_vec())
             .sorted()
             .collect_vec()
     }
     #[test]
     fn test_uf() {
-        use super::union_find_core::*;
-        let mut uf = UnionFindCore::new(8);
+        use super::dsu_core::*;
+        let mut uf = DsuCore::new(8);
         assert!(uf.merge(0, 1).is_some());
         assert!(uf.merge(3, 4).is_some());
         assert!(uf.merge(4, 5).is_some());
@@ -93,8 +125,8 @@ mod tests_union_find_core {
 
     #[test]
     fn test_merge() {
-        use super::union_find_core::*;
-        let mut uf = UnionFindCore::new(5);
+        use super::dsu_core::*;
+        let mut uf = DsuCore::new(5);
 
         // Merge 0 and 1
         // {0}, {1}, {2}, {3}, {4}
