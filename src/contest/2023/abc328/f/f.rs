@@ -19,24 +19,17 @@ impl Problem {
         }
         Problem { len, ns, qs }
     }
-    fn solve(&self) -> Answer {
-        let Problem { len, ns, qs } = self;
-        let mut uf = union_find::OldUnionFind::new(*len);
-        let mut ans = vec![];
-        for (i, Query { a, b, dist }) in qs.iter().enumerate() {
-            if uf.unite(*a, *b, *dist) {
-                ans.push(i)
-            }
-        }
-        Answer { ans }
-    }
 
     fn solve2(&self) -> Answer {
         let Problem { len, ns, qs } = self;
-        let mut uf = potentialized_union_find::UnionFind::new(*len);
+        let mut uf = PotentializedDsu::<AdditiveAbGroup<i64>>::new(*len);
         let mut ans = vec![];
         for (i, &Query { a, b, dist }) in qs.iter().enumerate() {
-            if uf.unite(b, a, dist).is_consistent() {
+            let merge_result = uf.merge(b, a, dist);
+            if matches!(
+                merge_result,
+                MergeResult::Unchanged | MergeResult::Merged { .. }
+            ) {
                 ans.push(i);
             }
         }
@@ -67,23 +60,6 @@ mod tests {
     #[test]
     fn test_problem() {
         assert_eq!(1 + 1, 2);
-    }
-
-    #[test]
-    fn test_uf() {
-        use super::union_find::*;
-        let mut uf = OldUnionFind::new(8);
-        uf.unite(0, 1, 0);
-        uf.unite(3, 4, 0);
-        uf.unite(4, 5, 0);
-        uf.unite(4, 6, 0);
-        uf.unite(1, 4, 0);
-
-        // {0,1,3,4,5,6}, {2}, {7}
-
-        assert_eq!(uf.num_groups(), 3);
-        assert!(uf.same(0, 4));
-        assert!(!uf.same(2, 4));
     }
 }
 
@@ -140,285 +116,252 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
-
-pub mod union_find {
-
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-    struct Root {
-        count: i32,
-        value: i64,
+use dsu_core::*;
+use potentialized_dsu::*;
+#[allow(clippy::module_inception)]
+/// ac_library::Dsu の merge のみ実装を変えたもの
+pub mod dsu_core {
+    pub struct DsuCore {
+        n: usize,
+        parent_or_size: Vec<i32>,
+        cnt_groups: usize,
     }
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-    enum Node {
-        Root { root: Root },
-        NonRoot { parent_index: usize, diff: i64 }, //diff は親との値の差分 (自分 - 親)
-    }
-
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-    struct RootAndIndex {
-        root: Root,
-        index: usize,
-    }
-
-    #[derive(Clone, Debug)]
-    pub struct OldUnionFind {
-        nodes: Vec<Node>,
-    }
-
-    impl OldUnionFind {
-        pub fn new(n: usize) -> OldUnionFind {
-            OldUnionFind {
-                nodes: vec![
-                    Node::Root {
-                        root: Root { count: 1, value: 0 }
-                    };
-                    n
-                ],
+    impl DsuCore {
+        pub fn new(size: usize) -> Self {
+            Self {
+                n: size,
+                parent_or_size: vec![-1; size],
+                cnt_groups: size,
             }
         }
-
-        fn root_node(&mut self, index: usize) -> RootAndIndex {
-            match self.nodes[index] {
-                Node::Root { root } => RootAndIndex { root, index },
-                Node::NonRoot { parent_index, diff } => {
-                    let root_and_index = self.root_node(parent_index);
-                    // TODO: 書き換える
-                    // self.nodes[index] = Node::NonRoot { parent_index: root_and_index.index, diff };
-                    root_and_index
-                }
+        /// 2 つの要素 `a` と `b` が属する集合を統合する
+        /// # 戻り値
+        /// - `Some((leader, merged))`:
+        ///   - `leader` は統合後の集合の代表元（リーダー）
+        ///   - `merged` は統合されて消える側の旧代表元
+        /// - `None`:
+        ///   - `a` と `b` がすでに同じ集合に属していた場合
+        pub fn merge(&mut self, a: usize, b: usize) -> Option<(usize, usize)> {
+            assert!(a < self.n);
+            assert!(b < self.n);
+            let (mut x, mut y) = (self.leader(a), self.leader(b));
+            if x == y {
+                return None;
             }
-        }
-
-        pub fn root(&mut self, index: usize) -> usize {
-            self.root_node(index).index
-        }
-
-        pub fn value(&mut self, index: usize) -> i64 {
-            match self.nodes[index] {
-                Node::Root { root } => root.value,
-                Node::NonRoot { parent_index, diff } => diff + self.value(parent_index),
+            if -self.parent_or_size[x] < -self.parent_or_size[y] {
+                std::mem::swap(&mut x, &mut y);
             }
+            self.parent_or_size[x] += self.parent_or_size[y];
+            self.parent_or_size[y] = x as i32;
+            self.cnt_groups -= 1;
+            Some((x, y))
         }
-
-        pub fn same_count(&mut self, index: usize) -> i32 {
-            self.root_node(index).root.count
+        pub fn same(&mut self, a: usize, b: usize) -> bool {
+            assert!(a < self.n);
+            assert!(b < self.n);
+            self.leader(a) == self.leader(b)
         }
-
-        pub fn same(&mut self, x: usize, y: usize) -> bool {
-            self.root(x) == self.root(y)
-        }
-
-        pub fn num_groups(&self) -> usize {
-            self.nodes
-                .iter()
-                .filter(|&node| matches!(node, Node::Root { .. }))
-                .count()
-        }
-
-        // xの値 - yの値 = diff になるようにする
-        pub fn unite(&mut self, x: usize, y: usize, diff: i64) -> bool {
-            if self.same(x, y) {
-                // 矛盾の判定はここでやる
-                return self.value(x) - self.value(y) == diff;
+        pub fn leader(&mut self, a: usize) -> usize {
+            assert!(a < self.n);
+            if self.parent_or_size[a] < 0 {
+                return a;
             }
-
-            let x_root_node = self.root_node(x);
-            let y_root_node = self.root_node(y);
-
-            // 自分と同じグループのノードの数
-            let x_count = x_root_node.root.count;
-            let y_count = y_root_node.root.count;
-
-            let x_root_index = x_root_node.index;
-            let y_root_index = y_root_node.index;
-
-            let x_value = self.value(x);
-            let y_value = self.value(y);
-            let x_root_value = self.value(x_root_index);
-            let y_root_value = self.value(y_root_index);
-
-            if x_count < y_count {
-                // yのrootにxのrootをくっつける
-                // xのルートの子供をどうするか...
-                // x_root_value は多分捨てる
-                // x の value と x_root の value の差分を求める
-
-                let new_x_value = diff + y_value;
-                let new_x_root_value = x_root_value + new_x_value - x_value;
-                let diff = new_x_root_value - y_root_value;
-
-                self.nodes[x_root_index] = Node::NonRoot {
-                    parent_index: y_root_index,
-                    diff,
-                };
-
-                self.nodes[y_root_index] = Node::Root {
-                    root: Root {
-                        count: x_count + y_count,
-                        value: y_root_value,
-                    },
-                };
-            } else {
-                let new_y_value = -diff + x_value;
-                let new_y_root_value = y_root_value + new_y_value - y_value;
-                let diff = new_y_root_value - x_root_value;
-
-                self.nodes[y_root_index] = Node::NonRoot {
-                    parent_index: x_root_index,
-                    diff,
-                };
-
-                self.nodes[x_root_index] = Node::Root {
-                    root: Root {
-                        count: y_count + x_count,
-                        value: x_root_value,
-                    },
-                };
+            self.parent_or_size[a] = self.leader(self.parent_or_size[a] as usize) as i32;
+            self.parent_or_size[a] as usize
+        }
+        pub fn size(&mut self, a: usize) -> usize {
+            assert!(a < self.n);
+            let x = self.leader(a);
+            -self.parent_or_size[x] as usize
+        }
+        pub fn count_group(&self) -> usize {
+            self.cnt_groups
+        }
+        pub fn groups(&mut self) -> Vec<Vec<usize>> {
+            let mut leader_buf = vec![0; self.n];
+            let mut group_size = vec![0; self.n];
+            for i in 0..self.n {
+                leader_buf[i] = self.leader(i);
+                group_size[leader_buf[i]] += 1;
             }
-            true
+            let mut result = vec![Vec::new(); self.n];
+            for i in 0..self.n {
+                result[i].reserve(group_size[i]);
+            }
+            for i in 0..self.n {
+                result[leader_buf[i]].push(i);
+            }
+            result
+                .into_iter()
+                .filter(|x| !x.is_empty())
+                .collect::<Vec<Vec<usize>>>()
         }
     }
 }
-
-pub mod potentialized_union_find {
-    use itertools::Itertools;
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-    struct RootInfo {
-        count: usize,
+#[allow(clippy::module_inception)]
+pub mod potentialized_dsu {
+    use std::{
+        convert::Infallible,
+        iter::Sum,
+        marker::PhantomData,
+        ops::{Add, Neg},
+    };
+    /// 可換群 (Abelian Group)
+    pub trait AbGroup {
+        type S: Clone;
+        fn zero() -> Self::S;
+        fn add(a: &Self::S, b: &Self::S) -> Self::S;
+        fn neg(a: &Self::S) -> Self::S;
+        fn sub(a: &Self::S, b: &Self::S) -> Self::S {
+            Self::add(a, &Self::neg(b))
+        }
     }
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-    struct NonRootInfo {
-        parent_index: usize,
-        potential_diff: i64,
+    pub struct AdditiveAbGroup<T>(Infallible, PhantomData<fn() -> T>);
+    impl<T: Sum + Add<Output = T> + Neg<Output = T> + Copy> AbGroup for AdditiveAbGroup<T> {
+        type S = T;
+        fn zero() -> Self::S {
+            std::iter::empty().sum()
+        }
+        fn add(a: &Self::S, b: &Self::S) -> Self::S {
+            *a + *b
+        }
+        fn neg(a: &Self::S) -> Self::S {
+            -(*a)
+        }
     }
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-    enum Node {
-        Root(RootInfo),
-        NonRoot(NonRootInfo),
+    pub struct XorAbGroup(Infallible);
+    impl AbGroup for XorAbGroup {
+        type S = u64;
+        fn zero() -> Self::S {
+            0
+        }
+        fn add(a: &Self::S, b: &Self::S) -> Self::S {
+            *a ^ *b
+        }
+        fn neg(a: &Self::S) -> Self::S {
+            *a
+        }
     }
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-    struct ToRoot {
-        root_info: RootInfo,
-        root_index: usize,
-        potential_diff: i64,
+    pub enum MergeResult {
+        /// 新しくマージされた場合
+        Merged { leader: usize, merged: usize },
+        /// すでに同じ集合だった場合（変化なし）
+        Unchanged,
+        /// 矛盾があった場合
+        Contradiction,
     }
-    #[derive(Clone, Debug)]
-    pub struct UnionFind {
-        nodes: Vec<Node>,
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct PotentializedDsu<G: AbGroup>
+    where
+        G::S: PartialEq,
+    {
+        n: usize,
+        parent_or_size: Vec<i32>,
+        p_diff: Vec<G::S>,
         cnt_groups: usize,
     }
-    pub enum UnionResult {
-        Consistent { updated: bool },
-        Inconsistent,
-    }
-    impl UnionResult {
-        pub fn updated(&self) -> bool {
-            match self {
-                UnionResult::Consistent { updated } => *updated,
-                UnionResult::Inconsistent => false,
+    impl<G: AbGroup> PotentializedDsu<G>
+    where
+        G::S: PartialEq,
+    {
+        pub fn new(size: usize) -> Self {
+            Self {
+                n: size,
+                parent_or_size: vec![-1; size],
+                p_diff: vec![G::zero(); size],
+                cnt_groups: size,
             }
         }
-        pub fn is_consistent(&self) -> bool {
-            matches!(self, UnionResult::Consistent { .. })
-        }
-        pub fn is_inconsistent(&self) -> bool {
-            matches!(self, UnionResult::Inconsistent { .. })
-        }
-    }
-    impl UnionFind {
-        pub fn new(n: usize) -> UnionFind {
-            UnionFind {
-                nodes: vec![Node::Root(RootInfo { count: 1 }); n],
-                cnt_groups: n,
-            }
-        }
-        fn root_node(&mut self, index: usize) -> ToRoot {
-            match self.nodes[index] {
-                Node::Root(info) => ToRoot {
-                    root_info: info,
-                    root_index: index,
-                    potential_diff: 0,
-                },
-                Node::NonRoot(current_info) => {
-                    let parent_to_root = self.root_node(current_info.parent_index);
-                    let potential_diff =
-                        current_info.potential_diff + parent_to_root.potential_diff;
-                    self.nodes[index] = Node::NonRoot(NonRootInfo {
-                        parent_index: parent_to_root.root_index,
-                        potential_diff,
-                    });
-                    ToRoot {
-                        root_info: parent_to_root.root_info,
-                        root_index: parent_to_root.root_index,
-                        potential_diff,
-                    }
-                }
-            }
-        }
-        pub fn root(&mut self, index: usize) -> usize {
-            self.root_node(index).root_index
-        }
-        pub fn same_count(&mut self, index: usize) -> usize {
-            self.root_node(index).root_info.count
-        }
-        pub fn same(&mut self, x: usize, y: usize) -> bool {
-            self.root(x) == self.root(y)
-        }
-        pub fn num_groups(&self) -> usize {
-            self.cnt_groups
-        }
-        pub fn unite(&mut self, src: usize, dst: usize, diff: i64) -> UnionResult {
-            if self.same(src, dst) {
-                if self.diff(src, dst) == Some(diff) {
-                    return UnionResult::Consistent { updated: false };
+        /// 2 つの要素 `src` と `dst` が属する集合を統合する。
+        /// diff = dst のポテンシャル - src のポテンシャル となるように統合する
+        pub fn merge(&mut self, src: usize, dst: usize, mut diff: G::S) -> MergeResult {
+            assert!(src < self.n);
+            assert!(dst < self.n);
+            let (mut lsrc, mut psrc) = self.leader_potential(src);
+            let (mut ldst, mut pdst) = self.leader_potential(dst);
+            if lsrc == ldst {
+                let result = if self.diff(src, dst).unwrap() == diff {
+                    MergeResult::Unchanged
                 } else {
-                    return UnionResult::Inconsistent;
-                }
-            }
-            self.cnt_groups -= 1;
-            let src_root_node = self.root_node(src);
-            let dst_root_node = self.root_node(dst);
-            let root_diff = -src_root_node.potential_diff + diff + dst_root_node.potential_diff;
-            let (src_root_node, dst_root_node, root_diff) =
-                if src_root_node.root_info.count <= dst_root_node.root_info.count {
-                    (src_root_node, dst_root_node, root_diff)
-                } else {
-                    (dst_root_node, src_root_node, -root_diff)
+                    MergeResult::Contradiction
                 };
-            self.nodes[src_root_node.root_index] = Node::NonRoot(NonRootInfo {
-                parent_index: dst_root_node.root_index,
-                potential_diff: root_diff,
-            });
-            self.nodes[dst_root_node.root_index] = Node::Root(RootInfo {
-                count: src_root_node.root_info.count + dst_root_node.root_info.count,
-            });
-            UnionResult::Consistent { updated: true }
+                return result;
+            }
+            if -self.parent_or_size[ldst] < -self.parent_or_size[lsrc] {
+                std::mem::swap(&mut lsrc, &mut ldst);
+                std::mem::swap(&mut psrc, &mut pdst);
+                diff = G::neg(&diff);
+            }
+            self.parent_or_size[ldst] += self.parent_or_size[lsrc];
+            self.parent_or_size[lsrc] = ldst as i32;
+            self.cnt_groups -= 1;
+            let ldiff = G::add(&G::neg(&psrc), &G::add(&diff, &pdst));
+            self.p_diff[lsrc] = ldiff;
+            MergeResult::Merged {
+                leader: ldst,
+                merged: lsrc,
+            }
         }
-        pub fn diff(&mut self, src: usize, dst: usize) -> Option<i64> {
+        pub fn same(&mut self, a: usize, b: usize) -> bool {
+            assert!(a < self.n);
+            assert!(b < self.n);
+            self.leader(a) == self.leader(b)
+        }
+        /// dst のポテンシャル - src のポテンシャル を求める
+        pub fn diff(&mut self, src: usize, dst: usize) -> Option<G::S> {
             if self.same(src, dst) {
-                Some(self.root_node(src).potential_diff - self.root_node(dst).potential_diff)
+                let (_, psrc) = self.leader_potential(src);
+                let (_, pdst) = self.leader_potential(dst);
+                let diff = G::sub(&psrc, &pdst);
+                Some(diff)
             } else {
                 None
             }
         }
+        fn leader_potential(&mut self, a: usize) -> (usize, G::S) {
+            assert!(a < self.n);
+            if self.parent_or_size[a] < 0 {
+                return (a, G::zero());
+            }
+            let parent = self.parent_or_size[a] as usize;
+            let (leader, parent_potential) = self.leader_potential(parent);
+            self.parent_or_size[a] = leader as i32;
+            let potential = G::add(&self.p_diff[a], &parent_potential);
+            self.p_diff[a] = potential.clone();
+            (leader, potential)
+        }
+        pub fn leader(&mut self, a: usize) -> usize {
+            self.leader_potential(a).0
+        }
+        pub fn size(&mut self, a: usize) -> usize {
+            assert!(a < self.n);
+            let x = self.leader(a);
+            -self.parent_or_size[x] as usize
+        }
+        pub fn count_group(&self) -> usize {
+            self.cnt_groups
+        }
         pub fn groups(&mut self) -> Vec<Vec<usize>> {
-            let n = self.nodes.len();
-            let roots = (0..n).map(|i| self.root(i)).collect_vec();
-            let group_size = (0..n).map(|i| roots[i]).fold(vec![0; n], |mut acc, x| {
-                acc[x] += 1;
-                acc
-            });
-            let result = {
-                let mut result = vec![Vec::new(); n];
-                for i in 0..n {
-                    result[i].reserve(group_size[i]);
-                }
-                for i in 0..n {
-                    result[roots[i]].push(i);
-                }
-                result
-            };
-            result.into_iter().filter(|x| !x.is_empty()).collect_vec()
+            let mut leader_buf = vec![0; self.n];
+            let mut group_size = vec![0; self.n];
+            for i in 0..self.n {
+                leader_buf[i] = self.leader(i);
+                group_size[leader_buf[i]] += 1;
+            }
+            let mut result = vec![Vec::new(); self.n];
+            for i in 0..self.n {
+                result[i].reserve(group_size[i]);
+            }
+            for i in 0..self.n {
+                result[leader_buf[i]].push(i);
+            }
+            result
+                .into_iter()
+                .filter(|x| !x.is_empty())
+                .collect::<Vec<Vec<usize>>>()
         }
     }
 }
