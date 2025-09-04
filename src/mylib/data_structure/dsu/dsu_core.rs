@@ -9,6 +9,7 @@ pub mod dsu_core {
         // root node: -1 * component size
         // otherwise: parent
         parent_or_size: Vec<i32>,
+        cnt_groups: usize,
     }
 
     impl DsuCore {
@@ -16,6 +17,7 @@ pub mod dsu_core {
             Self {
                 n: size,
                 parent_or_size: vec![-1; size],
+                cnt_groups: size,
             }
         }
 
@@ -40,6 +42,7 @@ pub mod dsu_core {
             }
             self.parent_or_size[x] += self.parent_or_size[y];
             self.parent_or_size[y] = x as i32;
+            self.cnt_groups -= 1;
             Some((x, y))
         }
 
@@ -62,6 +65,10 @@ pub mod dsu_core {
             assert!(a < self.n);
             let x = self.leader(a);
             -self.parent_or_size[x] as usize
+        }
+
+        pub fn count_group(&self) -> usize {
+            self.cnt_groups
         }
 
         pub fn groups(&mut self) -> Vec<Vec<usize>> {
@@ -121,6 +128,38 @@ mod tests_dsu_core {
             sorted(uf.groups()),
             sorted(vec![vec![0, 1, 3, 4, 5, 6], vec![2], vec![7]])
         );
+    }
+
+    #[test]
+    fn test_count_group() {
+        use super::dsu_core::*;
+        let mut uf = DsuCore::new(5);
+
+        assert_eq!(uf.count_group(), 5);
+
+        uf.merge(0, 1); // {0, 1}, {2}, {3}, {4}
+        assert_eq!(uf.count_group(), 4);
+
+        uf.merge(2, 3); // {0, 1}, {2, 3}, {4}
+        assert_eq!(uf.count_group(), 3);
+
+        uf.merge(0, 2); // {0, 1, 2, 3}, {4}
+        assert_eq!(uf.count_group(), 2);
+
+        // Try merging already connected components
+        assert_eq!(uf.merge(0, 1), None);
+        assert_eq!(uf.count_group(), 2); // count should not change
+
+        uf.merge(4, 0); // {0, 1, 2, 3, 4}
+        assert_eq!(uf.count_group(), 1);
+
+        // Merge all into one group
+        let mut uf2 = DsuCore::new(10);
+        assert_eq!(uf2.count_group(), 10);
+        for i in 0..9 {
+            uf2.merge(i, i + 1);
+        }
+        assert_eq!(uf2.count_group(), 1);
     }
 
     #[test]
