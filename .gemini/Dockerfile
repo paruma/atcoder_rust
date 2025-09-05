@@ -1,4 +1,4 @@
-FROM us-docker.pkg.dev/gemini-code-dev/gemini-cli/sandbox:0.1.13
+FROM us-docker.pkg.dev/gemini-code-dev/gemini-cli/sandbox:0.3.2
 
 # root でパッケージをインストール（Rust の依存や curl など）
 USER root
@@ -22,9 +22,6 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
 
 # 作業ディレクトリ
 WORKDIR /app
-
-# ソースコードをコピー（必要に応じて除外）
-COPY . .
 
 # デフォルトで bash を起動
 CMD ["bash"]
