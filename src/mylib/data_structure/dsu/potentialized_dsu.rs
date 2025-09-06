@@ -21,7 +21,7 @@ pub mod potentialized_dsu {
         }
     }
 
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct AdditiveAbGroup<T>(Infallible, PhantomData<fn() -> T>);
     impl<T: Sum + Add<Output = T> + Neg<Output = T> + Copy> AbGroup for AdditiveAbGroup<T> {
         type S = T;
@@ -36,7 +36,7 @@ pub mod potentialized_dsu {
         }
     }
 
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct XorAbGroup(Infallible);
 
     impl AbGroup for XorAbGroup {
@@ -51,7 +51,7 @@ pub mod potentialized_dsu {
             *a
         }
     }
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub enum MergeResult {
         /// 新しくマージされた場合
         Merged { leader: usize, merged: usize },
@@ -61,7 +61,7 @@ pub mod potentialized_dsu {
         Contradiction,
     }
 
-    #[derive(Clone, Debug, PartialEq, Eq)]
+    #[derive(Clone, Debug)]
     pub struct PotentializedDsu<G: AbGroup>
     where
         G::S: PartialEq,

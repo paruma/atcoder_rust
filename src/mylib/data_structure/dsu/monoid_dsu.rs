@@ -8,6 +8,7 @@ pub mod monoid_dsu {
 
     use super::DsuCore;
 
+    #[derive(Clone, Debug)]
     pub struct MonoidDsu<M: Monoid> {
         dsu: DsuCore,
         prods: Vec<M::S>,

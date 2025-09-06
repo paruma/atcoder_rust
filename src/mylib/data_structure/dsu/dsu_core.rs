@@ -4,6 +4,7 @@ use cargo_snippet::snippet;
 #[snippet(prefix = "use dsu_core::*;")]
 /// ac_library::Dsu の merge のみ実装を変えたもの
 pub mod dsu_core {
+    #[derive(Clone, Debug)]
     pub struct DsuCore {
         n: usize,
         // root node: -1 * component size
