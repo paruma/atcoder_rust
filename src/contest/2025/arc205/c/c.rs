@@ -1,10 +1,87 @@
+fn solve(sts: Vec<(i64, i64)>) -> Option<Vec<usize>> {
+    let space = sts.iter().copied().flat_map(|(s, t)| [s, t]).collect_vec();
+    let cc = CoordinateCompression::new(&space);
+    let sts = sts
+        .iter()
+        .copied()
+        .map(|(s, t)| (cc.compress(s), cc.compress(t)))
+        .collect_vec();
+
+    let mut cnts = FenwickTree::new(cc.space_size() + 1, 0);
+
+    for (s, _) in &sts {
+        cnts.add(*s, 1);
+    }
+
+    let mut ans = vec![];
+
+    for (i, (s, t)) in sts
+        .iter()
+        .copied()
+        .enumerate()
+        .sorted_by_key(|(_, (s, t))| {
+            let is_right = t > s;
+            let key = if is_right { -(*s as i64) } else { *s as i64 };
+            (is_right, key)
+        })
+    {
+        let min = usize::min(s, t);
+        let max = usize::max(s, t);
+        if cnts.sum(min..=max) > 1 {
+            return None;
+        }
+
+        cnts.add(s, -1);
+        cnts.add(t, 1);
+        ans.push(i);
+    }
+
+    Some(ans)
+}
+
+fn solve_naive(sts: Vec<(i64, i64)>) -> Option<Vec<usize>> {
+    let max = sts.iter().copied().flat_map(|(s, t)| [s, t]).max().unwrap();
+
+    let n = sts.len();
+
+    (0..n).permutations(n).find(|ps| {
+        let mut cnts = FenwickTree::new((max as usize) + 1, 0_i64);
+        for (s, _) in &sts {
+            cnts.add(*s as usize, 1);
+        }
+
+        for &i in ps {
+            let (s, t) = sts[i];
+            let min = i64::min(s, t) as usize;
+            let max = i64::max(s, t) as usize;
+
+            if cnts.sum(min..=max) > 1 {
+                return false;
+            }
+
+            cnts.add(s as usize, -1);
+            cnts.add(t as usize, 1);
+        }
+
+        true
+    })
+}
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        sts: [(i64, i64); n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    // dbg!("naive");
+    let ans = solve(sts);
+
+    if let Some(ans) = ans {
+        println!("Yes");
+        let ans = ans.iter().copied().map(|i| i + 1).collect_vec();
+        print_vec_1line(&ans);
+    } else {
+        println!("No");
+    }
 }
 
 #[cfg(test)]
@@ -22,17 +99,19 @@ mod tests {
     /// 間違っていたら false を返す
     fn process_one_test(rng: &mut SmallRng) -> bool {
         // ==== 問題を作る ====
-        let n = rng.gen_range(1..=10);
-        let xs = (0..n).map(|_| rng.gen_range(0..10)).collect_vec();
+        let n = rng.gen_range(1..=6);
+        let sts = (0..n)
+            .map(|_| (rng.gen_range(1..100), rng.gen_range(1..10)))
+            .collect_vec();
 
         // ==== 解く ====
-        let main_ans = xs.len();
-        let naive_ans = 1;
+        let main_ans = solve(sts.clone());
+        let naive_ans = solve_naive(sts.clone());
 
         // ==== 間違っていたら報告をする ====
-        if main_ans != naive_ans {
+        if main_ans.is_some() != naive_ans.is_some() {
             // 問題を出力
-            println!("{:?}", (n, xs));
+            println!("{:?}", sts);
             println!("main ans : {:?}", main_ans);
             println!("naive ans: {:?}", naive_ans);
             return false;
@@ -133,3 +212,49 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use {ac_library::FenwickTree, coordinate_compression::*};
+pub mod coordinate_compression {
+    use itertools::Itertools;
+    use superslice::Ext;
+    pub struct CoordinateCompression {
+        space: Vec<i64>,
+    }
+    impl CoordinateCompression {
+        /// 計算量: O(|space|log(|space|))
+        pub fn new(space: &[i64]) -> Self {
+            let space = space.iter().copied().sorted().dedup().collect_vec();
+            Self { space }
+        }
+        /// 計算量: O(log(|space|))
+        pub fn compress(&self, x: i64) -> usize {
+            self.space.binary_search(&x).unwrap()
+        }
+        /// 座標圧縮前の空間のうち x 以上である最小の値を座標圧縮したものを返す
+        /// 計算量: O(log(|space|))
+        pub fn compress_floor(&self, x: i64) -> usize {
+            self.space.upper_bound(&x) - 1
+        }
+        /// 座標圧縮前の空間のうち x 以下である最大の値を座標圧縮したものを返す
+        /// 計算量: O(log(|space|))
+        pub fn compress_ceil(&self, x: i64) -> usize {
+            self.space.lower_bound(&x)
+        }
+        /// 計算量: O(|xs|log(|space|))
+        pub fn compress_vec(&self, xs: &[i64]) -> Vec<usize> {
+            xs.iter().copied().map(|x| self.compress(x)).collect_vec()
+        }
+        /// 計算量: O(1)
+        pub fn decompress(&self, i: usize) -> i64 {
+            self.space[i]
+        }
+        pub fn space_size(&self) -> usize {
+            self.space.len()
+        }
+    }
+}
+pub fn fenwick_tree_to_vec<T>(fenwick_tree: &ac_library::FenwickTree<T>, len: usize) -> Vec<T>
+where
+    T: Clone + std::ops::AddAssign<T> + std::ops::Sub<Output = T>,
+{
+    (0..len).map(|i| fenwick_tree.sum(i..=i)).collect()
+}

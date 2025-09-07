@@ -1,9 +1,24 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        m: usize,
+        es: [(Usize1, Usize1); m],
     }
-    let ans: i64 = -2_i64;
+
+    let ds = es.iter().copied().fold(vec![0_i64; n], |mut acc, (u, v)| {
+        acc[u] += 1;
+        acc[v] += 1;
+        acc
+    });
+
+    let n = n as i64;
+
+    let tmp = ds
+        .iter()
+        .copied()
+        .map(|d| if d % 2 == (n - 1) % 2 { n - 1 } else { n - 2 })
+        .sum::<i64>();
+    let ans: i64 = tmp / 2;
     println!("{}", ans);
 }
 

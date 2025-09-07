@@ -1,10 +1,45 @@
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Rect {
+    ymin: Usize1,
+    ymax: Usize1,
+    xmin: Usize1,
+    xmax: Usize1,
+}
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        q: usize,
+        grid: [Chars; n],
+        qs: [Rect; q],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    let mut cnt2d = vec![vec![0; n - 1]; n - 1];
+    let all_white = |y: usize, x: usize| {
+        grid[y][x] == '.'
+            && grid[y + 1][x] == '.'
+            && grid[y][x + 1] == '.'
+            && grid[y + 1][x + 1] == '.'
+    };
+    for y in 0..(n - 1) {
+        for x in 0..(n - 1) {
+            if all_white(y, x) {
+                cnt2d[y][x] += 1;
+            }
+        }
+    }
+
+    let cumsum = CumSum2D::new(&cnt2d);
+
+    let ans: Vec<i64> = qs
+        .iter()
+        .copied()
+        .map(|q| {
+            //
+            cumsum.rect_sum((q.xmin, q.ymin), (q.xmax, q.ymax))
+        })
+        .collect_vec();
+    print_vec_1line(&ans);
 }
 
 #[cfg(test)]
@@ -133,3 +168,32 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use cumsum_2d::*;
+pub mod cumsum_2d {
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct CumSum2D {
+        pub cumsum: Vec<Vec<i64>>,
+    }
+    impl CumSum2D {
+        pub fn new(xss: &[Vec<i64>]) -> CumSum2D {
+            if xss.is_empty() {
+                return CumSum2D {
+                    cumsum: vec![vec![0]],
+                };
+            }
+            let height = xss.len();
+            let width = xss[0].len();
+            let mut cumsum = vec![vec![0; width + 1]; height + 1];
+            for y in 1..height + 1 {
+                for x in 1..width + 1 {
+                    cumsum[y][x] = cumsum[y - 1][x] + cumsum[y][x - 1] - cumsum[y - 1][x - 1]
+                        + xss[y - 1][x - 1];
+                }
+            }
+            CumSum2D { cumsum }
+        }
+        pub fn rect_sum(&self, (x1, y1): (usize, usize), (x2, y2): (usize, usize)) -> i64 {
+            self.cumsum[y2][x2] - self.cumsum[y2][x1] - self.cumsum[y1][x2] + self.cumsum[y1][x1]
+        }
+    }
+}
