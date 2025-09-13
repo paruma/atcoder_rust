@@ -1,10 +1,23 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        k: i64,
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let mut seg = vec![0_i64; 1 << (n + 1)];
+    seg[1] = k;
+
+    for i in 2..(1 << (n + 1)) {
+        seg[i] = if i % 2 == 0 {
+            num_integer::div_floor(seg[i / 2], 2)
+        } else {
+            num_integer::div_ceil(seg[i / 2], 2)
+        };
+    }
+
+    let ans0: i64 = if k % (1 << n) == 0 { 0 } else { 1 };
+    let ans1 = seg[1 << n..].to_vec();
+    println!("{}", ans0);
+    print_vec_1line(&ans1);
 }
 
 #[cfg(test)]
@@ -66,6 +79,7 @@ mod tests {
 }
 
 // ====== import ======
+use num::Integer;
 #[allow(unused_imports)]
 use {
     itertools::{chain, iproduct, izip, Itertools},

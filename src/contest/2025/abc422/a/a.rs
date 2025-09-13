@@ -1,10 +1,15 @@
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        s: Chars
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    let a = (s[0] as u8) - b'0';
+    let b = (s[2] as u8) - b'0';
+    // a-b
+    let nb = if b == 8 { 1 } else { b + 1 };
+    let na = if b == 8 { a + 1 } else { a };
+
+    println!("{}-{}", na, nb);
 }
 
 #[cfg(test)]
