@@ -196,6 +196,72 @@ pub mod matrix {
         }
     }
 
+    impl<T> Matrix<T, 2, 2>
+    where
+        T: Copy + Sum + Product + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        /// 2x2行列の行列式を計算します。
+        pub fn det(self) -> T {
+            self.data[0][0] * self.data[1][1] - self.data[0][1] * self.data[1][0]
+        }
+    }
+
+    impl<T> Matrix<T, 3, 3>
+    where
+        T: Copy + Sum + Product + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        /// 3x3行列の行列式を計算します。
+        pub fn det(self) -> T {
+            let a = self.data[0][0];
+            let b = self.data[0][1];
+            let c = self.data[0][2];
+            let d = self.data[1][0];
+            let e = self.data[1][1];
+            let f = self.data[1][2];
+            let g = self.data[2][0];
+            let h = self.data[2][1];
+            let i = self.data[2][2];
+
+            a * (e * i - f * h) - b * (d * i - f * g) + c * (d * h - e * g)
+        }
+    }
+
+    impl<T> Matrix<T, 4, 4>
+    where
+        T: Copy + Sum + Product + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        /// 4x4行列の行列式を計算します。
+        pub fn det(self) -> T {
+            let m = self.data;
+
+            let m11 = Matrix::<T, 3, 3>::from_array([
+                [m[1][1], m[1][2], m[1][3]],
+                [m[2][1], m[2][2], m[2][3]],
+                [m[3][1], m[3][2], m[3][3]],
+            ]);
+            let m12 = Matrix::<T, 3, 3>::from_array([
+                [m[1][0], m[1][2], m[1][3]],
+                [m[2][0], m[2][2], m[2][3]],
+                [m[3][0], m[3][2], m[3][3]],
+            ]);
+            let m13 = Matrix::<T, 3, 3>::from_array([
+                [m[1][0], m[1][1], m[1][3]],
+                [m[2][0], m[2][1], m[2][3]],
+                [m[3][0], m[3][1], m[3][3]],
+            ]);
+            let m14 = Matrix::<T, 3, 3>::from_array([
+                [m[1][0], m[1][1], m[1][2]],
+                [m[2][0], m[2][1], m[2][2]],
+                [m[3][0], m[3][1], m[3][2]],
+            ]);
+
+            m[0][0] * m11.det()
+                - m[0][1] * m12.det()
+                + m[0][2] * m13.det()
+                - m[0][3] * m14.det()
+        }
+    }
+
     pub type Matrix22<T> = Matrix<T, 2, 2>;
     pub type Matrix33<T> = Matrix<T, 3, 3>;
     pub type Matrix44<T> = Matrix<T, 4, 4>;
@@ -347,5 +413,113 @@ mod tests {
 
         let m2 = Matrix22::from_array([[1, 2], [3, 4]]);
         assert_eq!(m2.data, [[1, 2], [3, 4]]);
+    }
+
+    #[test]
+    fn test_det_2x2() {
+        let m = Matrix22::<i32>::from_array([[1, 2], [3, 4]]);
+        assert_eq!(m.det(), -2);
+
+        let m2 = Matrix22::<i32>::from_array([[10, 5], [2, 3]]);
+        assert_eq!(m2.det(), 20);
+    }
+
+    #[test]
+    fn test_det_3x3() {
+        let m = Matrix33::<i32>::from_array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]);
+        assert_eq!(m.det(), 0);
+
+        let m2 = Matrix33::<i32>::from_array([[3, 0, 2], [2, 0, -2], [0, 1, 1]]);
+        assert_eq!(m2.det(), 10);
+    }
+
+    #[test]
+    fn test_det_4x4() {
+        let m = Matrix44::<i32>::from_array([
+            [1, 2, 3, 4],
+            [5, 6, 7, 8],
+            [9, 10, 11, 12],
+            [13, 14, 15, 16],
+        ]);
+        assert_eq!(m.det(), 0);
+
+        let m2 = Matrix44::<i32>::from_array([
+            [3, 2, 0, 1],
+            [4, 0, 1, 2],
+            [3, 0, 2, 1],
+            [9, 2, 3, 1],
+        ]);
+        assert_eq!(m2.det(), 24);
+    }
+
+    #[test]
+    #[ignore]
+    fn test_random_det() {
+        use rand::Rng;
+        let mut rng = rand::thread_rng();
+
+        // Naive determinant calculation using permutations for testing
+        fn naive_det<const N: usize>(m: &Matrix<i32, N, N>) -> i32 {
+            use itertools::Itertools;
+
+            let indices: Vec<usize> = (0..N).collect();
+            let mut det = 0;
+
+            for p in indices.into_iter().permutations(N) {
+                let mut term = 1;
+                for i in 0..N {
+                    term *= m.data[i][p[i]];
+                }
+
+                let mut inversions = 0;
+                for i in 0..N {
+                    for j in i + 1..N {
+                        if p[i] > p[j] {
+                            inversions += 1;
+                        }
+                    }
+                }
+
+                if inversions % 2 == 1 {
+                    det -= term;
+                } else {
+                    det += term;
+                }
+            }
+            det
+        }
+
+        // Test for 2x2
+        for _ in 0..100 {
+            let data = [
+                [rng.gen_range(-10..=10), rng.gen_range(-10..=10)],
+                [rng.gen_range(-10..=10), rng.gen_range(-10..=10)],
+            ];
+            let m = Matrix22::<i32>::from_array(data);
+            assert_eq!(m.det(), naive_det(&m));
+        }
+
+        // Test for 3x3
+        for _ in 0..100 {
+            let data = [
+                [rng.gen_range(-5..=5), rng.gen_range(-5..=5), rng.gen_range(-5..=5)],
+                [rng.gen_range(-5..=5), rng.gen_range(-5..=5), rng.gen_range(-5..=5)],
+                [rng.gen_range(-5..=5), rng.gen_range(-5..=5), rng.gen_range(-5..=5)],
+            ];
+            let m = Matrix33::<i32>::from_array(data);
+            assert_eq!(m.det(), naive_det(&m));
+        }
+
+        // Test for 4x4
+        for _ in 0..20 { // Fewer iterations because naive is slow
+            let data = [
+                [rng.gen_range(-3..=3), rng.gen_range(-3..=3), rng.gen_range(-3..=3), rng.gen_range(-3..=3)],
+                [rng.gen_range(-3..=3), rng.gen_range(-3..=3), rng.gen_range(-3..=3), rng.gen_range(-3..=3)],
+                [rng.gen_range(-3..=3), rng.gen_range(-3..=3), rng.gen_range(-3..=3), rng.gen_range(-3..=3)],
+                [rng.gen_range(-3..=3), rng.gen_range(-3..=3), rng.gen_range(-3..=3), rng.gen_range(-3..=3)],
+            ];
+            let m = Matrix44::<i32>::from_array(data);
+            assert_eq!(m.det(), naive_det(&m));
+        }
     }
 }
