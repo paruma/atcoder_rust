@@ -1,10 +1,11 @@
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        a: usize,
+        b: usize,
+        c: usize,
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let ans: bool = (a == b) || (b == c) || (c == a);
+    print_yesno(ans);
 }
 
 #[cfg(test)]

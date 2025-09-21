@@ -1,9 +1,53 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        abs: [(usize, usize); n],
     }
-    let ans: i64 = -2_i64;
+    let abs = abs
+        .iter()
+        .copied()
+        .map(|(a, b)| {
+            if a == 0 && b == 0 {
+                None
+            } else {
+                Some((a - 1, b - 1))
+            }
+        })
+        .collect_vec();
+
+    let adj = abs
+        .iter()
+        .copied()
+        .enumerate()
+        .fold(vec![vec![]; n], |mut acc, (i, ab)| {
+            // a → i
+            // b → i
+            // を生やす
+            if let Some((a, b)) = ab {
+                acc[a].push(i);
+                acc[b].push(i);
+            }
+            acc
+        });
+    let mut open: Queue<usize> = Queue::new();
+    let mut visited = vec![false; n];
+    for (i, ab) in abs.iter().copied().enumerate() {
+        if ab.is_none() {
+            open.push(i);
+            visited[i] = true;
+        }
+    }
+
+    while let Some(current) = open.pop() {
+        for &to in &adj[current] {
+            if !visited[to] {
+                visited[to] = true;
+                open.push(to);
+            }
+        }
+    }
+
+    let ans: usize = visited.iter().copied().filter(|p| *p).count();
     println!("{}", ans);
 }
 
@@ -133,3 +177,38 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use mod_queue::*;
+pub mod mod_queue {
+    use std::collections::VecDeque;
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct Queue<T> {
+        raw: VecDeque<T>,
+    }
+    impl<T> Queue<T> {
+        pub fn new() -> Self {
+            Queue {
+                raw: VecDeque::new(),
+            }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push_back(value)
+        }
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop_front()
+        }
+        pub fn peek(&self) -> Option<&T> {
+            self.raw.front()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.raw.is_empty()
+        }
+        pub fn len(&self) -> usize {
+            self.raw.len()
+        }
+    }
+    impl<T> Default for Queue<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+}

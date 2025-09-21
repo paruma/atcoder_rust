@@ -1,10 +1,24 @@
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        n_people: usize,
+        n_problem: usize,
+        n_event: usize,
+        xys: [(Usize1, Usize1); n_event],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    let mut cnts = vec![0; n_people];
+
+    let mut ans = vec![];
+
+    for (person, _problem) in xys {
+        cnts[person] += 1;
+        if cnts[person] == n_problem {
+            ans.push(person);
+        }
+    }
+
+    let ans = ans.iter().copied().map(|x| x + 1).collect_vec();
+    print_vec_1line(&ans);
 }
 
 #[cfg(test)]
