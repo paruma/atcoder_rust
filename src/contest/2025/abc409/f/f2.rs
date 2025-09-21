@@ -1,6 +1,6 @@
 // 解法
-// 2点間の距離と2点を BTreeSet で管理
-// マージするときに、それぞれの連結成分同士の辺をすべて BTreeSet から削除する
+// 2点間の距離と2点を Priority Queue で管理
+// PriorityQueue から取り出すとき、すでにマージ済のものはスキップする
 enum Query {
     Add { p: Pos },
     Merge,
@@ -41,14 +41,12 @@ fn main() {
         })
         .collect_vec();
 
-    // 2点間の距離とその2点間を管理したもの
-    // 連結させたら remove する
-    let mut set = BTreeSet::<(i64, usize, usize)>::new();
-    let mut uf = EnumerableDsu::new(n + nq);
+    let mut heap = BinaryHeap::<(Reverse<i64>, usize, usize)>::new();
+    let mut uf = UnionFind::new(n + nq);
 
     for (i, j) in (0..n).tuple_combinations() {
         let d = dist(ps[i], ps[j]);
-        set.insert((d, i, j));
+        heap.push((Reverse(d), i, j));
     }
 
     for q in qs {
@@ -58,40 +56,47 @@ fn main() {
                 let added_idx = ps.len() - 1;
                 for i in 0..ps.len() - 1 {
                     let d = dist(ps[i], p);
-                    set.insert((d, i, added_idx));
+                    heap.push((Reverse(d), i, added_idx));
                 }
             }
             Query::Merge => {
-                if set.is_empty() {
+                loop {
+                    let next = heap.peek();
+                    if let Some(next) = next {
+                        if uf.same(next.1, next.2) {
+                            heap.pop();
+                        } else {
+                            break;
+                        }
+                    } else {
+                        break;
+                    }
+                }
+                if heap.is_empty() {
                     println!("-1");
                 } else {
-                    let min_dist = set.iter().min().unwrap().0;
+                    let Reverse(min_dist) = heap.peek().unwrap().0;
                     println!("{}", min_dist);
 
                     loop {
-                        if set.is_empty() {
+                        if heap.is_empty() {
                             break;
                         }
 
-                        let next = *set.iter().min().unwrap();
-
-                        if next.0 != min_dist {
+                        let next = *heap.peek().unwrap();
+                        if uf.same(next.1, next.2) {
+                            heap.pop();
+                            continue;
+                        }
+                        if next.0 .0 != min_dist {
                             break;
                         }
 
-                        // 「next.1 の連結成分」と「next.2 の連結成分」同士の辺を set から消す
-                        let g1 = uf.group(next.1).to_vec();
-                        let g2 = uf.group(next.2);
-                        for u in g1 {
-                            for &v in g2 {
-                                let dist = dist(ps[u], ps[v]);
-                                set.remove(&(dist, min(u, v), max(u, v)));
-                            }
-                        }
-
-                        uf.merge(next.1, next.2);
+                        heap.pop();
+                        uf.unite(next.1, next.2);
                     }
                 }
+                //
             }
             Query::IsSame { u, v } => {
                 let ans = uf.same(u, v);
@@ -124,12 +129,9 @@ use proconio::{
 };
 #[allow(unused_imports)]
 use std::cmp::Reverse;
+use std::collections::BTreeSet;
 #[allow(unused_imports)]
 use std::collections::{BinaryHeap, HashMap, HashSet};
-use std::{
-    cmp::{max, min},
-    collections::BTreeSet,
-};
 
 // ====== output func ======
 #[allow(unused_imports)]
@@ -320,132 +322,109 @@ pub mod pos {
         }
     }
 }
-use dsu_core::*;
-use enumerable_dsu::*;
-#[allow(clippy::module_inception)]
-/// ac_library::Dsu の merge のみ実装を変えたもの
-pub mod dsu_core {
+use simple_union_find::*;
+pub mod simple_union_find {
+    use itertools::Itertools;
     #[derive(Clone, Debug)]
-    pub struct DsuCore {
-        n: usize,
-        parent_or_size: Vec<i32>,
+    struct RootInfo {
+        count: usize,
+    }
+    #[derive(Clone, Debug)]
+    struct NonRootInfo {
+        parent: usize,
+    }
+    #[derive(Clone, Debug)]
+    enum Node {
+        Root(RootInfo),
+        NonRoot(NonRootInfo),
+    }
+    impl Node {
+        fn root(count: usize) -> Node {
+            Node::Root(RootInfo { count })
+        }
+        fn non_root(parent: usize) -> Node {
+            Node::NonRoot(NonRootInfo { parent })
+        }
+        fn as_root(&self) -> &RootInfo {
+            match self {
+                Node::Root(info) => info,
+                Node::NonRoot(_) => panic!(),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct UnionFind {
+        nodes: Vec<Node>,
         cnt_groups: usize,
     }
-    impl DsuCore {
-        pub fn new(size: usize) -> Self {
-            Self {
-                n: size,
-                parent_or_size: vec![-1; size],
-                cnt_groups: size,
+    impl UnionFind {
+        pub fn new(n: usize) -> UnionFind {
+            let nodes = (0..n).map(|_| Node::root(1)).collect_vec();
+            UnionFind {
+                nodes,
+                cnt_groups: n,
             }
         }
-        /// 2 つの要素 `a` と `b` が属する集合を統合する
-        /// # 戻り値
-        /// - `Some((leader, merged))`:
-        ///   - `leader` は統合後の集合の代表元（リーダー）
-        ///   - `merged` は統合されて消える側の旧代表元
-        /// - `None`:
-        ///   - `a` と `b` がすでに同じ集合に属していた場合
-        pub fn merge(&mut self, a: usize, b: usize) -> Option<(usize, usize)> {
-            assert!(a < self.n);
-            assert!(b < self.n);
-            let (mut x, mut y) = (self.leader(a), self.leader(b));
-            if x == y {
-                return None;
-            }
-            if -self.parent_or_size[x] < -self.parent_or_size[y] {
-                std::mem::swap(&mut x, &mut y);
-            }
-            self.parent_or_size[x] += self.parent_or_size[y];
-            self.parent_or_size[y] = x as i32;
-            self.cnt_groups -= 1;
-            Some((x, y))
-        }
-        pub fn same(&mut self, a: usize, b: usize) -> bool {
-            assert!(a < self.n);
-            assert!(b < self.n);
-            self.leader(a) == self.leader(b)
-        }
-        pub fn leader(&mut self, a: usize) -> usize {
-            assert!(a < self.n);
-            if self.parent_or_size[a] < 0 {
-                return a;
-            }
-            self.parent_or_size[a] = self.leader(self.parent_or_size[a] as usize) as i32;
-            self.parent_or_size[a] as usize
-        }
-        pub fn size(&mut self, a: usize) -> usize {
-            assert!(a < self.n);
-            let x = self.leader(a);
-            -self.parent_or_size[x] as usize
-        }
-        pub fn count_group(&self) -> usize {
-            self.cnt_groups
-        }
-        pub fn groups(&mut self) -> Vec<Vec<usize>> {
-            let mut leader_buf = vec![0; self.n];
-            let mut group_size = vec![0; self.n];
-            for i in 0..self.n {
-                leader_buf[i] = self.leader(i);
-                group_size[leader_buf[i]] += 1;
-            }
-            let mut result = vec![Vec::new(); self.n];
-            for i in 0..self.n {
-                result[i].reserve(group_size[i]);
-            }
-            for i in 0..self.n {
-                result[leader_buf[i]].push(i);
-            }
-            result
-                .into_iter()
-                .filter(|x| !x.is_empty())
-                .collect::<Vec<Vec<usize>>>()
-        }
-    }
-}
-#[allow(clippy::module_inception)]
-pub mod enumerable_dsu {
-    use super::DsuCore;
-    #[derive(Clone, Debug)]
-    /// 指定の元を含むグループを償却 O(α(n)) で取得できる DSU
-    /// merge の償却計算量が O(log n) な点に注意
-    pub struct EnumerableDsu {
-        dsu: DsuCore,
-        groups: Vec<Vec<usize>>,
-    }
-    impl EnumerableDsu {
-        pub fn new(size: usize) -> EnumerableDsu {
-            let dsu = DsuCore::new(size);
-            let groups = (0..size).map(|i| vec![i]).collect();
-            EnumerableDsu { dsu, groups }
-        }
-        pub fn merge(&mut self, a: usize, b: usize) -> Option<(usize, usize)> {
-            let merge_result = self.dsu.merge(a, b);
-            if let Some((leader, merged)) = merge_result {
-                for x in std::mem::take(&mut self.groups[merged]) {
-                    self.groups[leader].push(x);
+        pub fn root(&mut self, index: usize) -> usize {
+            match &self.nodes[index] {
+                Node::Root(_) => index,
+                Node::NonRoot(info) => {
+                    let root = self.root(info.parent);
+                    self.nodes[index] = Node::non_root(root);
+                    root
                 }
             }
-            merge_result
         }
-        pub fn same(&mut self, a: usize, b: usize) -> bool {
-            self.dsu.same(a, b)
+        pub fn same_count(&mut self, index: usize) -> usize {
+            let root_index = self.root(index);
+            self.nodes[root_index].as_root().count
         }
-        pub fn leader(&mut self, a: usize) -> usize {
-            self.dsu.leader(a)
+        pub fn same(&mut self, x: usize, y: usize) -> bool {
+            self.root(x) == self.root(y)
         }
-        pub fn size(&mut self, a: usize) -> usize {
-            self.dsu.size(a)
+        pub fn num_groups(&self) -> usize {
+            self.cnt_groups
+        }
+        pub fn unite(&mut self, x: usize, y: usize) -> bool {
+            if self.same(x, y) {
+                return false;
+            }
+            self.cnt_groups -= 1;
+            let (smaller_root, larger_root) = {
+                let x_root = self.root(x);
+                let y_root = self.root(y);
+                let x_count = self.nodes[x_root].as_root().count;
+                let y_count = self.nodes[y_root].as_root().count;
+                if x_count < y_count {
+                    (x_root, y_root)
+                } else {
+                    (y_root, x_root)
+                }
+            };
+            let count_sum =
+                self.nodes[smaller_root].as_root().count + self.nodes[larger_root].as_root().count;
+            self.nodes[smaller_root] = Node::non_root(larger_root);
+            self.nodes[larger_root] = Node::root(count_sum);
+            true
         }
         pub fn groups(&mut self) -> Vec<Vec<usize>> {
-            self.dsu.groups()
-        }
-        pub fn count_group(&self) -> usize {
-            self.dsu.count_group()
-        }
-        pub fn group(&mut self, a: usize) -> &Vec<usize> {
-            let leader = self.leader(a);
-            &self.groups[leader]
+            let n = self.nodes.len();
+            let roots = (0..n).map(|i| self.root(i)).collect_vec();
+            let group_size = (0..n).map(|i| roots[i]).fold(vec![0; n], |mut acc, x| {
+                acc[x] += 1;
+                acc
+            });
+            let result = {
+                let mut result = vec![Vec::new(); n];
+                for i in 0..n {
+                    result[i].reserve(group_size[i]);
+                }
+                for i in 0..n {
+                    result[roots[i]].push(i);
+                }
+                result
+            };
+            result.into_iter().filter(|x| !x.is_empty()).collect_vec()
         }
     }
 }
