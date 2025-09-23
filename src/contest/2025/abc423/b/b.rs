@@ -4,25 +4,28 @@ fn main() {
         ls: [i64; n],
     }
     // 0からどこまでいける？
-    let mut pos0 = 0_i64;
-    for l in &ls {
-        if *l == 0 {
-            pos0 += 1
-        } else {
-            break;
-        }
-    }
+    // let mut pos0 = 0_i64;
+    // for l in &ls {
+    //     if *l == 0 {
+    //         pos0 += 1
+    //     } else {
+    //         break;
+    //     }
+    // }
 
-    let mut posn = n as i64;
-    for l in ls.iter().rev() {
-        if *l == 0 {
-            posn -= 1
-        } else {
-            break;
-        }
-    }
+    // let mut posn = n as i64;
+    // for l in ls.iter().rev() {
+    //     if *l == 0 {
+    //         posn -= 1
+    //     } else {
+    //         break;
+    //     }
+    // }
 
-    let ans: i64 = if posn <= pos0 { 0 } else { posn - pos0 - 1 };
+    let pos0 = ls.iter().copied().take_while(|x| *x == 0).count();
+    let posn = n - ls.iter().copied().rev().take_while(|x| *x == 0).count();
+
+    let ans: usize = if posn <= pos0 { 0 } else { posn - pos0 - 1 };
     println!("{}", ans);
 }
 
