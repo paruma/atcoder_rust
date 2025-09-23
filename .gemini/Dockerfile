@@ -5,7 +5,9 @@ USER root
 
 RUN apt-get update && apt-get install -y \
     build-essential \
-    curl
+    curl \
+    python3-pip \
+    python3-venv
 
 # node ユーザーに切り替え
 USER node
