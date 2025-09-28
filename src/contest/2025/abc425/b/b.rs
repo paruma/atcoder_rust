@@ -3,8 +3,22 @@ fn main() {
         n: usize,
         xs: [i64; n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let ans: Option<Vec<usize>> = (1..=n).permutations(n).find(|ps| {
+        (0..n).all(|i| {
+            if xs[i] != -1 {
+                xs[i] == ps[i] as i64
+            } else {
+                true
+            }
+        })
+    });
+
+    if let Some(ans) = ans {
+        println!("Yes");
+        print_vec_1line(&ans);
+    } else {
+        println!("No");
+    }
 }
 
 #[cfg(test)]

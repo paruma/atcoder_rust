@@ -4,11 +4,9 @@ fn main() {
         t: Bytes,
     }
     use ac_library::ModInt998244353 as Mint;
-    // let mut dp = vec![Mint::new(0); 1 << n];
-    // dp[0] = Mint::new(1);
-    let mut dp2 = HashMap::<Vec<u8>, Mint>::new();
-    dp2.insert(vec![], Mint::new(1));
-    let mut ban = vec![false; 1 << n];
+    let mut dp = vec![Mint::new(0); 1 << n];
+    dp[0] = Mint::new(1);
+    let mut visited: HashSet<_> = HashSet::new();
 
     for b in 0..(1 << n) {
         let set = BitSet::new(b);
@@ -19,34 +17,24 @@ fn main() {
             .filter(|(i, _)| set.contains(*i))
             .map(|(_, ch)| ch)
             .collect_vec();
-        if b != 0 && dp2.contains_key(&str) {
-            ban[set] = true;
+        if visited.contains(&str) {
             continue;
+        } else {
+            visited.insert(str);
         }
         // もらう
         for i in 0..n {
             if set.contains(i) {
                 let prev_set = set.removed(i);
-                if ban[prev_set] {
-                    continue;
-                }
-                let prev_str = t
-                    .iter()
-                    .copied()
-                    .enumerate()
-                    .filter(|(i, _)| prev_set.contains(*i))
-                    .map(|(_, ch)| ch)
-                    .collect_vec();
-                let prev_val = dp2.get(&prev_str).copied().unwrap_or_default();
-                *dp2.entry(str.clone()).or_default() += prev_val;
+                let prev_val = dp[prev_set];
+                dp[set] += prev_val;
             }
         }
-
         // dbg!(set, dp[set]);
     }
     // dbg!(&visited);
 
-    let ans: i64 = dp2[&t.clone()].val() as i64;
+    let ans: i64 = dp.last().unwrap().val() as i64;
     println!("{}", ans);
 }
 

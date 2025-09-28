@@ -1,10 +1,44 @@
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        t: usize,
+        m: u32,
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    use ac_library::ModInt as Mint;
+    Mint::set_modulus(m);
+
+    let max = 5000;
+
+    let mut comb = vec![vec![Mint::new(0); max + 1]; max + 1];
+    comb[0][0] = Mint::new(1);
+
+    for i in 1..=max {
+        comb[i][0] = Mint::new(1);
+        for j in 1..=max {
+            comb[i][j] = comb[i - 1][j - 1] + comb[i - 1][j];
+        }
+    }
+
+    // mod m
+
+    let ans: Vec<u32> = (0..t)
+        .map(|_| {
+            input! {
+                n: usize,
+                xs: [i64; n],
+            }
+            let mut sum = 0;
+            let mut ans = Mint::new(1);
+
+            for x in xs {
+                sum += x;
+
+                ans *= comb[sum as usize][x as usize];
+            }
+
+            ans.val()
+        })
+        .collect_vec();
+    print_vec(&ans);
 }
 
 #[cfg(test)]
