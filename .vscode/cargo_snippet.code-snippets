@@ -1490,6 +1490,29 @@
       "}"
     ]
   },
+  "counts_fx": {
+    "scope": "rust",
+    "prefix": "counts_fx",
+    "body": [
+      "use counts_fx::*;",
+      "#[allow(clippy::module_inception)]",
+      "pub mod counts_fx {",
+      "    use rustc_hash::FxHashMap;",
+      "    pub trait IteratorCountsFx: Iterator + Sized {",
+      "        fn counts_fx(self) -> FxHashMap<Self::Item, usize>",
+      "        where",
+      "            Self: Sized,",
+      "            Self::Item: Eq + std::hash::Hash,",
+      "        {",
+      "            let mut counts = FxHashMap::default();",
+      "            self.for_each(|item| *counts.entry(item).or_default() += 1);",
+      "            counts",
+      "        }",
+      "    }",
+      "    impl<T: Iterator> IteratorCountsFx for T {}",
+      "}"
+    ]
+  },
   "cum_monoid": {
     "scope": "rust",
     "prefix": "cum_monoid",
