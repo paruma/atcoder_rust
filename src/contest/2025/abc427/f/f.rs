@@ -1,8 +1,20 @@
+// 解法: 半分全列挙
+// 全列挙が 2×10^12、半分の全列挙が2×10^6 で、半分全列挙が効く。
+
+/// 列 `xs` の隣接しない要素からなる部分列の和 mod m を列挙する
+///
+/// # 戻り値
+/// `(unused, used)` を返す：
+/// - `unuesd`: 最後の要素を使わなかった部分列の総和 mod m
+/// - `uesd`: 最後の要素を使った部分列の総和 mod m
 fn solve0(xs: &[i64], m: i64) -> (Vec<i64>, Vec<i64>) {
     let n = xs.len();
 
-    // ここ遅そう。間に合う？
+    // ここ遅そう。間に合う？ → 間に合った
     // dp0, dp1 って分けたほうが早そう
+
+    // dp[0]: 最後の値使ってない
+    // dp[1]: 最後の値使った
     let mut dp: Vec<Vec<i64>> = vec![vec![]; 2];
 
     dp[0] = vec![0];
@@ -21,12 +33,13 @@ fn solve0(xs: &[i64], m: i64) -> (Vec<i64>, Vec<i64>) {
         dp = ndp;
     }
 
-    // dbg!(&dp[0]); // 最後の値使ってない
-    // dbg!(&dp[1]); // 最後の値使った
     (dp[0].clone(), dp[1].clone())
 }
-
-fn solve1(cnts0: &HashMap<i64, usize>, cnts1: &HashMap<i64, usize>, m: i64) -> i64 {
+/// 2つのカウントテーブル（重複集合） cnt0, cnt1 が与えられる。
+/// cnt0, cnt1 のキーはすべて 0以上m未満である。
+/// 2つの重複集合からそれぞれ1つ選んで、和 mod m が 0 になるような組合せが何通りあるかを求める
+/// (和 mod m の分布に対する 0 の個数を求めていると言える)
+fn solve1(cnts0: &FxHashMap<i64, usize>, cnts1: &FxHashMap<i64, usize>, m: i64) -> i64 {
     cnts0
         .iter()
         .map(|(&k, &cnt)| {
@@ -37,8 +50,23 @@ fn solve1(cnts0: &HashMap<i64, usize>, cnts1: &HashMap<i64, usize>, m: i64) -> i
         .sum::<i64>()
 }
 
+pub trait IteratorCountsFx: Iterator + Sized {
+    fn fx_counts(self) -> FxHashMap<Self::Item, usize>
+    where
+        Self: Sized,
+        Self::Item: Eq + std::hash::Hash,
+    {
+        let mut counts = FxHashMap::default();
+        self.for_each(|item| *counts.entry(item).or_default() += 1);
+        counts
+    }
+}
+
+impl<T: Iterator> IteratorCountsFx for T {}
+
 fn solve(n: usize, m: i64, xs: &[i64]) -> i64 {
     if n == 1 {
+        // 2つに割ったときに空列ができると面倒なので、場合分け
         return if xs[0] == 0 { 2 } else { 1 };
     }
 
@@ -48,14 +76,15 @@ fn solve(n: usize, m: i64, xs: &[i64]) -> i64 {
     let (ys00, ys01) = solve0(&xs0, m);
     let (ys10, ys11) = solve0(&xs1, m);
 
-    // 末尾0の方は vec にしていいかも
-    let ys00_cnts = ys00.iter().copied().counts();
-    let ys01_cnts = ys01.iter().copied().counts();
-    let ys10_cnts = ys10.iter().copied().counts();
-    let ys11_cnts = ys11.iter().copied().counts();
+    // 高速化が必要な場合は、末尾0の方は vec にしていいかも
+    let ys00_cnts = ys00.iter().copied().fx_counts();
+    let ys01_cnts = ys01.iter().copied().fx_counts();
+    let ys10_cnts = ys10.iter().copied().fx_counts();
+    let ys11_cnts = ys11.iter().copied().fx_counts();
 
     // 最後が0: 末尾を使ってない
     // 最後が1: 末尾を使った
+    // 両方末尾を使っているケースは結合できないので、カウントから除外する
     let term1 = solve1(&ys00_cnts, &ys10_cnts, m);
     let term2 = solve1(&ys01_cnts, &ys10_cnts, m);
     let term3 = solve1(&ys00_cnts, &ys11_cnts, m);
