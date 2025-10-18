@@ -143,60 +143,6 @@ pub mod cum_monoid {
     }
 }
 
-#[snippet(prefix = "use monoid_bitwise::*;")]
-pub mod monoid_bitwise {
-    use std::{
-        convert::Infallible,
-        marker::PhantomData,
-        ops::{BitAnd, BitOr, BitXor, Not},
-    };
-
-    use ac_library::Monoid;
-    use num_traits::Zero;
-
-    pub struct BitwiseOr<S>(Infallible, PhantomData<fn() -> S>);
-    impl<S> Monoid for BitwiseOr<S>
-    where
-        S: Copy + BitOr<Output = S> + Zero,
-    {
-        type S = S;
-        fn identity() -> Self::S {
-            S::zero()
-        }
-        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
-            *a | *b
-        }
-    }
-
-    pub struct BitwiseAnd<S>(Infallible, PhantomData<fn() -> S>);
-    impl<S> Monoid for BitwiseAnd<S>
-    where
-        S: Copy + BitAnd<Output = S> + Not<Output = S> + Zero,
-    {
-        type S = S;
-        fn identity() -> Self::S {
-            !S::zero()
-        }
-        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
-            *a & *b
-        }
-    }
-
-    pub struct BitwiseXor<S>(Infallible, PhantomData<fn() -> S>);
-    impl<S> Monoid for BitwiseXor<S>
-    where
-        S: Copy + BitXor<Output = S> + Zero,
-    {
-        type S = S;
-        fn identity() -> Self::S {
-            S::zero()
-        }
-        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
-            *a ^ *b
-        }
-    }
-}
-
 #[snippet(prefix = "use monoid_gcd_lcm::*;")]
 pub mod monoid_gcd_lcm {
     use std::{convert::Infallible, marker::PhantomData};
@@ -543,31 +489,6 @@ mod test_cum_monoid {
             // cum.min_without1(0) これはエラー
             assert_eq!(cum.min_without_range(0, 0), i64::MAX);
         }
-    }
-}
-#[cfg(test)]
-mod test_monoid_bitwise {
-    use ac_library::Monoid;
-
-    use super::monoid_bitwise::*;
-
-    #[test]
-    fn test_monoid_bitwise_or() {
-        type M = BitwiseOr<i64>;
-        assert_eq!(M::binary_operation(&0b0110, &0b0011), 0b0111);
-        assert_eq!(M::binary_operation(&0b0110, &M::identity()), 0b0110);
-    }
-    #[test]
-    fn test_monoid_bitwise_and() {
-        type M = BitwiseAnd<i64>;
-        assert_eq!(M::binary_operation(&0b0110, &0b0011), 0b0010);
-        assert_eq!(M::binary_operation(&0b0110, &M::identity()), 0b0110);
-    }
-    #[test]
-    fn test_monoid_bitwise_xor() {
-        type M = BitwiseXor<i64>;
-        assert_eq!(M::binary_operation(&0b0110, &0b0011), 0b0101);
-        assert_eq!(M::binary_operation(&0b0110, &M::identity()), 0b0110);
     }
 }
 #[cfg(test)]
