@@ -173,6 +173,50 @@ fn combinations(n: usize, r: usize) -> Vec<Vec<usize>> {
     let dfs = DfsCombinations::new(n, r);
     dfs.exec()
 }
+
+// 組合せ全列挙の別実装
+fn combinations2(n: usize, r: usize) -> Vec<Vec<usize>> {
+    struct DfsCombinations {
+        // n個のものからr個取る組合せ nCr
+        n: usize,
+        r: usize,
+    }
+
+    impl DfsCombinations {
+        fn new(n: usize, r: usize) -> Self {
+            Self { n, r }
+        }
+
+        fn exec(&self) -> Vec<Vec<usize>> {
+            let mut seq_list = vec![];
+            self.exec_rec(0, &mut vec![], &mut seq_list);
+            seq_list
+        }
+
+        // seq が現在の状態、seq_list が結果の蓄積物
+        fn exec_rec(&self, i: usize, seq: &mut Vec<usize>, seq_list: &mut Vec<Vec<usize>>) {
+            if i == self.n {
+                // ここがforループの中のようなもの
+                seq_list.push(seq.clone());
+                return;
+            }
+
+            // 選ぶ
+            if seq.len() != self.r {
+                seq.push(i);
+                self.exec_rec(i + 1, seq, seq_list);
+                seq.pop();
+            }
+
+            // 選ばない
+            if seq.len() + (self.n - i) != self.r {
+                self.exec_rec(i + 1, seq, seq_list);
+            }
+        }
+    }
+    let dfs = DfsCombinations::new(n, r);
+    dfs.exec()
+}
 #[cfg(test)]
 mod tests {
     use itertools::Itertools;
@@ -239,7 +283,7 @@ mod tests {
     fn test_combinations() {
         // n 個の中から r 個を選ぶ選び方
         fn test(n: usize, r: usize) {
-            let actual = combinations(n, r);
+            let actual = combinations2(n, r);
             let expected = (0..n).combinations(r).collect_vec();
             assert_eq!(actual, expected);
         }
