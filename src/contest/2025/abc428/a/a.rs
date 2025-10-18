@@ -1,9 +1,15 @@
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        s: i64,
+        a: i64,
+        b: i64,
+        x: i64,
     }
-    let ans: i64 = -2_i64;
+
+    let n_loop = x / (a + b);
+    let r = x % (a + b);
+
+    let ans: i64 = s * a * n_loop + i64::min(r, a) * s;
     println!("{}", ans);
 }
 

@@ -1,10 +1,28 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        k: usize,
+        xs: Chars,
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    let cnts = (0..=n - k).map(|i| &xs[i..i + k]).counts();
+
+    let max = *cnts.values().max().unwrap();
+
+    let ans: Vec<Vec<char>> = cnts
+        .iter()
+        .filter(|(s, cnt)| **cnt == max)
+        .map(|(s, _)| s.to_vec())
+        .collect_vec();
+
+    let msg = ans
+        .iter()
+        .map(|x| x.iter().copied().collect::<String>().to_string())
+        .sorted()
+        .join(" ");
+
+    println!("{}", max);
+    println!("{}", msg);
 }
 
 #[cfg(test)]

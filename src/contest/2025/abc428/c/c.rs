@@ -1,10 +1,37 @@
+#[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        q: usize,
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let mut seg = Segtree::<Min<i64>>::from(vec![0; q + 1]);
+
+    let mut cur = 0;
+
+    for _ in 0..q {
+        input! {
+            t: usize,
+        }
+
+        if t == 1 {
+            input! {
+                c: char
+            }
+
+            // seg.get(cur + 1)
+            let cur_val = seg.get(cur);
+            let pm = if c == '(' { 1 } else { -1 };
+            seg.set(cur + 1, cur_val + pm);
+            cur += 1;
+        } else {
+            seg.set(cur, 0);
+            cur -= 1;
+        }
+        let ok = seg.prod(0..=cur) >= 0 && seg.get(cur) == 0;
+        print_yesno(ok);
+    }
+
+    // let ans: i64 = -2_i64;
+    // println!("{}", ans);
 }
 
 #[cfg(test)]
@@ -65,6 +92,7 @@ mod tests {
     }
 }
 
+use ac_library::{Min, Segtree};
 // ====== import ======
 #[allow(unused_imports)]
 use {
