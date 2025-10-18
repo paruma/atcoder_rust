@@ -99,7 +99,7 @@ pub mod lg {
     /// ```
     #[macro_export]
     macro_rules! lg {
-    (@contents $head:expr $(, $tail:expr)*) => {{
+    (@contents $head:expr_2021 $(, $tail:expr_2021)*) => {{
         $crate::__lg_internal!($head);
         $(
             eprint!(",");
@@ -107,7 +107,7 @@ pub mod lg {
         )*
         eprintln!();
     }};
-    ($($expr:expr),* $(,)?) => {{
+    ($($expr:expr_2021),* $(,)?) => {{
         eprint!("{}\u{276f}", line!());
         $crate::lg!(@contents $($expr),*)
     }};
@@ -116,7 +116,7 @@ pub mod lg {
     #[doc(hidden)]
     #[macro_export]
     macro_rules! __lg_internal {
-        ($value:expr) => {{
+        ($value:expr_2021) => {{
             match $value {
                 head => {
                     eprint!(
@@ -148,9 +148,9 @@ pub mod lg {
     macro_rules! rows {
     {
         $index_label:literal,
-        $(@offset $offset:expr,)?
-        $(@verticalbar $verticalbar:expr,)*
-        $($(@$label:literal =>)? $values:expr),* $(,)?
+        $(@offset $offset:expr_2021,)?
+        $(@verticalbar $verticalbar:expr_2021,)*
+        $($(@$label:literal =>)? $values:expr_2021),* $(,)?
     } => {{
         #![allow(unused_assignments)]
         let mut rows = $crate::Rows::default();
@@ -189,7 +189,7 @@ pub mod lg {
     #[macro_export]
     macro_rules! table {
     {
-        $(@$name:literal => )? $values:expr $(,)?
+        $(@$name:literal => )? $values:expr_2021 $(,)?
     } => {{
         #![allow(unused_assignments)]
         let mut name = stringify!($values).to_string();

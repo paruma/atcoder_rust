@@ -40,7 +40,7 @@ impl Grid {
     pub fn is_hatena(&self, pos: Pos) -> bool {
         ['?'].contains(&self[pos])
     }
-    pub fn all_pos_iter(&self) -> impl Iterator<Item = Pos> {
+    pub fn all_pos_iter(&self) -> impl Iterator<Item = Pos> + use<> {
         iproduct!(0..self.h, 0..self.w).map(|(y, x)| Pos::new(x as i64, y as i64))
     }
     pub fn find_pos_of(&self, ch: char) -> Option<Pos> {

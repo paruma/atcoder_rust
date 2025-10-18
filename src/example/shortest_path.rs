@@ -18,7 +18,7 @@ use itertools::Itertools;
 use crate::mylib::ext_int::mod_ext_int::{fin, ExtInt, INF};
 
 macro_rules! chmin {
-    ($a: expr, $b: expr) => {
+    ($a: expr_2021, $b: expr_2021) => {
         if $a > $b {
             $a = $b;
             true

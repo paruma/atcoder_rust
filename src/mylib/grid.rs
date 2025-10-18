@@ -51,7 +51,7 @@ pub mod grid_template {
             ['.'].contains(&self[pos])
         }
 
-        pub fn all_pos_iter(&self) -> impl Iterator<Item = Pos> {
+        pub fn all_pos_iter(&self) -> impl Iterator<Item = Pos> + use<> {
             iproduct!(0..self.h, 0..self.w).map(|(y, x)| Pos::new(x as i64, y as i64))
         }
 

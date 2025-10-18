@@ -610,7 +610,7 @@ pub mod modint_u64 {
 
     macro_rules! impl_bin_ops {
         () => {};
-        (for<$($generic_param:ident : $generic_param_bound:tt),*> <$lhs_ty:ty> ~ <$rhs_ty:ty> -> $output:ty { { $lhs_body:expr } ~ { $rhs_body:expr } } $($rest:tt)*) => {
+        (for<$($generic_param:ident : $generic_param_bound:tt),*> <$lhs_ty:ty> ~ <$rhs_ty:ty> -> $output:ty { { $lhs_body:expr_2021 } ~ { $rhs_body:expr_2021 } } $($rest:tt)*) => {
             impl <$($generic_param: $generic_param_bound),*> Add<$rhs_ty> for $lhs_ty {
                 type Output = $output;
 
@@ -653,7 +653,7 @@ pub mod modint_u64 {
 
     macro_rules! impl_assign_ops {
         () => {};
-        (for<$($generic_param:ident : $generic_param_bound:tt),*> <$lhs_ty:ty> ~= <$rhs_ty:ty> { _ ~= { $rhs_body:expr } } $($rest:tt)*) => {
+        (for<$($generic_param:ident : $generic_param_bound:tt),*> <$lhs_ty:ty> ~= <$rhs_ty:ty> { _ ~= { $rhs_body:expr_2021 } } $($rest:tt)*) => {
             impl <$($generic_param: $generic_param_bound),*> AddAssign<$rhs_ty> for $lhs_ty {
                 #[inline]
                 fn add_assign(&mut self, rhs: $rhs_ty) {
@@ -709,7 +709,7 @@ pub mod modint_u64 {
 
     macro_rules! impl_folding {
         () => {};
-        (impl<$generic_param:ident : $generic_param_bound:tt> $trait:ident<_> for $self:ty { fn $method:ident(_) -> _ { _($unit:expr, $op:expr) } } $($rest:tt)*) => {
+        (impl<$generic_param:ident : $generic_param_bound:tt> $trait:ident<_> for $self:ty { fn $method:ident(_) -> _ { _($unit:expr_2021, $op:expr_2021) } } $($rest:tt)*) => {
             impl<$generic_param: $generic_param_bound> $trait<Self> for $self {
                 #[inline]
                 fn $method<S>(iter: S) -> Self

@@ -28,14 +28,14 @@ pub mod random_test {
     /// let uniq_seq = generate_random_uniq_sequence(10, || rng.gen_range(0..100));
     /// assert_eq!(uniq_seq.len(), 10);
     /// ```
-    pub fn generate_random_uniq_sequence<T, F>(n: usize, mut gen: F) -> Vec<T>
+    pub fn generate_random_uniq_sequence<T, F>(n: usize, mut r#gen: F) -> Vec<T>
     where
         T: Hash + PartialEq + Eq,
         F: FnMut() -> T,
     {
         let mut set: HashSet<T> = HashSet::new();
         while set.len() != n {
-            set.insert(gen());
+            set.insert(r#gen());
         }
 
         set.into_iter().collect_vec()
@@ -58,13 +58,13 @@ pub mod random_test {
     /// let even_number = generate_random_while(|| rng.gen_range(0..100), |&x| x % 2 == 0);
     /// assert!(even_number % 2 == 0);
     /// ```
-    pub fn generate_random_while<T, F, P>(mut gen: F, mut pred: P) -> T
+    pub fn generate_random_while<T, F, P>(mut r#gen: F, mut pred: P) -> T
     where
         F: FnMut() -> T,
         P: FnMut(&T) -> bool,
     {
         loop {
-            let x = gen();
+            let x = r#gen();
             if pred(&x) {
                 return x;
             }
@@ -133,8 +133,8 @@ pub mod random_test {
     where
         R: Rng,
     {
-        let gen = || rng.gen_range(begin..end);
-        generate_random_while(gen, |x| is_prime(*x))
+        let r#gen = || rng.gen_range(begin..end);
+        generate_random_while(r#gen, |x| is_prime(*x))
     }
 }
 
