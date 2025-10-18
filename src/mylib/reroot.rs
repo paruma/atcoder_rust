@@ -6,6 +6,8 @@ pub mod reroot {
 
     // Reroot の実装サンプル
     use ac_library::Max;
+
+    #[allow(dead_code)]
     struct DistMaxReroot();
     impl Reroot for DistMaxReroot {
         type M = Max<u64>;

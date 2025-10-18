@@ -8,8 +8,8 @@ pub mod default_hash_map {
     use std::{
         borrow::Borrow,
         collections::{
-            hash_map::{Iter, IterMut, Keys, Values, ValuesMut},
             HashMap,
+            hash_map::{Iter, IterMut, Keys, Values, ValuesMut},
         },
     };
 
@@ -36,23 +36,23 @@ pub mod default_hash_map {
             &mut self.raw
         }
 
-        pub fn keys(&self) -> Keys<K, V> {
+        pub fn keys(&self) -> Keys<'_, K, V> {
             self.raw.keys()
         }
 
-        pub fn values(&self) -> Values<K, V> {
+        pub fn values(&self) -> Values<'_, K, V> {
             self.raw.values()
         }
 
-        pub fn values_mut(&mut self) -> ValuesMut<K, V> {
+        pub fn values_mut(&mut self) -> ValuesMut<'_, K, V> {
             self.raw.values_mut()
         }
 
-        pub fn iter(&self) -> Iter<K, V> {
+        pub fn iter(&self) -> Iter<'_, K, V> {
             self.raw.iter()
         }
 
-        pub fn iter_mut(&mut self) -> IterMut<K, V> {
+        pub fn iter_mut(&mut self) -> IterMut<'_, K, V> {
             self.raw.iter_mut()
         }
 
