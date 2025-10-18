@@ -494,10 +494,10 @@ mod tests {
 
     #[allow(dead_code)]
     fn make_random_problem(rng: &mut SmallRng) -> Problem {
-        let n_boxes = rng.gen_range(2..=6);
-        let n_balls = rng.gen_range(n_boxes..=6);
+        let n_boxes = rng.random_range(2..=6);
+        let n_balls = rng.random_range(n_boxes..=6);
         let weight_list = (0..n_balls)
-            .map(|_| 2_i64.pow(rng.gen_range(0..30) as u32))
+            .map(|_| 2_i64.pow(rng.random_range(0..30) as u32))
             .collect_vec();
         let p = Problem {
             n_balls,
@@ -514,7 +514,7 @@ mod tests {
         let num_tests = 100000;
         let max_wrong_case = 10; // この件数間違いが見つかったら打ち切り
         let mut rng = SmallRng::seed_from_u64(42);
-        // let mut rng = SmallRng::from_entropy();
+        // let mut rng = SmallRng::from_os_rng();
         let mut wrong_cases: Vec<WrongTestCase> = vec![];
         for _ in 0..num_tests {
             let p = make_random_problem(&mut rng);

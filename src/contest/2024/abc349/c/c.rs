@@ -181,9 +181,9 @@ mod tests {
     }
 
     fn make_random_problem() -> Problem {
-        let mut rng = SmallRng::from_entropy();
-        let s = (0..10).map(|_| rng.gen_range(b'a'..=b'z')).collect_vec();
-        let t = (0..3).map(|_| rng.gen_range(b'A'..=b'Z')).collect_vec();
+        let mut rng = SmallRng::from_os_rng();
+        let s = (0..10).map(|_| rng.random_range(b'a'..=b'z')).collect_vec();
+        let t = (0..3).map(|_| rng.random_range(b'A'..=b'Z')).collect_vec();
         println!("{:?}", String::from_utf8(s.clone()).unwrap());
         println!("{:?}", String::from_utf8(t.clone()).unwrap());
         let p = Problem { s, t };
@@ -202,7 +202,7 @@ mod tests {
 
 // ====== import ======
 #[allow(unused_imports)]
-use itertools::{chain, iproduct, izip, Itertools};
+use itertools::{Itertools, chain, iproduct, izip};
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,

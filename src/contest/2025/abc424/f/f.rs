@@ -13,7 +13,7 @@ fn main() {
     for (a, b) in abs {
         let (a, b) = (a.min(b), a.max(b));
         if seg.prod(a + 1..b) == 0 {
-            let hash = rng.gen_range(100..u64::MAX);
+            let hash = rng.random_range(100..u64::MAX);
             ans.push(true);
             seg.set(a, hash);
             seg.set(b, hash);
@@ -42,8 +42,8 @@ mod tests {
     /// 間違っていたら false を返す
     fn process_one_test(rng: &mut SmallRng) -> bool {
         // ==== 問題を作る ====
-        let n = rng.gen_range(1..=10);
-        let xs = (0..n).map(|_| rng.gen_range(0..10)).collect_vec();
+        let n = rng.random_range(1..=10);
+        let xs = (0..n).map(|_| rng.random_range(0..10)).collect_vec();
 
         // ==== 解く ====
         let main_ans = xs.len();
@@ -68,7 +68,7 @@ mod tests {
         let max_wrong_case = 10; // この件数間違いが見つかったら打ち切り
         let mut cnt_wrong = 0;
         let mut rng = SmallRng::seed_from_u64(42);
-        // let mut rng = SmallRng::from_entropy();
+        // let mut rng = SmallRng::from_os_rng();
         for _ in 0..num_tests {
             let is_ok = process_one_test(&mut rng);
             if !is_ok {

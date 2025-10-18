@@ -24,8 +24,8 @@ pub mod random_test {
     /// use atcoder_rust::mylib::random::random_test::*;
     /// use rand::{Rng, rngs::SmallRng, SeedableRng};
     ///
-    /// let mut rng = SmallRng::from_entropy();
-    /// let uniq_seq = generate_random_uniq_sequence(10, || rng.gen_range(0..100));
+    /// let mut rng = SmallRng::from_os_rng();
+    /// let uniq_seq = generate_random_uniq_sequence(10, || rng.random_range(0..100));
     /// assert_eq!(uniq_seq.len(), 10);
     /// ```
     pub fn generate_random_uniq_sequence<T, F>(n: usize, mut r#gen: F) -> Vec<T>
@@ -54,8 +54,8 @@ pub mod random_test {
     /// use atcoder_rust::mylib::random::random_test::*;
     /// use rand::{Rng, rngs::SmallRng, SeedableRng};
     ///
-    /// let mut rng = SmallRng::from_entropy();
-    /// let even_number = generate_random_while(|| rng.gen_range(0..100), |&x| x % 2 == 0);
+    /// let mut rng = SmallRng::from_os_rng();
+    /// let even_number = generate_random_while(|| rng.random_range(0..100), |&x| x % 2 == 0);
     /// assert!(even_number % 2 == 0);
     /// ```
     pub fn generate_random_while<T, F, P>(mut r#gen: F, mut pred: P) -> T
@@ -82,7 +82,7 @@ pub mod random_test {
     /// use atcoder_rust::mylib::random::random_test::*;
     /// use rand::{Rng, rngs::SmallRng, SeedableRng};
     ///
-    /// let mut rng = SmallRng::from_entropy();
+    /// let mut rng = SmallRng::from_os_rng();
     /// let tree = generate_random_tree(&mut rng, 5);
     /// assert_eq!(tree.len(), 4);
     /// ```
@@ -94,8 +94,8 @@ pub mod random_test {
         let mut uf: UnionFind<usize> = UnionFind::new(n_vertices);
 
         while edges.len() != n_vertices - 1 {
-            let x = rng.gen_range(0..n_vertices);
-            let y = rng.gen_range(0..n_vertices);
+            let x = rng.random_range(0..n_vertices);
+            let y = rng.random_range(0..n_vertices);
             if uf.union(x, y) {
                 edges.push((x, y));
             }
@@ -126,14 +126,14 @@ pub mod random_test {
     /// use atcoder_rust::mylib::random::random_test::*;
     /// use rand::{Rng, rngs::SmallRng, SeedableRng};
     ///
-    /// let mut rng = SmallRng::from_entropy();
+    /// let mut rng = SmallRng::from_os_rng();
     /// let prime = generate_random_prime(&mut rng, 0, 100);
     /// ```
     pub fn generate_random_prime<R>(rng: &mut R, begin: i64, end: i64) -> i64
     where
         R: Rng,
     {
-        let r#gen = || rng.gen_range(begin..end);
+        let r#gen = || rng.random_range(begin..end);
         generate_random_while(r#gen, |x| is_prime(*x))
     }
 }
@@ -147,9 +147,9 @@ mod tests {
     #[test]
     fn test_generate_random_uniq_sequence() {
         use rand::{rngs::SmallRng, *};
-        let mut rng = SmallRng::from_entropy();
+        let mut rng = SmallRng::from_os_rng();
         for _ in 0..10 {
-            let xs = generate_random_uniq_sequence(10, || rng.gen_range(0..12));
+            let xs = generate_random_uniq_sequence(10, || rng.random_range(0..12));
             assert_eq!(xs.len(), 10);
             assert!(xs.iter().all_unique());
         }
@@ -158,9 +158,9 @@ mod tests {
     #[test]
     fn test_generate_random_while() {
         use rand::{rngs::SmallRng, *};
-        let mut rng = SmallRng::from_entropy();
+        let mut rng = SmallRng::from_os_rng();
         for _ in 0..10 {
-            let x = generate_random_while(|| rng.gen_range(0..4), |&x| x % 2 == 0);
+            let x = generate_random_while(|| rng.random_range(0..4), |&x| x % 2 == 0);
             assert!(x % 2 == 0 && (0..4).contains(&x));
         }
     }
@@ -168,7 +168,7 @@ mod tests {
     #[test]
     fn test_generate_random_tree() {
         use rand::{rngs::SmallRng, *};
-        let mut rng = SmallRng::from_entropy();
+        let mut rng = SmallRng::from_os_rng();
         for _ in 0..10 {
             let n_vertices = 5;
             let edges = generate_random_tree(&mut rng, n_vertices);
@@ -188,7 +188,7 @@ mod tests {
     #[test]
     fn test_generate_random_prime() {
         use rand::{rngs::SmallRng, *};
-        let mut rng = SmallRng::from_entropy();
+        let mut rng = SmallRng::from_os_rng();
         for _ in 0..10 {
             let x = generate_random_prime(&mut rng, 0, 12);
             assert!((0..12).contains(&x));

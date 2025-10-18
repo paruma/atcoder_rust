@@ -24,9 +24,9 @@ impl Problem {
 
         let s_rev = s_normal.iter().copied().rev().collect_vec();
 
-        let mut rng = SmallRng::from_entropy();
+        let mut rng = SmallRng::from_os_rng();
         // FIXME: base = 1 が選ばれると WA になるので良くない
-        let base = rng.gen_range(1..=1_000_000);
+        let base = rng.random_range(1..=1_000_000);
 
         let s_normal_rh = RollingHash::new(&s_normal, base);
         let s_rev_rh = RollingHash::new(&s_rev, base);
@@ -106,7 +106,7 @@ mod tests {
     #[allow(dead_code)]
     fn make_random_problem(rng: &mut SmallRng) -> Problem {
         todo!()
-        // let n = rng.gen_range(1..=10);
+        // let n = rng.random_range(1..=10);
         // let p = Problem { _a: n };
         // println!("{:?}", &p);
         // p
@@ -118,7 +118,7 @@ mod tests {
         let num_tests = 0;
         let max_wrong_case = 10; // この件数間違いが見つかったら打ち切り
         let mut rng = SmallRng::seed_from_u64(42);
-        // let mut rng = SmallRng::from_entropy();
+        // let mut rng = SmallRng::from_os_rng();
         let mut wrong_cases: Vec<WrongTestCase> = vec![];
         for _ in 0..num_tests {
             let p = make_random_problem(&mut rng);

@@ -290,7 +290,7 @@ mod tests {
     // #[test]
     // fn random_insert_delete_test() {
     //     use rand::{rngs::SmallRng, Rng, SeedableRng};
-    //     let mut rng = SmallRng::from_entropy();
+    //     let mut rng = SmallRng::from_os_rng();
     //     let mut range_set = RangeSet::new();
     //     let mut reference_set = std::collections::BTreeSet::new();
 
@@ -301,7 +301,7 @@ mod tests {
     //         // 挿入または削除をランダムに選択
     //         if rng.gen_bool(0.5) {
     //             // insert操作
-    //             let val = rng.gen_range(0..MAX_VAL);
+    //             let val = rng.random_range(0..MAX_VAL);
     //             let was_inserted = range_set.insert(val);
     //             let ref_was_inserted = reference_set.insert(val);
 
@@ -313,7 +313,7 @@ mod tests {
     //             );
     //         } else {
     //             // delete操作
-    //             let val = rng.gen_range(0..MAX_VAL);
+    //             let val = rng.random_range(0..MAX_VAL);
     //             let was_removed = range_set.remove(val);
     //             let ref_was_removed = reference_set.remove(&val);
 
@@ -334,7 +334,7 @@ mod tests {
     // #[test]
     // fn random_min_max_exclusive_test() {
     //     use rand::{rngs::SmallRng, Rng, SeedableRng};
-    //     let mut rng = SmallRng::from_entropy(); // SmallRngを初期化
+    //     let mut rng = SmallRng::from_os_rng(); // SmallRngを初期化
     //     let mut range_set = RangeSet::new();
     //     let mut reference_set = std::collections::BTreeSet::new(); // 正しい動作確認用のBTreeSet
 
@@ -345,18 +345,18 @@ mod tests {
     //         // 挿入または削除をランダムに選択
     //         if rng.gen_bool(0.5) {
     //             // insert操作
-    //             let val = rng.gen_range(0..MAX_VAL);
+    //             let val = rng.random_range(0..MAX_VAL);
     //             range_set.insert(val);
     //             reference_set.insert(val);
     //         } else {
     //             // delete操作
-    //             let val = rng.gen_range(0..MAX_VAL);
+    //             let val = rng.random_range(0..MAX_VAL);
     //             range_set.remove(val);
     //             reference_set.remove(&val);
     //         }
 
     //         // ランダムに値を選び、min_exclusive_geqの結果を検証
-    //         let x = rng.gen_range(0..MAX_VAL);
+    //         let x = rng.random_range(0..MAX_VAL);
     //         let min_exclusive_geq = range_set.min_exclusive_geq(x);
     //         let mut expected_min_exclusive_geq = x;
     //         while reference_set.contains(&expected_min_exclusive_geq) {
@@ -369,7 +369,7 @@ mod tests {
     //         );
 
     //         // ランダムに値を選び、max_exclusive_leqの結果を検証
-    //         let x = rng.gen_range(0..MAX_VAL);
+    //         let x = rng.random_range(0..MAX_VAL);
     //         let max_exclusive_leq = range_set.max_exclusive_leq(x);
     //         let mut expected_max_exclusive_leq = x;
     //         while reference_set.contains(&expected_max_exclusive_leq) {

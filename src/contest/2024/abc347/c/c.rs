@@ -144,11 +144,11 @@ mod tests {
 
     fn make_random_problem() -> Problem {
         let n = 4;
-        let mut rng = SmallRng::from_entropy();
+        let mut rng = SmallRng::from_os_rng();
 
-        let a = rng.gen_range(1..=4);
-        let b = rng.gen_range(1..=4);
-        let ds = (0..n).map(|_| rng.gen_range(1..=10)).collect_vec();
+        let a = rng.random_range(1..=4);
+        let b = rng.random_range(1..=4);
+        let ds = (0..n).map(|_| rng.random_range(1..=10)).collect_vec();
         let p = Problem { n, a, b, ds };
         dbg!(&p);
         p

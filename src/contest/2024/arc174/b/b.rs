@@ -187,9 +187,9 @@ mod tests {
 
     #[allow(dead_code)]
     fn make_random_problem() -> Problem {
-        let mut rng = SmallRng::from_entropy();
-        let xs = (0..5).map(|_| rng.gen_range(0..4)).collect_vec();
-        let ps = (0..5).map(|_| rng.gen_range(0..4)).collect_vec();
+        let mut rng = SmallRng::from_os_rng();
+        let xs = (0..5).map(|_| rng.random_range(0..4)).collect_vec();
+        let ps = (0..5).map(|_| rng.random_range(0..4)).collect_vec();
         let p = Problem {
             test_cases: vec![TestCase { xs, ps }],
         };

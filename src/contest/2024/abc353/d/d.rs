@@ -117,11 +117,11 @@ mod tests {
 
     #[allow(dead_code)]
     fn make_random_problem(rng: &mut SmallRng) -> Problem {
-        let n = rng.gen_range(2..=10000);
+        let n = rng.random_range(2..=10000);
         let xs = (0..n)
             .map(|_| {
-                let x = rng.gen_range(0..=8);
-                let y = rng.gen_range(0..=9);
+                let x = rng.random_range(0..=8);
+                let y = rng.random_range(0..=9);
                 let z = 10_i64.pow(x as u32) * y;
                 if z == 0 {
                     1
@@ -141,7 +141,7 @@ mod tests {
         let num_tests = 5;
         let max_wrong_case = 10; // この件数間違いが見つかったら打ち切り
         let mut rng = SmallRng::seed_from_u64(43);
-        // let mut rng = SmallRng::from_entropy();
+        // let mut rng = SmallRng::from_os_rng();
         let mut wrong_cases: Vec<WrongTestCase> = vec![];
         for _ in 0..num_tests {
             let p = make_random_problem(&mut rng);

@@ -302,30 +302,30 @@ pub mod test_range_quadratic_add_range_sum {
         let mut rng = SmallRng::seed_from_u64(42);
 
         for _ in 0..100 {
-            let n = rng.gen_range(1..=20);
-            let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.gen_range(-100..=100)).collect();
+            let n = rng.random_range(1..=20);
+            let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.random_range(-100..=100)).collect();
             let mut segtree = RangeQuadraticAddRangeSumSegtree::<i64>::new(&naive_vec);
 
             for _ in 0..100 {
                 // 100 random operations per set
-                let op_type = rng.gen_range(0..5); // 5 operations
+                let op_type = rng.random_range(0..5); // 5 operations
 
                 match op_type {
                     0 => {
                         // set(p, x)
-                        let p = rng.gen_range(0..n);
-                        let x = rng.gen_range(-100..=100);
+                        let p = rng.random_range(0..n);
+                        let x = rng.random_range(-100..=100);
                         naive_vec[p] = x;
                         segtree.set(p, x);
                     }
                     1 => {
                         // apply_range_quadratic_add(range, coef0, coef1, coef2)
-                        let l = rng.gen_range(0..=n);
-                        let r = rng.gen_range(l..=n);
+                        let l = rng.random_range(0..=n);
+                        let r = rng.random_range(l..=n);
 
-                        let coef0 = rng.gen_range(-50..=50);
-                        let coef1 = rng.gen_range(-10..=10);
-                        let coef2 = rng.gen_range(-5..=5);
+                        let coef0 = rng.random_range(-50..=50);
+                        let coef1 = rng.random_range(-10..=10);
+                        let coef2 = rng.random_range(-5..=5);
 
                         for i in l..r {
                             let diff_idx = i as i64 - l as i64;
@@ -335,13 +335,13 @@ pub mod test_range_quadratic_add_range_sum {
                     }
                     2 => {
                         // get(p)
-                        let p = rng.gen_range(0..n);
+                        let p = rng.random_range(0..n);
                         assert_eq!(segtree.get(p), naive_vec[p], "get({}) failed", p);
                     }
                     3 => {
                         // range_sum(range)
-                        let l = rng.gen_range(0..=n);
-                        let r = rng.gen_range(l..=n);
+                        let l = rng.random_range(0..=n);
+                        let r = rng.random_range(l..=n);
 
                         let expected_sum: i64 = naive_vec[l..r].iter().sum();
                         assert_eq!(

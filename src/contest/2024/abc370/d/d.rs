@@ -784,14 +784,14 @@ mod tests {
 
     #[allow(dead_code)]
     fn make_random_problem(rng: &mut SmallRng) -> Problem {
-        let h = rng.gen_range(2..=4);
-        let w = rng.gen_range(2..=4);
+        let h = rng.random_range(2..=4);
+        let w = rng.random_range(2..=4);
 
         let nq = 5;
         let qs = (0..nq)
             .map(|_| {
-                let y = rng.gen_range(0..h);
-                let x = rng.gen_range(0..w);
+                let y = rng.random_range(0..h);
+                let x = rng.random_range(0..w);
                 Query { y, x }
             })
             .collect_vec();
@@ -807,7 +807,7 @@ mod tests {
         let num_tests = 1000;
         let max_wrong_case = 10; // この件数間違いが見つかったら打ち切り
         let mut rng = SmallRng::seed_from_u64(42);
-        // let mut rng = SmallRng::from_entropy();
+        // let mut rng = SmallRng::from_os_rng();
         let mut wrong_cases: Vec<WrongTestCase> = vec![];
         for _ in 0..num_tests {
             let p = make_random_problem(&mut rng);

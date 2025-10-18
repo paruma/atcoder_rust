@@ -117,12 +117,12 @@ impl TestInteractive {
         }
 
         use rand::{rngs::SmallRng, seq::SliceRandom, *};
-        let mut rng = SmallRng::from_entropy();
+        let mut rng = SmallRng::from_os_rng();
 
         let mountain = self.set.iter().next().copied().unwrap();
         assert!(self.xs[mountain] != 0);
 
-        let n_subtraction = rng.gen_range(1..=self.xs[mountain]);
+        let n_subtraction = rng.random_range(1..=self.xs[mountain]);
 
         self.xs[mountain] -= n_subtraction;
         if self.xs[mountain] == 0 {
@@ -314,11 +314,11 @@ mod tests {
     #[test]
     fn test_problem2() {
         use rand::{rngs::SmallRng, *};
-        let mut rng = SmallRng::from_entropy();
+        let mut rng = SmallRng::from_os_rng();
 
         for _ in 0..10 {
             let n = 2_000;
-            let xs = (0..n).map(|_| rng.gen_range(1..=10)).collect_vec();
+            let xs = (0..n).map(|_| rng.random_range(1..=10)).collect_vec();
             let n = xs.len();
             let mut asker = TestInteractive::new(xs.clone());
             solve(&mut asker, n, &xs);
@@ -328,14 +328,14 @@ mod tests {
 
 use std::{
     collections::BTreeSet,
-    io::{stdout, Write},
+    io::{Write, stdout},
 };
 
 // ====== import ======
 use proconio::input_interactive;
 
 #[allow(unused_imports)]
-use itertools::{chain, iproduct, izip, Itertools};
+use itertools::{Itertools, chain, iproduct, izip};
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout,

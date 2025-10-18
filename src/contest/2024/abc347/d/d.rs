@@ -217,10 +217,10 @@ mod tests {
     }
 
     fn make_random_problem() -> Problem {
-        let mut rng = SmallRng::from_entropy();
-        let x_pc = rng.gen_range(0..=60);
-        let y_pc = rng.gen_range(0..=60);
-        let c = rng.gen_range(0..2_u64.pow(60));
+        let mut rng = SmallRng::from_os_rng();
+        let x_pc = rng.random_range(0..=60);
+        let y_pc = rng.random_range(0..=60);
+        let c = rng.random_range(0..2_u64.pow(60));
         let p = Problem { x_pc, y_pc, c };
         // dbg!(&p);
         p

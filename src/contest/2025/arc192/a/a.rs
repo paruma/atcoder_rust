@@ -110,8 +110,8 @@ mod tests {
     #[allow(dead_code)]
     fn make_random_problem(rng: &mut SmallRng) -> Problem {
         // todo!()
-        let n = rng.gen_range(5..=5);
-        let xs = (0..n).map(|_| rng.gen_range(0..=1)).collect_vec();
+        let n = rng.random_range(5..=5);
+        let xs = (0..n).map(|_| rng.random_range(0..=1)).collect_vec();
         let p = Problem { n, xs };
         println!("{:?}", &p);
         p
@@ -123,7 +123,7 @@ mod tests {
         let num_tests = 10;
         let max_wrong_case = 10; // この件数間違いが見つかったら打ち切り
         let mut rng = SmallRng::seed_from_u64(42);
-        // let mut rng = SmallRng::from_entropy();
+        // let mut rng = SmallRng::from_os_rng();
         let mut wrong_cases: Vec<WrongTestCase> = vec![];
         for _ in 0..num_tests {
             let p = make_random_problem(&mut rng);

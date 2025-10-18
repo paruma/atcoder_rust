@@ -236,13 +236,13 @@ mod tests {
 
     #[allow(dead_code)]
     fn make_random_problem(rng: &mut SmallRng) -> Problem {
-        let n = rng.gen_range(1..=5);
-        let nq = rng.gen_range(1..=20);
-        let xs = (0..n).map(|_| rng.gen_range(0..10)).collect_vec();
+        let n = rng.random_range(1..=5);
+        let nq = rng.random_range(1..=20);
+        let xs = (0..n).map(|_| rng.random_range(0..10)).collect_vec();
         let qs = (0..nq)
             .map(|_| {
-                let i = rng.gen_range(0..n);
-                let x = rng.gen_range(0..10);
+                let i = rng.random_range(0..n);
+                let x = rng.random_range(0..10);
                 Query { i, x }
             })
             .collect_vec();
@@ -257,7 +257,7 @@ mod tests {
         let num_tests = 100;
         let max_wrong_case = 10; // この件数間違いが見つかったら打ち切り
         let mut rng = SmallRng::seed_from_u64(42);
-        // let mut rng = SmallRng::from_entropy();
+        // let mut rng = SmallRng::from_os_rng();
         let mut wrong_cases: Vec<WrongTestCase> = vec![];
         for _ in 0..num_tests {
             let p = make_random_problem(&mut rng);
@@ -287,7 +287,7 @@ use ac_library::{Min, Segtree};
 use hashbag::HashBag;
 // ====== import ======
 #[allow(unused_imports)]
-use itertools::{chain, iproduct, izip, Itertools};
+use itertools::{Itertools, chain, iproduct, izip};
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,

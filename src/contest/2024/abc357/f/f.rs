@@ -147,7 +147,7 @@ mod tests {
     #[allow(dead_code)]
     fn make_random_problem(rng: &mut SmallRng) -> Problem {
         todo!()
-        // let n = rng.gen_range(1..=10);
+        // let n = rng.random_range(1..=10);
         // let p = Problem { _a: n };
         // println!("{:?}", &p);
         // p
@@ -159,7 +159,7 @@ mod tests {
         let num_tests = 0;
         let max_wrong_case = 10; // この件数間違いが見つかったら打ち切り
         let mut rng = SmallRng::seed_from_u64(42);
-        // let mut rng = SmallRng::from_entropy();
+        // let mut rng = SmallRng::from_os_rng();
         let mut wrong_cases: Vec<WrongTestCase> = vec![];
         for _ in 0..num_tests {
             let p = make_random_problem(&mut rng);
@@ -188,7 +188,7 @@ mod tests {
 use ac_library::LazySegtree;
 // ====== import ======
 #[allow(unused_imports)]
-use itertools::{chain, iproduct, izip, Itertools};
+use itertools::{Itertools, chain, iproduct, izip};
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,
@@ -245,9 +245,9 @@ fn print_yesno(ans: bool) {
 use map_monoid_template::*;
 #[allow(unused_variables)]
 pub mod map_monoid_template {
+    use ac_library::ModInt998244353 as Mint;
     use ac_library::lazysegtree::MapMonoid;
     use ac_library::segtree::Monoid;
-    use ac_library::ModInt998244353 as Mint;
     use std::convert::Infallible;
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
     pub struct RangeXxx {

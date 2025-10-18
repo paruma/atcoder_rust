@@ -72,8 +72,8 @@ impl Problem {
 
         let base = {
             use rand::{rngs::SmallRng, *};
-            let mut rng = SmallRng::from_entropy();
-            rng.gen_range(0..1_i64 << 60)
+            let mut rng = SmallRng::from_os_rng();
+            rng.random_range(0..1_i64 << 60)
         };
         let unit = RollingHash::unit(base);
 

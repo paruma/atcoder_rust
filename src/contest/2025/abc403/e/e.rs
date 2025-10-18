@@ -553,8 +553,8 @@ pub mod rolling_hash {
     type Mint = super::ModInt2305843009213693951;
     pub fn generate_random_base() -> i64 {
         use rand::{rngs::SmallRng, Rng, SeedableRng};
-        let mut rng = SmallRng::from_entropy();
-        rng.gen_range(2..Mint::modulus() as i64)
+        let mut rng = SmallRng::from_os_rng();
+        rng.random_range(2..Mint::modulus() as i64)
     }
     #[derive(Clone, Debug)]
     pub struct RollingHash {

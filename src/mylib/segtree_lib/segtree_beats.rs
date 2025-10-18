@@ -698,14 +698,14 @@ mod test_range_chmax_range_sum {
         let n_changes = 3;
 
         for _ in 0..n_tests {
-            let n = rng.gen_range(0..15);
-            let mut xs = (0..n).map(|_| rng.gen_range(0..10)).collect_vec();
+            let n = rng.random_range(0..15);
+            let mut xs = (0..n).map(|_| rng.random_range(0..10)).collect_vec();
 
             for _ in 0..n_changes {
-                let begin = rng.gen_range(0..=n);
-                let end = rng.gen_range(begin..=n);
+                let begin = rng.random_range(0..=n);
+                let end = rng.random_range(begin..=n);
 
-                let chmax_val = rng.gen_range(0..10);
+                let chmax_val = rng.random_range(0..10);
                 let chmax_func = ChmaxFunc::new(chmax_val);
 
                 let mut seg = SegtreeBeats::<RangeChmaxRangeSum>::from(
@@ -763,14 +763,14 @@ mod test_range_chmin_range_sum {
         let n_changes = 3;
 
         for _ in 0..n_tests {
-            let n = rng.gen_range(0..15);
-            let mut xs = (0..n).map(|_| rng.gen_range(0..10)).collect_vec();
+            let n = rng.random_range(0..15);
+            let mut xs = (0..n).map(|_| rng.random_range(0..10)).collect_vec();
 
             for _ in 0..n_changes {
-                let begin = rng.gen_range(0..=n);
-                let end = rng.gen_range(begin..=n);
+                let begin = rng.random_range(0..=n);
+                let end = rng.random_range(begin..=n);
 
-                let chmax_val = rng.gen_range(0..10);
+                let chmax_val = rng.random_range(0..10);
                 let chmax_func = ChminFunc::new(chmax_val);
 
                 let mut seg = SegtreeBeats::<RangeChminRangeSum>::from(

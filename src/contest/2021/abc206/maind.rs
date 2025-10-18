@@ -134,8 +134,8 @@ fn make_rand_input() {
     use rand::Rng;
     use rand::SeedableRng;
 
-    let mut rng = SmallRng::from_entropy();
+    let mut rng = SmallRng::from_os_rng();
     for _ in 0..10 {
-        println!("{}", rng.gen_range(1, 6));
+        println!("{}", rng.random_range(1, 6));
     }
 }

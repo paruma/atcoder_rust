@@ -87,10 +87,10 @@ mod tests {
     }
 
     fn make_random_problem() -> TestCase {
-        let mut rng = SmallRng::from_entropy();
-        let n = rng.gen_range(1..=15);
-        let k = rng.gen_range(1..=14);
-        let m = rng.gen_range((k + 1)..=15);
+        let mut rng = SmallRng::from_os_rng();
+        let n = rng.random_range(1..=15);
+        let k = rng.random_range(1..=14);
+        let m = rng.random_range((k + 1)..=15);
         let p = TestCase { n, m, k };
         println!("{:?}", &p);
         p

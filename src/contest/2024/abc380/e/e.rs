@@ -176,20 +176,20 @@ mod tests {
 
     #[allow(dead_code)]
     fn make_random_problem(rng: &mut SmallRng) -> Problem {
-        let n = rng.gen_range(1..=5);
+        let n = rng.random_range(1..=5);
         let nq = 5;
 
         let qs = (0..nq)
             .map(|_| {
-                let t = rng.gen_range(0..2);
+                let t = rng.random_range(0..2);
                 if t == 1 {
                     Query::Bucket {
-                        x: rng.gen_range(0..n),
-                        color: rng.gen_range(0..n),
+                        x: rng.random_range(0..n),
+                        color: rng.random_range(0..n),
                     }
                 } else {
                     Query::Count {
-                        color: rng.gen_range(0..n),
+                        color: rng.random_range(0..n),
                     }
                 }
             })
@@ -205,7 +205,7 @@ mod tests {
         let num_tests = 10000;
         let max_wrong_case = 10; // この件数間違いが見つかったら打ち切り
         let mut rng = SmallRng::seed_from_u64(42);
-        // let mut rng = SmallRng::from_entropy();
+        // let mut rng = SmallRng::from_os_rng();
         let mut wrong_cases: Vec<WrongTestCase> = vec![];
         for _ in 0..num_tests {
             let p = make_random_problem(&mut rng);
@@ -234,7 +234,7 @@ mod tests {
 use ac_library::Monoid;
 // ====== import ======
 #[allow(unused_imports)]
-use itertools::{chain, iproduct, izip, Itertools};
+use itertools::{Itertools, chain, iproduct, izip};
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,

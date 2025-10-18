@@ -213,35 +213,35 @@ pub mod test_range_add_range_sum {
         let mut rng = SmallRng::seed_from_u64(42);
 
         for _ in 0..100 {
-            let n = rng.gen_range(1..=20);
-            let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.gen_range(-100..=100)).collect();
+            let n = rng.random_range(1..=20);
+            let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.random_range(-100..=100)).collect();
             let mut segtree = RangeAddRangeSumSegtree::<i64>::new(&naive_vec);
 
             for _ in 0..100 {
                 // 100 random operations per set
-                let op_type = rng.gen_range(0..6); // 6 operations: set, apply_add, apply_range_add, get, range_sum, all_sum
+                let op_type = rng.random_range(0..6); // 6 operations: set, apply_add, apply_range_add, get, range_sum, all_sum
 
                 match op_type {
                     0 => {
                         // set(p, x)
-                        let p = rng.gen_range(0..n);
-                        let x = rng.gen_range(-100..=100);
+                        let p = rng.random_range(0..n);
+                        let x = rng.random_range(-100..=100);
                         naive_vec[p] = x;
                         segtree.set(p, x);
                     }
                     1 => {
                         // apply_add(p, x)
-                        let p = rng.gen_range(0..n);
-                        let x = rng.gen_range(-50..=50);
+                        let p = rng.random_range(0..n);
+                        let x = rng.random_range(-50..=50);
                         naive_vec[p] += x;
                         segtree.apply_add(p, x);
                     }
                     2 => {
                         // apply_range_add(range, x)
-                        let l = rng.gen_range(0..=n);
-                        let r = rng.gen_range(l..=n);
+                        let l = rng.random_range(0..=n);
+                        let r = rng.random_range(l..=n);
 
-                        let x = rng.gen_range(-50..=50);
+                        let x = rng.random_range(-50..=50);
 
                         for i in l..r {
                             naive_vec[i] += x;
@@ -250,13 +250,13 @@ pub mod test_range_add_range_sum {
                     }
                     3 => {
                         // get(p)
-                        let p = rng.gen_range(0..n);
+                        let p = rng.random_range(0..n);
                         assert_eq!(segtree.get(p), naive_vec[p], "get({}) failed", p);
                     }
                     4 => {
                         // range_sum(range)
-                        let l = rng.gen_range(0..=n);
-                        let r = rng.gen_range(l..=n);
+                        let l = rng.random_range(0..=n);
+                        let r = rng.random_range(l..=n);
 
                         let expected_sum: i64 = naive_vec[l..r].iter().sum();
                         assert_eq!(

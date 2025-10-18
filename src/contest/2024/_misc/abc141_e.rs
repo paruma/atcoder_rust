@@ -132,8 +132,8 @@ mod tests {
     }
 
     fn test_random() {
-        // let mut rng = SmallRng::from_entropy();
-        // let n = rng.gen_range(1..=10);
+        // let mut rng = SmallRng::from_os_rng();
+        // let n = rng.random_range(1..=10);
         // let p = Problem { _a: n };
         // dbg!(&p);
         // assert_eq!(p.solve(), p.solve_naive());

@@ -122,8 +122,8 @@ mod tests {
 
     fn make_random_problem() -> Problem {
         todo!()
-        // let mut rng = SmallRng::from_entropy();
-        // let n = rng.gen_range(1..=10);
+        // let mut rng = SmallRng::from_os_rng();
+        // let n = rng.random_range(1..=10);
         // let p = Problem { _a: n };
         // println!("{:?}", &p);
         // p
@@ -141,7 +141,7 @@ mod tests {
 
 // ====== import ======
 #[allow(unused_imports)]
-use itertools::{chain, iproduct, izip, Itertools};
+use itertools::{Itertools, chain, iproduct, izip};
 use num::PrimInt;
 #[allow(unused_imports)]
 use proconio::{

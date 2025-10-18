@@ -40,8 +40,8 @@ mod tests {
     /// 間違っていたら false を返す
     fn process_one_test(rng: &mut SmallRng) -> bool {
         // ==== 問題を作る ====
-        let n = rng.gen_range(1..=10);
-        let xs = (0..n).map(|_| rng.gen_range(0..10)).collect_vec();
+        let n = rng.random_range(1..=10);
+        let xs = (0..n).map(|_| rng.random_range(0..10)).collect_vec();
 
         // ==== 解く ====
         let main_ans = xs.len();
@@ -66,7 +66,7 @@ mod tests {
         let max_wrong_case = 10; // この件数間違いが見つかったら打ち切り
         let mut cnt_wrong = 0;
         let mut rng = SmallRng::seed_from_u64(42);
-        // let mut rng = SmallRng::from_entropy();
+        // let mut rng = SmallRng::from_os_rng();
         for _ in 0..num_tests {
             let is_ok = process_one_test(&mut rng);
             if !is_ok {
@@ -542,14 +542,14 @@ impl_elm! {
 //     fn test_i64() {
 //         #[derive(Debug, Clone, PartialEq, Copy, Eq)]
 //         struct G {}
-//         impl_help! {Len, |rng| rng.gen_range(1..100); }
-//         impl_help! {Value<i64>, |rng| rng.gen_range(-1_000_000_000, 1_000_000_000); }
+//         impl_help! {Len, |rng| rng.random_range(1..100); }
+//         impl_help! {Value<i64>, |rng| rng.random_range(-1_000_000_000, 1_000_000_000); }
 //
 //         let mut tester = Tester::<i64, G>::new(StdRng::seed_from_u64(42), Config::Short);
 //         for _ in 0..10 {
 //             tester.initialize();
 //             for _ in 0..100 {
-//                 let command = tester.rng_mut().gen_range(0..4);
+//                 let command = tester.rng_mut().random_range(0..4);
 //                 match command {
 //                     0 => tester.mutate::<ChangeMin<_>>(),
 //                     1 => tester.mutate::<ChangeMax<_>>(),

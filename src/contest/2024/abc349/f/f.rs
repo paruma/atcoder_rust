@@ -216,10 +216,10 @@ mod tests {
     }
 
     fn make_random_problem() -> Problem {
-        let mut rng = SmallRng::from_entropy();
+        let mut rng = SmallRng::from_os_rng();
         let n = 10;
-        let m = rng.gen_range(1..=20); // 30とかでもテストすると良いかも
-        let xs = (0..n).map(|_| rng.gen_range(1..=20)).collect_vec();
+        let m = rng.random_range(1..=20); // 30とかでもテストすると良いかも
+        let xs = (0..n).map(|_| rng.random_range(1..=20)).collect_vec();
 
         let p = Problem { n, m, xs };
         println!("{:?}", &p);
@@ -238,7 +238,7 @@ mod tests {
 
 // ====== import ======
 #[allow(unused_imports)]
-use itertools::{chain, iproduct, izip, Itertools};
+use itertools::{Itertools, chain, iproduct, izip};
 use num_integer::gcd;
 #[allow(unused_imports)]
 use proconio::{

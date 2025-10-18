@@ -36,7 +36,7 @@ impl Problem {
         let mut tmp = (0..n_v as i64).collect_vec();
 
         while !time_keeper.is_time_over() {
-            let mut rng = SmallRng::from_entropy();
+            let mut rng = SmallRng::from_os_rng();
 
             tmp.shuffle(&mut rng);
             let p = tmp[0..roots.len()].to_vec();
@@ -185,8 +185,8 @@ mod tests {
     #[allow(dead_code)]
     fn make_random_problem() -> Problem {
         todo!()
-        // let mut rng = SmallRng::from_entropy();
-        // let n = rng.gen_range(1..=10);
+        // let mut rng = SmallRng::from_os_rng();
+        // let n = rng.random_range(1..=10);
         // let p = Problem { _a: n };
         // println!("{:?}", &p);
         // p

@@ -150,7 +150,7 @@ mod tests {
     #[allow(dead_code)]
     fn make_random_problem(rng: &mut SmallRng) -> Problem {
         todo!()
-        // let n = rng.gen_range(1..=10);
+        // let n = rng.random_range(1..=10);
         // let p = Problem { _a: n };
         // println!("{:?}", &p);
         // p
@@ -162,7 +162,7 @@ mod tests {
         let num_tests = 0;
         let max_wrong_case = 10; // この件数間違いが見つかったら打ち切り
         let mut rng = SmallRng::seed_from_u64(42);
-        // let mut rng = SmallRng::from_entropy();
+        // let mut rng = SmallRng::from_os_rng();
         let mut wrong_cases: Vec<WrongTestCase> = vec![];
         for _ in 0..num_tests {
             let p = make_random_problem(&mut rng);
@@ -190,7 +190,7 @@ mod tests {
 
 // ====== import ======
 #[allow(unused_imports)]
-use itertools::{chain, iproduct, izip, Itertools};
+use itertools::{Itertools, chain, iproduct, izip};
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,
@@ -345,11 +345,7 @@ pub mod vec_vec_at {
     #[ext(ExtVecVec)]
     impl<T> Vec<Vec<T>> {
         pub fn width(&self) -> usize {
-            if self.is_empty() {
-                0
-            } else {
-                self[0].len()
-            }
+            if self.is_empty() { 0 } else { self[0].len() }
         }
         pub fn height(&self) -> usize {
             self.len()
@@ -362,7 +358,13 @@ pub mod vec_vec_at {
         type Output = T;
         fn index(&self, index: Pos) -> &Self::Output {
             if cfg!(debug_assertions) && !self.is_within(index) {
-                panic ! ("index out of bounds: the size (w, h) is ({}, {}) but the index (x, y) is ({}, {})" , self . width () , self . height () , index . x , index . y );
+                panic!(
+                    "index out of bounds: the size (w, h) is ({}, {}) but the index (x, y) is ({}, {})",
+                    self.width(),
+                    self.height(),
+                    index.x,
+                    index.y
+                );
             }
             &self[index.y as usize][index.x as usize]
         }
@@ -370,7 +372,13 @@ pub mod vec_vec_at {
     impl<T> IndexMut<Pos> for Vec<Vec<T>> {
         fn index_mut(&mut self, index: Pos) -> &mut Self::Output {
             if cfg!(debug_assertions) && !self.is_within(index) {
-                panic ! ("index out of bounds: the size (w, h) is ({}, {}) but the index (x, y) is ({}, {})" , self . width () , self . height () , index . x , index . y );
+                panic!(
+                    "index out of bounds: the size (w, h) is ({}, {}) but the index (x, y) is ({}, {})",
+                    self.width(),
+                    self.height(),
+                    index.x,
+                    index.y
+                );
             }
             &mut self[index.y as usize][index.x as usize]
         }

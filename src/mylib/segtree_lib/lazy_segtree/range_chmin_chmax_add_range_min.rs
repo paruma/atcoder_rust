@@ -289,28 +289,28 @@ pub mod test_range_chmin_chmax_add_range_min {
         let mut rng = SmallRng::seed_from_u64(42);
 
         for _ in 0..100 {
-            let n = rng.gen_range(1..=20);
-            let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.gen_range(-100..=100)).collect();
+            let n = rng.random_range(1..=20);
+            let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.random_range(-100..=100)).collect();
             let mut segtree = RangeChminChmaxAddRangeMinSegtree::<i64>::new(&naive_vec);
 
             for _ in 0..100 {
                 // 100 random operations per set
-                let op_type = rng.gen_range(0..6); // 6 operations
+                let op_type = rng.random_range(0..6); // 6 operations
 
                 match op_type {
                     0 => {
                         // set(p, x)
-                        let p = rng.gen_range(0..n);
-                        let x = rng.gen_range(-100..=100);
+                        let p = rng.random_range(0..n);
+                        let x = rng.random_range(-100..=100);
                         naive_vec[p] = x;
                         segtree.set(p, x);
                     }
                     1 => {
                         // apply_range_chmin(range, x)
-                        let l = rng.gen_range(0..=n);
-                        let r = rng.gen_range(l..=n);
+                        let l = rng.random_range(0..=n);
+                        let r = rng.random_range(l..=n);
 
-                        let x = rng.gen_range(-50..=50);
+                        let x = rng.random_range(-50..=50);
 
                         for i in l..r {
                             naive_vec[i] = naive_vec[i].min(x);
@@ -319,10 +319,10 @@ pub mod test_range_chmin_chmax_add_range_min {
                     }
                     2 => {
                         // apply_range_chmax(range, x)
-                        let l = rng.gen_range(0..=n);
-                        let r = rng.gen_range(l..=n);
+                        let l = rng.random_range(0..=n);
+                        let r = rng.random_range(l..=n);
 
-                        let x = rng.gen_range(-50..=50);
+                        let x = rng.random_range(-50..=50);
 
                         for i in l..r {
                             naive_vec[i] = naive_vec[i].max(x);
@@ -331,10 +331,10 @@ pub mod test_range_chmin_chmax_add_range_min {
                     }
                     3 => {
                         // apply_range_add(range, x)
-                        let l = rng.gen_range(0..=n);
-                        let r = rng.gen_range(l..=n);
+                        let l = rng.random_range(0..=n);
+                        let r = rng.random_range(l..=n);
 
-                        let x = rng.gen_range(-50..=50);
+                        let x = rng.random_range(-50..=50);
 
                         for i in l..r {
                             naive_vec[i] += x;
@@ -343,8 +343,8 @@ pub mod test_range_chmin_chmax_add_range_min {
                     }
                     4 => {
                         // range_min(range)
-                        let l = rng.gen_range(0..=n);
-                        let r = rng.gen_range(l..=n);
+                        let l = rng.random_range(0..=n);
+                        let r = rng.random_range(l..=n);
 
                         let expected_min =
                             naive_vec[l..r].iter().copied().min().unwrap_or(i64::MAX);

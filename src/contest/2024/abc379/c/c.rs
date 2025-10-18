@@ -212,13 +212,13 @@ mod tests {
 
     #[allow(dead_code)]
     fn make_random_problem(rng: &mut SmallRng) -> Problem {
-        let n = rng.gen_range(2..=20_000);
-        let m = rng.gen_range(1..=usize::min(n, 10));
+        let n = rng.random_range(2..=20_000);
+        let m = rng.random_range(1..=usize::min(n, 10));
 
-        let pos_list = generate_random_uniq_sequence(m, || rng.gen_range(0..n));
+        let pos_list = generate_random_uniq_sequence(m, || rng.random_range(0..n));
 
         let cnt_list = (0..m)
-            .map(|_| rng.gen_range(1..2_000_000_000))
+            .map(|_| rng.random_range(1..2_000_000_000))
             .collect_vec();
 
         let p = Problem {
@@ -237,7 +237,7 @@ mod tests {
         let num_tests = 10000;
         let max_wrong_case = 10; // この件数間違いが見つかったら打ち切り
         let mut rng = SmallRng::seed_from_u64(42);
-        // let mut rng = SmallRng::from_entropy();
+        // let mut rng = SmallRng::from_os_rng();
         let mut wrong_cases: Vec<WrongTestCase> = vec![];
         for _ in 0..num_tests {
             let p = make_random_problem(&mut rng);
@@ -364,8 +364,8 @@ pub mod random_test {
         let mut edges: Vec<(usize, usize)> = Vec::new();
         let mut uf: UnionFind<usize> = UnionFind::new(n_vertices);
         while edges.len() != n_vertices - 1 {
-            let x = rng.gen_range(0..n_vertices);
-            let y = rng.gen_range(0..n_vertices);
+            let x = rng.random_range(0..n_vertices);
+            let y = rng.random_range(0..n_vertices);
             if uf.union(x, y) {
                 edges.push((x, y));
             }
@@ -387,7 +387,7 @@ pub mod random_test {
     where
         R: Rng,
     {
-        let gen = || rng.gen_range(begin..end);
+        let gen = || rng.random_range(begin..end);
         generate_random_while(gen, |x| is_prime(*x))
     }
 }

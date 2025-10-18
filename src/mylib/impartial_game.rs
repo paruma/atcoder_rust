@@ -107,10 +107,10 @@ mod test_subtraction_game {
 
     // fn experiment() {
     //     use rand::{rngs::SmallRng, seq::SliceRandom, *};
-    //     let mut rng = SmallRng::from_entropy();
+    //     let mut rng = SmallRng::from_os_rng();
     //     // let mut rng = SmallRng::seed_from_u64(42);
     //     let n = 3;
-    //     let xs = (0..n).map(|_| rng.gen_range(0..8)).collect_vec();
+    //     let xs = (0..n).map(|_| rng.random_range(0..8)).collect_vec();
     //     let grundy = subtraction_game_grundy(&xs, 100);
     //     if !is_periodic(&grundy) {
     //         dbg!(xs);

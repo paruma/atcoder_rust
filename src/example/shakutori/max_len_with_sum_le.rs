@@ -85,9 +85,9 @@ mod tests {
         use rand::{rngs::SmallRng, *};
         let mut rng = SmallRng::seed_from_u64(42);
         for _ in 0..100 {
-            let n = rng.gen_range(1..6);
-            let xs = (0..n).map(|_| rng.gen_range(1..6)).collect_vec();
-            let k = rng.gen_range(0..30);
+            let n = rng.random_range(1..6);
+            let xs = (0..n).map(|_| rng.random_range(1..6)).collect_vec();
+            let k = rng.random_range(0..30);
             let naive_ans = solve_naive(&xs, k);
             assert_eq!(solve(&xs, k), naive_ans);
             assert_eq!(solve2(&xs, k), naive_ans);

@@ -238,15 +238,15 @@ mod tests {
 
     #[allow(dead_code)]
     fn make_random_problem(rng: &mut SmallRng) -> Problem {
-        let n = rng.gen_range(1..=10);
-        let s_len = rng.gen_range(1..=10);
-        let t_len = rng.gen_range(1..=10);
+        let n = rng.random_range(1..=10);
+        let s_len = rng.random_range(1..=10);
+        let t_len = rng.random_range(1..=10);
         let alphabet = b"abc".to_vec();
         let s = (0..s_len)
-            .map(|_| alphabet[rng.gen_range(0..alphabet.len())])
+            .map(|_| alphabet[rng.random_range(0..alphabet.len())])
             .collect_vec();
         let t = (0..t_len)
-            .map(|_| alphabet[rng.gen_range(0..alphabet.len())])
+            .map(|_| alphabet[rng.random_range(0..alphabet.len())])
             .collect_vec();
 
         let p = Problem { n, s, t };
@@ -260,7 +260,7 @@ mod tests {
         let num_tests = 200;
         let max_wrong_case = 10; // この件数間違いが見つかったら打ち切り
         let mut rng = SmallRng::seed_from_u64(42);
-        // let mut rng = SmallRng::from_entropy();
+        // let mut rng = SmallRng::from_os_rng();
         let mut wrong_cases: Vec<WrongTestCase> = vec![];
         for _ in 0..num_tests {
             let p = make_random_problem(&mut rng);

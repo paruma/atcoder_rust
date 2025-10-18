@@ -114,8 +114,8 @@ mod tests {
     #[allow(dead_code)]
     fn make_random_problem() -> Problem {
         todo!()
-        // let mut rng = SmallRng::from_entropy();
-        // let n = rng.gen_range(1..=10);
+        // let mut rng = SmallRng::from_os_rng();
+        // let n = rng.random_range(1..=10);
         // let p = Problem { _a: n };
         // println!("{:?}", &p);
         // p
