@@ -255,10 +255,7 @@ pub mod matrix {
                 [m[3][0], m[3][1], m[3][2]],
             ]);
 
-            m[0][0] * m11.det()
-                - m[0][1] * m12.det()
-                + m[0][2] * m13.det()
-                - m[0][3] * m14.det()
+            m[0][0] * m11.det() - m[0][1] * m12.det() + m[0][2] * m13.det() - m[0][3] * m14.det()
         }
     }
 
@@ -443,12 +440,8 @@ mod tests {
         ]);
         assert_eq!(m.det(), 0);
 
-        let m2 = Matrix44::<i32>::from_array([
-            [3, 2, 0, 1],
-            [4, 0, 1, 2],
-            [3, 0, 2, 1],
-            [9, 2, 3, 1],
-        ]);
+        let m2 =
+            Matrix44::<i32>::from_array([[3, 2, 0, 1], [4, 0, 1, 2], [3, 0, 2, 1], [9, 2, 3, 1]]);
         assert_eq!(m2.det(), 24);
     }
 
@@ -456,7 +449,7 @@ mod tests {
     #[ignore]
     fn test_random_det() {
         use rand::Rng;
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         // Naive determinant calculation using permutations for testing
         fn naive_det<const N: usize>(m: &Matrix<i32, N, N>) -> i32 {
@@ -502,21 +495,54 @@ mod tests {
         // Test for 3x3
         for _ in 0..100 {
             let data = [
-                [rng.random_range(-5..=5), rng.random_range(-5..=5), rng.random_range(-5..=5)],
-                [rng.random_range(-5..=5), rng.random_range(-5..=5), rng.random_range(-5..=5)],
-                [rng.random_range(-5..=5), rng.random_range(-5..=5), rng.random_range(-5..=5)],
+                [
+                    rng.random_range(-5..=5),
+                    rng.random_range(-5..=5),
+                    rng.random_range(-5..=5),
+                ],
+                [
+                    rng.random_range(-5..=5),
+                    rng.random_range(-5..=5),
+                    rng.random_range(-5..=5),
+                ],
+                [
+                    rng.random_range(-5..=5),
+                    rng.random_range(-5..=5),
+                    rng.random_range(-5..=5),
+                ],
             ];
             let m = Matrix33::<i32>::from_array(data);
             assert_eq!(m.det(), naive_det(&m));
         }
 
         // Test for 4x4
-        for _ in 0..20 { // Fewer iterations because naive is slow
+        for _ in 0..20 {
+            // Fewer iterations because naive is slow
             let data = [
-                [rng.random_range(-3..=3), rng.random_range(-3..=3), rng.random_range(-3..=3), rng.random_range(-3..=3)],
-                [rng.random_range(-3..=3), rng.random_range(-3..=3), rng.random_range(-3..=3), rng.random_range(-3..=3)],
-                [rng.random_range(-3..=3), rng.random_range(-3..=3), rng.random_range(-3..=3), rng.random_range(-3..=3)],
-                [rng.random_range(-3..=3), rng.random_range(-3..=3), rng.random_range(-3..=3), rng.random_range(-3..=3)],
+                [
+                    rng.random_range(-3..=3),
+                    rng.random_range(-3..=3),
+                    rng.random_range(-3..=3),
+                    rng.random_range(-3..=3),
+                ],
+                [
+                    rng.random_range(-3..=3),
+                    rng.random_range(-3..=3),
+                    rng.random_range(-3..=3),
+                    rng.random_range(-3..=3),
+                ],
+                [
+                    rng.random_range(-3..=3),
+                    rng.random_range(-3..=3),
+                    rng.random_range(-3..=3),
+                    rng.random_range(-3..=3),
+                ],
+                [
+                    rng.random_range(-3..=3),
+                    rng.random_range(-3..=3),
+                    rng.random_range(-3..=3),
+                    rng.random_range(-3..=3),
+                ],
             ];
             let m = Matrix44::<i32>::from_array(data);
             assert_eq!(m.det(), naive_det(&m));

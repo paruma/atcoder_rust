@@ -124,20 +124,12 @@ pub mod range_set {
         /// x 以上で self に入っていない値の最小値を返す (いわゆる mex)
         pub fn min_exclusive_geq(&self, x: i64) -> i64 {
             let &(l, r) = self.set.range(..(x + 1, x + 1)).max().unwrap();
-            if (l..=r).contains(&x) {
-                r + 1
-            } else {
-                x
-            }
+            if (l..=r).contains(&x) { r + 1 } else { x }
         }
         /// x 以下で self に入っていない値の最大値を返す
         pub fn max_exclusive_leq(&self, x: i64) -> i64 {
             let &(l, r) = self.set.range(..(x + 1, x + 1)).max().unwrap();
-            if (l..=r).contains(&x) {
-                l - 1
-            } else {
-                x
-            }
+            if (l..=r).contains(&x) { l - 1 } else { x }
         }
     }
     impl FromIterator<i64> for RangeSet {
@@ -299,7 +291,7 @@ mod tests {
 
     //     for _ in 0..TEST_CASES {
     //         // 挿入または削除をランダムに選択
-    //         if rng.gen_bool(0.5) {
+    //         if rng.random_bool(0.5) {
     //             // insert操作
     //             let val = rng.random_range(0..MAX_VAL);
     //             let was_inserted = range_set.insert(val);
@@ -343,7 +335,7 @@ mod tests {
 
     //     for _ in 0..TEST_CASES {
     //         // 挿入または削除をランダムに選択
-    //         if rng.gen_bool(0.5) {
+    //         if rng.random_bool(0.5) {
     //             // insert操作
     //             let val = rng.random_range(0..MAX_VAL);
     //             range_set.insert(val);
