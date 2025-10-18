@@ -29,7 +29,7 @@ mod tests {
 use hashbag::HashBag;
 // ====== import ======
 #[allow(unused_imports)]
-use itertools::{chain, iproduct, izip, Itertools};
+use itertools::{Itertools, chain, iproduct, izip};
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,

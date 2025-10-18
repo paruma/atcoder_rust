@@ -149,7 +149,7 @@ mod tests {
 
 // ====== import ======
 #[allow(unused_imports)]
-use itertools::{chain, iproduct, izip, Itertools};
+use itertools::{Itertools, chain, iproduct, izip};
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,
@@ -215,7 +215,7 @@ pub mod print_util {
 // ====== snippet ======
 use monoid_modint::*;
 pub mod monoid_modint {
-    use ac_library::{modint::ModIntBase, Monoid};
+    use ac_library::{Monoid, modint::ModIntBase};
     use std::{convert::Infallible, marker::PhantomData};
     pub struct MintAdditive<Mint: ModIntBase>(Infallible, PhantomData<fn() -> Mint>);
     impl<Mint> Monoid for MintAdditive<Mint>

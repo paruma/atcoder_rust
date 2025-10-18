@@ -154,12 +154,12 @@ mod tests {
 // ====== import ======
 #[allow(unused_imports)]
 use {
-    itertools::{chain, iproduct, izip, Itertools},
+    itertools::{Itertools, chain, iproduct, izip},
     proconio::{
         derive_readable, fastout, input,
         marker::{Bytes, Chars, Usize1},
     },
-    rand::{rngs::SmallRng, seq::SliceRandom, Rng, SeedableRng},
+    rand::{Rng, SeedableRng, rngs::SmallRng, seq::SliceRandom},
     std::{
         cmp::Reverse,
         collections::{BinaryHeap, HashMap, HashSet},
@@ -749,7 +749,7 @@ pub mod modint_u64 {
 pub mod rolling_hash {
     type Mint = super::ModInt2305843009213693951;
     pub fn generate_random_base() -> i64 {
-        use rand::{rngs::SmallRng, Rng, SeedableRng};
+        use rand::{Rng, SeedableRng, rngs::SmallRng};
         let mut rng = SmallRng::from_os_rng();
         rng.random_range(2..Mint::modulus() as i64)
     }

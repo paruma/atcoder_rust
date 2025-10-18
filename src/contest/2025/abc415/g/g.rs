@@ -63,7 +63,7 @@ mod tests {
 
 // ====== import ======
 #[allow(unused_imports)]
-use itertools::{chain, iproduct, izip, Itertools};
+use itertools::{Itertools, chain, iproduct, izip};
 use num::rational;
 #[allow(unused_imports)]
 use proconio::{

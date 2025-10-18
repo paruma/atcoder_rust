@@ -531,7 +531,7 @@ mod test_range_affine_range_minmax {
     #[ignore]
     #[test]
     fn test_random_affine_minmax() {
-        use rand::{rngs::SmallRng, Rng, SeedableRng};
+        use rand::{Rng, SeedableRng, rngs::SmallRng};
 
         let mut rng = SmallRng::seed_from_u64(42);
 

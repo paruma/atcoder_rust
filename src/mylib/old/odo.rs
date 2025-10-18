@@ -1,9 +1,5 @@
 pub fn guard(p: bool) -> Option<()> {
-    if p {
-        Some(())
-    } else {
-        None
-    }
+    if p { Some(()) } else { None }
 }
 
 #[cfg(test)]

@@ -299,7 +299,13 @@ pub mod vec_vec_at {
 
         fn index(&self, index: Pos) -> &Self::Output {
             if cfg!(debug_assertions) && !self.is_within(index) {
-                panic!("index out of bounds: the size (w, h) is ({}, {}) but the index (x, y) is ({}, {})", self.width(), self.height(), index.x, index.y);
+                panic!(
+                    "index out of bounds: the size (w, h) is ({}, {}) but the index (x, y) is ({}, {})",
+                    self.width(),
+                    self.height(),
+                    index.x,
+                    index.y
+                );
             }
 
             &self[index.y as usize][index.x as usize]
@@ -309,7 +315,13 @@ pub mod vec_vec_at {
     impl<T> IndexMut<Pos> for Vec<Vec<T>> {
         fn index_mut(&mut self, index: Pos) -> &mut Self::Output {
             if cfg!(debug_assertions) && !self.is_within(index) {
-                panic!("index out of bounds: the size (w, h) is ({}, {}) but the index (x, y) is ({}, {})", self.width(), self.height(), index.x, index.y);
+                panic!(
+                    "index out of bounds: the size (w, h) is ({}, {}) but the index (x, y) is ({}, {})",
+                    self.width(),
+                    self.height(),
+                    index.x,
+                    index.y
+                );
             }
 
             &mut self[index.y as usize][index.x as usize]

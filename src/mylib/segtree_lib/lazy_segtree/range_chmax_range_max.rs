@@ -3,9 +3,9 @@ use cargo_snippet::snippet;
 #[allow(clippy::module_inception)]
 #[snippet(prefix = "use range_chmax_range_max::*;")]
 pub mod range_chmax_range_max {
-    use ac_library::lazysegtree::MapMonoid;
     use ac_library::LazySegtree;
     use ac_library::Max;
+    use ac_library::lazysegtree::MapMonoid;
     use itertools::Itertools;
     use std::convert::Infallible;
     use std::ops::RangeBounds;
@@ -153,7 +153,7 @@ pub mod test_range_chmax_range_max {
     #[ignore]
     #[test]
     fn test_random_chmax_max() {
-        use rand::{rngs::SmallRng, Rng, SeedableRng};
+        use rand::{Rng, SeedableRng, rngs::SmallRng};
 
         let mut rng = SmallRng::seed_from_u64(42);
 

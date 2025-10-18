@@ -27,17 +27,9 @@ fn solve(nv: usize, ne: usize, k: usize, s: &[char], es: &[(usize, usize)]) -> b
             });
 
             dp[t][u] = if player_win {
-                if player == 'A' {
-                    'A'
-                } else {
-                    'B'
-                }
+                if player == 'A' { 'A' } else { 'B' }
             } else {
-                if player == 'A' {
-                    'B'
-                } else {
-                    'A'
-                }
+                if player == 'A' { 'B' } else { 'A' }
             };
         }
     }
@@ -133,12 +125,12 @@ mod tests {
 // ====== import ======
 #[allow(unused_imports)]
 use {
-    itertools::{chain, iproduct, izip, Itertools},
+    itertools::{Itertools, chain, iproduct, izip},
     proconio::{
         derive_readable, fastout, input,
         marker::{Bytes, Chars, Usize1},
     },
-    rand::{rngs::SmallRng, seq::SliceRandom, Rng, SeedableRng},
+    rand::{Rng, SeedableRng, rngs::SmallRng, seq::SliceRandom},
     std::{
         cmp::Reverse,
         collections::{BinaryHeap, HashMap, HashSet},

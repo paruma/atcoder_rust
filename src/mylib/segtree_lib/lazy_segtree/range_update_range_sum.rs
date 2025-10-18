@@ -52,11 +52,7 @@ pub mod range_update_range_sum {
             None
         }
         fn composition(a: &Option<T>, b: &Option<T>) -> Option<T> {
-            if a.is_some() {
-                *a
-            } else {
-                *b
-            }
+            if a.is_some() { *a } else { *b }
         }
 
         fn mapping(f: &Option<T>, x: &RangeSum<T>) -> RangeSum<T> {
@@ -217,7 +213,7 @@ pub mod test_range_update_range_sum {
     #[ignore]
     #[test]
     fn test_random_update() {
-        use rand::{rngs::SmallRng, Rng, SeedableRng};
+        use rand::{Rng, SeedableRng, rngs::SmallRng};
 
         let mut rng = SmallRng::seed_from_u64(42);
 

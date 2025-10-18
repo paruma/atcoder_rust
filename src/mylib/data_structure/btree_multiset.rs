@@ -5,7 +5,7 @@ use cargo_snippet::snippet;
 pub mod btree_multiset {
     use std::{
         borrow::Borrow,
-        collections::{btree_map::Range, BTreeMap},
+        collections::{BTreeMap, btree_map::Range},
         ops::RangeBounds,
     };
 

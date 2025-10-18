@@ -83,12 +83,12 @@ use ac_library::FenwickTree;
 // ====== import ======
 #[allow(unused_imports)]
 use {
-    itertools::{chain, iproduct, izip, Itertools},
+    itertools::{Itertools, chain, iproduct, izip},
     proconio::{
         derive_readable, fastout, input,
         marker::{Bytes, Chars, Usize1},
     },
-    rand::{rngs::SmallRng, seq::SliceRandom, Rng, SeedableRng},
+    rand::{Rng, SeedableRng, rngs::SmallRng, seq::SliceRandom},
     std::{
         cmp::Reverse,
         collections::{BinaryHeap, HashMap, HashSet},
@@ -196,11 +196,7 @@ pub mod range_update_range_sum {
             None
         }
         fn composition(a: &Option<T>, b: &Option<T>) -> Option<T> {
-            if a.is_some() {
-                *a
-            } else {
-                *b
-            }
+            if a.is_some() { *a } else { *b }
         }
         fn mapping(f: &Option<T>, x: &RangeSum<T>) -> RangeSum<T> {
             match f {

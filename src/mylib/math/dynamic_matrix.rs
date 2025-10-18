@@ -182,7 +182,10 @@ pub mod dynamic_matrix {
     {
         type Output = Self;
         fn mul(self, rhs: Self) -> Self::Output {
-            assert_eq!(self.cols, rhs.rows, "The number of columns of the left matrix must equal the number of rows of the right matrix for multiplication.");
+            assert_eq!(
+                self.cols, rhs.rows,
+                "The number of columns of the left matrix must equal the number of rows of the right matrix for multiplication."
+            );
 
             let mut result = Self::new(self.rows, rhs.cols, t_zero());
             for i in 0..self.rows {
@@ -242,7 +245,11 @@ pub mod dynamic_matrix {
         T: Copy + Sum + Product + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
     {
         pub fn apply(&self, x: Vec<T>) -> Vec<T> {
-            assert_eq!(self.cols, x.len(), "The number of columns of the matrix must equal the length of the vector for application.");
+            assert_eq!(
+                self.cols,
+                x.len(),
+                "The number of columns of the matrix must equal the length of the vector for application."
+            );
 
             let mut result = vec![t_zero(); self.rows];
             for i in 0..self.rows {

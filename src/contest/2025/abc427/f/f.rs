@@ -182,12 +182,12 @@ mod tests {
 use rustc_hash::FxHashMap;
 #[allow(unused_imports)]
 use {
-    itertools::{chain, iproduct, izip, Itertools},
+    itertools::{Itertools, chain, iproduct, izip},
     proconio::{
         derive_readable, fastout, input,
         marker::{Bytes, Chars, Usize1},
     },
-    rand::{rngs::SmallRng, seq::SliceRandom, Rng, SeedableRng},
+    rand::{Rng, SeedableRng, rngs::SmallRng, seq::SliceRandom},
     std::{
         cmp::Reverse,
         collections::{BinaryHeap, HashMap, HashSet},

@@ -4,9 +4,9 @@ use cargo_snippet::snippet;
 #[snippet(prefix = "use range_chmin_range_min::*;")]
 pub mod range_chmin_range_min {
     // range chmax range max や range chmin range max なども同様に作れる
-    use ac_library::lazysegtree::MapMonoid;
     use ac_library::LazySegtree;
     use ac_library::Min;
+    use ac_library::lazysegtree::MapMonoid;
     use itertools::Itertools;
     use std::convert::Infallible;
     use std::ops::RangeBounds;
@@ -154,7 +154,7 @@ pub mod test_range_chmin_range_min {
     #[ignore]
     #[test]
     fn test_random_chmin_min() {
-        use rand::{rngs::SmallRng, Rng, SeedableRng};
+        use rand::{Rng, SeedableRng, rngs::SmallRng};
 
         let mut rng = SmallRng::seed_from_u64(42);
 

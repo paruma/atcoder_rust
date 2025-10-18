@@ -85,12 +85,12 @@ mod tests {
 use std::sync::Arc;
 #[allow(unused_imports)]
 use {
-    itertools::{chain, iproduct, izip, Itertools},
+    itertools::{Itertools, chain, iproduct, izip},
     proconio::{
         derive_readable, fastout, input,
         marker::{Bytes, Chars, Usize1},
     },
-    rand::{rngs::SmallRng, seq::SliceRandom, Rng, SeedableRng},
+    rand::{Rng, SeedableRng, rngs::SmallRng, seq::SliceRandom},
     std::{
         cmp::Reverse,
         collections::{BinaryHeap, HashMap, HashSet},
@@ -155,7 +155,7 @@ use btree_multiset::*;
 pub mod btree_multiset {
     use std::{
         borrow::Borrow,
-        collections::{btree_map::Range, BTreeMap},
+        collections::{BTreeMap, btree_map::Range},
         ops::RangeBounds,
     };
     #[derive(Clone, Debug, PartialEq, Eq)]

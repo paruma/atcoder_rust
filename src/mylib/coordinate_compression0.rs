@@ -51,7 +51,7 @@ pub mod coordinate_compression {
 
 #[cfg(test)]
 mod test {
-    use itertools::{chain, Itertools};
+    use itertools::{Itertools, chain};
 
     use super::coordinate_compression::*;
     #[test]

@@ -30,7 +30,7 @@ mod tests {
 
 // ====== import ======
 #[allow(unused_imports)]
-use itertools::{chain, iproduct, izip, Itertools};
+use itertools::{Itertools, chain, iproduct, izip};
 use num_integer::sqrt;
 #[allow(unused_imports)]
 use proconio::{

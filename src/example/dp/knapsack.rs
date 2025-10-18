@@ -190,11 +190,7 @@ pub mod mod_neg_ext_int {
             }
         }
         pub fn get_fin_or(self, default: i64) -> i64 {
-            if self.is_fin() {
-                self.0
-            } else {
-                default
-            }
+            if self.is_fin() { self.0 } else { default }
         }
         #[inline]
         pub fn is_fin(self) -> bool {
@@ -204,11 +200,7 @@ pub mod mod_neg_ext_int {
             self.0 == i64::MIN
         }
         pub fn to_option(self) -> Option<i64> {
-            if self.is_fin() {
-                Some(self.0)
-            } else {
-                None
-            }
+            if self.is_fin() { Some(self.0) } else { None }
         }
         pub fn from_option(opt: Option<i64>) -> NegExtInt {
             match opt {

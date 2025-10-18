@@ -194,7 +194,7 @@ pub mod test_range_add_range_max {
     #[ignore]
     #[test]
     fn test_random_add_max() {
-        use rand::{rngs::SmallRng, Rng, SeedableRng};
+        use rand::{Rng, SeedableRng, rngs::SmallRng};
 
         let mut rng = SmallRng::seed_from_u64(42);
 

@@ -658,9 +658,9 @@ pub mod range_chmin_range_sum {
 #[cfg(test)]
 mod test_range_chmax_range_sum {
     use itertools::Itertools;
-    use rand::rngs::SmallRng;
     use rand::Rng;
     use rand::SeedableRng;
+    use rand::rngs::SmallRng;
 
     use super::abstract_segtree_beats::*;
     use super::range_chmax_range_sum::*;
@@ -731,9 +731,9 @@ mod test_range_chmax_range_sum {
 #[cfg(test)]
 mod test_range_chmin_range_sum {
     use itertools::Itertools;
-    use rand::rngs::SmallRng;
     use rand::Rng;
     use rand::SeedableRng;
+    use rand::rngs::SmallRng;
 
     use super::abstract_segtree_beats::*;
     use super::range_chmin_range_sum::*;

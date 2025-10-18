@@ -265,7 +265,7 @@ pub mod test_range_linear_update_range_sum {
     #[ignore]
     #[test]
     fn test_random_linear_update() {
-        use rand::{rngs::SmallRng, Rng, SeedableRng};
+        use rand::{Rng, SeedableRng, rngs::SmallRng};
 
         let mut rng = SmallRng::seed_from_u64(42);
 
