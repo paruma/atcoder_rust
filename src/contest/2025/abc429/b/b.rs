@@ -1,10 +1,12 @@
 fn main() {
     input! {
         n: usize,
+        m: i64,
         xs: [i64; n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let ans: bool = (0..n).any(|i| (0..n).filter(|j| *j != i).map(|j| xs[j]).sum::<i64>() == m);
+
+    print_yesno(ans);
 }
 
 #[cfg(test)]

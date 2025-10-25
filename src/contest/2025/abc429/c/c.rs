@@ -1,9 +1,20 @@
+fn nc2(n: i64) -> i64 {
+    n * (n - 1) / 2
+}
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        xs: [Usize1; n],
     }
-    let ans: i64 = -2_i64;
+
+    let cnts = xs.iter().copied().fold(vec![0_i64; n], |mut acc, x| {
+        acc[x] += 1;
+        acc
+    });
+
+    let ans: i64 = (0..n)
+        .map(|k| nc2(cnts[k]) * (n as i64 - cnts[k]))
+        .sum::<i64>();
     println!("{}", ans);
 }
 

@@ -1,10 +1,75 @@
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        nv: usize,
+        ne: usize,
+        es: [(Usize1, Usize1); ne],
+        s: Chars,
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    let is_safe = s.iter().copied().map(|s| s == 'S').collect_vec();
+    let adj = es
+        .iter()
+        .copied()
+        .fold(vec![vec![]; nv], |mut acc, (u, v)| {
+            acc[u].push(v);
+            acc[v].push(u);
+            acc
+        });
+
+    // (初期点, 現在の点)
+    let mut open: Queue<(usize, usize, i64)> = Queue::new();
+    // visited1[v]: 最初にvに訪問した安全点
+    let mut visited1 = vec![usize::MAX; nv];
+    // visited2[v]: 2番目にvに訪問した安全点
+    let mut visited2 = vec![usize::MAX; nv];
+
+    let mut dist1 = vec![i64::MAX; nv];
+    let mut dist2 = vec![i64::MAX; nv];
+
+    for v in 0..nv {
+        if is_safe[v] {
+            open.push((v, v, 0));
+
+            visited1[v] = v;
+            dist1[v] = 0;
+        }
+    }
+
+    while let Some((init, current, d)) = open.pop() {
+        for &next in &adj[current] {
+            if visited1[next] != usize::MAX && visited2[next] != usize::MAX {
+                continue;
+            }
+
+            if visited1[next] == usize::MAX {
+                visited1[next] = init;
+                dist1[next] = d + 1;
+            } else {
+                assert!(visited2[next] == usize::MAX);
+                if visited1[next] == init {
+                    continue;
+                }
+                visited2[next] = init;
+                dist2[next] = d + 1;
+            }
+            open.push((init, next, d + 1));
+        }
+    }
+
+    // for v in 0..nv {
+    //     assert!(visited1[v] != visited2[v]);
+    // }
+
+    // dbg!(&visited1);
+    // dbg!(&visited2);
+    // dbg!(&dist1);
+    // dbg!(&dist2);
+
+    let ans: Vec<i64> = (0..nv)
+        .filter(|v| !is_safe[*v])
+        .map(|v| dist1[v] + dist2[v])
+        .collect_vec();
+    print_vec(&ans);
 }
 
 #[cfg(test)]
@@ -133,3 +198,38 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use {mod_queue::*, std::usize};
+pub mod mod_queue {
+    use std::collections::VecDeque;
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct Queue<T> {
+        raw: VecDeque<T>,
+    }
+    impl<T> Queue<T> {
+        pub fn new() -> Self {
+            Queue {
+                raw: VecDeque::new(),
+            }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push_back(value)
+        }
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop_front()
+        }
+        pub fn peek(&self) -> Option<&T> {
+            self.raw.front()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.raw.is_empty()
+        }
+        pub fn len(&self) -> usize {
+            self.raw.len()
+        }
+    }
+    impl<T> Default for Queue<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+}

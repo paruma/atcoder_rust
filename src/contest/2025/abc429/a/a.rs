@@ -1,10 +1,15 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        m: usize,
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    for i in 1..=n {
+        if i <= m {
+            println!("OK");
+        } else {
+            println!("Too Many Requests");
+        }
+    }
 }
 
 #[cfg(test)]
