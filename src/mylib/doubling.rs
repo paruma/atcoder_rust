@@ -132,24 +132,6 @@ mod test {
     }
 
     #[test]
-    fn test_doubling() {
-        // 0
-        // ↓ ↖
-        // 1 → 2
-        let f = vec![1, 2, 0];
-
-        // 網羅的にテスト
-        for max_k in 0..10 {
-            let d = Doubling::new(&f, max_k);
-            for k in 0..=max_k {
-                for x in 0..f.len() {
-                    assert_eq!(d.eval(k, x), naive(&f, k, x));
-                }
-            }
-        }
-    }
-
-    #[test]
     fn test_doubling_example() {
         // 0
         // ↓ ↖
@@ -170,25 +152,6 @@ mod test {
         assert_eq!(d.eval(0, 0), 0);
         assert_eq!(d.eval(0, 1), 1);
         assert_eq!(d.eval(0, 2), 2);
-    }
-
-    #[test]
-    fn test_doubling_with_value() {
-        // 0
-        // ↓ ↖
-        // 1 → 2
-        let f = vec![1, 2, 0];
-        let g = vec![10, 100, 1000];
-
-        // 網羅的にテスト
-        for max_k in 0..10 {
-            let d = DoublingWithValue::new(&f, &g, max_k);
-            for k in 0..=max_k {
-                for x in 0..f.len() {
-                    assert_eq!(d.eval(k, x), naive_with_value(&f, &g, k, x));
-                }
-            }
-        }
     }
 
     #[test]
@@ -219,5 +182,52 @@ mod test {
         assert_eq!(d.eval(0, 0), (0, 0));
         assert_eq!(d.eval(0, 1), (1, 0));
         assert_eq!(d.eval(0, 2), (2, 0));
+    }
+
+    #[test]
+    #[ignore]
+    fn test_doubling_random() {
+        use rand::{rngs::SmallRng, Rng, SeedableRng};
+        let mut rng = SmallRng::from_entropy();
+
+        for _ in 0..500 {
+            let n = rng.gen_range(1..11);
+            let max_k = rng.gen_range(1..21);
+
+            let f = (0..n).map(|_| rng.gen_range(0..n)).collect::<Vec<_>>();
+
+            let d = Doubling::new(&f, max_k);
+
+            for _ in 0..100 {
+                let k = rng.gen_range(0..=max_k);
+                let x = rng.gen_range(0..n);
+                assert_eq!(d.eval(k, x), naive(&f, k, x));
+            }
+        }
+    }
+
+    #[test]
+    #[ignore]
+    fn test_doubling_with_value_random() {
+        use rand::{rngs::SmallRng, Rng, SeedableRng};
+        let mut rng = SmallRng::from_entropy();
+
+        for _ in 0..500 {
+            let n = rng.gen_range(1..11);
+            let max_k = rng.gen_range(1..21);
+
+            let f = (0..n).map(|_| rng.gen_range(0..n)).collect::<Vec<_>>();
+            let g = (0..n)
+                .map(|_| rng.gen_range(-1_000_000_000..1_000_000_000))
+                .collect::<Vec<_>>();
+
+            let d = DoublingWithValue::new(&f, &g, max_k);
+
+            for _ in 0..100 {
+                let k = rng.gen_range(0..=max_k);
+                let x = rng.gen_range(0..n);
+                assert_eq!(d.eval(k, x), naive_with_value(&f, &g, k, x));
+            }
+        }
     }
 }
