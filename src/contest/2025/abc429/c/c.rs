@@ -6,12 +6,7 @@ fn main() {
         n: usize,
         xs: [Usize1; n],
     }
-
-    let cnts = xs.iter().copied().fold(vec![0_i64; n], |mut acc, x| {
-        acc[x] += 1;
-        acc
-    });
-
+    let cnts = xs.iter().copied().counts_vec(n);
     let ans: i64 = (0..n)
         .map(|k| nc2(cnts[k]) * (n as i64 - cnts[k]))
         .sum::<i64>();
@@ -144,3 +139,15 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use counts_vec::*;
+#[allow(clippy::module_inception)]
+pub mod counts_vec {
+    pub trait IteratorCountsVec: Iterator<Item = usize> + Sized {
+        fn counts_vec(self, size: usize) -> Vec<i64> {
+            let mut counts = vec![0; size];
+            self.for_each(|item| counts[item] += 1);
+            counts
+        }
+    }
+    impl<T: Iterator<Item = usize>> IteratorCountsVec for T {}
+}
