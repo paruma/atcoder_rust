@@ -42,10 +42,12 @@ pub mod doubling {
             if k == 0 {
                 return x;
             }
+            let k_bits = (usize::BITS - k.leading_zeros()) as usize;
 
             self.dp
                 .iter()
                 .enumerate()
+                .take(k_bits)
                 .filter(|(i, _)| (k >> i) & 1 == 1)
                 .map(|(_, fp)| fp)
                 .fold(x, |acc, fp| fp[acc])
@@ -105,17 +107,98 @@ pub mod doubling_with_sum {
             if k == 0 {
                 return (x, 0);
             }
+            let k_bits = (usize::BITS - k.leading_zeros()) as usize;
 
             self.dp_f
                 .iter()
                 .zip(self.dp_g.iter())
                 .enumerate()
+                .take(k_bits)
                 .filter(|(i, _)| (k >> i) & 1 == 1)
                 .map(|(_, (fp, gp))| (fp, gp))
                 .fold((x, 0), |(idx, val), (fp, gp)| (fp[idx], val + gp[idx]))
         }
     }
 }
+
+#[allow(clippy::module_inception)]
+#[snippet(prefix = "use doubling_with_monoid::*;")]
+pub mod doubling_with_monoid {
+    use ac_library::Monoid;
+
+
+    pub struct DoublingWithMonoid<M: Monoid> {
+        n: usize,
+        log: usize,
+        dp_f: Vec<Vec<usize>>,
+        dp_g: Vec<Vec<M::S>>,
+    }
+
+    impl<M: Monoid> DoublingWithMonoid<M>
+    where
+        M::S: Clone,
+    {
+        /// doubling 前処理の構築をする
+        /// k は 合成回数の最大値 (k>=1)
+        /// f[x] は x の遷移先
+        /// g[x] は x→f[x] の辺に対応するモノイドの値
+        /// [計算量]
+        /// n = f.len() としたとき、O(n log k)
+        pub fn new(f: &[usize], g: &[M::S], k: usize) -> Self {
+            let n = f.len();
+            let log = (usize::BITS - k.leading_zeros()) as usize;
+            let mut dp_f = vec![vec![0; n]; log];
+            let mut dp_g = vec![vec![M::identity(); n]; log];
+
+            if k >= 1 {
+                dp_f[0] = f.to_vec();
+                dp_g[0] = g.to_vec();
+            }
+
+            for i in 1..log {
+                for x in 0..n {
+                    let fp = &dp_f[i - 1];
+                    let gp = &dp_g[i - 1];
+                    dp_g[i][x] = M::binary_operation(&gp[x], &gp[fp[x]]);
+                    dp_f[i][x] = fp[fp[x]];
+                }
+            }
+
+            Self {
+                n,
+                log,
+                dp_f,
+                dp_g,
+            }
+        }
+
+        /// fのk回合成を f^k とする。
+        /// (f^k)(x) と x → f(x) → ... → (f^k)(x) のパス上の値の総積（モノイド演算）を求める
+        ///
+        /// 計算量: O(log k)
+        pub fn eval(&self, k: usize, x: usize) -> (usize, M::S) {
+            assert!((0..self.n).contains(&x));
+            assert!(k < (1 << self.log));
+
+            if k == 0 {
+                return (x, M::identity());
+            }
+            let k_bits = (usize::BITS - k.leading_zeros()) as usize;
+
+            self.dp_f
+                .iter()
+                .zip(self.dp_g.iter())
+                .enumerate()
+                .take(k_bits)
+                .filter(|(i, _)| (k >> i) & 1 == 1)
+                .map(|(_, (fp, gp))| (fp, gp))
+                .fold((x, M::identity()), |(idx, val), (fp, gp)| {
+                    (fp[idx], M::binary_operation(&val, &gp[idx]))
+                })
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::doubling::Doubling;
@@ -229,6 +312,35 @@ mod test {
                 let k = rng.gen_range(0..=max_k);
                 let x = rng.gen_range(0..n);
                 assert_eq!(d.eval(k, x), naive_with_value(&f, &g, k, x));
+            }
+        }
+    }
+
+    use super::doubling_with_monoid::DoublingWithMonoid;
+    use ac_library::Monoid;
+
+    struct Sum;
+    impl Monoid for Sum {
+        type S = i64;
+        fn identity() -> Self::S {
+            0
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            a + b
+        }
+    }
+
+    #[test]
+    fn test_doubling_with_monoid_sum() {
+        let f = vec![1, 2, 0];
+        let g = vec![10, 100, 1000];
+        let max_k = 10;
+        let d_sum = DoublingWithSum::new(&f, &g, max_k);
+        let d_monoid = DoublingWithMonoid::<Sum>::new(&f, &g, max_k);
+
+        for k in 0..=max_k {
+            for x in 0..f.len() {
+                assert_eq!(d_sum.eval(k, x), d_monoid.eval(k, x), "k={}, x={}", k, x);
             }
         }
     }
