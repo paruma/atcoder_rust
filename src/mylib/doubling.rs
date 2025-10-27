@@ -54,23 +54,23 @@ pub mod doubling {
 }
 
 #[allow(clippy::module_inception)]
-#[snippet(prefix = "use doubling_with_value::*;")]
-pub mod doubling_with_value {
-    pub struct DoublingWithValue {
+#[snippet(prefix = "use doubling_with_sum::*;")]
+pub mod doubling_with_sum {
+    pub struct DoublingWithSum {
         n: usize,
         log: usize,
         dp_f: Vec<Vec<usize>>,
         dp_g: Vec<Vec<i64>>,
     }
 
-    impl DoublingWithValue {
+    impl DoublingWithSum {
         /// doubling 前処理の構築をする
         /// k は 合成回数の最大値 (k>=1)
         /// f[x] は x の遷移先
         /// g[x] は x→f[x] の辺重み
         /// [計算量]
         /// n = f.len() としたとき、O(n log k)
-        pub fn new(f: &[usize], g: &[i64], k: usize) -> DoublingWithValue {
+        pub fn new(f: &[usize], g: &[i64], k: usize) -> DoublingWithSum {
             let n = f.len();
             // k を2進展開したときの桁数
             let log = (usize::BITS - k.leading_zeros()) as usize;
@@ -91,7 +91,7 @@ pub mod doubling_with_value {
                 }
             }
 
-            DoublingWithValue { n, log, dp_f, dp_g }
+            DoublingWithSum { n, log, dp_f, dp_g }
         }
 
         /// fのk回合成を f^k とする。
@@ -119,7 +119,7 @@ pub mod doubling_with_value {
 #[cfg(test)]
 mod test {
     use super::doubling::Doubling;
-    use super::doubling_with_value::DoublingWithValue;
+    use super::doubling_with_sum::DoublingWithSum;
 
     /// (f の k 回合成)(x) を愚直に計算する
     fn naive(f: &[usize], k: usize, x: usize) -> usize {
@@ -163,7 +163,7 @@ mod test {
         // 1 → 2
         let f = vec![1, 2, 0];
         let g = vec![10, 100, 1000];
-        let d = DoublingWithValue::new(&f, &g, 4);
+        let d = DoublingWithSum::new(&f, &g, 4);
 
         // 通常の例
         // k=2, x=0: 0 -> 1 -> 2, value = g[0] + g[1] = 10 + 100 = 110
@@ -223,7 +223,7 @@ mod test {
                 .map(|_| rng.gen_range(-1_000_000_000..1_000_000_000))
                 .collect::<Vec<_>>();
 
-            let d = DoublingWithValue::new(&f, &g, max_k);
+            let d = DoublingWithSum::new(&f, &g, max_k);
 
             for _ in 0..100 {
                 let k = rng.gen_range(0..=max_k);
