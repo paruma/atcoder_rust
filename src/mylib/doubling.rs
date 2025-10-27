@@ -25,8 +25,8 @@ pub mod doubling {
             }
             for i in 1..log {
                 for x in 0..n {
-                    let f = &dp[i - 1];
-                    dp[i][x] = f[f[x]];
+                    let fp = &dp[i - 1];
+                    dp[i][x] = fp[fp[x]];
                 }
             }
 
@@ -47,18 +47,20 @@ pub mod doubling {
                 .iter()
                 .enumerate()
                 .filter(|(i, _)| (k >> i) & 1 == 1)
-                .map(|(_, f)| f)
-                .fold(x, |acc, f| f[acc])
+                .map(|(_, fp)| fp)
+                .fold(x, |acc, fp| fp[acc])
         }
     }
 }
 
+#[allow(clippy::module_inception)]
+#[snippet(prefix = "use doubling_with_value::*;")]
 pub mod doubling_with_value {
     pub struct DoublingWithValue {
         n: usize,
         log: usize,
-        dpf: Vec<Vec<usize>>,
-        dpg: Vec<Vec<i64>>,
+        dp_f: Vec<Vec<usize>>,
+        dp_g: Vec<Vec<i64>>,
     }
 
     impl DoublingWithValue {
@@ -73,23 +75,23 @@ pub mod doubling_with_value {
             // k を2進展開したときの桁数
             let log = (usize::BITS - k.leading_zeros()) as usize;
             // dp[i][x] = (f の 2^i 回合成)(x)
-            let mut dpf = vec![vec![0; n]; log];
-            let mut dpg = vec![vec![0; n]; log];
+            let mut dp_f = vec![vec![0; n]; log];
+            let mut dp_g = vec![vec![0; n]; log];
             if k >= 1 {
-                dpf[0] = f.to_vec();
-                dpg[0] = g.to_vec();
+                dp_f[0] = f.to_vec();
+                dp_g[0] = g.to_vec();
             }
             for i in 1..log {
                 for x in 0..n {
-                    let f = &dpf[i - 1];
-                    let g = &dpg[i - 1];
-                    // x → f[x] → f[f[x]]
-                    dpg[i][x] = g[x] + g[f[x]];
-                    dpf[i][x] = f[f[x]];
+                    let fp = &dp_f[i - 1];
+                    let gp = &dp_g[i - 1];
+                    // x → fp[x] → fp[fp[x]]
+                    dp_g[i][x] = gp[x] + gp[fp[x]];
+                    dp_f[i][x] = fp[fp[x]];
                 }
             }
 
-            DoublingWithValue { n, log, dpf, dpg }
+            DoublingWithValue { n, log, dp_f, dp_g }
         }
 
         /// fのk回合成を f^k とする。
@@ -104,13 +106,13 @@ pub mod doubling_with_value {
                 return (x, 0);
             }
 
-            self.dpf
+            self.dp_f
                 .iter()
-                .zip(self.dpg.iter())
+                .zip(self.dp_g.iter())
                 .enumerate()
                 .filter(|(i, _)| (k >> i) & 1 == 1)
-                .map(|(_, (f, g))| (f, g))
-                .fold((x, 0), |(idx, val), (f, g)| (f[idx], val + g[idx]))
+                .map(|(_, (fp, gp))| (fp, gp))
+                .fold((x, 0), |(idx, val), (fp, gp)| (fp[idx], val + gp[idx]))
         }
     }
 }
