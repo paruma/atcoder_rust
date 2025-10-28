@@ -118,6 +118,35 @@ pub mod doubling_with_sum {
                 .map(|(_, (fp, gp))| (fp, gp))
                 .fold((x, 0), |(idx, val), (fp, gp)| (fp[idx], val + gp[idx]))
         }
+
+        /// 遷移回数について二分探索する
+        /// パス重みの総和 `s` を引数とする述語 `p(s)` が true となる最大の遷移回数 `k` を求める。
+        /// そのときの遷移回数 `k`、到達点、パス重みの総和を `(k, pos, sum)` の形で返す。
+        /// `p(0)` は true である必要があります。
+        /// 計算量: O(log k)
+        pub fn bin_search<F>(&self, x: usize, mut p: F) -> (usize, usize, i64)
+        where
+            F: FnMut(i64) -> bool,
+        {
+            assert!((0..self.n).contains(&x));
+
+            let mut k = 0;
+            let mut current_pos = x;
+            let mut current_sum = 0i64;
+
+            for i in (0..self.log).rev() {
+                let next_pos_after_jump = self.dp_f[i][current_pos];
+                let sum_of_jump = self.dp_g[i][current_pos];
+
+                if p(current_sum + sum_of_jump) {
+                    k += 1 << i;
+                    current_sum += sum_of_jump;
+                    current_pos = next_pos_after_jump;
+                }
+            }
+
+            (k, current_pos, current_sum)
+        }
     }
 }
 
@@ -163,12 +192,7 @@ pub mod doubling_with_monoid {
                 }
             }
 
-            Self {
-                n,
-                log,
-                dp_f,
-                dp_g,
-            }
+            Self { n, log, dp_f, dp_g }
         }
 
         /// fのk回合成を f^k とする。
@@ -414,5 +438,46 @@ mod test {
                 assert_eq!(d.eval(k, x), naive_with_string(&f, &g, k, x));
             }
         }
+    }
+
+    #[test]
+    fn test_doubling_with_sum_bin_search() {
+        let f = vec![1, 2, 0];
+        let g = vec![10, 100, 1000];
+        let d = DoublingWithSum::new(&f, &g, 10);
+
+        // x=0から開始し、合計が150未満となる最大のkを探す
+        // k=0: (0, 0, 0) -> ok
+        // k=1: (1, 1, 10) -> ok
+        // k=2: (2, 2, 110) -> ok
+        // k=3: (3, 0, 1110) -> ng
+        // その結果、k=2, pos=2, sum=110 となるはず
+        let (k, pos, sum) = d.bin_search(0, |s| s < 150);
+        assert_eq!(k, 2);
+        assert_eq!(pos, 2);
+        assert_eq!(sum, 110);
+
+        // x=1から開始し、合計が1000未満となる最大のkを探す
+        // k=0: (0, 1, 0) -> ok
+        // k=1: (1, 2, 100) -> ok
+        // k=2: (2, 0, 1100) -> ng
+        // その結果、k=1, pos=2, sum=100 となるはず
+        let (k, pos, sum) = d.bin_search(1, |s| s < 1000);
+        assert_eq!(k, 1);
+        assert_eq!(pos, 2);
+        assert_eq!(sum, 100);
+
+        // 述語が常にtrueの場合
+        // evalで最大ステップ数を指定した場合と等価になるはず
+        let max_k = 15;
+        let (k, pos, sum) = d.bin_search(0, |_| true);
+        assert_eq!(k, max_k);
+        assert_eq!((pos, sum), d.eval(max_k, 0));
+
+        // 述語が常にfalseの場合（正の合計値に対して）
+        let (k, pos, sum) = d.bin_search(0, |s| s < 0);
+        assert_eq!(k, 0);
+        assert_eq!(pos, 0);
+        assert_eq!(sum, 0);
     }
 }
