@@ -126,7 +126,6 @@ pub mod doubling_with_sum {
 pub mod doubling_with_monoid {
     use ac_library::Monoid;
 
-
     pub struct DoublingWithMonoid<M: Monoid> {
         n: usize,
         log: usize,
@@ -213,6 +212,13 @@ mod test {
     fn naive_with_value(f: &[usize], g: &[i64], k: usize, x: usize) -> (usize, i64) {
         (0..k).fold((x, 0), |(current_x, total_value), _| {
             (f[current_x], total_value + g[current_x])
+        })
+    }
+
+    /// (f の k 回合成)(x) とそのときの値の総和（文字列連結）を愚直に計算する
+    fn naive_with_string(f: &[usize], g: &[String], k: usize, x: usize) -> (usize, String) {
+        (0..k).fold((x, String::new()), |(current_x, total_value), _| {
+            (f[current_x], total_value + &g[current_x])
         })
     }
 
@@ -317,30 +323,95 @@ mod test {
     }
 
     use super::doubling_with_monoid::DoublingWithMonoid;
-    use ac_library::Monoid;
+    use ac_library::{Additive, Monoid};
 
-    struct Sum;
-    impl Monoid for Sum {
-        type S = i64;
+    struct StringConcat;
+    impl Monoid for StringConcat {
+        type S = String;
         fn identity() -> Self::S {
-            0
+            String::new()
         }
         fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
-            a + b
+            a.clone() + b
         }
     }
 
     #[test]
-    fn test_doubling_with_monoid_sum() {
+    fn test_doubling_with_monoid_example() {
+        // 0
+        // ↓ ↖
+        // 1 → 2
         let f = vec![1, 2, 0];
         let g = vec![10, 100, 1000];
-        let max_k = 10;
-        let d_sum = DoublingWithSum::new(&f, &g, max_k);
-        let d_monoid = DoublingWithMonoid::<Sum>::new(&f, &g, max_k);
+        let d = DoublingWithMonoid::<Additive<i64>>::new(&f, &g, 4);
 
-        for k in 0..=max_k {
-            for x in 0..f.len() {
-                assert_eq!(d_sum.eval(k, x), d_monoid.eval(k, x), "k={}, x={}", k, x);
+        // 通常の例
+        // k=2, x=0: 0 -> 1 -> 2, value = g[0] + g[1] = 10 + 100 = 110
+        assert_eq!(d.eval(2, 0), (2, 110));
+        // k=2, x=1: 1 -> 2 -> 0, value = g[1] + g[2] = 100 + 1000 = 1100
+        assert_eq!(d.eval(2, 1), (0, 1100));
+        // k=2, x=2: 2 -> 0 -> 1, value = g[2] + g[0] = 1000 + 10 = 1010
+        assert_eq!(d.eval(2, 2), (1, 1010));
+
+        // k=4, x=0: 0 -> 1 -> 2 -> 0 -> 1, value = g[0]+g[1]+g[2]+g[0] = 10+100+1000+10 = 1120
+        assert_eq!(d.eval(4, 0), (1, 1120));
+        // k=4, x=1: 1 -> 2 -> 0 -> 1 -> 2, value = g[1]+g[2]+g[0]+g[1] = 100+1000+10+100 = 1210
+        assert_eq!(d.eval(4, 1), (2, 1210));
+        // k=4, x=2: 2 -> 0 -> 1 -> 2 -> 0, value = g[2]+g[0]+g[1]+g[2] = 1000+10+100+1000 = 2110
+        assert_eq!(d.eval(4, 2), (0, 2110));
+
+        // 0回合成は恒等写像扱い
+        assert_eq!(d.eval(0, 0), (0, 0));
+        assert_eq!(d.eval(0, 1), (1, 0));
+        assert_eq!(d.eval(0, 2), (2, 0));
+    }
+
+    #[test]
+    #[ignore]
+    fn test_doubling_with_monoid_random() {
+        use rand::{rngs::SmallRng, Rng, SeedableRng};
+        let mut rng = SmallRng::from_entropy();
+
+        for _ in 0..500 {
+            let n = rng.gen_range(1..11);
+            let max_k = rng.gen_range(1..21);
+
+            let f = (0..n).map(|_| rng.gen_range(0..n)).collect::<Vec<_>>();
+            let g = (0..n)
+                .map(|_| rng.gen_range(-1_000_000_000..1_000_000_000))
+                .collect::<Vec<_>>();
+
+            let d = DoublingWithMonoid::<Additive<i64>>::new(&f, &g, max_k);
+
+            for _ in 0..100 {
+                let k = rng.gen_range(0..=max_k);
+                let x = rng.gen_range(0..n);
+                assert_eq!(d.eval(k, x), naive_with_value(&f, &g, k, x));
+            }
+        }
+    }
+
+    #[test]
+    #[ignore]
+    fn test_doubling_with_monoid_string_random() {
+        use rand::{rngs::SmallRng, Rng, SeedableRng};
+        let mut rng = SmallRng::from_entropy();
+
+        for _ in 0..100 {
+            let n = rng.gen_range(1..11);
+            let max_k = rng.gen_range(1..21);
+
+            let f = (0..n).map(|_| rng.gen_range(0..n)).collect::<Vec<_>>();
+            let g = (0..n)
+                .map(|_| ((rng.gen_range(0..26) + b'a') as char).to_string())
+                .collect::<Vec<_>>();
+
+            let d = DoublingWithMonoid::<StringConcat>::new(&f, &g, max_k);
+
+            for _ in 0..50 {
+                let k = rng.gen_range(0..=max_k);
+                let x = rng.gen_range(0..n);
+                assert_eq!(d.eval(k, x), naive_with_string(&f, &g, k, x));
             }
         }
     }
