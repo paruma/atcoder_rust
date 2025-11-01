@@ -4,8 +4,48 @@ fn main() {
         n: usize,
         xs: [i64; n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    // dist[x]: xにいる人の最も近い別の人までの距離
+    let mut dist: BTreeMap<i64, i64> = BTreeMap::new();
+    let inf: i64 = 1_000_000_000_000;
+    dist.insert(0, inf);
+    let mut dist_sum: i64 = inf;
+
+    for x in xs {
+        let mut x_dist = inf; // xから最も近い別の人までの距離
+        dist_sum += x_dist;
+        // x の左隣で一番近い
+        if let Some((x_left, x_left_dist)) = dist.range(..x).max() {
+            let cand_x_dist = i64::abs(x - *x_left);
+
+            dist_sum -= x_dist;
+            x_dist = x_dist.min(cand_x_dist);
+            dist_sum += x_dist;
+
+            if cand_x_dist < *x_left_dist {
+                dist_sum -= *x_left_dist;
+                dist.insert(*x_left, cand_x_dist);
+                dist_sum += cand_x_dist;
+            }
+        }
+
+        // x の右隣で一番近い
+        if let Some((x_right, x_right_dist)) = dist.range(x..).min() {
+            let cand_x_dist = i64::abs(x - *x_right);
+
+            dist_sum -= x_dist;
+            x_dist = x_dist.min(cand_x_dist);
+            dist_sum += x_dist;
+
+            if cand_x_dist < *x_right_dist {
+                dist_sum -= *x_right_dist;
+                dist.insert(*x_right, cand_x_dist);
+                dist_sum += cand_x_dist;
+            }
+        }
+
+        dist.insert(x, x_dist);
+        println!("{}", dist_sum);
+    }
 }
 
 #[cfg(test)]
@@ -67,6 +107,7 @@ mod tests {
 }
 
 // ====== import ======
+use std::{collections::BTreeMap, i64};
 #[allow(unused_imports)]
 use {
     itertools::{Itertools, chain, iproduct, izip},

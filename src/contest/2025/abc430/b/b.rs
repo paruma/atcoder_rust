@@ -2,9 +2,21 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        m: usize,
+        grid: [Chars; n],
     }
-    let ans: i64 = -2_i64;
+    let ans: usize = iproduct!(0..=n - m, 0..=n - m)
+        .map(|(y0, x0)| {
+            let mut sub = vec![vec!['-'; m]; m];
+            for y in 0..m {
+                for x in 0..m {
+                    sub[y][x] = grid[y + y0][x + x0];
+                }
+            }
+            sub
+        })
+        .unique()
+        .count();
     println!("{}", ans);
 }
 
