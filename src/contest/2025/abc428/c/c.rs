@@ -1,11 +1,37 @@
 #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        q: usize,
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let mut seg = Segtree::<Min<i64>>::from(vec![0; q + 1]);
+
+    let mut cur = 0;
+
+    for _ in 0..q {
+        input! {
+            t: usize,
+        }
+
+        if t == 1 {
+            input! {
+                c: char
+            }
+
+            // seg.get(cur + 1)
+            let cur_val = seg.get(cur);
+            let pm = if c == '(' { 1 } else { -1 };
+            seg.set(cur + 1, cur_val + pm);
+            cur += 1;
+        } else {
+            seg.set(cur, 0);
+            cur -= 1;
+        }
+        let ok = seg.prod(0..=cur) >= 0 && seg.get(cur) == 0;
+        print_yesno(ok);
+    }
+
+    // let ans: i64 = -2_i64;
+    // println!("{}", ans);
 }
 
 #[cfg(test)]
@@ -23,8 +49,8 @@ mod tests {
     /// 間違っていたら false を返す
     fn process_one_test(rng: &mut SmallRng) -> bool {
         // ==== 問題を作る ====
-        let n = rng.random_range(1..=10);
-        let xs = (0..n).map(|_| rng.random_range(0..10)).collect_vec();
+        let n = rng.gen_range(1..=10);
+        let xs = (0..n).map(|_| rng.gen_range(0..10)).collect_vec();
 
         // ==== 解く ====
         let main_ans = xs.len();
@@ -49,7 +75,7 @@ mod tests {
         let max_wrong_case = 10; // この件数間違いが見つかったら打ち切り
         let mut cnt_wrong = 0;
         let mut rng = SmallRng::seed_from_u64(42);
-        // let mut rng = SmallRng::from_os_rng();
+        // let mut rng = SmallRng::from_entropy();
         for _ in 0..num_tests {
             let is_ok = process_one_test(&mut rng);
             if !is_ok {
@@ -66,15 +92,16 @@ mod tests {
     }
 }
 
+use ac_library::{Min, Segtree};
 // ====== import ======
 #[allow(unused_imports)]
 use {
-    itertools::{Itertools, chain, iproduct, izip},
+    itertools::{chain, iproduct, izip, Itertools},
     proconio::{
         derive_readable, fastout, input,
         marker::{Bytes, Chars, Usize1},
     },
-    rand::{Rng, SeedableRng, rngs::SmallRng, seq::SliceRandom},
+    rand::{rngs::SmallRng, seq::SliceRandom, Rng, SeedableRng},
     std::{
         cmp::Reverse,
         collections::{BinaryHeap, HashMap, HashSet},

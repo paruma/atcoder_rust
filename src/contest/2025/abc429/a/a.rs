@@ -1,44 +1,15 @@
-fn solve(c: i128, d: i128) -> i128 {
-    (1..=10)
-        .map(|keta: u32| {
-            // keta: c + x の桁
-            // x の範囲
-            // dbg!(keta);
-            let min_x = (10_i128.pow(keta - 1) - c).max(1);
-            let max_x = (10_i128.pow(keta) - c - 1).min(d);
-            if min_x > max_x {
-                return 0;
-            }
-
-            let fval_min = c * 10_i128.pow(keta) + c + min_x;
-            let fval_max = c * 10_i128.pow(keta) + c + max_x;
-            // dbg!(min_x);
-            // dbg!(max_x);
-            // dbg!(fval_min);
-            // dbg!(fval_max);
-            // dbg!((fval_max).sqrt() - (fval_min - 1).sqrt())
-
-            (fval_max).sqrt() - (fval_min - 1).sqrt()
-        })
-        .sum::<i128>()
-}
 fn main() {
     input! {
-        t: usize,
+        n: usize,
+        m: usize,
     }
-
-    // dbg!("i128にする");
-
-    let ans: Vec<i128> = (0..t)
-        .map(|_| {
-            input! {
-                c: i128,
-                d: i128,
-            }
-            solve(c, d)
-        })
-        .collect_vec();
-    print_vec(&ans);
+    for i in 1..=n {
+        if i <= m {
+            println!("OK");
+        } else {
+            println!("Too Many Requests");
+        }
+    }
 }
 
 #[cfg(test)]
@@ -56,8 +27,8 @@ mod tests {
     /// 間違っていたら false を返す
     fn process_one_test(rng: &mut SmallRng) -> bool {
         // ==== 問題を作る ====
-        let n = rng.gen_range(1..=10);
-        let xs = (0..n).map(|_| rng.gen_range(0..10)).collect_vec();
+        let n = rng.random_range(1..=10);
+        let xs = (0..n).map(|_| rng.random_range(0..10)).collect_vec();
 
         // ==== 解く ====
         let main_ans = xs.len();
@@ -82,7 +53,7 @@ mod tests {
         let max_wrong_case = 10; // この件数間違いが見つかったら打ち切り
         let mut cnt_wrong = 0;
         let mut rng = SmallRng::seed_from_u64(42);
-        // let mut rng = SmallRng::from_entropy();
+        // let mut rng = SmallRng::from_os_rng();
         for _ in 0..num_tests {
             let is_ok = process_one_test(&mut rng);
             if !is_ok {
@@ -100,7 +71,6 @@ mod tests {
 }
 
 // ====== import ======
-use num_integer::Roots;
 #[allow(unused_imports)]
 use {
     itertools::{chain, iproduct, izip, Itertools},
@@ -168,44 +138,3 @@ pub mod print_util {
 }
 
 // ====== snippet ======
-/// 二分探索をする
-/// ```text
-/// ng ng ng ok ok ok
-///          ↑ここの引数の値を返す
-/// ```
-/// 計算量: O(log(|ok - ng|))
-/// ## Arguments
-/// * ok != ng
-/// * |ok - ng| <= 2^63 - 1, |ok + ng| <= 2^63 - 1
-/// * p の定義域について
-///     * ng < ok の場合、p は区間 ng..ok で定義されている。
-///     * ok < ng の場合、p は区間 ok..ng で定義されている。
-/// * p の単調性について
-///     * ng < ok の場合、p は単調増加
-///     * ok < ng の場合、p は単調減少
-/// ## Return
-/// * ng < ok の場合: I = { i in ng..ok | p(i) == true } としたとき
-///     * I が空でなければ、min I を返す。
-///     * I が空ならば、ok を返す。
-/// * ok < ng の場合: I = { i in ok..ng | p(i) == true } としたとき
-///     * I が空でなければ、max I を返す。
-///     * I が空ならば、ok を返す。
-pub fn bin_search<F>(mut ok: i128, mut ng: i128, mut p: F) -> i128
-where
-    F: FnMut(i128) -> bool,
-{
-    debug_assert!(ok != ng);
-    debug_assert!(ok.checked_sub(ng).is_some());
-    debug_assert!(ok.checked_add(ng).is_some());
-    while num::abs(ok - ng) > 1 {
-        let mid = (ok + ng) / 2;
-        debug_assert!(mid != ok);
-        debug_assert!(mid != ng);
-        if p(mid) {
-            ok = mid;
-        } else {
-            ng = mid;
-        }
-    }
-    ok
-}

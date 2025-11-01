@@ -378,8 +378,11 @@ mod test_extend_acl_monoid {
     #[test]
     fn test_monoid_pow() {
         type M = Multiplicative<i64>;
-        assert_eq!(M::pow(&3, 4), 81);
         assert_eq!(M::pow(&3, 0), 1);
+        assert_eq!(M::pow(&3, 1), 3);
+        assert_eq!(M::pow(&3, 2), 9);
+        assert_eq!(M::pow(&3, 3), 27);
+        assert_eq!(M::pow(&3, 4), 81);
     }
 }
 

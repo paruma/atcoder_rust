@@ -1,42 +1,73 @@
-fn solve(c: i128, d: i128) -> i128 {
-    (1..=10)
-        .map(|keta: u32| {
-            // keta: c + x の桁
-            // x の範囲
-            // dbg!(keta);
-            let min_x = (10_i128.pow(keta - 1) - c).max(1);
-            let max_x = (10_i128.pow(keta) - c - 1).min(d);
-            if min_x > max_x {
-                return 0;
-            }
-
-            let fval_min = c * 10_i128.pow(keta) + c + min_x;
-            let fval_max = c * 10_i128.pow(keta) + c + max_x;
-            // dbg!(min_x);
-            // dbg!(max_x);
-            // dbg!(fval_min);
-            // dbg!(fval_max);
-            // dbg!((fval_max).sqrt() - (fval_min - 1).sqrt())
-
-            (fval_max).sqrt() - (fval_min - 1).sqrt()
-        })
-        .sum::<i128>()
-}
 fn main() {
     input! {
-        t: usize,
+        nv: usize,
+        ne: usize,
+        es: [(Usize1, Usize1); ne],
+        s: Chars,
     }
 
-    // dbg!("i128にする");
+    let is_safe = s.iter().copied().map(|s| s == 'S').collect_vec();
+    let adj = es
+        .iter()
+        .copied()
+        .fold(vec![vec![]; nv], |mut acc, (u, v)| {
+            acc[u].push(v);
+            acc[v].push(u);
+            acc
+        });
 
-    let ans: Vec<i128> = (0..t)
-        .map(|_| {
-            input! {
-                c: i128,
-                d: i128,
+    // (初期点, 現在の点)
+    let mut open: Queue<(usize, usize, i64)> = Queue::new();
+    // visited1[v]: 最初にvに訪問した安全点
+    let mut visited1 = vec![usize::MAX; nv];
+    // visited2[v]: 2番目にvに訪問した安全点
+    let mut visited2 = vec![usize::MAX; nv];
+
+    let mut dist1 = vec![i64::MAX; nv];
+    let mut dist2 = vec![i64::MAX; nv];
+
+    for v in 0..nv {
+        if is_safe[v] {
+            open.push((v, v, 0));
+
+            visited1[v] = v;
+            dist1[v] = 0;
+        }
+    }
+
+    while let Some((init, current, d)) = open.pop() {
+        for &next in &adj[current] {
+            if visited1[next] != usize::MAX && visited2[next] != usize::MAX {
+                continue;
             }
-            solve(c, d)
-        })
+
+            if visited1[next] == usize::MAX {
+                visited1[next] = init;
+                dist1[next] = d + 1;
+            } else {
+                assert!(visited2[next] == usize::MAX);
+                if visited1[next] == init {
+                    continue;
+                }
+                visited2[next] = init;
+                dist2[next] = d + 1;
+            }
+            open.push((init, next, d + 1));
+        }
+    }
+
+    // for v in 0..nv {
+    //     assert!(visited1[v] != visited2[v]);
+    // }
+
+    // dbg!(&visited1);
+    // dbg!(&visited2);
+    // dbg!(&dist1);
+    // dbg!(&dist2);
+
+    let ans: Vec<i64> = (0..nv)
+        .filter(|v| !is_safe[*v])
+        .map(|v| dist1[v] + dist2[v])
         .collect_vec();
     print_vec(&ans);
 }
@@ -56,8 +87,8 @@ mod tests {
     /// 間違っていたら false を返す
     fn process_one_test(rng: &mut SmallRng) -> bool {
         // ==== 問題を作る ====
-        let n = rng.gen_range(1..=10);
-        let xs = (0..n).map(|_| rng.gen_range(0..10)).collect_vec();
+        let n = rng.random_range(1..=10);
+        let xs = (0..n).map(|_| rng.random_range(0..10)).collect_vec();
 
         // ==== 解く ====
         let main_ans = xs.len();
@@ -82,7 +113,7 @@ mod tests {
         let max_wrong_case = 10; // この件数間違いが見つかったら打ち切り
         let mut cnt_wrong = 0;
         let mut rng = SmallRng::seed_from_u64(42);
-        // let mut rng = SmallRng::from_entropy();
+        // let mut rng = SmallRng::from_os_rng();
         for _ in 0..num_tests {
             let is_ok = process_one_test(&mut rng);
             if !is_ok {
@@ -100,7 +131,6 @@ mod tests {
 }
 
 // ====== import ======
-use num_integer::Roots;
 #[allow(unused_imports)]
 use {
     itertools::{chain, iproduct, izip, Itertools},
@@ -168,44 +198,38 @@ pub mod print_util {
 }
 
 // ====== snippet ======
-/// 二分探索をする
-/// ```text
-/// ng ng ng ok ok ok
-///          ↑ここの引数の値を返す
-/// ```
-/// 計算量: O(log(|ok - ng|))
-/// ## Arguments
-/// * ok != ng
-/// * |ok - ng| <= 2^63 - 1, |ok + ng| <= 2^63 - 1
-/// * p の定義域について
-///     * ng < ok の場合、p は区間 ng..ok で定義されている。
-///     * ok < ng の場合、p は区間 ok..ng で定義されている。
-/// * p の単調性について
-///     * ng < ok の場合、p は単調増加
-///     * ok < ng の場合、p は単調減少
-/// ## Return
-/// * ng < ok の場合: I = { i in ng..ok | p(i) == true } としたとき
-///     * I が空でなければ、min I を返す。
-///     * I が空ならば、ok を返す。
-/// * ok < ng の場合: I = { i in ok..ng | p(i) == true } としたとき
-///     * I が空でなければ、max I を返す。
-///     * I が空ならば、ok を返す。
-pub fn bin_search<F>(mut ok: i128, mut ng: i128, mut p: F) -> i128
-where
-    F: FnMut(i128) -> bool,
-{
-    debug_assert!(ok != ng);
-    debug_assert!(ok.checked_sub(ng).is_some());
-    debug_assert!(ok.checked_add(ng).is_some());
-    while num::abs(ok - ng) > 1 {
-        let mid = (ok + ng) / 2;
-        debug_assert!(mid != ok);
-        debug_assert!(mid != ng);
-        if p(mid) {
-            ok = mid;
-        } else {
-            ng = mid;
+use {mod_queue::*, std::usize};
+pub mod mod_queue {
+    use std::collections::VecDeque;
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct Queue<T> {
+        raw: VecDeque<T>,
+    }
+    impl<T> Queue<T> {
+        pub fn new() -> Self {
+            Queue {
+                raw: VecDeque::new(),
+            }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push_back(value)
+        }
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop_front()
+        }
+        pub fn peek(&self) -> Option<&T> {
+            self.raw.front()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.raw.is_empty()
+        }
+        pub fn len(&self) -> usize {
+            self.raw.len()
         }
     }
-    ok
+    impl<T> Default for Queue<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
 }

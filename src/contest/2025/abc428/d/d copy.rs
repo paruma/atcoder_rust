@@ -1,17 +1,17 @@
-fn solve(c: i128, d: i128) -> i128 {
+fn solve(c: i64, d: i64) -> i64 {
     (1..=10)
         .map(|keta: u32| {
             // keta: c + x の桁
             // x の範囲
             // dbg!(keta);
-            let min_x = (10_i128.pow(keta - 1) - c).max(1);
-            let max_x = (10_i128.pow(keta) - c - 1).min(d);
+            let min_x = (10_i64.pow(keta - 1) - c).max(1);
+            let max_x = (10_i64.pow(keta) - c - 1).min(d);
             if min_x > max_x {
                 return 0;
             }
 
-            let fval_min = c * 10_i128.pow(keta) + c + min_x;
-            let fval_max = c * 10_i128.pow(keta) + c + max_x;
+            let fval_min = c * 10_i64.pow(keta) + c + min_x;
+            let fval_max = c * 10_i64.pow(keta) + c + max_x;
             // dbg!(min_x);
             // dbg!(max_x);
             // dbg!(fval_min);
@@ -20,7 +20,7 @@ fn solve(c: i128, d: i128) -> i128 {
 
             (fval_max).sqrt() - (fval_min - 1).sqrt()
         })
-        .sum::<i128>()
+        .sum::<i64>()
 }
 fn main() {
     input! {
@@ -29,11 +29,11 @@ fn main() {
 
     // dbg!("i128にする");
 
-    let ans: Vec<i128> = (0..t)
+    let ans: Vec<i64> = (0..t)
         .map(|_| {
             input! {
-                c: i128,
-                d: i128,
+                c: i64,
+                d: i64,
             }
             solve(c, d)
         })
@@ -190,9 +190,9 @@ pub mod print_util {
 /// * ok < ng の場合: I = { i in ok..ng | p(i) == true } としたとき
 ///     * I が空でなければ、max I を返す。
 ///     * I が空ならば、ok を返す。
-pub fn bin_search<F>(mut ok: i128, mut ng: i128, mut p: F) -> i128
+pub fn bin_search<F>(mut ok: i64, mut ng: i64, mut p: F) -> i64
 where
-    F: FnMut(i128) -> bool,
+    F: FnMut(i64) -> bool,
 {
     debug_assert!(ok != ng);
     debug_assert!(ok.checked_sub(ng).is_some());

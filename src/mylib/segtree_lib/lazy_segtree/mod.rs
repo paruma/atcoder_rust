@@ -6,6 +6,7 @@ pub mod range_add_range_min;
 pub mod range_add_range_sum;
 pub mod range_affine_range_minmax;
 pub mod range_affine_range_sum;
+pub mod range_affine_range_sum_of_square;
 pub mod range_chmax_range_max;
 pub mod range_chmin_chmax_add_range_min;
 pub mod range_chmin_chmax_range_min;
@@ -14,6 +15,8 @@ pub mod range_linear_add_range_sum;
 pub mod range_linear_update_range_sum;
 pub mod range_quadratic_add_range_sum;
 pub mod range_update_range_sum;
+pub mod two_sequence_range_affine_range_sum;
+pub mod two_sequence_range_affine_range_sum_of_quadratic;
 
 #[snippet]
 pub fn lazy_segtree_to_vec<F: ac_library::MapMonoid>(
