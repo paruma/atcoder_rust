@@ -6,6 +6,7 @@ pub mod range_add_range_min;
 pub mod range_add_range_sum;
 pub mod range_affine_range_minmax;
 pub mod range_affine_range_sum;
+pub mod range_affine_range_sum_of_square;
 pub mod range_chmax_range_max;
 pub mod range_chmin_chmax_add_range_min;
 pub mod range_chmin_chmax_range_min;
