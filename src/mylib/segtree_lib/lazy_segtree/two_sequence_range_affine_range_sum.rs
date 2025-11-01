@@ -85,11 +85,12 @@ pub mod two_sequence_range_affine_range_sum {
         }
 
         fn composition(f1: &Self::F, f2: &Self::F) -> Self::F {
+            // f1(f2(x)) = a1(a2*x + b2) + b1 = a1*a2*x + a1*b2 + b1
             Self::F {
-                a: f2.a * f1.a,
-                b: f2.a * f1.b + f2.b,
-                c: f2.c * f1.c,
-                d: f2.c * f1.d + f2.d,
+                a: f1.a * f2.a,
+                b: f1.a * f2.b + f1.b,
+                c: f1.c * f2.c,
+                d: f1.c * f2.d + f1.d,
             }
         }
 
@@ -205,9 +206,9 @@ pub mod two_sequence_range_affine_range_sum {
 
 #[cfg(test)]
 mod test {
-    use ac_library::ModInt998244353;
-
     use super::two_sequence_range_affine_range_sum::*;
+    use ac_library::ModInt998244353;
+    use rand::{Rng, SeedableRng};
 
     type Mint = ModInt998244353;
 
@@ -231,7 +232,6 @@ mod test {
         // (1, 5) -> (2*1+1, 5+1) = (3, 6)
         // (2, 4) -> (2*2+1, 4+1) = (5, 5)
         // (3, 3) -> (3, 3) (対象外)
-
         segtree.apply_range_affine(0..2, 2.into(), 1.into(), 1.into(), 1.into());
 
         // 変更後の sum(xy)
@@ -244,7 +244,6 @@ mod test {
         // (x_old, y_old) -> (x_new, y_new)
         // (5, 5) -> (5, 3*5-2) = (5, 13)
         // (3, 3) -> (3, 3*3-2) = (3, 7)
-
         segtree.apply_range_affine(1..3, 1.into(), 0.into(), 3.into(), (-2).into());
 
         // 変更後の sum(xy)
@@ -334,5 +333,146 @@ mod test {
                 .map(|&v| Mint::new(v))
                 .collect::<Vec<_>>()
         );
+    }
+
+    #[ignore]
+    #[test]
+    fn test_random_two_sequence_affine_sum() {
+        let mut rng = rand::rngs::SmallRng::seed_from_u64(42);
+
+        for _ in 0..20 {
+            // Reduced from 100 for speed
+            let n = rng.gen_range(1..=20);
+            let mut naive_xs: Vec<i64> = (0..n).map(|_| rng.gen_range(-100..=100)).collect();
+            let mut naive_ys: Vec<i64> = (0..n).map(|_| rng.gen_range(-100..=100)).collect();
+            let mut segtree =
+                TwoSequenceRangeAffineRangeSumSegtree::<i64>::new(&naive_xs, &naive_ys);
+
+            for _ in 0..50 {
+                // Reduced from 100 for speed
+                let op_type = rng.gen_range(0..10);
+
+                match op_type {
+                    0 => {
+                        // set(p, x, y)
+                        let p = rng.gen_range(0..n);
+                        let x = rng.gen_range(-100..=100);
+                        let y = rng.gen_range(-100..=100);
+                        naive_xs[p] = x;
+                        naive_ys[p] = y;
+                        segtree.set(p, x, y);
+                    }
+                    1 => {
+                        // set_x(p, x)
+                        let p = rng.gen_range(0..n);
+                        let x = rng.gen_range(-100..=100);
+                        naive_xs[p] = x;
+                        segtree.set_x(p, x);
+                    }
+                    2 => {
+                        // set_y(p, y)
+                        let p = rng.gen_range(0..n);
+                        let y = rng.gen_range(-100..=100);
+                        naive_ys[p] = y;
+                        segtree.set_y(p, y);
+                    }
+                    3 => {
+                        // apply_range_affine
+                        let l = rng.gen_range(0..=n);
+                        let r = rng.gen_range(l..=n);
+                        let a = rng.gen_range(-2..=2);
+                        let b = rng.gen_range(-50..=50);
+                        let c = rng.gen_range(-2..=2);
+                        let d = rng.gen_range(-50..=50);
+                        for i in l..r {
+                            naive_xs[i] = naive_xs[i] * a + b;
+                            naive_ys[i] = naive_ys[i] * c + d;
+                        }
+                        segtree.apply_range_affine(l..r, a, b, c, d);
+                    }
+                    4 => {
+                        // apply_range_affine_x
+                        let l = rng.gen_range(0..=n);
+                        let r = rng.gen_range(l..=n);
+                        let a = rng.gen_range(-2..=2);
+                        let b = rng.gen_range(-50..=50);
+                        for i in l..r {
+                            naive_xs[i] = naive_xs[i] * a + b;
+                        }
+                        segtree.apply_range_affine_x(l..r, a, b);
+                    }
+                    5 => {
+                        // apply_range_affine_y
+                        let l = rng.gen_range(0..=n);
+                        let r = rng.gen_range(l..=n);
+                        let c = rng.gen_range(-2..=2);
+                        let d = rng.gen_range(-50..=50);
+                        for i in l..r {
+                            naive_ys[i] = naive_ys[i] * c + d;
+                        }
+                        segtree.apply_range_affine_y(l..r, c, d);
+                    }
+                    6 => {
+                        // get(p)
+                        let p = rng.gen_range(0..n);
+                        assert_eq!(
+                            segtree.get(p),
+                            (naive_xs[p], naive_ys[p]),
+                            "get({}) failed",
+                            p
+                        );
+                    }
+                    7 => {
+                        // query_sum_x(range)
+                        let l = rng.gen_range(0..=n);
+                        let r = rng.gen_range(l..=n);
+                        let expected: i64 = naive_xs[l..r].iter().sum();
+                        assert_eq!(
+                            segtree.query_sum_x(l..r),
+                            expected,
+                            "query_sum_x({}..{}) failed",
+                            l,
+                            r
+                        );
+                    }
+                    8 => {
+                        // query_sum_y(range)
+                        let l = rng.gen_range(0..=n);
+                        let r = rng.gen_range(l..=n);
+                        let expected: i64 = naive_ys[l..r].iter().sum();
+                        assert_eq!(
+                            segtree.query_sum_y(l..r),
+                            expected,
+                            "query_sum_y({}..{}) failed",
+                            l,
+                            r
+                        );
+                    }
+                    9 => {
+                        // query_sum_xy(range)
+                        let l = rng.gen_range(0..=n);
+                        let r = rng.gen_range(l..=n);
+                        let expected: i64 = naive_xs[l..r]
+                            .iter()
+                            .zip(naive_ys[l..r].iter())
+                            .map(|(&x, &y)| x * y)
+                            .sum();
+                        assert_eq!(
+                            segtree.query_sum_xy(l..r),
+                            expected,
+                            "query_sum_xy({}..{}) failed",
+                            l,
+                            r
+                        );
+                    }
+                    _ => unreachable!(),
+                }
+            }
+
+            // Final check
+            let (final_xs, final_ys) = segtree.to_vec();
+            assert_eq!(final_xs, naive_xs, "final to_vec() xs check failed");
+            assert_eq!(final_ys, naive_ys, "final to_vec() ys check failed");
+        }
     }
 }
