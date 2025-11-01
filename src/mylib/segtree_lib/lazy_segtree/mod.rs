@@ -16,6 +16,7 @@ pub mod range_linear_update_range_sum;
 pub mod range_quadratic_add_range_sum;
 pub mod range_update_range_sum;
 pub mod two_sequence_range_affine_range_sum;
+pub mod two_sequence_range_affine_range_sum_of_quadratic;
 
 #[snippet]
 pub fn lazy_segtree_to_vec<F: ac_library::MapMonoid>(
