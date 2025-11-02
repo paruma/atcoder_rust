@@ -47,7 +47,7 @@ pub mod dynamic_matrix {
             matrix
         }
 
-        /// Vec<Vec<T>>から行列を作成します。
+        /// `Vec<Vec<T>>`から行列を作成します。
         pub fn from_vec(data: Vec<Vec<T>>) -> Self {
             assert!(!data.is_empty(), "Matrix cannot be empty");
             let rows = data.len();

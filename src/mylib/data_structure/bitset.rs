@@ -25,7 +25,7 @@ pub mod bitset {
             self.bit
         }
 
-        /// 持っている要素を Vec<usize> で返す
+        /// 持っている要素を `Vec<usize>` で返す
         pub fn to_vec(self, len: usize) -> Vec<usize> {
             (0..len).filter(|i| (self.bit >> i) & 1 == 1).collect_vec()
         }

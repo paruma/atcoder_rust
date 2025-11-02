@@ -138,7 +138,7 @@ pub mod range_linear_add_range_sum {
         }
 
         /// range が l..r であるとする。
-        /// i in l..r に対して、self[i] += init + diff * (i - l) を計算する
+        /// `i` in `l..r` に対して、`self[i] += init + diff * (i - l)` を計算する
         pub fn apply_range_linear_add<R>(&mut self, range: R, init: T, diff: T)
         where
             R: RangeBounds<usize>,

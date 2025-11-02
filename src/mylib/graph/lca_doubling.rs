@@ -8,7 +8,7 @@ pub mod lca_doubling {
     }
 
     impl Lca {
-        /// tree_parent[i]: i の 親 を表す。根の場合は tree_parent[i] == i
+        /// `tree_parent[i]`: `i` の 親 を表す。根の場合は `tree_parent[i] == i`
         /// 計算量: O(nv log(nv)) (nv は頂点の数とする)
         pub fn new(tree_parent: &[Option<usize>]) -> Self {
             let nv = tree_parent.len();

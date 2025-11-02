@@ -147,7 +147,7 @@ pub mod range_quadratic_add_range_sum {
         }
 
         /// range が l..r であるとする。
-        /// i in l..r に対して、self[i] += coef0 + coef1 * (i - l) + coef2 * (i - l)^2を計算する
+        /// `i` in `l..r` に対して、`self[i] += coef0 + coef1 * (i - l) + coef2 * (i - l)^2` を計算する
         pub fn apply_range_quadratic_add<R>(&mut self, range: R, coef0: T, coef1: T, coef2: T)
         where
             R: RangeBounds<usize>,
