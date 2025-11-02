@@ -2,7 +2,9 @@ use cargo_snippet::snippet;
 
 #[snippet]
 /// 転倒数 `#{(i, j) | i < j and xs[i] > xs[j]}` を求める
-/// 計算量: O(m log m + n)
+///
+/// # 計算量
+/// O(m log m + n)
 /// (m = max(xs), n = xs.len())
 pub fn inversion_number(xs: &[usize]) -> i64 {
     use ac_library::FenwickTree;

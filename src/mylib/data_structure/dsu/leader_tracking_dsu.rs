@@ -24,7 +24,9 @@ pub mod leader_tracking_dsu {
             LeaderTrackingDsu { dsu, leaders }
         }
 
-        /// 計算量: O(log N)
+        ///
+        /// # 計算量
+        /// O(log N)
         pub fn merge(&mut self, a: usize, b: usize) -> Option<(usize, usize)> {
             let merge_result = self.dsu.merge(a, b);
             if let Some((_, merged)) = merge_result {

@@ -2,6 +2,13 @@ use cargo_snippet::snippet;
 
 #[allow(clippy::module_inception)]
 #[snippet(prefix = "use array_2d_transformation::*;")]
+/// 2次元配列 (`Vec<Vec<T>>`) を変換するためのモジュールです。
+///
+/// このモジュールは、2次元配列に対する回転、転置、反転といった幾何学的変換を行う関数を提供します。
+/// すべての関数は `&[Vec<T>]` を受け取り、新しい `Vec<Vec<T>>` を返します。
+/// 要素型 `T` は `Default`、`Clone`、`Copy` を実装している必要があります。
+///
+/// 注: これらの関数は、空の行や列 (例: 0xH または Wx0 の行列) を持つ配列には対応していません。
 pub mod array_2d_transformation {
 
     pub fn rotate_right<T>(table: &[Vec<T>]) -> Vec<Vec<T>>

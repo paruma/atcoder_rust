@@ -4,7 +4,9 @@ use crate::mylib::data_structure::queue0::mod_queue::Queue;
 
 /// 木の直径を求める(直径の長さと直径を構成する頂点のリストを返す)
 /// edges: 辺の情報 (頂点, 頂点, コスト) のリスト
-/// 計算量: O(n) (n が頂点の数のとき)
+///
+/// # 計算量
+/// O(n) (n が頂点の数のとき)
 #[snippet(include = "mod_queue")]
 pub fn tree_diameter(edges: &[(usize, usize, i64)]) -> (i64, Vec<usize>) {
     let nv = edges.len() + 1;

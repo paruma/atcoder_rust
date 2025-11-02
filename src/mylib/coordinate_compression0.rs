@@ -10,35 +10,47 @@ pub mod coordinate_compression {
     }
 
     impl CoordinateCompression {
-        /// 計算量: O(|space|log(|space|))
+        ///
+        /// # 計算量
+        /// O(|space|log(|space|))
         pub fn new(space: &[i64]) -> Self {
             let space = space.iter().copied().sorted().dedup().collect_vec();
             Self { space }
         }
 
-        /// 計算量: O(log(|space|))
+        ///
+        /// # 計算量
+        /// O(log(|space|))
         pub fn compress(&self, x: i64) -> usize {
             self.space.binary_search(&x).unwrap()
         }
 
         /// 座標圧縮前の空間のうち x 以上である最小の値を座標圧縮したものを返す
-        /// 計算量: O(log(|space|))
+        ///
+        /// # 計算量
+        /// O(log(|space|))
         pub fn compress_floor(&self, x: i64) -> usize {
             self.space.upper_bound(&x) - 1
         }
 
         /// 座標圧縮前の空間のうち x 以下である最大の値を座標圧縮したものを返す
-        /// 計算量: O(log(|space|))
+        ///
+        /// # 計算量
+        /// O(log(|space|))
         pub fn compress_ceil(&self, x: i64) -> usize {
             self.space.lower_bound(&x)
         }
 
-        /// 計算量: O(|xs|log(|space|))
+        ///
+        /// # 計算量
+        /// O(|xs|log(|space|))
         pub fn compress_vec(&self, xs: &[i64]) -> Vec<usize> {
             xs.iter().copied().map(|x| self.compress(x)).collect_vec()
         }
 
-        /// 計算量: O(1)
+        ///
+        /// # 計算量
+        /// O(1)
         pub fn decompress(&self, i: usize) -> i64 {
             self.space[i]
         }

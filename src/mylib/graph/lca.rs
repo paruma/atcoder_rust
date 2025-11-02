@@ -28,7 +28,9 @@ pub mod lca {
 
     impl Lca {
         /// `tree_parent[i]`: `i` の 親 を表す。根の場合は `tree_parent[i] == i`
-        /// 計算量: O(nv log(nv)) (nv は頂点の数とする)
+        ///
+        /// # 計算量
+        /// O(nv log(nv)) (nv は頂点の数とする)
         pub fn new(tree_parent: &[Option<usize>]) -> Self {
             let nv = tree_parent.len();
 
@@ -100,7 +102,9 @@ pub mod lca {
         }
 
         /// u と v の LCA を求める
-        /// 計算量 O(log(頂点の数))
+        ///
+        /// # 計算量
+        /// O(log(頂点の数))
         pub fn lca(&self, u: usize, v: usize) -> usize {
             let (time_min, time_max) = {
                 use std::cmp::{max, min};
@@ -112,13 +116,17 @@ pub mod lca {
             self.euler_tour_dist.prod(time_min..=time_max).1
         }
 
-        /// 計算量: O(log(頂点の数))
+        ///
+        /// # 計算量
+        /// O(log(頂点の数))
         pub fn dist(&self, u: usize, v: usize) -> i64 {
             self.dist[u] + self.dist[v] - 2 * self.dist[self.lca(u, v)]
         }
 
         /// パス u-v 上に点 a があるかどうか
-        /// 計算量: O(log(頂点の数))
+        ///
+        /// # 計算量
+        /// O(log(頂点の数))
         pub fn is_path_on(&self, u: usize, v: usize, a: usize) -> bool {
             self.dist(u, a) + self.dist(a, v) == self.dist(u, v)
         }

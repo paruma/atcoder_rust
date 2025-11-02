@@ -18,7 +18,9 @@ pub mod cumsum {
     }
 
     impl CumSum {
-        /// 計算量: O(|xs|)
+        ///
+        /// # 計算量
+        /// O(|xs|)
         pub fn new(xs: &[i64]) -> CumSum {
             let mut cumsum = vec![0; xs.len() + 1];
             for i in 1..xs.len() + 1 {
@@ -44,7 +46,9 @@ pub mod cumsum {
             begin..end
         }
 
-        /// 計算量: O(1)
+        ///
+        /// # 計算量
+        /// O(1)
         pub fn range_sum(&self, range: impl RangeBounds<usize>) -> i64 {
             let range = self.open(range);
             self.cumsum[range.end] - self.cumsum[range.start]

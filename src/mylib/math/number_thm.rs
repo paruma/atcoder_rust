@@ -23,7 +23,9 @@ pub fn divisors(n: i64) -> Vec<i64> {
 }
 
 #[snippet]
-/// 計算量: O(sqrt(n))
+///
+/// # 計算量
+/// O(sqrt(n))
 pub fn is_prime(n: i64) -> bool {
     use num::Integer;
     use num_integer::Roots;
@@ -40,7 +42,9 @@ pub fn is_prime(n: i64) -> bool {
 }
 
 #[snippet]
-/// 計算量: O(sqrt(n))
+///
+/// # 計算量
+/// O(sqrt(n))
 pub fn prime_factorize(n: i64) -> HashMap<i64, i64> {
     use num::Integer;
     use num_integer::Roots;
@@ -66,7 +70,9 @@ pub fn prime_factorize(n: i64) -> HashMap<i64, i64> {
 }
 
 #[snippet(include = "prime_factorize")]
-/// 計算量: O(sqrt(n))
+///
+/// # 計算量
+/// O(sqrt(n))
 pub fn euler_phi(n: i64) -> i64 {
     // n = p[1]^{e[1]} * ... * p[k]^{e[k]} と素因数分解できるとき
     // euler_phi(n) = n * ((p[1] - 1)/p[1]) * ... * ((p[k] - 1)/p[k]) で表せる。
@@ -91,7 +97,9 @@ pub mod eratosthenes_sieve {
 
     impl EratosthenesSieve {
         /// [0, n] の区間でエラトステネスのふるいをする
-        /// 計算量: O(n log(log(n)))
+        ///
+        /// # 計算量
+        /// O(n log(log(n)))
         pub fn new(n: usize) -> Self {
             let mut is_prime_list = vec![true; n + 1];
             let mut min_factor_list = vec![None; n + 1];
@@ -115,12 +123,16 @@ pub mod eratosthenes_sieve {
             }
         }
 
-        /// 計算量: O(1)
+        ///
+        /// # 計算量
+        /// O(1)
         pub fn is_prime(&self, n: usize) -> bool {
             self.is_prime_list[n]
         }
 
-        /// 計算量: O(log n)
+        ///
+        /// # 計算量
+        /// O(log n)
         pub fn prime_factorize(&self, n: usize) -> HashMap<usize, usize> {
             let mut n = n;
             let mut cnt_table: HashMap<usize, usize> = HashMap::new();
@@ -137,7 +149,9 @@ pub mod eratosthenes_sieve {
             cnt_table
         }
 
-        /// 計算量: O(nの約数の個数)
+        ///
+        /// # 計算量
+        /// O(nの約数の個数)
         pub fn divisors(&self, n: usize) -> Vec<usize> {
             let mut res = vec![1];
             let pf = self.prime_factorize(n);

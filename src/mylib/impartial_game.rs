@@ -1,7 +1,9 @@
 use cargo_snippet::snippet;
 
 #[snippet]
-/// 計算量: O(xs.len())
+///
+/// # 計算量
+/// O(xs.len())
 pub fn mex(xs: &[usize]) -> usize {
     let contains = xs
         .iter()
