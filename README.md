@@ -22,11 +22,11 @@ cargo が使えるイメージ。
 1. イメージビルド
 
     ```sh
-    docker build -t gemini-rust .gemini/Dockerfile
+    docker build -t gemini-rust .gemini/
     ```
 
 1. イメージを指定して gemini-cli を起動する
 
     ```sh
-    gemini -s --sandbox-image gemini-rust
+    GEMINI_SANDBOX_IMAGE="gemini-rust" gemini -s --yolo
     ```
