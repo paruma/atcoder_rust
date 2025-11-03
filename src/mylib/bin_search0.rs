@@ -1,6 +1,7 @@
 use cargo_snippet::snippet;
 
-/// 二分探索をする
+/// 二分探索をする。
+///
 /// ```text
 /// ng ng ng ok ok ok
 ///          ↑ここの引数の値を返す
@@ -58,7 +59,9 @@ where
 ///
 /// ## Return
 /// `I = {i in 0..xs.len() | xs[i] >= key}` としたとき、`min I` を返す。
-/// ただし、`I` が空の場合は `xs.len()` を返す
+///
+/// ただし、`I` が空の場合は `xs.len()` を返す。
+///
 /// 戻り値は、区間 `0..=xs.len()` の間で返る。
 #[snippet(include = "bin_search")]
 pub fn lower_bound<T: PartialOrd>(xs: &[T], key: T) -> usize {
@@ -77,7 +80,9 @@ pub fn lower_bound<T: PartialOrd>(xs: &[T], key: T) -> usize {
 ///
 /// ## Return
 /// `I = {i in 0..xs.len() | xs[i] > key}` としたとき、`min I` を返す。
-/// ただし、`I` が空の場合は `xs.len()` を返す
+///
+/// ただし、`I` が空の場合は `xs.len()` を返す。
+///
 /// 戻り値は、区間 `0..=xs.len()` の間で返る。
 #[snippet(include = "bin_search")]
 pub fn upper_bound<T: PartialOrd>(xs: &[T], key: T) -> usize {
@@ -96,7 +101,9 @@ pub fn upper_bound<T: PartialOrd>(xs: &[T], key: T) -> usize {
 ///
 /// ## Return
 /// `I = {i in 0..xs.len() | xs[i] <= key}` としたとき、`min I` を返す。
-/// ただし、`I` が空の場合は `xs.len()` を返す
+///
+/// ただし、`I` が空の場合は `xs.len()` を返す。
+///
 /// 戻り値は、区間 `0..=xs.len()` の間で返る。
 #[snippet(include = "bin_search")]
 pub fn lower_bound_dec<T: PartialOrd>(xs: &[T], key: T) -> usize {
@@ -115,7 +122,9 @@ pub fn lower_bound_dec<T: PartialOrd>(xs: &[T], key: T) -> usize {
 ///
 /// ## Return
 /// `I = {i in 0..xs.len() | xs[i] < key}` としたとき、`min I` を返す。
-/// ただし、`I` が空の場合は `xs.len()` を返す
+///
+/// ただし、`I` が空の場合は `xs.len()` を返す。
+///
 /// 戻り値は、区間 `0..=xs.len()` の間で返る。
 #[snippet(include = "bin_search")]
 pub fn upper_bound_dec<T: PartialOrd>(xs: &[T], key: T) -> usize {
@@ -133,7 +142,7 @@ mod tests {
     /// * boundary で false と true が切り替わる。p(boundary) == true とする。
     ///
     /// ## example
-    /// `create_predicate(0, 5, 3, true)` の場合、以下のようになる
+    /// `create_predicate(0, 5, 3, true)` の場合、以下のようになる。
     ///
     /// | 0     | 1     | 2     | 3     | 4     |
     /// | ----- | ----- | ----- | ----- | ----- |

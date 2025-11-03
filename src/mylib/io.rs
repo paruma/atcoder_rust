@@ -3,6 +3,7 @@ use cargo_snippet::snippet;
 #[snippet]
 pub mod impl_readable_for_enum {
     /// 利用例
+    ///
     /// ```
     /// #[derive(Clone, Copy, Debug, PartialEq, Eq)]
     /// enum Query {

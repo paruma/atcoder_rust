@@ -10,10 +10,13 @@ pub mod doubling {
     }
 
     impl Doubling {
-        /// doubling 前処理の構築をする
+        /// doubling 前処理の構築をする。
+        ///
         /// # 計算量
-        /// `k` は 合成回数の最大値 (`k>=1`)
-        /// `n = f.len()` としたとき、`O(n log k)`
+        /// * `k` は 合成回数の最大値 (`k>=1`)
+        /// * `n = f.len()`
+        ///
+        /// としたとき、`O(n log k)`
         pub fn new(f: &[usize], k: usize) -> Doubling {
             let n = f.len();
             // k を2進展開したときの桁数
@@ -34,6 +37,7 @@ pub mod doubling {
         }
 
         /// `(f の k 回合成)(x)` を求める。
+        ///
         /// # 計算量
         /// O(log k)
         pub fn eval(&self, k: usize, x: usize) -> usize {
@@ -68,9 +72,11 @@ pub mod doubling_with_sum {
 
     impl DoublingWithSum {
         /// doubling 前処理の構築をする
-        /// `k` は 合成回数の最大値 (`k>=1`)
-        /// `f[x]` は `x` の遷移先
-        /// `g[x]` は `x→f[x]` の辺重み
+        ///
+        /// * `k` は 合成回数の最大値 (`k>=1`)
+        /// * `f[x]` は `x` の遷移先
+        /// * `g[x]` は `x→f[x]` の辺重み
+        ///
         /// # 計算量
         /// `n = f.len()` としたとき、`O(n log k)`
         pub fn new(f: &[usize], g: &[i64], k: usize) -> DoublingWithSum {
@@ -98,7 +104,7 @@ pub mod doubling_with_sum {
         }
 
         /// `f` の `k` 回合成を `f^k` とする。
-        /// `(f^k)(x)` と `x → f(x) → ... → (f^k)(x)` のパス重みを求める
+        /// `(f^k)(x)` と `x → f(x) → ... → (f^k)(x)` のパス重みを求める。
         ///
         /// # 計算量
         /// O(log k)
@@ -140,9 +146,11 @@ pub mod doubling_with_monoid {
         M::S: Clone,
     {
         /// doubling 前処理の構築をする
-        /// `k` は 合成回数の最大値 (`k>=1`)
-        /// `f[x]` は `x` の遷移先
-        /// `g[x]` は `x→f[x]` の辺に対応するモノイドの値
+        ///
+        /// * `k` は 合成回数の最大値 (`k>=1`)
+        /// * `f[x]` は `x` の遷移先
+        /// * `g[x]` は `x→f[x]` の辺に対応するモノイドの値
+        ///
         /// # 計算量
         /// `n = f.len()` としたとき、`O(n log k)`
         pub fn new(f: &[usize], g: &[M::S], k: usize) -> Self {

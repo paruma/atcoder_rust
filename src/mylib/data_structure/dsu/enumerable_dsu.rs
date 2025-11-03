@@ -8,7 +8,8 @@ pub mod enumerable_dsu {
 
     #[derive(Clone, Debug)]
 
-    /// 指定の元を含むグループを償却 O(α(n)) で取得できる DSU
+    /// 指定の元を含むグループを償却 O(α(n)) で取得できる DSU。
+    ///
     /// merge の償却計算量が O(log n) な点に注意
     pub struct EnumerableDsu {
         dsu: DsuCore,

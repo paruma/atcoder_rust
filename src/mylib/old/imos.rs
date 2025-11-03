@@ -15,9 +15,11 @@ pub mod imos_1d {
         }
     }
 
-    /// sum value * 1_{[begin, end)} を `Vec<i64>` として計算する
-    /// [0, space) の範囲で考える
-    /// 各 begin, end は [0, space) に入っていてほしい
+    /// sum value * 1_{[begin, end)} を `Vec<i64>` として計算する。
+    ///
+    /// [0, space) の範囲で考える。
+    ///
+    /// 各 begin, end は [0, space) に入っていてほしい。
     pub fn calc_imos_1d(range_func_list: &[RangeFunc], space: usize) -> Vec<i64> {
         let mut imos = vec![0; space];
         for &range_func in range_func_list {

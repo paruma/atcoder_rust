@@ -10,7 +10,8 @@ pub mod leader_tracking_dsu {
 
     #[derive(Clone, Debug)]
 
-    /// リーダーの集合を O(1) で取得できる DSU
+    /// リーダーの集合を O(1) で取得できる DSU。
+    ///
     /// merge の償却計算量が O(log n) な点に注意
     pub struct LeaderTrackingDsu {
         dsu: DsuCore,
