@@ -55,6 +55,15 @@
 //! - 区間 `[L, R)` の各要素に値を加算する。
 //! - 区間 `[L, R)` の要素の最小値を取得する。
 //!
+//! ### `range_chmin_chmax_add_range_min_max`
+//!
+//! 次のクエリが処理できます。
+//! - 区間 `[L, R)` の各要素を値 `x` との最小値で更新する。
+//! - 区間 `[L, R)` の各要素を値 `x` との最大値で更新する。
+//! - 区間 `[L, R)` の各要素に値を加算する。
+//! - 区間 `[L, R)` の要素の最小値を取得する。
+//! - 区間 `[L, R)` の要素の最大値を取得する。
+//!
 //! ### `range_chmin_chmax_range_min`
 //!
 //! 次のクエリが処理できます。
@@ -116,6 +125,7 @@ pub mod range_affine_range_sum;
 pub mod range_affine_range_sum_of_square;
 pub mod range_chmax_range_max;
 pub mod range_chmin_chmax_add_range_min;
+pub mod range_chmin_chmax_add_range_min_max;
 pub mod range_chmin_chmax_range_min;
 pub mod range_chmin_range_min;
 pub mod range_linear_add_range_sum;
