@@ -21,7 +21,7 @@ pub mod rolling_hash {
     impl RollingHash {
         /// # Arguments
         /// * `xs` - 値は1以上にする。0があると違う長さが同じハッシュ値になってしまう可能性が高まる。
-        ///          char を i64 にする場合は `ch as i64` のように変換するとよい。
+        ///   char を i64 にする場合は `ch as i64` のように変換するとよい。
         /// * `base` - generate_random_base() で乱数生成した値を使う
         ///
         /// # Examples
@@ -85,12 +85,21 @@ pub mod monoid_rolling_hash {
         base: Mint,
     }
     impl RollingHash {
+        /// 文字列のハッシュ値を取得します。
         pub fn get_hash(&self) -> u64 {
             self.hash.val()
         }
 
-        /// # Arguments
-        /// * `base` - generate_random_base() で乱数生成した値を使う
+        /// 単一の要素から RollingHash を生成する関数を返します。
+        /// `base` は `generate_random_base()` で生成された乱数をすることが想定されています。
+        ///
+        /// # Examples
+        /// ```
+        /// use atcoder_rust::mylib::rolling_hash0::monoid_rolling_hash::*;
+        /// let base = generate_random_base();
+        /// let char_to_rh = RollingHash::unit(base);
+        /// let rh_a = char_to_rh('a' as i64);
+        /// ```
         pub fn unit(base: i64) -> impl (Fn(i64) -> RollingHash) {
             move |x| RollingHash {
                 hash: Mint::new(x),
@@ -98,10 +107,29 @@ pub mod monoid_rolling_hash {
             }
         }
 
+        /// 指定されたハッシュ値とベース値で新しい `RollingHash` を構築します。
+        /// `hash` は要素のハッシュ値、`base` はハッシュ計算に使用するベース値です。
+        /// 通常は`unit`関数を使用することが推奨されます。
         pub fn new(hash: i64, base: i64) -> Self {
             Self {
                 hash: Mint::new(hash),
                 base: Mint::new(base),
+            }
+        }
+
+        /// 空の文字列のハッシュ値を返します
+        pub fn identity() -> Self {
+            RollingHash {
+                hash: Mint::new(0),
+                base: Mint::new(1),
+            }
+        }
+
+        /// `self` の後に `other` が続く文字列の `RollingHash` を連結します。
+        pub fn concat(&self, other: &RollingHash) -> RollingHash {
+            RollingHash {
+                hash: self.hash * other.base + other.hash,
+                base: self.base * other.base,
             }
         }
     }
@@ -110,16 +138,10 @@ pub mod monoid_rolling_hash {
     impl Monoid for RollingHashConcat {
         type S = RollingHash;
         fn identity() -> Self::S {
-            RollingHash {
-                hash: Mint::new(0),
-                base: Mint::new(1),
-            }
+            RollingHash::identity()
         }
         fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
-            RollingHash {
-                hash: a.hash * b.base + b.hash,
-                base: a.base * b.base,
-            }
+            RollingHash::concat(a, b)
         }
     }
 }
@@ -250,6 +272,19 @@ mod tests_monoid_rolling_hash {
             M::binary_operation(&rh1, &rh2),
             RollingHash::new(38, 125) // 1 * 5^2 + 2 * 5 + 3
         );
-        assert_eq!(M::binary_operation(&rh1, &M::identity()), rh1)
+        assert_eq!(M::binary_operation(&rh1, &M::identity()), rh1);
+    }
+
+    #[test]
+    fn test_monoid_rolling_hash_identity_property() {
+        let base = generate_random_base();
+        let rh = RollingHash::new(123, base);
+        let identity_rh = RollingHash::identity();
+
+        // concat(a, identity) = a
+        assert_eq!(rh.concat(&identity_rh), rh);
+
+        // concat(identity, a) = a
+        assert_eq!(identity_rh.concat(&rh), rh);
     }
 }
