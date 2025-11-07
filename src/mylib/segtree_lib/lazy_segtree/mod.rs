@@ -107,6 +107,18 @@
 //! - 区間 `[L, R)` の各要素に特定の値 `x` を乗算する。
 //! - 区間 `[L, R)` の要素の積を取得する。
 //!
+//! ### `range_update_range_xor`
+//!
+//! 次のクエリが処理できます。
+//! - 区間 `[L, R)` の各要素を特定の値 `x` に更新する。
+//! - 区間 `[L, R)` の要素のXOR和を取得する。
+//!
+//! ### `range_xor_apply_range_xor`
+//!
+//! 次のクエリが処理できます。
+//! - 区間 `[L, R)` の各要素に特定の値 `x` をXORする。
+//! - 区間 `[L, R)` の要素のXOR和を取得する。
+//!
 //! ### `two_sequence_range_affine_range_sum`
 //!
 //! 次のクエリが処理できます。
@@ -146,6 +158,8 @@ pub mod range_quadratic_add_range_sum;
 pub mod range_update_range_prod;
 pub mod range_mult_range_prod;
 pub mod range_update_range_sum;
+pub mod range_update_range_xor;
+pub mod range_xor_apply_range_xor;
 pub mod two_sequence_range_affine_range_sum;
 pub mod two_sequence_range_affine_range_sum_of_quadratic;
 
