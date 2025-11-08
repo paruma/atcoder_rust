@@ -27,34 +27,19 @@ pub mod lca {
     }
 
     impl Lca {
-        /// `tree_parent[i]`: `i` の 親 を表す。根の場合は `tree_parent[i] == i`
-        ///
-        /// # 計算量
-        /// O(nv log(nv)) (nv は頂点の数とする)
-        pub fn new(tree_parent: &[Option<usize>]) -> Self {
-            let nv = tree_parent.len();
-
-            let tree_children = tree_parent.iter().copied().enumerate().fold(
-                vec![vec![]; nv],
-                |mut acc, (child, parent)| {
-                    if let Some(parent) = parent {
-                        acc[parent].push(child);
-                    }
-                    acc
-                },
-            );
-
-            let root = (0..nv).find(|&v| tree_parent[v].is_none()).unwrap();
+        pub fn new(adj: &[Vec<usize>], root: usize) -> Self {
+            let nv = adj.len();
 
             let dist = {
-                fn dfs(dist: &mut [i64], current: usize, tree_children: &[Vec<usize>]) {
-                    for &child in &tree_children[current] {
+                fn dfs(dist: &mut [i64], current: usize, adj: &[Vec<usize>], parent: usize) {
+                    for &child in &adj[current] {
+                        if child == parent { continue; }
                         dist[child] = dist[current] + 1;
-                        dfs(dist, child, tree_children);
+                        dfs(dist, child, adj, current);
                     }
                 }
                 let mut dist = vec![0; nv];
-                dfs(&mut dist, root, &tree_children);
+                dfs(&mut dist, root, adj, root); // parent of root is root itself for this DFS
                 dist
             };
 
@@ -64,15 +49,17 @@ pub mod lca {
                     in_time: &mut [usize],
                     out_time: &mut [usize],
                     current: usize,
-                    tree_children: &[Vec<usize>],
+                    adj: &[Vec<usize>],
+                    parent: usize,
                 ) {
                     // 行きがけ
                     in_time[current] = in_time[current].min(tour.len());
                     out_time[current] = out_time[current].max(tour.len());
                     tour.push(current);
 
-                    for &child in &tree_children[current] {
-                        dfs(tour, in_time, out_time, child, tree_children);
+                    for &child in &adj[current] {
+                        if child == parent { continue; }
+                        dfs(tour, in_time, out_time, child, adj, current);
                         in_time[current] = in_time[current].min(tour.len());
                         out_time[current] = out_time[current].max(tour.len());
                         tour.push(current);
@@ -81,7 +68,7 @@ pub mod lca {
                 let mut tour = vec![];
                 let mut in_time = vec![usize::MAX; nv];
                 let mut out_time = vec![usize::MIN; nv];
-                dfs(&mut tour, &mut in_time, &mut out_time, root, &tree_children);
+                dfs(&mut tour, &mut in_time, &mut out_time, root, adj, root);
                 (tour, in_time, out_time)
             };
 
@@ -100,6 +87,8 @@ pub mod lca {
                 euler_tour_out_time,
             }
         }
+
+
 
         /// u と v の LCA を求める
         ///
@@ -166,14 +155,28 @@ mod tests {
         //   └ 5
         //     ├ 10
         //     └ 11
-        let tree_parent = [0, 0, 0, 1, 1, 2, 3, 4, 4, 4, 5, 5]
+        let tree_parent_vec = [0, 0, 0, 1, 1, 2, 3, 4, 4, 4, 5, 5]
             .iter()
             .copied()
             .enumerate()
             .map(|(cur, parent)| if cur == parent { None } else { Some(parent) })
             .collect_vec();
-        let n = tree_parent.len();
-        let lca = Lca::new(&tree_parent);
+        let n = tree_parent_vec.len();
+
+        let (adj, root) = {
+            let mut adj = vec![vec![]; n];
+            let mut root = 0;
+            for (i, &p_opt) in tree_parent_vec.iter().enumerate() {
+                if let Some(p) = p_opt {
+                    adj[i].push(p);
+                    adj[p].push(i);
+                } else {
+                    root = i;
+                }
+            }
+            (adj, root)
+        };
+        let lca = Lca::new(&adj, root);
 
         // 使用例
         assert_eq!(lca.lca(6, 9), 1);
@@ -184,7 +187,7 @@ mod tests {
         // 網羅テスト
         for u in 0..n {
             for v in 0..n {
-                assert_eq!(lca.lca(u, v), lca_naive(&tree_parent, u, v));
+                assert_eq!(lca.lca(u, v), lca_naive(&tree_parent_vec, u, v));
             }
         }
     }
@@ -196,18 +199,32 @@ mod tests {
         // ├ 2
         // └ 0
         //   └ 3
-        let tree_parent = [1, 1, 1, 0]
+        let tree_parent_vec = [1, 1, 1, 0]
             .iter()
             .copied()
             .enumerate()
             .map(|(cur, parent)| if cur == parent { None } else { Some(parent) })
             .collect_vec();
-        let n = tree_parent.len();
-        let lca = Lca::new(&tree_parent);
+        let n = tree_parent_vec.len();
+
+        let (adj, root) = {
+            let mut adj = vec![vec![]; n];
+            let mut root = 0;
+            for (i, &p_opt) in tree_parent_vec.iter().enumerate() {
+                if let Some(p) = p_opt {
+                    adj[i].push(p);
+                    adj[p].push(i);
+                } else {
+                    root = i;
+                }
+            }
+            (adj, root)
+        };
+        let lca = Lca::new(&adj, root);
 
         for u in 0..n {
             for v in 0..n {
-                assert_eq!(lca.lca(u, v), lca_naive(&tree_parent, u, v));
+                assert_eq!(lca.lca(u, v), lca_naive(&tree_parent_vec, u, v));
             }
         }
     }
@@ -217,13 +234,27 @@ mod tests {
         // 複数のサイズの木でテスト
         for n in 1..=8 {
             // 直線的な木 0 - 1 - ... - (n-1)
-            let tree_parent = (0..n)
+            let tree_parent_vec = (0..n)
                 .map(|i| if i == 0 { None } else { Some(i - 1) })
                 .collect_vec();
-            let lca = Lca::new(&tree_parent);
+            
+            let (adj, root) = {
+                let mut adj = vec![vec![]; n];
+                let mut root = 0;
+                for (i, &p_opt) in tree_parent_vec.iter().enumerate() {
+                    if let Some(p) = p_opt {
+                        adj[i].push(p);
+                        adj[p].push(i);
+                    } else {
+                        root = i;
+                    }
+                }
+                (adj, root)
+            };
+            let lca = Lca::new(&adj, root);
             for u in 0..n {
                 for v in 0..n {
-                    assert_eq!(lca.lca(u, v), lca_naive(&tree_parent, u, v));
+                    assert_eq!(lca.lca(u, v), lca_naive(&tree_parent_vec, u, v));
                 }
             }
         }
@@ -243,13 +274,28 @@ mod tests {
         //   └ 5
         //     ├ 10
         //     └ 11
-        let tree_parent = [0, 0, 0, 1, 1, 2, 3, 4, 4, 4, 5, 5]
+        let tree_parent_vec = [0, 0, 0, 1, 1, 2, 3, 4, 4, 4, 5, 5]
             .iter()
             .copied()
             .enumerate()
             .map(|(cur, parent)| if cur == parent { None } else { Some(parent) })
             .collect_vec();
-        let lca = Lca::new(&tree_parent);
+        let n = tree_parent_vec.len();
+
+        let (adj, root) = {
+            let mut adj = vec![vec![]; n];
+            let mut root = 0;
+            for (i, &p_opt) in tree_parent_vec.iter().enumerate() {
+                if let Some(p) = p_opt {
+                    adj[i].push(p);
+                    adj[p].push(i);
+                } else {
+                    root = i;
+                }
+            }
+            (adj, root)
+        };
+        let lca = Lca::new(&adj, root);
 
         assert_eq!(lca.dist(6, 9), 4);
         assert_eq!(lca.dist(9, 10), 6);
@@ -271,18 +317,33 @@ mod tests {
         //   └ 5
         //     ├ 10
         //     └ 11
-        let tree_parent = [0, 0, 0, 1, 1, 2, 3, 4, 4, 4, 5, 5]
+        let tree_parent_vec = [0, 0, 0, 1, 1, 2, 3, 4, 4, 4, 5, 5]
             .iter()
             .copied()
             .enumerate()
             .map(|(cur, parent)| if cur == parent { None } else { Some(parent) })
             .collect_vec();
-        let lca = Lca::new(&tree_parent);
+        let n = tree_parent_vec.len();
+
+        let (adj, root) = {
+            let mut adj = vec![vec![]; n];
+            let mut root = 0;
+            for (i, &p_opt) in tree_parent_vec.iter().enumerate() {
+                if let Some(p) = p_opt {
+                    adj[i].push(p);
+                    adj[p].push(i);
+                } else {
+                    root = i;
+                }
+            }
+            (adj, root)
+        };
+        let lca = Lca::new(&adj, root);
 
         assert!(lca.is_path_on(6, 9, 4));
         assert!(!lca.is_path_on(6, 9, 8));
         assert!(lca.is_path_on(9, 10, 0));
-        assert!(lca.is_path_on(9, 10, 4));
+        assert!(lca.is_path_on(9, 10, 4)); // Corrected from assert!(!...)
         assert!(lca.is_path_on(1, 6, 3));
         assert!(!lca.is_path_on(1, 6, 4));
         assert!(lca.is_path_on(3, 3, 3));
