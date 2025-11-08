@@ -71,7 +71,7 @@ pub mod potentialized_union_find {
             matches!(self, UnionResult::Consistent { .. })
         }
         pub fn is_inconsistent(&self) -> bool {
-            matches!(self, UnionResult::Inconsistent { .. })
+            matches!(self, UnionResult::Inconsistent)
         }
     }
 

@@ -39,7 +39,7 @@ pub mod btree_multiset {
         pub fn iter(&self) -> impl Iterator<Item = &T> {
             self.map
                 .iter()
-                .flat_map(|(e, cnt)| std::iter::repeat(e).take(*cnt))
+                .flat_map(|(e, cnt)| std::iter::repeat_n(e, *cnt))
         }
 
         pub fn set_iter(&self) -> impl Iterator<Item = (&T, usize)> {
