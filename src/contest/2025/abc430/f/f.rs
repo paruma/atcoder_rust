@@ -49,7 +49,6 @@ fn solve(n: usize, xs: &[char]) -> Vec<i64> {
         seg.apply_range_add(left..n - right, 1);
     }
 
-    // おけないパターンない？
     seg.to_vec()
 }
 

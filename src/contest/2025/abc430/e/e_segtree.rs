@@ -14,17 +14,15 @@ fn solve(xs: &[char], ys: &[char]) -> Option<usize> {
         .map(|ch| RollingHash::new((((ch as u8) - b'0') + 2) as i64, base))
         .collect_vec();
 
-    let ys_hash = yhs
-        .iter()
-        .copied()
-        .fold(M::identity(), |acc, x| M::binary_operation(&acc, &x));
+    let xs_seg = Segtree::<M>::from(xhs);
+    let ys_seg = Segtree::<M>::from(yhs);
 
-    let xhs_cum = CumMonoid::<M>::new(&xhs);
+    let ys_hash = ys_seg.all_prod();
 
     for i in 0..xs.len() {
         // xs[i..n] + xs[0..i] のハッシュ値を計算する。それが ys のハッシュ値と一致する？
-        let t1 = xhs_cum.suffix_prod(i); // xs[i..n]
-        let t2 = xhs_cum.prefix_prod(i); // xs[0..i]
+        let t1 = xs_seg.prod(i..); // xs[i..n]
+        let t2 = xs_seg.prod(..i); // xs[0..i]
 
         let new_xs_hash = M::binary_operation(&t1, &t2);
 
@@ -182,8 +180,8 @@ pub mod print_util {
 }
 
 // ====== snippet ======
-use monoid_rolling_hash::*;
 use {ac_library::Monoid, modint_u64::*};
+use {ac_library::Segtree, monoid_rolling_hash::*};
 #[allow(clippy::module_inception)]
 pub mod modint_u64 {
     use std::{
