@@ -1,4 +1,4 @@
-#[fastout]
+// #[fastout]
 fn main() {
     input! {
         n: usize,
