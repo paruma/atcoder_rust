@@ -146,8 +146,8 @@ pub mod monoid_rolling_hash {
     }
 }
 
-// 未テスト (ABC391 B は通ってる)
 /// 2次元ローリングハッシュ
+#[snippet(prefix = "use rolling_hash_2d::*;", include = "modint_u64")]
 pub mod rolling_hash_2d {
 
     type Mint = super::ModInt2305843009213693951;
@@ -286,5 +286,113 @@ mod tests_monoid_rolling_hash {
 
         // concat(identity, a) = a
         assert_eq!(identity_rh.concat(&rh), rh);
+    }
+}
+
+#[cfg(test)]
+mod tests_rolling_hash_2d {
+    use super::rolling_hash_2d::*;
+    use rand::{Rng, SeedableRng, rngs::SmallRng};
+
+    // 基本的なケース
+    #[test]
+    fn test_simple_rolling_hash_2d() {
+        let grid = vec![
+            vec![1, 2, 3, 1],
+            vec![4, 5, 6, 2],
+            vec![1, 2, 3, 1],
+            vec![4, 5, 6, 2],
+        ];
+        let base0 = generate_random_base();
+        let base1 = generate_random_base();
+
+        let rh = RollingHash2D::new(&grid, base0, base1);
+
+        // (0,0) から 2x3 の領域
+        let hash1 = rh.hash(0, 2, 0, 3);
+        // (2,0) から 2x3 の領域
+        let hash2 = rh.hash(2, 4, 0, 3);
+        // [[1,2,3],[4,5,6]] の部分
+        assert_eq!(hash1, hash2);
+
+        // (0,0) から 2x2 の領域
+        let hash3 = rh.hash(0, 2, 0, 2);
+        // (0,1) から 2x2 の領域
+        let hash4 = rh.hash(0, 2, 1, 3);
+        // [[1,2],[4,5]] と [[2,3],[5,6]]
+        assert_ne!(hash3, hash4);
+
+        // サイズ0の領域
+        assert_eq!(rh.hash(1, 1, 1, 3), 0);
+        assert_eq!(rh.hash(1, 3, 1, 1), 0);
+    }
+
+    // ランダムテスト
+    #[test]
+    fn test_random_rolling_hash_2d() {
+        let mut rng = SmallRng::from_os_rng();
+
+        for _ in 0..100 {
+            // 100回試行
+            let height = rng.random_range(10..=50);
+            let width = rng.random_range(10..=50);
+
+            let mut grid: Vec<Vec<i64>> = (0..height)
+                .map(|_| {
+                    (0..width)
+                        .map(|_| rng.random_range(1..=1_000_000_000))
+                        .collect()
+                })
+                .collect();
+
+            let h = rng.random_range(1..=height);
+            let w = rng.random_range(1..=width);
+
+            let y1 = rng.random_range(0..=height - h);
+            let x1 = rng.random_range(0..=width - w);
+            let y2 = rng.random_range(0..=height - h);
+            let x2 = rng.random_range(0..=width - w);
+
+            let base0 = generate_random_base();
+            let base1 = generate_random_base();
+
+            // 1. 変更前のハッシュを計算
+            let rh_before = RollingHash2D::new(&grid, base0, base1);
+            let hash1 = rh_before.hash(y1, y1 + h, x1, x1 + w);
+
+            // 2. gridを実際に変更
+            let mut subgrid = vec![vec![0; w]; h];
+            for i in 0..h {
+                for j in 0..w {
+                    subgrid[i][j] = grid[y1 + i][x1 + j];
+                }
+            }
+            for i in 0..h {
+                for j in 0..w {
+                    grid[y2 + i][x2 + j] = subgrid[i][j];
+                }
+            }
+
+            // 3. 変更後のハッシュを計算
+            let rh_after = RollingHash2D::new(&grid, base0, base1);
+            let hash2 = rh_after.hash(y2, y2 + h, x2, x2 + w);
+
+            assert_eq!(hash1, hash2, "Copied regions should have the same hash");
+
+            // 4. 1要素だけ変更してハッシュが変わることを確認
+            if grid[y2][x2] > 1 {
+                grid[y2][x2] -= 1;
+            } else {
+                grid[y2][x2] += 1;
+            }
+
+            let rh_modified = RollingHash2D::new(&grid, base0, base1);
+            let hash_modified = rh_modified.hash(y2, y2 + h, x2, x2 + w);
+
+            assert_ne!(
+                hash2, hash_modified,
+                "Hash should change after modification"
+            );
+        }
     }
 }
