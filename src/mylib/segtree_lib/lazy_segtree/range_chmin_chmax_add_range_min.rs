@@ -323,7 +323,6 @@ pub mod test_range_chmin_chmax_add_range_min {
         assert_eq!(segtree.to_vec(), vec![10, 5, 5, 5, 60]);
     }
 
-
     #[ignore]
     #[test]
     fn test_random_chmin_chmax_add_min() {
