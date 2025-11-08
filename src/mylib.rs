@@ -18,6 +18,7 @@ pub mod myiter;
 pub mod neg_ext_int;
 pub mod old;
 pub mod pos0;
+pub mod pos_f64;
 pub mod random;
 pub mod reroot;
 pub mod rolling_hash0;
