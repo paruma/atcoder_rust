@@ -22,8 +22,8 @@ mod tests {
     /// 間違っていたら false を返す
     fn process_one_test(rng: &mut SmallRng) -> bool {
         // ==== 問題を作る ====
-        let n = rng.gen_range(1..=10);
-        let xs = (0..n).map(|_| rng.gen_range(0..10)).collect_vec();
+        let n = rng.random_range(1..=10);
+        let xs = (0..n).map(|_| rng.random_range(0..10)).collect_vec();
 
         // ==== 解く ====
         let main_ans = xs.len();
@@ -68,12 +68,12 @@ mod tests {
 // ====== import ======
 #[allow(unused_imports)]
 use {
-    itertools::{chain, iproduct, izip, Itertools},
+    itertools::{Itertools, chain, iproduct, izip},
     proconio::{
         derive_readable, fastout, input,
         marker::{Bytes, Chars, Usize1},
     },
-    rand::{rngs::SmallRng, seq::SliceRandom, Rng, SeedableRng},
+    rand::{Rng, SeedableRng, rngs::SmallRng, seq::SliceRandom},
     std::{
         cmp::Reverse,
         collections::{BinaryHeap, HashMap, HashSet},

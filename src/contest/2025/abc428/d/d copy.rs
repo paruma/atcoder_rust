@@ -56,8 +56,8 @@ mod tests {
     /// 間違っていたら false を返す
     fn process_one_test(rng: &mut SmallRng) -> bool {
         // ==== 問題を作る ====
-        let n = rng.gen_range(1..=10);
-        let xs = (0..n).map(|_| rng.gen_range(0..10)).collect_vec();
+        let n = rng.random_range(1..=10);
+        let xs = (0..n).map(|_| rng.random_range(0..10)).collect_vec();
 
         // ==== 解く ====
         let main_ans = xs.len();
