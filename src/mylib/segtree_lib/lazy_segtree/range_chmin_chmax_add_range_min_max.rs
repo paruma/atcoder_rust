@@ -171,7 +171,13 @@ pub mod range_chmin_chmax_add_range_min_max {
         }
 
         pub fn set(&mut self, p: usize, x: T) {
-            self.segtree.set(p, MinMaxResult { min_val: x, max_val: x });
+            self.segtree.set(
+                p,
+                MinMaxResult {
+                    min_val: x,
+                    max_val: x,
+                },
+            );
         }
 
         pub fn get(&mut self, p: usize) -> T {
@@ -243,7 +249,9 @@ pub mod range_chmin_chmax_add_range_min_max {
 
 #[cfg(test)]
 pub mod test_range_chmin_chmax_add_range_min_max {
-    use super::range_chmin_chmax_add_range_min_max::{RangeChminChmaxAddRangeMinMaxSegtree, MinMaxResult};
+    use super::range_chmin_chmax_add_range_min_max::{
+        MinMaxResult, RangeChminChmaxAddRangeMinMaxSegtree,
+    };
 
     #[test]
     fn test_new_and_get() {
@@ -258,7 +266,13 @@ pub mod test_range_chmin_chmax_add_range_min_max {
     fn test_range_min_max() {
         let xs = vec![10, 20, 30, 40, 50];
         let mut segtree = RangeChminChmaxAddRangeMinMaxSegtree::<i64>::new(&xs);
-        assert_eq!(segtree.range_minmax(1..4), MinMaxResult { min_val: 20, max_val: 40 });
+        assert_eq!(
+            segtree.range_minmax(1..4),
+            MinMaxResult {
+                min_val: 20,
+                max_val: 40
+            }
+        );
         assert_eq!(segtree.range_min(1..4), 20);
         assert_eq!(segtree.range_max(1..4), 40);
     }
