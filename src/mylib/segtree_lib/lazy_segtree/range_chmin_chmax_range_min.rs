@@ -48,6 +48,13 @@ pub mod range_chmin_chmax_range_min {
                 chmax_val: val,
             }
         }
+
+        pub fn new_update(val: T) -> Self {
+            Self {
+                chmin_val: val,
+                chmax_val: val,
+            }
+        }
     }
 
     pub struct RangeChminChmaxRangeMin<T>(Infallible, PhantomData<fn() -> T>);
@@ -155,6 +162,14 @@ pub mod range_chmin_chmax_range_min {
         {
             self.segtree
                 .apply_range(range, ChminChmaxAction::new_chmax(x))
+        }
+
+        pub fn apply_range_update<R>(&mut self, range: R, x: T)
+        where
+            R: RangeBounds<usize>,
+        {
+            self.segtree
+                .apply_range(range, ChminChmaxAction::new_update(x))
         }
 
         pub fn to_vec(&mut self) -> Vec<T> {
@@ -285,6 +300,32 @@ pub mod test_range_chmin_chmax_range_min {
         assert_eq!(segtree.to_vec(), vec![20, 20, 20, 30]);
     }
 
+    #[test]
+    fn test_apply_range_update() {
+        let xs = vec![10, 20, 30, 40, 50];
+        let mut segtree = RangeChminChmaxRangeMinSegtree::<i64>::new(&xs);
+        segtree.apply_range_update(1..4, 5);
+        assert_eq!(segtree.to_vec(), vec![10, 5, 5, 5, 50]);
+    }
+
+    #[test]
+    fn test_update_chmin() {
+        let xs = vec![10, 20, 30, 40, 50];
+        let mut segtree = RangeChminChmaxRangeMinSegtree::<i64>::new(&xs);
+        segtree.apply_range_update(1..4, 25); // [10, 25, 25, 25, 50]
+        segtree.apply_range_chmin(2..5, 15); // [10, 25, 15, 15, 15]
+        assert_eq!(segtree.to_vec(), vec![10, 25, 15, 15, 15]);
+    }
+
+    #[test]
+    fn test_chmin_update() {
+        let xs = vec![10, 20, 30, 40, 50];
+        let mut segtree = RangeChminChmaxRangeMinSegtree::<i64>::new(&xs);
+        segtree.apply_range_chmin(2..5, 15); // [10, 20, 15, 15, 15]
+        segtree.apply_range_update(1..4, 25); // [10, 25, 25, 25, 15]
+        assert_eq!(segtree.to_vec(), vec![10, 25, 25, 25, 15]);
+    }
+
     #[ignore]
     #[test]
     fn test_random_chmin_chmax_min() {
@@ -299,7 +340,7 @@ pub mod test_range_chmin_chmax_range_min {
 
             for _ in 0..100 {
                 // 100 random operations per set
-                let op_type = rng.random_range(0..7); // 7 operations
+                let op_type = rng.random_range(0..8); // 8 operations
 
                 match op_type {
                     0 => {
@@ -348,6 +389,18 @@ pub mod test_range_chmin_chmax_range_min {
                         segtree.apply_range_chmax(l..r, x);
                     }
                     5 => {
+                        // apply_range_update(range, x)
+                        let l = rng.random_range(0..=n);
+                        let r = rng.random_range(l..=n);
+
+                        let x = rng.random_range(-50..=50);
+
+                        for i in l..r {
+                            naive_vec[i] = x;
+                        }
+                        segtree.apply_range_update(l..r, x);
+                    }
+                    6 => {
                         // range_min(range)
                         let l = rng.random_range(0..=n);
                         let r = rng.random_range(l..=n);
@@ -362,7 +415,7 @@ pub mod test_range_chmin_chmax_range_min {
                             r
                         );
                     }
-                    6 => {
+                    7 => {
                         // all_min()
                         let expected_min = naive_vec.iter().copied().min().unwrap_or(i64::MAX);
                         assert_eq!(segtree.all_min(), expected_min, "all_min() failed");
