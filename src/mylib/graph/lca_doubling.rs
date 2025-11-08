@@ -102,6 +102,47 @@ pub mod lca_doubling {
         pub fn is_path_on(&self, u: usize, v: usize, a: usize) -> bool {
             self.dist(u, a) + self.dist(a, v) == self.dist(u, v)
         }
+
+        /// u の k個上の祖先を求める
+        ///
+        /// # 計算量
+        /// O(log(k))
+        pub fn get_ancestor(&self, u: usize, k: usize) -> Option<usize> {
+            if self.dist[u] < k as i64 {
+                return None;
+            }
+            let mut current = u;
+            for i in 0..self.ancestor.len() {
+                if (k >> i) & 1 == 1 {
+                    current = self.ancestor[i][current];
+                }
+            }
+            Some(current)
+        }
+
+        /// u-v パスの k番目の頂点を取得する (u が 0番目)
+        ///
+        /// # 計算量
+        /// O(log(頂点の数))
+        pub fn get_kth_on_path(&self, u: usize, v: usize, k: usize) -> Option<usize> {
+            let l = self.lca(u, v);
+            let dist_u_l = self.dist[u] - self.dist[l];
+
+            if k as i64 <= dist_u_l {
+                // The target is on the path from u to l
+                self.get_ancestor(u, k)
+            } else {
+                // The target is on the path from l to v
+                let dist_l_v = self.dist[v] - self.dist[l];
+                let total_dist = dist_u_l + dist_l_v;
+                if k as i64 > total_dist {
+                    return None; // k is out of bounds
+                }
+                let k_from_l = k as i64 - dist_u_l;
+                let k_from_v = dist_l_v - k_from_l;
+                self.get_ancestor(v, k_from_v as usize)
+            }
+        }
     }
 }
 
@@ -332,5 +373,85 @@ mod tests {
         assert!(lca.is_path_on(3, 3, 3));
         assert!(!lca.is_path_on(3, 3, 6));
         assert!(!lca.is_path_on(3, 3, 1));
+    }
+
+    fn get_kth_on_path_naive(tree_parent: &[Option<usize>], u: usize, v: usize, k: usize) -> Option<usize> {
+        let lca = lca_naive(tree_parent, u, v);
+        let mut path = vec![];
+        let mut curr = u;
+        while curr != lca {
+            path.push(curr);
+            if tree_parent[curr].is_none() { break; }
+            curr = tree_parent[curr].unwrap();
+        }
+        path.push(lca);
+        
+        let mut path_v_to_lca = vec![];
+        let mut curr = v;
+        while curr != lca {
+            path_v_to_lca.push(curr);
+            if tree_parent[curr].is_none() { break; }
+            curr = tree_parent[curr].unwrap();
+        }
+        path.extend(path_v_to_lca.into_iter().rev());
+        
+        path.get(k).copied()
+    }
+
+    #[test]
+    fn test_get_kth_on_path() {
+        // 0
+        // ├ 1
+        // │ ├ 3
+        // │ │ └ 6
+        // │ └ 4
+        // │   ├ 7
+        // │   ├ 8
+        // │   └ 9
+        // └ 2
+        //   └ 5
+        //     ├ 10
+        //     └ 11
+        let tree_parent_vec = [0, 0, 0, 1, 1, 2, 3, 4, 4, 4, 5, 5]
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(cur, parent)| if cur == parent { None } else { Some(parent) })
+            .collect_vec();
+        let n = tree_parent_vec.len();
+
+        let (adj, root) = {
+            let mut adj = vec![vec![]; n];
+            let mut root = 0;
+            for (i, &p_opt) in tree_parent_vec.iter().enumerate() {
+                if let Some(p) = p_opt {
+                    adj[i].push(p);
+                    adj[p].push(i);
+                } else {
+                    root = i;
+                }
+            }
+            (adj, root)
+        };
+        let lca = Lca::new(&adj, root);
+
+        // path 6-3-1-4-9
+        assert_eq!(lca.get_kth_on_path(6, 9, 0), Some(6));
+        assert_eq!(lca.get_kth_on_path(6, 9, 1), Some(3));
+        assert_eq!(lca.get_kth_on_path(6, 9, 2), Some(1));
+        assert_eq!(lca.get_kth_on_path(6, 9, 3), Some(4));
+        assert_eq!(lca.get_kth_on_path(6, 9, 4), Some(9));
+        assert_eq!(lca.get_kth_on_path(6, 9, 5), None);
+
+        // Comprehensive test
+        for u in 0..n {
+            for v in 0..n {
+                let path_len = lca.dist(u, v) + 1;
+                for k in 0..=path_len {
+                    let expected = get_kth_on_path_naive(&tree_parent_vec, u, v, k as usize);
+                    assert_eq!(lca.get_kth_on_path(u, v, k as usize), expected, "u={}, v={}, k={}", u, v, k);
+                }
+            }
+        }
     }
 }
