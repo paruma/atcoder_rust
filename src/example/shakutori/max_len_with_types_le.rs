@@ -7,7 +7,6 @@ use crate::mylib::data_structure::queue0::mod_queue::Queue;
 
 /// 数列 xs の連続部分列で種類数が k 以下になる最大の長さを求める
 /// 参考: 【ゆっくり解説】尺取り法と二分探索の「本当の」違い - YouTube https://www.youtube.com/watch?v=omD-yyb730k
-
 fn solve(xs: &[i64], k: usize) -> usize {
     // end を 1 ずつ動かす尺取法
     let n = xs.len();

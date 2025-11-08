@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-/// [n_balls] → [n_boxes] の全射全列挙
+// [n_balls] → [n_boxes] の全射全列挙
 // 残りのボールの数と残りの箱の数が同じになったら、ボールが入ってない箱にボールを入れるようにすれば良い？
 // fn surj(n_balls: usize, n_boxes: usize) -> Vec<Vec<usize>> {
 //     todo!()
@@ -128,9 +128,9 @@ fn bell(n_balls: usize, n_boxes: usize) -> Vec<Vec<Vec<usize>>> {
     Rec::new(n_balls, n_boxes).exec()
 }
 
-///  n_balls 個の区別しないボールを、n_boxes 個のグループ（区別しない）に分割する。
-/// ボールが含まれないグループがあってもよい。
-/// 自然数 n_balls を n_boxes 個の 0 以上の整数の和で表す方法と考えても良い。
+// /// n_balls 個の区別しないボールを、n_boxes 個のグループ（区別しない）に分割する。
+// /// ボールが含まれないグループがあってもよい。
+// /// 自然数 n_balls を n_boxes 個の 0 以上の整数の和で表す方法と考えても良い。
 // fn partition(n_balls: usize, n_boxes: usize) -> Vec<Vec<usize>> {
 //     todo!()
 // }

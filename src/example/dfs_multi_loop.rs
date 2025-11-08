@@ -234,8 +234,7 @@ mod tests {
                 // https://github.com/rust-itertools/itertools/issues/337
                 vec![vec![]]
             } else {
-                std::iter::repeat(0..n)
-                    .take(r)
+                std::iter::repeat_n(0..n, r)
                     .multi_cartesian_product()
                     .collect_vec()
             }
