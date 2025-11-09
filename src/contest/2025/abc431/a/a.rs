@@ -1,10 +1,11 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        h: i64,
+        b: i64,
     }
-    let ans: i64 = -2_i64;
+
+    let ans: i64 = (h - b).max(0);
     println!("{}", ans);
 }
 

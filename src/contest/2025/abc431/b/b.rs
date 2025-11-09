@@ -1,11 +1,25 @@
 // #[fastout]
 fn main() {
     input! {
+        x: i64, // 最初のロボットの重さ
         n: usize,
-        xs: [i64; n],
+        ws: [i64; n],
+        q: usize,
+        ps: [Usize1; q],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    let mut flags = vec![false; n];
+    let mut sum = x;
+    for p in ps {
+        if flags[p] {
+            flags[p] = false;
+            sum -= ws[p];
+        } else {
+            flags[p] = true;
+            sum += ws[p];
+        }
+        println!("{}", sum);
+    }
 }
 
 #[cfg(test)]
