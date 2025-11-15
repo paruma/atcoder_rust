@@ -1,10 +1,20 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        xs: Bytes,
     }
-    let ans: i64 = -2_i64;
+    let xs = xs.iter().copied().map(|x| (x - b'0') as i64).collect_vec();
+    let ans: i64 = xs
+        .iter()
+        .copied()
+        .permutations(xs.len())
+        .filter(|ys| ys[0] != 0)
+        .map(|ys| {
+            //
+            ys.iter().copied().fold(0, |acc, x| 10 * acc + x)
+        })
+        .min()
+        .unwrap();
     println!("{}", ans);
 }
 

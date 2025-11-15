@@ -1,10 +1,15 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        xs: [i64; 3],
     }
-    let ans: i64 = -2_i64;
+    let ans: i64 = xs
+        .iter()
+        .copied()
+        .permutations(3)
+        .map(|ys| ys.iter().copied().fold(0, |acc, x| 10 * acc + x))
+        .max()
+        .unwrap();
     println!("{}", ans);
 }
 

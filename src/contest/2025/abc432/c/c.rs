@@ -1,11 +1,44 @@
 // #[fastout]
+fn solve(n: usize, x: i64, y: i64, bs: &[i64]) -> Option<i64> {
+    if bs[0] * y < bs[n - 1] * x {
+        return None;
+    }
+
+    let diff = y - x;
+    let bs = bs.iter().copied().sorted().collect_vec();
+
+    let w_sum = bs[0] * y;
+    let mut ans = bs[0];
+
+    for i in 1..n {
+        // bs[i] 個全部大きいアメに配る
+        // その後に大きいアメを小さいアメに変える
+        let w_sum_cur = bs[i] * y;
+        if (w_sum_cur - w_sum) % diff != 0 {
+            return None;
+        }
+
+        let cnt_change = (w_sum_cur - w_sum) / diff; // 大きい飴を小さい飴にする数
+        // dbg!(bs[i] - cnt_change);
+        ans += bs[i] - cnt_change;
+    }
+
+    Some(ans)
+}
+
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        x: i64, // 小さな飴の重さ
+        y: i64, // 大きな飴の重さ
+        bs: [i64; n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let ans = solve(n, x, y, &bs);
+    if let Some(ans) = ans {
+        println!("{}", ans);
+    } else {
+        println!("{}", -1);
+    }
 }
 
 #[cfg(test)]
