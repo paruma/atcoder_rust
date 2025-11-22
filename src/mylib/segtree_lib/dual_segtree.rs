@@ -162,8 +162,8 @@ pub mod dual_segtree {
     }
 }
 
-#[snippet(prefix = "use range_affine::*;")]
-pub mod range_affine {
+#[snippet(prefix = "use range_affine_dual_segtree::*;")]
+pub mod range_affine_dual_segtree {
     use super::dual_segtree::*;
     use std::convert::Infallible;
     use std::marker::PhantomData;
@@ -226,8 +226,8 @@ pub mod range_affine {
     }
 }
 
-#[snippet(prefix = "use range_add::*;")]
-pub mod range_add {
+#[snippet(prefix = "use range_add_dual_segtree::*;")]
+pub mod range_add_dual_segtree {
     use super::dual_segtree::*;
     use std::convert::Infallible;
 
@@ -253,7 +253,7 @@ pub mod range_add {
 #[cfg(test)]
 mod tests_dual_segtree {
     use super::dual_segtree::DualSegtree;
-    use super::range_add::AddMonoid;
+    use super::range_add_dual_segtree::AddMonoid;
 
     // ACL の lazysegtree のテストを流用したもの
     #[test]
@@ -308,7 +308,7 @@ mod tests_dual_segtree {
 pub mod test_range_affine {
     use crate::mylib::segtree_lib::dual_segtree::dual_segtree::MapMonoid;
 
-    use super::range_affine::{Affine, AffineMonoid};
+    use super::range_affine_dual_segtree::{Affine, AffineMonoid};
 
     #[test]
     fn test_affine_addition_func() {
