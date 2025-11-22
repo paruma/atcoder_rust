@@ -1,9 +1,10 @@
-// src/mylib/segtree_lib/segtree_2d.rs
 use cargo_snippet::snippet;
 
 #[snippet(prefix = "use segtree_2d::*;")]
+#[allow(clippy::module_inception)]
 pub mod segtree_2d {
     use ac_library::Monoid;
+    use std::ops::{Bound, Range, RangeBounds};
 
     pub struct Segtree2D<M: Monoid> {
         h_orig: usize, // 元のグリッドの高さ
@@ -100,14 +101,26 @@ pub mod segtree_2d {
         }
 
         /// 矩形範囲 `[y1, y2) × [x1, x2)` の要素の結合結果をクエリします。
+        /// `y_range` はy座標の範囲、`x_range` はx座標の範囲です。
         ///
         /// # Panics
-        /// `y1 >= y2` や `x1 >= x2` など、範囲が不正な場合にパニックします。
-        /// `y2` または `x2` が範囲外の場合にパニックします。
+        /// 範囲が不正な場合にパニックします。
         ///
         /// # 計算量
         /// O(log H * log W)
-        pub fn prod(&self, y1: usize, x1: usize, y2: usize, x2: usize) -> M::S {
+        pub fn prod(
+            &self,
+            y_range: impl RangeBounds<usize>,
+            x_range: impl RangeBounds<usize>,
+        ) -> M::S {
+            let y_range = open_range_bounds(y_range, self.h_orig);
+            let x_range = open_range_bounds(x_range, self.w_orig);
+
+            let y1 = y_range.start;
+            let x1 = x_range.start;
+            let y2 = y_range.end;
+            let x2 = x_range.end;
+
             assert!(
                 y1 <= y2 && y2 <= self.h_orig,
                 "y range invalid: y1={}, y2={}, h_orig={}",
@@ -138,7 +151,6 @@ pub mod segtree_2d {
                     y_cur_l += 1;
                 }
                 if y_cur_r & 1 == 1 {
-                    // y_cur_rが右の子ノードの場合
                     y_cur_r -= 1;
                     // Y軸ノードが対応するX軸セグメントツリーに対してクエリ
                     res = M::binary_operation(&res, &self.query_x_tree(y_cur_r, x_l, x_r));
@@ -168,6 +180,68 @@ pub mod segtree_2d {
             }
             res_x
         }
+
+        /// グリッド全体の要素の結合結果をクエリします。
+        /// 矩形範囲 `[0, h_orig) × [0, w_orig)` と同じです。
+        ///
+        /// # 計算量
+        /// O(1)
+        pub fn all_prod(&self) -> M::S {
+            self.nodes[1][1].clone()
+        }
+
+        /// 点 `(y, x)` の値を取得します。
+        /// これは `self.nodes` のリーフノードに直接アクセスするため、O(1)です。
+        ///
+        /// # Panics
+        /// `y` または `x` が範囲外の場合にパニックします。
+        ///
+        /// # 計算量
+        /// O(1)
+        pub fn get(&self, y: usize, x: usize) -> M::S {
+            assert!(
+                y < self.h_orig,
+                "y is out of bounds: {} >= {}",
+                y,
+                self.h_orig
+            );
+            assert!(
+                x < self.w_orig,
+                "x is out of bounds: {} >= {}",
+                x,
+                self.w_orig
+            );
+            self.nodes[y + self.h_size][x + self.w_size].clone()
+        }
+
+        /// グリッド全体を `Vec<Vec<M::S>>` として返します。
+        ///
+        /// # 計算量
+        /// O(H_orig * W_orig)
+        pub fn to_vec(&self) -> Vec<Vec<M::S>> {
+            let mut result = vec![vec![M::identity(); self.w_orig]; self.h_orig];
+            for r_y in 0..self.h_orig {
+                for r_x in 0..self.w_orig {
+                    result[r_y][r_x] = self.get(r_y, r_x);
+                }
+            }
+            result
+        }
+    } // Closes impl<M: Monoid> Segtree2D<M>
+
+    // RangeBoundsを処理するためのヘルパー関数
+    fn open_range_bounds(range: impl RangeBounds<usize>, len: usize) -> Range<usize> {
+        let l = match range.start_bound() {
+            Bound::Unbounded => 0,
+            Bound::Included(&x) => x,
+            Bound::Excluded(&x) => x + 1,
+        };
+        let r = match range.end_bound() {
+            Bound::Unbounded => len,
+            Bound::Included(&x) => x + 1,
+            Bound::Excluded(&x) => x,
+        };
+        l..r
     }
 }
 
@@ -184,25 +258,39 @@ mod tests {
         let mut st = Segtree2D::<Additive<i64>>::new(h, w);
 
         // 初期状態
-        assert_eq!(st.prod(0, 0, h, w), 0); // グリッド全体をクエリ
+        assert_eq!(st.prod(0..h, 0..w), 0); // グリッド全体をクエリ
 
         st.set(0, 0, 1);
         st.set(1, 1, 2);
         st.set(2, 2, 3);
-        assert_eq!(st.prod(0, 0, h, w), 6); // 1+2+3
+        assert_eq!(st.prod(0..h, 0..w), 6); // 1+2+3
 
         // 値を更新
         st.set(0, 0, 5);
-        assert_eq!(st.prod(0, 0, h, w), 10); // 5+2+3
+        assert_eq!(st.prod(0..h, 0..w), 10); // 5+2+3
 
         // サブ矩形をクエリ
-        assert_eq!(st.prod(0, 0, 1, 1), 5); // (0,0)のみ
-        assert_eq!(st.prod(1, 1, 2, 2), 2); // (1,1)のみ
-        assert_eq!(st.prod(0, 0, 2, 2), 7); // (0,0), (0,1), (1,0), (1,1) (5+0+0+2 = 7)
+        assert_eq!(st.prod(0..1, 0..1), 5); // (0,0)のみ
+        assert_eq!(st.prod(1..2, 1..2), 2); // (1,1)のみ
+        assert_eq!(st.prod(0..2, 0..2), 7); // (0,0), (0,1), (1,0), (1,1) (5+0+0+2 = 7)
 
-        assert_eq!(st.prod(0, 0, 3, 3), 10); // グリッド全体
-        assert_eq!(st.prod(0, 0, 1, 3), 5); // 最初の行
-        assert_eq!(st.prod(0, 1, 3, 2), 2); // 中央の列 (1,1)
+        assert_eq!(st.prod(0..3, 0..3), 10); // グリッド全体
+        assert_eq!(st.prod(0..1, 0..3), 5); // 最初の行
+        assert_eq!(st.prod(0..3, 1..2), 2); // 中央の列 (1,1)
+
+        // Verify all_prod
+        assert_eq!(st.all_prod(), 10); // 5+2+3
+
+        // Verify get
+        assert_eq!(st.get(0, 0), 5);
+        assert_eq!(st.get(1, 1), 2);
+        assert_eq!(st.get(2, 2), 3);
+        assert_eq!(st.get(0, 1), 0);
+        assert_eq!(st.get(1, 0), 0);
+
+        // Verify to_vec
+        let expected_grid = vec![vec![5, 0, 0], vec![0, 2, 0], vec![0, 0, 3]];
+        assert_eq!(st.to_vec(), expected_grid);
     }
 
     #[test]
@@ -235,7 +323,7 @@ mod tests {
 
             for _ in 0..100 {
                 // 100回の操作
-                let op_type = rng.random_range(0..2);
+                let op_type = rng.random_range(0..3); // 0: set, 1: prod, 2: get
 
                 match op_type {
                     0 => {
@@ -260,16 +348,34 @@ mod tests {
                             }
                         }
 
-                        let actual_sum = st.prod(y1, x1, y2, x2);
+                        let actual_sum = st.prod(y1..y2, x1..x2);
                         assert_eq!(
                             actual_sum, expected_sum,
                             "prod failed for y1={},x1={},y2={},x2={}",
                             y1, x1, y2, x2
                         );
                     }
+                    2 => {
+                        // get
+                        let y = rng.random_range(0..h);
+                        let x = rng.random_range(0..w);
+                        assert_eq!(
+                            st.get(y, x),
+                            naive_grid[y][x],
+                            "get failed for y={},x={}",
+                            y,
+                            x
+                        );
+                    }
                     _ => unreachable!(),
                 }
             }
+            // 最終チェック
+            assert_eq!(
+                st.to_vec(),
+                naive_grid,
+                "to_vec failed after all operations"
+            );
         }
     }
 }
