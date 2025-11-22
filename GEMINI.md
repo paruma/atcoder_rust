@@ -22,6 +22,7 @@
 - サードパーティ製のクレートのソースコード は `/home/node/.cargo` にあります。 read file が出来ない場合は cat コマンドを使ってください。
     - cargo build をまだしていない場合は cargo build が必要です
 - 標準ライブラリのソースコードは `/home/node/.rustup` にあります。read file が出来ない場合は cat コマンドを使ってください。
+- git commit などの副作用のある git コマンドは使わないでください
 
 ## 3. よく使うコマンド
 

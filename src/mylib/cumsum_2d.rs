@@ -32,18 +32,18 @@ pub mod cumsum_2d {
 
         pub fn rect_sum(
             &self,
-            x_range: impl RangeBounds<usize>,
             y_range: impl RangeBounds<usize>,
+            x_range: impl RangeBounds<usize>,
         ) -> i64 {
             let y_len = self.cumsum.len() - 1;
             let x_len = self.cumsum[0].len() - 1;
-            let x_range = open(x_range, x_len);
             let y_range = open(y_range, y_len);
+            let x_range = open(x_range, x_len);
 
-            let x1 = x_range.start;
-            let x2 = x_range.end;
             let y1 = y_range.start;
             let y2 = y_range.end;
+            let x1 = x_range.start;
+            let x2 = x_range.end;
             self.cumsum[y2][x2] - self.cumsum[y2][x1] - self.cumsum[y1][x2] + self.cumsum[y1][x1]
         }
     }
@@ -77,13 +77,13 @@ mod test_cumsum_2d {
             cumsum.cumsum,
             vec![vec![0, 0, 0], vec![0, 1, 3], vec![0, 5, 12]]
         );
-        assert_eq!(cumsum.rect_sum(0..1, 0..2), xss[0][0] + xss[1][0]);
+        assert_eq!(cumsum.rect_sum(0..2, 0..1), xss[0][0] + xss[1][0]);
         assert_eq!(
             cumsum.rect_sum(0..=1, 0..=1),
             xss[0][0] + xss[0][1] + xss[1][0] + xss[1][1]
         );
         assert_eq!(cumsum.rect_sum(1..1, 1..1), 0);
-        assert_eq!(cumsum.rect_sum(.., 1..=1), xss[1][0] + xss[1][1]);
+        assert_eq!(cumsum.rect_sum(1..=1, ..), xss[1][0] + xss[1][1]);
     }
 
     #[test]

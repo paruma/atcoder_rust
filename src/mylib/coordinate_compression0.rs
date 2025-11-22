@@ -41,14 +41,12 @@ pub mod coordinate_compression {
             self.space.lower_bound(&x)
         }
 
-        ///
         /// # 計算量
         /// O(|xs|log(|space|))
         pub fn compress_vec(&self, xs: &[i64]) -> Vec<usize> {
             xs.iter().copied().map(|x| self.compress(x)).collect_vec()
         }
 
-        ///
         /// # 計算量
         /// O(1)
         pub fn decompress(&self, i: usize) -> i64 {
