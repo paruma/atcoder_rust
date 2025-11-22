@@ -1,11 +1,11 @@
 // #[fastout]
 fn solve(n: usize, x: i64, y: i64, bs: &[i64]) -> Option<i64> {
+    let bs = bs.iter().copied().sorted().collect_vec();
     if bs[0] * y < bs[n - 1] * x {
         return None;
     }
-
+    
     let diff = y - x;
-    let bs = bs.iter().copied().sorted().collect_vec();
 
     let w_sum = bs[0] * y;
     let mut ans = bs[0];
