@@ -3,6 +3,7 @@ pub mod bin_search0;
 pub mod chminmax;
 pub mod coordinate_compression0;
 pub mod cumsum0;
+pub mod cumsum_2d;
 pub mod data_structure;
 pub mod debug;
 pub mod doubling;

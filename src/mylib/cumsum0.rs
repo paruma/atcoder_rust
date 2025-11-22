@@ -145,269 +145,203 @@ pub mod cumsum {
     }
 }
 
-#[snippet(prefix = "use cumsum_2d::*;")]
-pub mod cumsum_2d {
-    #[derive(Clone, Debug, PartialEq, Eq)]
-    pub struct CumSum2D {
-        pub cumsum: Vec<Vec<i64>>,
-    }
-
-    impl CumSum2D {
-        pub fn new(xss: &[Vec<i64>]) -> CumSum2D {
-            if xss.is_empty() {
-                return CumSum2D {
-                    cumsum: vec![vec![0]],
-                };
-            }
-
-            let height = xss.len();
-            let width = xss[0].len();
-            let mut cumsum = vec![vec![0; width + 1]; height + 1];
-            for y in 1..height + 1 {
-                for x in 1..width + 1 {
-                    cumsum[y][x] = cumsum[y - 1][x] + cumsum[y][x - 1] - cumsum[y - 1][x - 1]
-                        + xss[y - 1][x - 1];
-                }
-            }
-            CumSum2D { cumsum }
-        }
-
-        pub fn rect_sum(&self, (x1, y1): (usize, usize), (x2, y2): (usize, usize)) -> i64 {
-            // [x1, x2) × [y1, y2) の範囲で総和を求める
-            self.cumsum[y2][x2] - self.cumsum[y2][x1] - self.cumsum[y1][x2] + self.cumsum[y1][x1]
-        }
-    }
-}
-
 #[cfg(test)]
-mod test {
-    mod test_cumsum {
-        use super::super::cumsum::*;
+mod test_cumsum {
+    use super::cumsum::*;
 
-        #[test]
-        fn test_prefix_sum_normal() {
-            let xs = vec![1, 2, 3, 4];
-            let prefix_sum = prefix_sum(&xs);
-            assert_eq!(prefix_sum, vec![0, 1, 3, 6, 10]);
-        }
+    #[test]
+    fn test_prefix_sum_normal() {
+        let xs = vec![1, 2, 3, 4];
+        let prefix_sum = prefix_sum(&xs);
+        assert_eq!(prefix_sum, vec![0, 1, 3, 6, 10]);
+    }
 
-        #[test]
-        fn test_prefix_sum_empty() {
-            let xs = vec![];
-            let prefix_sum = prefix_sum(&xs);
-            assert_eq!(prefix_sum, vec![0]);
-        }
+    #[test]
+    fn test_prefix_sum_empty() {
+        let xs = vec![];
+        let prefix_sum = prefix_sum(&xs);
+        assert_eq!(prefix_sum, vec![0]);
+    }
 
-        #[test]
-        fn test_cumsum_normal() {
-            let xs = vec![1, 2, 3, 4];
-            let cumsum = CumSum::new(&xs);
-            assert_eq!(cumsum.cumsum, vec![0, 1, 3, 6, 10]);
-            assert_eq!(cumsum.range_sum(1..3), xs[1] + xs[2]);
-            assert_eq!(cumsum.range_sum(2..4), xs[2] + xs[3]);
-            assert_eq!(cumsum.range_sum(2..2), 0);
-            assert_eq!(cumsum.range_sum(2..), xs[2] + xs[3]);
-            assert_eq!(cumsum.range_sum(..2), xs[0] + xs[1]);
-            assert_eq!(cumsum.range_sum(..), xs[0] + xs[1] + xs[2] + xs[3]);
-            assert_eq!(cumsum.range_sum(2..=3), xs[2] + xs[3]);
+    #[test]
+    fn test_cumsum_normal() {
+        let xs = vec![1, 2, 3, 4];
+        let cumsum = CumSum::new(&xs);
+        assert_eq!(cumsum.cumsum, vec![0, 1, 3, 6, 10]);
+        assert_eq!(cumsum.range_sum(1..3), xs[1] + xs[2]);
+        assert_eq!(cumsum.range_sum(2..4), xs[2] + xs[3]);
+        assert_eq!(cumsum.range_sum(2..2), 0);
+        assert_eq!(cumsum.range_sum(2..), xs[2] + xs[3]);
+        assert_eq!(cumsum.range_sum(..2), xs[0] + xs[1]);
+        assert_eq!(cumsum.range_sum(..), xs[0] + xs[1] + xs[2] + xs[3]);
+        assert_eq!(cumsum.range_sum(2..=3), xs[2] + xs[3]);
 
-            assert_eq!(cumsum.prefix_sum(3), 6);
-            assert_eq!(cumsum.suffix_sum(1), 9);
-        }
+        assert_eq!(cumsum.prefix_sum(3), 6);
+        assert_eq!(cumsum.suffix_sum(1), 9);
+    }
 
-        #[test]
-        fn test_cumsum_binary_search() {
-            let xs = vec![1, 2, 3, 4, 5];
-            let cumsum = CumSum::new(&xs);
+    #[test]
+    fn test_cumsum_binary_search() {
+        let xs = vec![1, 2, 3, 4, 5];
+        let cumsum = CumSum::new(&xs);
 
-            // max_right
-            // sum(1..r) <= 5
-            // 1..1 -> 0
-            // 1..2 -> 2
-            // 1..3 -> 2+3=5
-            // 1..4 -> 2+3+4=9
-            assert_eq!(cumsum.max_right(1, |sum| sum <= 5), 3);
-            assert_eq!(cumsum.max_right(1, |sum| sum <= 4), 2);
-            assert_eq!(cumsum.max_right(1, |sum| sum < 5), 2);
+        // max_right
+        // sum(1..r) <= 5
+        // 1..1 -> 0
+        // 1..2 -> 2
+        // 1..3 -> 2+3=5
+        // 1..4 -> 2+3+4=9
+        assert_eq!(cumsum.max_right(1, |sum| sum <= 5), 3);
+        assert_eq!(cumsum.max_right(1, |sum| sum <= 4), 2);
+        assert_eq!(cumsum.max_right(1, |sum| sum < 5), 2);
 
-            // sum(0..r) <= 10
-            // 0..1 -> 1
-            // 0..2 -> 1+2=3
-            // 0..3 -> 1+2+3=6
-            // 0..4 -> 1+2+3+4=10
-            // 0..5 -> 1+2+3+4+5=15
-            assert_eq!(cumsum.max_right(0, |sum| sum <= 10), 4);
-            assert_eq!(cumsum.max_right(0, |sum| sum <= 9), 3);
+        // sum(0..r) <= 10
+        // 0..1 -> 1
+        // 0..2 -> 1+2=3
+        // 0..3 -> 1+2+3=6
+        // 0..4 -> 1+2+3+4=10
+        // 0..5 -> 1+2+3+4+5=15
+        assert_eq!(cumsum.max_right(0, |sum| sum <= 10), 4);
+        assert_eq!(cumsum.max_right(0, |sum| sum <= 9), 3);
 
-            // all true
-            assert_eq!(cumsum.max_right(0, |sum| sum <= 100), 5);
+        // all true
+        assert_eq!(cumsum.max_right(0, |sum| sum <= 100), 5);
 
-            // min_left
-            // sum(l..4) <= 7
-            // l=4 -> 0
-            // l=3 -> 4
-            // l=2 -> 3+4=7
-            // l=1 -> 2+3+4=9
-            assert_eq!(cumsum.min_left(4, |sum| sum <= 7), 2);
-            assert_eq!(cumsum.min_left(4, |sum| sum < 7), 3);
+        // min_left
+        // sum(l..4) <= 7
+        // l=4 -> 0
+        // l=3 -> 4
+        // l=2 -> 3+4=7
+        // l=1 -> 2+3+4=9
+        assert_eq!(cumsum.min_left(4, |sum| sum <= 7), 2);
+        assert_eq!(cumsum.min_left(4, |sum| sum < 7), 3);
 
-            // sum(l..5) <= 15
-            // l=5 -> 0
-            // l=4 -> 5
-            // l=3 -> 4+5=9
-            // l=2 -> 3+4+5=12
-            // l=1 -> 2+3+4+5=14
-            // l=0 -> 1+2+3+4+5=15
-            assert_eq!(cumsum.min_left(5, |sum| sum <= 15), 0);
-            assert_eq!(cumsum.min_left(5, |sum| sum < 15), 1);
-            assert_eq!(cumsum.min_left(5, |sum| sum <= 13), 2);
+        // sum(l..5) <= 15
+        // l=5 -> 0
+        // l=4 -> 5
+        // l=3 -> 4+5=9
+        // l=2 -> 3+4+5=12
+        // l=1 -> 2+3+4+5=14
+        // l=0 -> 1+2+3+4+5=15
+        assert_eq!(cumsum.min_left(5, |sum| sum <= 15), 0);
+        assert_eq!(cumsum.min_left(5, |sum| sum < 15), 1);
+        assert_eq!(cumsum.min_left(5, |sum| sum <= 13), 2);
 
-            // all true
-            assert_eq!(cumsum.min_left(5, |sum| sum >= 0), 0);
-        }
+        // all true
+        assert_eq!(cumsum.min_left(5, |sum| sum >= 0), 0);
+    }
 
-        #[test]
-        #[should_panic(expected = "f(0) must be true")]
-        fn test_max_right_panic() {
-            let xs = vec![1, 2, 3, 4, 5];
-            let cumsum = CumSum::new(&xs);
-            // f(0) is false, should panic
-            cumsum.max_right(2, |sum| sum < 0);
-        }
+    #[test]
+    #[should_panic(expected = "f(0) must be true")]
+    fn test_max_right_panic() {
+        let xs = vec![1, 2, 3, 4, 5];
+        let cumsum = CumSum::new(&xs);
+        // f(0) is false, should panic
+        cumsum.max_right(2, |sum| sum < 0);
+    }
 
-        #[test]
-        #[should_panic(expected = "f(0) must be true")]
-        fn test_min_left_panic() {
-            let xs = vec![1, 2, 3, 4, 5];
-            let cumsum = CumSum::new(&xs);
-            // f(0) is false, should panic
-            cumsum.min_left(3, |sum| sum < 0);
-        }
+    #[test]
+    #[should_panic(expected = "f(0) must be true")]
+    fn test_min_left_panic() {
+        let xs = vec![1, 2, 3, 4, 5];
+        let cumsum = CumSum::new(&xs);
+        // f(0) is false, should panic
+        cumsum.min_left(3, |sum| sum < 0);
+    }
 
-        #[test]
-        fn test_cumsum_empty() {
-            let xs = vec![];
-            let cumsum = CumSum::new(&xs);
-            assert_eq!(cumsum.cumsum, vec![0]);
-            assert_eq!(cumsum.range_sum(..), 0);
-            assert_eq!(cumsum.range_sum(..), 0);
-            assert_eq!(cumsum.range_sum(0..0), 0);
-            assert_eq!(cumsum.range_sum(..0), 0);
-        }
+    #[test]
+    fn test_cumsum_empty() {
+        let xs = vec![];
+        let cumsum = CumSum::new(&xs);
+        assert_eq!(cumsum.cumsum, vec![0]);
+        assert_eq!(cumsum.range_sum(..), 0);
+        assert_eq!(cumsum.range_sum(..), 0);
+        assert_eq!(cumsum.range_sum(0..0), 0);
+        assert_eq!(cumsum.range_sum(..0), 0);
+    }
 
-        #[ignore]
-        #[test]
-        fn test_random_max_right() {
-            use rand::{Rng, SeedableRng};
+    #[ignore]
+    #[test]
+    fn test_random_max_right() {
+        use rand::{Rng, SeedableRng};
 
-            let mut rng = rand::rngs::SmallRng::seed_from_u64(42);
+        let mut rng = rand::rngs::SmallRng::seed_from_u64(42);
+
+        for _ in 0..100 {
+            // 100 trials
+            let n = rng.random_range(1..=50);
+            // `max_right` の単調性のために、もとの配列の値は非負であるようにする
+            let naive_vec: Vec<i64> = (0..n).map(|_| rng.random_range(0..=100)).collect();
+            let cumsum = CumSum::new(&naive_vec);
 
             for _ in 0..100 {
-                // 100 trials
-                let n = rng.random_range(1..=50);
-                // `max_right` の単調性のために、もとの配列の値は非負であるようにする
-                let naive_vec: Vec<i64> = (0..n).map(|_| rng.random_range(0..=100)).collect();
-                let cumsum = CumSum::new(&naive_vec);
+                // 100 operations
+                let l = rng.random_range(0..=n);
+                let total_sum: i64 = naive_vec.iter().sum();
+                let threshold = rng.random_range(0..=total_sum.saturating_add(100));
 
-                for _ in 0..100 {
-                    // 100 operations
-                    let l = rng.random_range(0..=n);
-                    let total_sum: i64 = naive_vec.iter().sum();
-                    let threshold = rng.random_range(0..=total_sum.saturating_add(100));
+                let f = |sum: i64| sum <= threshold;
+                assert!(f(0), "f(0) must be true for random test");
 
-                    let f = |sum: i64| sum <= threshold;
-                    assert!(f(0), "f(0) must be true for random test");
-
-                    // Naive implementation
-                    let mut expected = l;
-                    for r in l..=n {
-                        let current_sum: i64 = naive_vec[l..r].iter().sum();
-                        if f(current_sum) {
-                            expected = r;
-                        } else {
-                            break;
-                        }
+                // Naive implementation
+                let mut expected = l;
+                for r in l..=n {
+                    let current_sum: i64 = naive_vec[l..r].iter().sum();
+                    if f(current_sum) {
+                        expected = r;
+                    } else {
+                        break;
                     }
-
-                    let actual = cumsum.max_right(l, f);
-                    assert_eq!(
-                        actual, expected,
-                        "max_right failed for l={}, threshold={}\nvec: {:?}",
-                        l, threshold, naive_vec
-                    );
                 }
-            }
-        }
 
-        #[ignore]
-        #[test]
-        fn test_random_min_left() {
-            use rand::{Rng, SeedableRng};
-
-            let mut rng = rand::rngs::SmallRng::seed_from_u64(43); // 異なるシードを使用
-
-            for _ in 0..100 {
-                // 100 trials
-                let n = rng.random_range(1..=50);
-                // `min_left` の単調性のために、もとの配列の値は非負であるようにする
-                let naive_vec: Vec<i64> = (0..n).map(|_| rng.random_range(0..=100)).collect();
-                let cumsum = CumSum::new(&naive_vec);
-
-                for _ in 0..100 {
-                    // 100 operations
-                    let r = rng.random_range(0..=n);
-                    let total_sum: i64 = naive_vec.iter().sum();
-                    let threshold = rng.random_range(0..=total_sum.saturating_add(100));
-
-                    let f = |sum: i64| sum <= threshold;
-                    assert!(f(0), "f(0) must be true for random test");
-
-                    // Naive implementation
-                    let expected = (0..=r)
-                        .find(|&l_candidate| {
-                            let current_sum: i64 = naive_vec[l_candidate..r].iter().sum();
-                            f(current_sum)
-                        })
-                        .unwrap();
-
-                    let actual = cumsum.min_left(r, f);
-                    assert_eq!(
-                        actual, expected,
-                        "min_left failed for r={}, threshold={}\nvec: {:?}",
-                        r, threshold, naive_vec
-                    );
-                }
+                let actual = cumsum.max_right(l, f);
+                assert_eq!(
+                    actual, expected,
+                    "max_right failed for l={}, threshold={}\nvec: {:?}",
+                    l, threshold, naive_vec
+                );
             }
         }
     }
 
-    mod test_cumsum_2d {
-        use super::super::cumsum_2d::*;
+    #[ignore]
+    #[test]
+    fn test_random_min_left() {
+        use rand::{Rng, SeedableRng};
 
-        #[test]
-        fn test_cumsum_2d_normal() {
-            // [1 2]
-            // [4 5]
-            let xss = vec![vec![1, 2], vec![4, 5]];
-            let cumsum = CumSum2D::new(&xss);
-            assert_eq!(
-                cumsum.cumsum,
-                vec![vec![0, 0, 0], vec![0, 1, 3], vec![0, 5, 12]]
-            );
-            assert_eq!(cumsum.rect_sum((0, 0), (1, 2)), xss[0][0] + xss[1][0]);
-            assert_eq!(
-                cumsum.rect_sum((0, 0), (2, 2)),
-                xss[0][0] + xss[0][1] + xss[1][0] + xss[1][1]
-            );
-            assert_eq!(cumsum.rect_sum((1, 1), (1, 1)), 0);
-        }
+        let mut rng = rand::rngs::SmallRng::seed_from_u64(43); // 異なるシードを使用
 
-        #[test]
-        fn test_cumsum_2d_empty() {
-            let xss = vec![];
-            let cumsum = CumSum2D::new(&xss);
-            assert_eq!(cumsum.cumsum, vec![vec![0]]);
-            assert_eq!(cumsum.rect_sum((0, 0), (0, 0)), 0);
+        for _ in 0..100 {
+            // 100 trials
+            let n = rng.random_range(1..=50);
+            // `min_left` の単調性のために、もとの配列の値は非負であるようにする
+            let naive_vec: Vec<i64> = (0..n).map(|_| rng.random_range(0..=100)).collect();
+            let cumsum = CumSum::new(&naive_vec);
+
+            for _ in 0..100 {
+                // 100 operations
+                let r = rng.random_range(0..=n);
+                let total_sum: i64 = naive_vec.iter().sum();
+                let threshold = rng.random_range(0..=total_sum.saturating_add(100));
+
+                let f = |sum: i64| sum <= threshold;
+                assert!(f(0), "f(0) must be true for random test");
+
+                // Naive implementation
+                let expected = (0..=r)
+                    .find(|&l_candidate| {
+                        let current_sum: i64 = naive_vec[l_candidate..r].iter().sum();
+                        f(current_sum)
+                    })
+                    .unwrap();
+
+                let actual = cumsum.min_left(r, f);
+                assert_eq!(
+                    actual, expected,
+                    "min_left failed for r={}, threshold={}\nvec: {:?}",
+                    r, threshold, naive_vec
+                );
+            }
         }
     }
 }
