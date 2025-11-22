@@ -1,11 +1,91 @@
-// #[fastout]
+fn solve(h: usize, w: usize, xs: &[i64], ys: &[i64]) -> Option<Vec<Vec<i64>>> {
+    // x と y が逆になってる。。。
+    let mut grid = vec![vec![i64::MAX; w]; h];
+    let mut puttable_row: Vec<BTreeSet<usize>> = vec![BTreeSet::new(); h];
+    let mut puttable_col: Vec<BTreeSet<usize>> = vec![BTreeSet::new(); w];
+
+    let mut row_map = HashMap::<i64, usize>::new();
+    for (i, x) in xs.iter().copied().enumerate() {
+        row_map.insert(x, i);
+    }
+
+    let mut col_map = HashMap::<i64, usize>::new();
+    for (i, y) in ys.iter().copied().enumerate() {
+        col_map.insert(y, i);
+    }
+
+    for cur in (1..=w * h).rev() {
+        let cur = cur as i64;
+        if row_map.contains_key(&cur) {
+            let x = row_map[&cur];
+            for y in 0..w {
+                puttable_col[y].insert(x);
+            }
+        }
+
+        if col_map.contains_key(&cur) {
+            let y = col_map[&cur];
+            for x in 0..h {
+                puttable_col[x].insert(y);
+            }
+        }
+
+        if row_map.contains_key(&cur) && col_map.contains_key(&cur) {
+            let y = col_map[&cur];
+            let x = row_map[&cur];
+            grid[x][y] = cur;
+        } else if row_map.contains_key(&cur) && !col_map.contains_key(&cur) {
+            let x = row_map[&cur];
+            if puttable_col[x].is_empty() {
+                return None;
+            } else {
+                let y = *puttable_col[x].iter().min().unwrap();
+                puttable_col[x].remove(&y);
+                grid[x][y] = cur;
+            }
+        } else if !row_map.contains_key(&cur) && col_map.contains_key(&cur) {
+            let y = col_map[&cur];
+            if puttable_row[y].is_empty() {
+                return None;
+            } else {
+                let x = *puttable_row[y].iter().min().unwrap();
+                puttable_row[x].remove(&x);
+                grid[x][y] = cur;
+            }
+        } else {
+            return None;
+        }
+    }
+
+    Some(grid)
+}
+#[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        t: usize,
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    // cross explosion する
+
+    for _ in 0..t {
+        input! {
+            h: usize,
+            w: usize,
+            xs: [i64; h],
+            ys: [i64; w],
+        }
+
+        let ans = solve(h, w, &xs, &ys);
+
+        if let Some(ans) = ans {
+            for row in ans {
+                let msg = row.iter().map(|x| format!("{}", x)).join(" ");
+                println!("Yes");
+                println!("{}", msg);
+            }
+        } else {
+            println!("No");
+        }
+    }
 }
 
 #[cfg(test)]
@@ -67,6 +147,7 @@ mod tests {
 }
 
 // ====== import ======
+use std::collections::BTreeSet;
 #[allow(unused_imports)]
 use {
     itertools::{Itertools, chain, iproduct, izip},

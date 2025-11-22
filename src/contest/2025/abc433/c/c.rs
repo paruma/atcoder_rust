@@ -1,10 +1,25 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        xs: Bytes,
     }
-    let ans: i64 = -2_i64;
+    let xs = xs
+        .iter()
+        .copied()
+        .map(|ch| (ch - b'0') as i64)
+        .collect_vec();
+    let rle = xs.iter().copied().dedup_with_count().collect_vec();
+
+    let ans: i64 = rle
+        .iter()
+        .copied()
+        .tuple_windows()
+        .map(
+            |((c1, d1), (c2, d2))| {
+                if d1 + 1 == d2 { c1.min(c2) as i64 } else { 0 }
+            },
+        )
+        .sum::<i64>();
     println!("{}", ans);
 }
 

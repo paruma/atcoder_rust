@@ -4,8 +4,20 @@ fn main() {
         n: usize,
         xs: [i64; n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let ans = (0..n)
+        .map(|i| {
+            //
+            (0..i).filter(|&j| xs[j] > xs[i]).max()
+        })
+        .collect_vec();
+
+    for x in ans {
+        if let Some(ans) = x {
+            println!("{}", ans + 1);
+        } else {
+            println!("{}", -1);
+        }
+    }
 }
 
 #[cfg(test)]
