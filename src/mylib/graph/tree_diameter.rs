@@ -1,6 +1,6 @@
 use cargo_snippet::snippet;
 
-use crate::mylib::data_structure::queue0::mod_queue::Queue;
+use crate::mylib::data_structure::queue::mod_queue::Queue;
 
 /// 木の直径を求める(直径の長さと直径を構成する頂点のリストを返す)
 ///

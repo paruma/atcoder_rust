@@ -1,6 +1,6 @@
 use cargo_snippet::snippet;
 
-use crate::mylib::data_structure::queue0::mod_queue::Queue;
+use crate::mylib::data_structure::queue::mod_queue::Queue;
 
 #[snippet(include = "mod_queue")]
 pub fn topo_sort(adj: &[Vec<usize>]) -> Vec<usize> {
