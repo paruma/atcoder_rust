@@ -1455,6 +1455,7 @@
     "prefix": "coordinate_compression",
     "body": [
       "use coordinate_compression::*;",
+      "#[allow(clippy::module_inception)]",
       "pub mod coordinate_compression {",
       "    use itertools::Itertools;",
       "    use superslice::Ext;",
@@ -1649,6 +1650,7 @@
     "prefix": "cumsum",
     "body": [
       "use cumsum::*;",
+      "#[allow(clippy::module_inception)]",
       "pub mod cumsum {",
       "    pub fn prefix_sum(xs: &[i64]) -> Vec<i64> {",
       "        let mut prefix_sum = vec![0; xs.len() + 1];",
@@ -13215,6 +13217,7 @@
       "    macro_rules ! impl_folding {() => {} ; (impl <\\$ generic_param : ident : \\$ generic_param_bound : tt > \\$ trait : ident < _ > for \\$ self : ty {fn \\$ method : ident (_ ) -> _ {_ (\\$ unit : expr_2021 , \\$ op : expr_2021 ) } } \\$ (\\$ rest : tt ) * ) => {impl <\\$ generic_param : \\$ generic_param_bound > \\$ trait < Self > for \\$ self {# [inline ] fn \\$ method < S > (iter : S ) -> Self where S : Iterator < Item = Self >, {iter . fold (\\$ unit , \\$ op ) } } impl <'a , \\$ generic_param : \\$ generic_param_bound > \\$ trait <&'a Self > for \\$ self {# [inline ] fn \\$ method < S > (iter : S ) -> Self where S : Iterator < Item = &'a Self >, {iter . fold (\\$ unit , \\$ op ) } } impl_folding ! (\\$ (\\$ rest ) * ) ; } ; }",
       "    impl_folding! {impl < M : Modulus > Sum < _ > for StaticModInt < M > {fn sum (_ ) -> _ {_ (Self :: raw (0 ) , Add :: add ) } } impl < M : Modulus > Product < _ > for StaticModInt < M > {fn product (_ ) -> _ {_ (Self :: raw (1 ) , Mul :: mul ) } } }",
       "}",
+      "#[allow(clippy::module_inception)]",
       "pub mod rolling_hash {",
       "    type Mint = super::ModInt2305843009213693951;",
       "    pub fn generate_random_base() -> i64 {",
@@ -13879,6 +13882,7 @@
     "prefix": "scan_iter",
     "body": [
       "use scan_iter::*;",
+      "#[allow(clippy::module_inception)]",
       "pub mod scan_iter {",
       "    #[derive(Clone)]",
       "    pub struct Scanl<I, B, F> {",

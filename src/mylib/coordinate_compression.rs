@@ -1,6 +1,7 @@
 use cargo_snippet::snippet;
 
 #[snippet(prefix = "use coordinate_compression::*;")]
+#[allow(clippy::module_inception)]
 pub mod coordinate_compression {
     use itertools::Itertools;
     use superslice::Ext;

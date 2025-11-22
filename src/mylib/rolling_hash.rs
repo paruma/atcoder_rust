@@ -2,6 +2,7 @@ use crate::mylib::math::modint_u64::modint_u64::ModInt2305843009213693951;
 use cargo_snippet::snippet;
 
 #[snippet(prefix = "use rolling_hash::*;", include = "modint_u64")]
+#[allow(clippy::module_inception)]
 pub mod rolling_hash {
     type Mint = super::ModInt2305843009213693951;
 

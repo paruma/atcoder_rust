@@ -4,7 +4,7 @@ pub mod grid_union_find {
     use itertools::Itertools;
 
     use crate::mylib::{
-        data_structure::union_find::simple_union_find::simple_union_find::UnionFind, pos0::pos::Pos,
+        data_structure::union_find::simple_union_find::simple_union_find::UnionFind, pos::pos::Pos,
     };
 
     #[snippet(name = "GridUnionFind")]
@@ -63,7 +63,7 @@ pub mod grid_union_find {
 #[cfg(test)]
 mod tests {
     use super::grid_union_find::GridUnionFind;
-    use crate::mylib::pos0::pos::Pos;
+    use crate::mylib::pos::pos::Pos;
 
     #[test]
     fn test_new() {

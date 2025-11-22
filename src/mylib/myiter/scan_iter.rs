@@ -1,6 +1,7 @@
 use cargo_snippet::snippet;
 
 #[snippet(prefix = "use scan_iter::*;")]
+#[allow(clippy::module_inception)]
 pub mod scan_iter {
     #[derive(Clone)]
     pub struct Scanl<I, B, F> {

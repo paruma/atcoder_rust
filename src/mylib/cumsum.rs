@@ -1,6 +1,7 @@
 use cargo_snippet::snippet;
 
 #[snippet(prefix = "use cumsum::*;")]
+#[allow(clippy::module_inception)]
 pub mod cumsum {
     pub fn prefix_sum(xs: &[i64]) -> Vec<i64> {
         let mut prefix_sum = vec![0; xs.len() + 1];
