@@ -375,26 +375,35 @@ mod tests {
         assert!(!lca.is_path_on(3, 3, 1));
     }
 
-    fn get_kth_on_path_naive(tree_parent: &[Option<usize>], u: usize, v: usize, k: usize) -> Option<usize> {
+    fn get_kth_on_path_naive(
+        tree_parent: &[Option<usize>],
+        u: usize,
+        v: usize,
+        k: usize,
+    ) -> Option<usize> {
         let lca = lca_naive(tree_parent, u, v);
         let mut path = vec![];
         let mut curr = u;
         while curr != lca {
             path.push(curr);
-            if tree_parent[curr].is_none() { break; }
+            if tree_parent[curr].is_none() {
+                break;
+            }
             curr = tree_parent[curr].unwrap();
         }
         path.push(lca);
-        
+
         let mut path_v_to_lca = vec![];
         let mut curr = v;
         while curr != lca {
             path_v_to_lca.push(curr);
-            if tree_parent[curr].is_none() { break; }
+            if tree_parent[curr].is_none() {
+                break;
+            }
             curr = tree_parent[curr].unwrap();
         }
         path.extend(path_v_to_lca.into_iter().rev());
-        
+
         path.get(k).copied()
     }
 
@@ -449,7 +458,14 @@ mod tests {
                 let path_len = lca.dist(u, v) + 1;
                 for k in 0..=path_len {
                     let expected = get_kth_on_path_naive(&tree_parent_vec, u, v, k as usize);
-                    assert_eq!(lca.get_kth_on_path(u, v, k as usize), expected, "u={}, v={}, k={}", u, v, k);
+                    assert_eq!(
+                        lca.get_kth_on_path(u, v, k as usize),
+                        expected,
+                        "u={}, v={}, k={}",
+                        u,
+                        v,
+                        k
+                    );
                 }
             }
         }

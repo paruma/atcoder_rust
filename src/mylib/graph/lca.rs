@@ -33,7 +33,9 @@ pub mod lca {
             let dist = {
                 fn dfs(dist: &mut [i64], current: usize, adj: &[Vec<usize>], parent: usize) {
                     for &child in &adj[current] {
-                        if child == parent { continue; }
+                        if child == parent {
+                            continue;
+                        }
                         dist[child] = dist[current] + 1;
                         dfs(dist, child, adj, current);
                     }
@@ -58,7 +60,9 @@ pub mod lca {
                     tour.push(current);
 
                     for &child in &adj[current] {
-                        if child == parent { continue; }
+                        if child == parent {
+                            continue;
+                        }
                         dfs(tour, in_time, out_time, child, adj, current);
                         in_time[current] = in_time[current].min(tour.len());
                         out_time[current] = out_time[current].max(tour.len());
@@ -87,8 +91,6 @@ pub mod lca {
                 euler_tour_out_time,
             }
         }
-
-
 
         /// u と v の LCA を求める
         ///
@@ -237,7 +239,7 @@ mod tests {
             let tree_parent_vec = (0..n)
                 .map(|i| if i == 0 { None } else { Some(i - 1) })
                 .collect_vec();
-            
+
             let (adj, root) = {
                 let mut adj = vec![vec![]; n];
                 let mut root = 0;
