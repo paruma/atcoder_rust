@@ -131,6 +131,7 @@
     "prefix": "abstract_segtree_beats",
     "body": [
       "use abstract_segtree_beats::*;",
+      "#[allow(clippy::module_inception)]",
       "pub mod abstract_segtree_beats {",
       "    fn ceil_pow2(n: u32) -> u32 {",
       "        32 - n.saturating_sub(1).leading_zeros()",
@@ -9469,6 +9470,7 @@
     "body": [
       "use abstract_segtree_beats::*;",
       "use range_chmax_range_sum::*;",
+      "#[allow(clippy::module_inception)]",
       "pub mod abstract_segtree_beats {",
       "    fn ceil_pow2(n: u32) -> u32 {",
       "        32 - n.saturating_sub(1).leading_zeros()",
@@ -9809,7 +9811,7 @@
       "    }",
       "}",
       "pub mod range_chmax_range_sum {",
-      "    use super::abstract_segtree_beats::{MapMonoidBeats, MonoidBeats};",
+      "    use super::{MapMonoidBeats, MonoidBeats};",
       "    use std::{",
       "        cmp::{max, min},",
       "        convert::Infallible,",
@@ -10859,6 +10861,7 @@
     "body": [
       "use abstract_segtree_beats::*;",
       "use range_chmin_range_sum::*;",
+      "#[allow(clippy::module_inception)]",
       "pub mod abstract_segtree_beats {",
       "    fn ceil_pow2(n: u32) -> u32 {",
       "        32 - n.saturating_sub(1).leading_zeros()",
@@ -11199,7 +11202,7 @@
       "    }",
       "}",
       "pub mod range_chmin_range_sum {",
-      "    use super::abstract_segtree_beats::{MapMonoidBeats, MonoidBeats};",
+      "    use super::{MapMonoidBeats, MonoidBeats};",
       "    use std::{",
       "        cmp::{max, min},",
       "        convert::Infallible,",
