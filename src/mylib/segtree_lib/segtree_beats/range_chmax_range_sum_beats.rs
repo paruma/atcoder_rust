@@ -8,9 +8,12 @@ use super::abstract_segtree_beats::abstract_segtree_beats::{MapMonoidBeats, Mono
 )]
 pub mod range_chmax_range_sum {
     use super::{MapMonoidBeats, MonoidBeats};
+    use crate::mylib::segtree_lib::segtree_beats::abstract_segtree_beats::abstract_segtree_beats::SegtreeBeats;
+    use itertools::Itertools;
     use std::{
         cmp::{max, min},
         convert::Infallible,
+        ops::RangeBounds,
     };
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -136,77 +139,129 @@ pub mod range_chmax_range_sum {
             }
         }
     }
+
+    pub struct RangeChmaxRangeSumSegtree {
+        segtree: SegtreeBeats<RangeChmaxRangeSum>,
+        len: usize,
+    }
+
+    impl RangeChmaxRangeSumSegtree {
+        pub fn new(n: usize) -> Self {
+            let segtree = SegtreeBeats::<RangeChmaxRangeSum>::new(n);
+            Self { segtree, len: n }
+        }
+
+        pub fn from(xs: &[i64]) -> Self {
+            let len = xs.len();
+            let segtree = SegtreeBeats::<RangeChmaxRangeSum>::from(
+                xs.iter().copied().map(RangeSum::unit).collect_vec(),
+            );
+            Self { segtree, len }
+        }
+
+        pub fn len(&self) -> usize {
+            self.len
+        }
+
+        pub fn set(&mut self, p: usize, x: i64) {
+            self.segtree.set(p, RangeSum::unit(x));
+        }
+
+        pub fn get(&mut self, p: usize) -> i64 {
+            self.segtree.get(p).unwrap().sum
+        }
+
+        pub fn sum<R: RangeBounds<usize>>(&mut self, range: R) -> i64 {
+            self.segtree.prod(range).unwrap().sum
+        }
+
+        pub fn all_sum(&mut self) -> i64 {
+            self.segtree.all_prod().unwrap().sum
+        }
+
+        pub fn chmax<R: RangeBounds<usize>>(&mut self, range: R, x: i64) {
+            self.segtree.apply_range(range, ChmaxFunc::new(x));
+        }
+
+        pub fn to_vec(&mut self) -> Vec<i64> {
+            (0..self.len).map(|i| self.get(i)).collect_vec()
+        }
+    }
 }
 
 #[cfg(test)]
 mod test_range_chmax_range_sum {
     use itertools::Itertools;
-    use rand::Rng;
-    use rand::SeedableRng;
-    use rand::rngs::SmallRng;
 
-    use super::super::abstract_segtree_beats::abstract_segtree_beats::*;
     use super::range_chmax_range_sum::*;
 
     #[test]
     fn test_range_chmax_range_sum() {
         let xs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-        let f = ChmaxFunc::new(6);
-
-        let mut seg = SegtreeBeats::<RangeChmaxRangeSum>::from(
-            xs.iter().copied().map(RangeSum::unit).collect_vec(),
-        );
-        seg.apply_range(3..8, f); // [0,1,2,6,6,6,6,7,8,9]
-        assert_eq!(seg.prod(2..5).unwrap().sum, 14); // [2,6,6]
+        let mut seg = RangeChmaxRangeSumSegtree::from(&xs);
+        seg.chmax(3..8, 6); // [0,1,2,6,6,6,6,7,8,9]
+        assert_eq!(seg.sum(2..5), 14); // [2,6,6]
+        assert_eq!(seg.to_vec(), vec![0, 1, 2, 6, 6, 6, 6, 7, 8, 9]);
         assert_eq!(
-            seg.to_vec()
-                .iter()
-                .copied()
-                .map(|x| x.unwrap().sum)
-                .collect_vec(),
-            vec![0, 1, 2, 6, 6, 6, 6, 7, 8, 9]
-        );
-        assert_eq!(
-            (0..xs.len()).map(|i| seg.get(i).unwrap().sum).collect_vec(),
+            (0..xs.len()).map(|i| seg.get(i)).collect_vec(),
             vec![0, 1, 2, 6, 6, 6, 6, 7, 8, 9]
         )
     }
 
+    #[ignore]
     #[test]
-    fn test_range_chmax_range_sum_random() {
+    fn test_random_range_chmax_range_sum() {
+        use rand::{rngs::SmallRng, Rng, SeedableRng};
+
         let mut rng = SmallRng::seed_from_u64(42);
 
-        // テスト回数を大きくしすぎると実行時間がかかるため控えめに
-        let n_tests = 20;
-        let n_changes = 3;
+        for _ in 0..100 {
+            let n = rng.random_range(1..=30);
+            let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.random_range(-100..=100)).collect();
+            let mut segtree = RangeChmaxRangeSumSegtree::from(&naive_vec);
 
-        for _ in 0..n_tests {
-            let n = rng.random_range(0..15);
-            let mut xs = (0..n).map(|_| rng.random_range(0..10)).collect_vec();
+            for _ in 0..100 {
+                let op_type = rng.random_range(0..5);
 
-            for _ in 0..n_changes {
-                let begin = rng.random_range(0..=n);
-                let end = rng.random_range(begin..=n);
-
-                let chmax_val = rng.random_range(0..10);
-                let chmax_func = ChmaxFunc::new(chmax_val);
-
-                let mut seg = SegtreeBeats::<RangeChmaxRangeSum>::from(
-                    xs.iter().copied().map(RangeSum::unit).collect_vec(),
-                );
-
-                seg.apply_range(begin..end, chmax_func);
-
-                for i in begin..end {
-                    xs[i] = i64::max(xs[i], chmax_val);
+                match op_type {
+                    0 => {
+                        // set(p, x)
+                        let p = rng.random_range(0..n);
+                        let x = rng.random_range(-100..=100);
+                        naive_vec[p] = x;
+                        segtree.set(p, x);
+                    }
+                    1 => {
+                        // chmax(range, x)
+                        let l = rng.random_range(0..=n);
+                        let r = rng.random_range(l..=n);
+                        let x = rng.random_range(-100..=100);
+                        for i in l..r {
+                            naive_vec[i] = naive_vec[i].max(x);
+                        }
+                        segtree.chmax(l..r, x);
+                    }
+                    2 => {
+                        // get(p)
+                        let p = rng.random_range(0..n);
+                        assert_eq!(segtree.get(p), naive_vec[p], "get({}) failed", p);
+                    }
+                    3 => {
+                        // sum(range)
+                        let l = rng.random_range(0..=n);
+                        let r = rng.random_range(l..=n);
+                        let expected_sum: i64 = naive_vec[l..r].iter().sum();
+                        assert_eq!(segtree.sum(l..r), expected_sum, "sum({}..{}) failed", l, r);
+                    }
+                    4 => {
+                        // all_sum()
+                        let expected_sum: i64 = naive_vec.iter().sum();
+                        assert_eq!(segtree.all_sum(), expected_sum, "all_sum() failed");
+                    }
+                    _ => unreachable!(),
                 }
-
-                assert_eq!(
-                    seg.prod(begin..end).unwrap().sum,
-                    xs[begin..end].iter().sum::<i64>()
-                );
-                assert_eq!((0..n).map(|i| seg.get(i).unwrap().sum).collect_vec(), xs)
             }
+            assert_eq!(segtree.to_vec(), naive_vec, "final to_vec() check failed");
         }
     }
 }

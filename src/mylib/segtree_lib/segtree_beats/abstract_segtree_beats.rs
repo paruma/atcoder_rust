@@ -381,4 +381,3 @@ pub mod abstract_segtree_beats {
         }
     }
 }
-
