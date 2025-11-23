@@ -59,43 +59,35 @@ pub mod segtree_2d {
                 self.w_orig
             );
 
-            let mut y_idx = y + self.h_size;
+            let y_idx = y + self.h_size;
             let x_idx_in_row = x + self.w_size;
 
             // リーフノードを直接更新
             self.nodes[y_idx][x_idx_in_row] = val.clone();
 
             // この特定のY行（リーフYノード）のXセグメントツリーの親ノードを更新
-            // この部分は、特定の行 'y' に対応するXセグメントツリーが正しいことを保証します。
-            let mut current_x_idx_for_row = x_idx_in_row;
-            while current_x_idx_for_row > 1 {
-                current_x_idx_for_row >>= 1;
-                self.nodes[y_idx][current_x_idx_for_row] = M::binary_operation(
-                    &self.nodes[y_idx][current_x_idx_for_row * 2],
-                    &self.nodes[y_idx][current_x_idx_for_row * 2 + 1],
+            for x_p in
+                std::iter::successors(Some(x_idx_in_row), |&i| (i > 1).then_some(i >> 1)).skip(1)
+            {
+                self.nodes[y_idx][x_p] = M::binary_operation(
+                    &self.nodes[y_idx][x_p * 2],
+                    &self.nodes[y_idx][x_p * 2 + 1],
                 );
             } // O(log W)
 
             // Yセグメントツリーの親ノードを更新
-            // ここで、y_idxは行（リーフ）を指します。その親を更新する必要があります。
-            while y_idx > 1 {
-                y_idx >>= 1; // Move to parent Y-node (e.g., node for y_range [Y1, Y2))
-
-                // このYノードのXセグメントツリーを更新する必要があります。
-                // その子ノードのXセグメントツリーを結合する必要があります。
-                // The children are y_idx*2 and y_idx*2+1.
-                let y_child_left = y_idx * 2;
-                let y_child_right = y_idx * 2 + 1;
+            for y_p in std::iter::successors(Some(y_idx), |&i| (i > 1).then_some(i >> 1)).skip(1) {
+                let y_child_left = y_p * 2;
+                let y_child_right = y_p * 2 + 1;
 
                 // 子ノードの対応するノードを結合しながら、Xセグメントツリーのパスを上にたどります。
-                let mut x_idx_path = x + self.w_size; // Start at the X-leaf corresponding to the update
-                while x_idx_path > 0 {
-                    // Xセグメントツリーのリーフからルートまで（0はルートではありません）
-                    self.nodes[y_idx][x_idx_path] = M::binary_operation(
-                        &self.nodes[y_child_left][x_idx_path],
-                        &self.nodes[y_child_right][x_idx_path],
+                for x_idx in
+                    std::iter::successors(Some(x_idx_in_row), |&i| (i > 1).then_some(i >> 1))
+                {
+                    self.nodes[y_p][x_idx] = M::binary_operation(
+                        &self.nodes[y_child_left][x_idx],
+                        &self.nodes[y_child_right][x_idx],
                     );
-                    x_idx_path >>= 1;
                 } // O(log W)
             } // O(log H * log W)
         }
@@ -136,7 +128,8 @@ pub mod segtree_2d {
                 self.w_orig
             );
 
-            let mut res = M::identity();
+            let mut sml = M::identity();
+            let mut smr = M::identity();
 
             let mut y_cur_l = y1 + self.h_size;
             let mut y_cur_r = y2 + self.h_size;
@@ -147,38 +140,39 @@ pub mod segtree_2d {
                 if y_cur_l & 1 == 1 {
                     // y_cur_lが右の子ノードの場合
                     // Y軸ノードが対応するX軸セグメントツリーに対してクエリ
-                    res = M::binary_operation(&res, &self.query_x_tree(y_cur_l, x_l, x_r));
+                    sml = M::binary_operation(&sml, &self.query_x_tree(y_cur_l, x_l, x_r));
                     y_cur_l += 1;
                 }
                 if y_cur_r & 1 == 1 {
                     y_cur_r -= 1;
                     // Y軸ノードが対応するX軸セグメントツリーに対してクエリ
-                    res = M::binary_operation(&res, &self.query_x_tree(y_cur_r, x_l, x_r));
+                    smr = M::binary_operation(&self.query_x_tree(y_cur_r, x_l, x_r), &smr);
                 }
                 y_cur_l >>= 1;
                 y_cur_r >>= 1;
             }
-            res
+            M::binary_operation(&sml, &smr)
         }
 
         // 指定されたYノードの1次元Xセグメントツリーをクエリするためのヘルパー関数
         fn query_x_tree(&self, y_node_idx: usize, mut x_cur_l: usize, mut x_cur_r: usize) -> M::S {
-            let mut res_x = M::identity();
+            let mut sml = M::identity();
+            let mut smr = M::identity();
             while x_cur_l < x_cur_r {
                 if x_cur_l & 1 == 1 {
                     // x_cur_lが右の子ノードの場合
-                    res_x = M::binary_operation(&res_x, &self.nodes[y_node_idx][x_cur_l]);
+                    sml = M::binary_operation(&sml, &self.nodes[y_node_idx][x_cur_l]);
                     x_cur_l += 1;
                 }
                 if x_cur_r & 1 == 1 {
                     // x_cur_rが右の子ノードの場合
                     x_cur_r -= 1;
-                    res_x = M::binary_operation(&res_x, &self.nodes[y_node_idx][x_cur_r]);
+                    smr = M::binary_operation(&self.nodes[y_node_idx][x_cur_r], &smr);
                 }
                 x_cur_l >>= 1;
                 x_cur_r >>= 1;
             }
-            res_x
+            M::binary_operation(&sml, &smr)
         }
 
         /// グリッド全体の要素の結合結果をクエリします。
@@ -220,9 +214,9 @@ pub mod segtree_2d {
         /// O(H_orig * W_orig)
         pub fn to_vec(&self) -> Vec<Vec<M::S>> {
             let mut result = vec![vec![M::identity(); self.w_orig]; self.h_orig];
-            for r_y in 0..self.h_orig {
-                for r_x in 0..self.w_orig {
-                    result[r_y][r_x] = self.get(r_y, r_x);
+            for y in 0..self.h_orig {
+                for x in 0..self.w_orig {
+                    result[y][x] = self.get(y, x);
                 }
             }
             result
@@ -248,7 +242,7 @@ pub mod segtree_2d {
 #[cfg(test)]
 mod tests {
     use super::segtree_2d::*;
-    use ac_library::Additive; // from ac-library-rs
+    use ac_library::{Additive, Monoid}; // from ac-library-rs
     use rand::{Rng, SeedableRng};
 
     #[test]
@@ -377,5 +371,41 @@ mod tests {
                 "to_vec failed after all operations"
             );
         }
+    }
+
+    // 文字列連結による非可換モノイドのテスト
+    struct StringMonoid;
+    impl Monoid for StringMonoid {
+        type S = String;
+        fn identity() -> Self::S {
+            String::new()
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            a.clone() + b
+        }
+    }
+
+    #[test]
+    fn test_segtree_2d_non_commutative() {
+        let h = 4;
+        let w = 4;
+        let mut st = Segtree2D::<StringMonoid>::new(h, w);
+        st.set(0, 0, "A".to_string());
+        st.set(0, 1, "B".to_string());
+        st.set(1, 0, "C".to_string());
+        st.set(1, 1, "D".to_string());
+
+        // クエリは辞書式順序である (0,0), (0,1), (1,0), (1,1) を尊重する必要がある
+        assert_eq!(st.prod(0..2, 0..2), "ABCD".to_string());
+
+        st.set(2, 2, "E".to_string());
+        st.set(3, 3, "F".to_string());
+        assert_eq!(st.prod(0..4, 0..4), "ABCDEF".to_string());
+
+        // (0,0)から始まらないサブ矩形の確認
+        st.set(1, 2, "G".to_string());
+        st.set(2, 1, "H".to_string());
+        // 順序は (1,1), (1,2), (2,1), (2,2) となるべき
+        assert_eq!(st.prod(1..3, 1..3), "DGHE".to_string());
     }
 }
