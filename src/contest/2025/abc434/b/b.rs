@@ -2,10 +2,24 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        m: usize,
+        abs: [(Usize1, i64); n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let mut size_list = vec![vec![]; m];
+
+    for (a, b) in abs {
+        size_list[a].push(b)
+    }
+
+    let ans: Vec<f64> = size_list
+        .iter()
+        .map(|xs| {
+            let len = xs.len();
+            let sum = xs.iter().copied().sum::<i64>();
+            sum as f64 / len as f64
+        })
+        .collect_vec();
+    print_vec(&ans);
 }
 
 #[cfg(test)]

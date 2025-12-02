@@ -1,11 +1,53 @@
-// #[fastout]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Info {
+    time: i64,
+    low: i64,
+    up: i64,
+}
+
+fn solve(n: usize, h: i64, infos: &[Info]) -> bool {
+    let mut low = h;
+    let mut up = h;
+    let mut time = 0;
+
+    for &info in infos {
+        let del_time = info.time - time;
+        let cand_up = up + del_time;
+        let cand_low = low - del_time;
+
+        if cand_up < info.low {
+            return false;
+        }
+        if cand_low > info.up {
+            return false;
+        }
+
+        up = cand_up.clamp(info.low, info.up);
+        low = cand_low.clamp(info.low, info.up);
+        time = info.time;
+    }
+
+    true
+}
+#[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        t: usize,
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    for _ in 0..t {
+        input! {
+            n: usize,
+            h: i64,
+            infos: [Info; n],
+        }
+
+        let ans = solve(n, h, &infos);
+
+        let msg = if ans { "Yes" } else { "No" };
+        println!("{}", msg);
+    }
 }
 
 #[cfg(test)]

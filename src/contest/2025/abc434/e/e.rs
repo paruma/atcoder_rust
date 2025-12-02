@@ -1,10 +1,44 @@
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive_readable]
+struct Rabbit {
+    x: i64,
+    r: i64,
+}
 // #[fastout]
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        rabbits: [Rabbit; n],
     }
-    let ans: i64 = -2_i64;
+
+    let cand = rabbits
+        .iter()
+        .copied()
+        .flat_map(|rabbit| [rabbit.x + rabbit.r, rabbit.x - rabbit.r])
+        .collect_vec();
+    let cc = CoordinateCompression::new(&cand);
+
+    let cc_size = cc.space_size();
+
+    let mut mf: MfGraph<i64> = MfGraph::new(n + cc_size + 2);
+    let source = n + cc_size;
+    let terminal = n + cc_size + 1;
+    let id_cc = |cc_x: usize| cc_x + n;
+
+    for i in 0..n {
+        mf.add_edge(source, i, 1);
+    }
+
+    for (i, r) in rabbits.iter().copied().enumerate() {
+        mf.add_edge(i, id_cc(cc.compress(r.x + r.r)), 1);
+        mf.add_edge(i, id_cc(cc.compress(r.x - r.r)), 1);
+    }
+
+    for cc_x in 0..cc_size {
+        mf.add_edge(id_cc(cc_x), terminal, 1);
+    }
+
+    let ans: i64 = mf.flow(source, terminal);
     println!("{}", ans);
 }
 
@@ -134,3 +168,50 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use {ac_library::MfGraph, coordinate_compression::*};
+#[allow(clippy::module_inception)]
+pub mod coordinate_compression {
+    use itertools::Itertools;
+    use superslice::Ext;
+    pub struct CoordinateCompression {
+        space: Vec<i64>,
+    }
+    impl CoordinateCompression {
+        /// # 計算量
+        /// O(|space|log(|space|))
+        pub fn new(space: &[i64]) -> Self {
+            let space = space.iter().copied().sorted().dedup().collect_vec();
+            Self { space }
+        }
+        /// # 計算量
+        /// O(log(|space|))
+        pub fn compress(&self, x: i64) -> usize {
+            self.space.binary_search(&x).unwrap()
+        }
+        /// 座標圧縮前の空間のうち x 以上である最小の値を座標圧縮したものを返す
+        /// # 計算量
+        /// O(log(|space|))
+        pub fn compress_floor(&self, x: i64) -> usize {
+            self.space.upper_bound(&x) - 1
+        }
+        /// 座標圧縮前の空間のうち x 以下である最大の値を座標圧縮したものを返す
+        /// # 計算量
+        /// O(log(|space|))
+        pub fn compress_ceil(&self, x: i64) -> usize {
+            self.space.lower_bound(&x)
+        }
+        /// # 計算量
+        /// O(|xs|log(|space|))
+        pub fn compress_vec(&self, xs: &[i64]) -> Vec<usize> {
+            xs.iter().copied().map(|x| self.compress(x)).collect_vec()
+        }
+        /// # 計算量
+        /// O(1)
+        pub fn decompress(&self, i: usize) -> i64 {
+            self.space[i]
+        }
+        pub fn space_size(&self) -> usize {
+            self.space.len()
+        }
+    }
+}
