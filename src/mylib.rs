@@ -22,6 +22,7 @@ pub mod pos;
 pub mod pos_f64;
 pub mod random;
 pub mod range_add_imos;
+pub mod rect_add_imos;
 pub mod reroot;
 pub mod rolling_hash;
 pub mod segtree_lib;
