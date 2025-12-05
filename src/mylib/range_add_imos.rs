@@ -37,12 +37,10 @@ pub mod range_add_imos {
             let l = range.start;
             let r = range.end;
 
-            assert!(l <= r && r <= self.n); // 範囲の妥当性を保証
+            assert!(l <= r && r <= self.n);
 
             self.diff[l] += x;
-            if r < self.n {
-                self.diff[r] -= x;
-            }
+            self.diff[r] -= x;
         }
 
         /// 差分配列から最終的な配列を構築します。

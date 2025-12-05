@@ -16,7 +16,7 @@ pub mod rect_add_imos {
     }
 
     impl RectAddImos {
-        /// サイズ `h` x `w` の `RectAddImos` インスタンスを作成する。
+        /// サイズ `h` × `w` の `RectAddImos` インスタンスを作成する。
         ///
         /// # 計算量
         /// O(h * w)
@@ -28,7 +28,7 @@ pub mod rect_add_imos {
             }
         }
 
-        /// 指定された `y_range` x `x_range` の長方形領域に `val` を加算する。
+        /// 指定された `y_range` × `x_range` の長方形領域に `val` を加算する。
         ///
         /// # Panics
         /// 範囲が不正な場合にパニックする。
@@ -51,20 +51,10 @@ pub mod rect_add_imos {
             assert!(y1 <= y2 && y2 <= self.h);
             assert!(x1 <= x2 && x2 <= self.w);
 
-            if y1 >= self.h || x1 >= self.w {
-                return;
-            }
-
             self.diff[y1][x1] += val;
-            if x2 < self.w {
-                self.diff[y1][x2] -= val;
-            }
-            if y2 < self.h {
-                self.diff[y2][x1] -= val;
-            }
-            if y2 < self.h && x2 < self.w {
-                self.diff[y2][x2] += val;
-            }
+            self.diff[y1][x2] -= val;
+            self.diff[y2][x1] -= val;
+            self.diff[y2][x2] += val;
         }
 
         /// 差分配列から最終的な2次元配列を構築する。
