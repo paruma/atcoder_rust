@@ -159,6 +159,7 @@ pub mod range_chmin_range_sum {
             Self { segtree, len }
         }
 
+        #[allow(clippy::len_without_is_empty)]
         pub fn len(&self) -> usize {
             self.len
         }
@@ -211,7 +212,7 @@ mod test_range_chmin_range_sum {
     #[ignore]
     #[test]
     fn test_random_range_chmin_range_sum() {
-        use rand::{rngs::SmallRng, Rng, SeedableRng};
+        use rand::{Rng, SeedableRng, rngs::SmallRng};
 
         let mut rng = SmallRng::seed_from_u64(42);
 

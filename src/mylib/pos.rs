@@ -1,6 +1,7 @@
 use cargo_snippet::snippet;
 
 #[snippet(prefix = "use pos::*;")]
+#[allow(clippy::module_inception)]
 pub mod pos {
     use std::io::BufRead;
     use std::iter::Sum;
