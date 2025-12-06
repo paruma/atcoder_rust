@@ -6,6 +6,9 @@ pub mod fenwick_tree {
     use std::ops::{Bound, RangeBounds};
 
     // Reference: https://en.wikipedia.org/wiki/Fenwick_tree
+    /// ACL の FenwickTree の拡張。
+    ///
+    /// get, set, to_vec が追加されている。また sum は range_sum に名前変更している。
     #[derive(Clone, Debug)]
     pub struct FenwickTree<T> {
         n: usize,
@@ -297,11 +300,17 @@ mod test_fenwick_tree {
 
     #[test]
     #[should_panic(expected = "index out of bounds")]
-    fn test_add_set_empty_tree_panics() {
+    fn test_add_empty_tree_panics() {
         let mut ft_empty = FenwickTree::<i64>::new(0, 0);
         // addはパニックするはず
         ft_empty.add(0, 1);
-        // setもパニックするはず
+    }
+
+    #[test]
+    #[should_panic(expected = "index out of bounds")]
+    fn test_set_empty_tree_panics() {
+        let mut ft_empty = FenwickTree::<i64>::new(0, 0);
+        // setはパニックするはず
         ft_empty.set(0, 1);
     }
 }

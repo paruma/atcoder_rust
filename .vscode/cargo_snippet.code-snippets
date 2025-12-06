@@ -3517,6 +3517,8 @@
       "#[allow(clippy::module_inception)]",
       "pub mod fenwick_tree {",
       "    use std::ops::{Bound, RangeBounds};",
+      "    /// ACL の FenwickTree の拡張。",
+      "    /// get, set, to_vec が追加されている。また sum は range_sum に名前変更している。",
       "    #[derive(Clone, Debug)]",
       "    pub struct FenwickTree<T> {",
       "        n: usize,",
