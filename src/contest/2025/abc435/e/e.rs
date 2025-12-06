@@ -1,3 +1,4 @@
+// range update range sum で黒にする部分は range で 0にして range sum で白マスカウント
 #[fastout]
 fn main() {
     input! {
@@ -10,7 +11,7 @@ fn main() {
     let lrs = lrs.iter().copied().map(|(l, r)| (l, r + 1)).collect_vec();
 
     let coord = {
-        let mut coord = vec![1, n];
+        let mut coord = vec![1, n + 1];
         for &(l, r) in &lrs {
             coord.push(l);
             coord.push(r);
@@ -27,20 +28,15 @@ fn main() {
         .map(|(l, r)| r - l)
         .collect_vec();
 
-    let n_range = cnts.len();
-
-    let mut seg = TwoSequenceRangeAffineRangeSumSegtree::new(&vec![0; n_range], &cnts);
-
-    let black_sum = seg.query_sum_xy(..);
-    // dbg!(black_sum);
+    let mut seg = RangeAffineRangeSumSegtree::new(&cnts);
 
     for &(l, r) in &lrs {
         let li = coord.binary_search(&l).unwrap();
         let ri = coord.binary_search(&r).unwrap();
-        seg.apply_range_affine_x(li..ri, 0, 1);
-        let black_sum = seg.query_sum_xy(..);
-        let ans = n - black_sum;
+        seg.apply_range_affine(li..ri, 0, 0);
+        let ans = seg.range_sum(..);
         println!("{}", ans);
+        // dbg!(seg.to_vec());
     }
 
     // dbg!(cnts);
@@ -174,179 +170,156 @@ pub mod print_util {
 }
 
 // ====== snippet ======
-use two_sequence_range_affine_range_sum::*;
+use range_affine_range_sum::*;
 #[allow(clippy::module_inception)]
-pub mod two_sequence_range_affine_range_sum {
+pub mod range_affine_range_sum {
     use ac_library::{LazySegtree, MapMonoid, Monoid};
     use itertools::Itertools;
     use std::convert::Infallible;
     use std::marker::PhantomData;
     use std::ops::{Add, Mul, RangeBounds};
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-    pub struct TwoSequenceData<T> {
-        pub sum_x: T,
-        pub sum_y: T,
-        pub sum_xy: T,
+    pub struct RangeSum<T> {
+        pub sum: T,
         pub len: i64,
     }
-    impl<T> TwoSequenceData<T>
+    impl<T> RangeSum<T> {
+        pub fn unit(x: T) -> RangeSum<T> {
+            RangeSum { sum: x, len: 1 }
+        }
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub struct Affine<T> {
+        pub slope: T,
+        pub intercept: T,
+    }
+    impl<T> Affine<T>
     where
-        T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
+        T: From<i64>,
     {
-        pub fn unit(x_val: T, y_val: T) -> Self {
-            Self {
-                sum_x: x_val,
-                sum_y: y_val,
-                sum_xy: x_val * y_val,
-                len: 1,
+        /// 区間変更用（定数関数）
+        pub fn constant_func(x: T) -> Affine<T> {
+            Affine {
+                slope: 0.into(),
+                intercept: x,
+            }
+        }
+        /// 区間加算用
+        pub fn addition_func(x: T) -> Affine<T> {
+            Affine {
+                slope: 1.into(),
+                intercept: x,
             }
         }
     }
-    pub struct TwoSequenceDataMonoid<T>(Infallible, PhantomData<fn() -> T>);
-    impl<T> Monoid for TwoSequenceDataMonoid<T>
+    pub struct ValueLenSum<T>(Infallible, PhantomData<fn() -> T>);
+    impl<T> Monoid for ValueLenSum<T>
     where
         T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
     {
-        type S = TwoSequenceData<T>;
-        fn identity() -> Self::S {
-            Self::S {
-                sum_x: 0.into(),
-                sum_y: 0.into(),
-                sum_xy: 0.into(),
+        type S = RangeSum<T>;
+        fn identity() -> RangeSum<T> {
+            RangeSum {
+                sum: 0.into(),
                 len: 0,
             }
         }
-        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
-            Self::S {
-                sum_x: a.sum_x + b.sum_x,
-                sum_y: a.sum_y + b.sum_y,
-                sum_xy: a.sum_xy + b.sum_xy,
+        fn binary_operation(a: &RangeSum<T>, b: &RangeSum<T>) -> RangeSum<T> {
+            RangeSum {
+                sum: a.sum + b.sum,
                 len: a.len + b.len,
             }
         }
     }
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-    pub struct TwoSequenceAffine<T> {
-        pub a: T,
-        pub b: T,
-        pub c: T,
-        pub d: T,
-    }
-    pub struct TwoSequenceRangeAffineRangeSum<T>(Infallible, PhantomData<fn() -> T>);
-    impl<T> MapMonoid for TwoSequenceRangeAffineRangeSum<T>
+    pub struct RangeAffineRangeSum<T>(Infallible, PhantomData<fn() -> T>);
+    impl<T> MapMonoid for RangeAffineRangeSum<T>
     where
         T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
     {
-        type M = TwoSequenceDataMonoid<T>;
-        type F = TwoSequenceAffine<T>;
-        fn identity_map() -> Self::F {
-            Self::F {
-                a: 1.into(),
-                b: 0.into(),
-                c: 1.into(),
-                d: 0.into(),
+        type M = ValueLenSum<T>;
+        type F = Affine<T>;
+        fn identity_map() -> Affine<T> {
+            Affine {
+                slope: 1.into(),
+                intercept: 0.into(),
             }
         }
-        fn composition(f1: &Self::F, f2: &Self::F) -> Self::F {
-            Self::F {
-                a: f1.a * f2.a,
-                b: f1.a * f2.b + f1.b,
-                c: f1.c * f2.c,
-                d: f1.c * f2.d + f1.d,
+        fn composition(a: &Affine<T>, b: &Affine<T>) -> Affine<T> {
+            Affine {
+                slope: a.slope * b.slope,
+                intercept: a.slope * b.intercept + a.intercept,
             }
         }
-        fn mapping(f: &Self::F, x: &TwoSequenceData<T>) -> TwoSequenceData<T> {
-            TwoSequenceData {
-                sum_xy: f.a * f.c * x.sum_xy
-                    + f.a * f.d * x.sum_x
-                    + f.b * f.c * x.sum_y
-                    + f.b * f.d * x.len.into(),
-                sum_x: f.a * x.sum_x + f.b * x.len.into(),
-                sum_y: f.c * x.sum_y + f.d * x.len.into(),
+        fn mapping(f: &Affine<T>, x: &RangeSum<T>) -> RangeSum<T> {
+            RangeSum {
+                sum: f.slope * x.sum + f.intercept * x.len.into(),
                 len: x.len,
             }
         }
     }
-    pub struct TwoSequenceRangeAffineRangeSumSegtree<T>
+    pub struct RangeAffineRangeSumSegtree<T>
     where
         T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
     {
-        segtree: LazySegtree<TwoSequenceRangeAffineRangeSum<T>>,
+        segtree: LazySegtree<RangeAffineRangeSum<T>>,
         len: usize,
     }
-    impl<T> TwoSequenceRangeAffineRangeSumSegtree<T>
+    impl<T> RangeAffineRangeSumSegtree<T>
     where
         T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
     {
-        /// `xs` と `ys` の初期シーケンスでセグメント木を構築します。
-        pub fn new(xs: &[T], ys: &[T]) -> Self {
-            assert_eq!(xs.len(), ys.len(), "xs and ys must have the same length");
-            let xs_ys = xs
-                .iter()
-                .zip(ys.iter())
-                .map(|(&x, &y)| TwoSequenceData::unit(x, y))
-                .collect_vec();
-            let len = xs_ys.len();
-            Self {
-                segtree: LazySegtree::from(xs_ys),
+        pub fn new(xs: &[T]) -> RangeAffineRangeSumSegtree<T> {
+            let xs = xs.iter().copied().map(RangeSum::unit).collect_vec();
+            let len = xs.len();
+            RangeAffineRangeSumSegtree {
+                segtree: LazySegtree::from(xs),
                 len,
             }
         }
-        /// 指定された区間 `range` に対して、`xs[i] ← a * xs[i] + b`, `ys[i] ← c * ys[i] + d`
-        /// のアフィン変換を適用します。
-        pub fn apply_range_affine(
-            &mut self,
-            range: impl RangeBounds<usize>,
-            a: T,
-            b: T,
-            c: T,
-            d: T,
-        ) {
-            self.segtree
-                .apply_range(range, TwoSequenceAffine { a, b, c, d })
+        pub fn set(&mut self, p: usize, x: T) {
+            self.segtree.set(p, RangeSum::unit(x));
         }
-        /// 指定された区間 `range` に対して、`xs[i] ← a * xs[i] + b` のアフィン変換を適用します。
-        pub fn apply_range_affine_x(&mut self, range: impl RangeBounds<usize>, a: T, b: T) {
-            self.apply_range_affine(range, a, b, 1.into(), 0.into())
+        pub fn get(&mut self, p: usize) -> T {
+            self.segtree.get(p).sum
         }
-        /// 指定された区間 `range` に対して、`ys[i] ← c * ys[i] + d` のアフィン変換を適用します。
-        pub fn apply_range_affine_y(&mut self, range: impl RangeBounds<usize>, c: T, d: T) {
-            self.apply_range_affine(range, 1.into(), 0.into(), c, d)
+        pub fn range_sum<R>(&mut self, range: R) -> T
+        where
+            R: RangeBounds<usize>,
+        {
+            self.segtree.prod(range).sum
         }
-        /// 指定された区間 `range` の `sum(xs[i] * ys[i])` を計算して返します。
-        pub fn query_sum_xy(&mut self, range: impl RangeBounds<usize>) -> T {
-            self.segtree.prod(range).sum_xy
+        pub fn all_sum(&self) -> T {
+            self.segtree.all_prod().sum
         }
-        /// 指定された区間 `range` の `sum(xs[i])` を計算して返します。
-        pub fn query_sum_x(&mut self, range: impl RangeBounds<usize>) -> T {
-            self.segtree.prod(range).sum_x
+        pub fn apply_affine(&mut self, p: usize, slope: T, intercept: T) {
+            self.segtree.apply(p, Affine { slope, intercept })
         }
-        /// 指定された区間 `range` の `sum(ys[i])` を計算して返します。
-        pub fn query_sum_y(&mut self, range: impl RangeBounds<usize>) -> T {
-            self.segtree.prod(range).sum_y
+        pub fn apply_update(&mut self, p: usize, x: T) {
+            self.segtree.apply(p, Affine::constant_func(x))
         }
-        /// 指定されたインデックス `p` の `xs[p]` と `ys[p]` の値を更新します。
-        pub fn set(&mut self, p: usize, x: T, y: T) {
-            self.segtree.set(p, TwoSequenceData::unit(x, y));
+        pub fn apply_add(&mut self, p: usize, x: T) {
+            self.segtree.apply(p, Affine::addition_func(x))
         }
-        /// 指定されたインデックス `p` の `xs[p]` の値を更新します。
-        pub fn set_x(&mut self, p: usize, x: T) {
-            let (_, y) = self.get(p);
-            self.set(p, x, y);
+        pub fn apply_range_affine<R>(&mut self, range: R, slope: T, intercept: T)
+        where
+            R: RangeBounds<usize>,
+        {
+            self.segtree.apply_range(range, Affine { slope, intercept })
         }
-        /// 指定されたインデックス `p` の `ys[p]` の値を更新します。
-        pub fn set_y(&mut self, p: usize, y: T) {
-            let (x, _) = self.get(p);
-            self.set(p, x, y);
+        pub fn apply_range_update<R>(&mut self, range: R, x: T)
+        where
+            R: RangeBounds<usize>,
+        {
+            self.segtree.apply_range(range, Affine::constant_func(x))
         }
-        /// 指定されたインデックス `p` の `xs[p]` と `ys[p]` の値を取得します。
-        pub fn get(&mut self, p: usize) -> (T, T) {
-            let data = self.segtree.get(p);
-            (data.sum_x, data.sum_y)
+        pub fn apply_range_add<R>(&mut self, range: R, x: T)
+        where
+            R: RangeBounds<usize>,
+        {
+            self.segtree.apply_range(range, Affine::addition_func(x))
         }
-        /// セグメント木の現在の状態を `(Vec<T>, Vec<T>)` として返します。
-        pub fn to_vec(&mut self) -> (Vec<T>, Vec<T>) {
-            (0..self.len).map(|i| self.get(i)).unzip()
+        pub fn to_vec(&mut self) -> Vec<T> {
+            (0..self.len).map(|i| self.get(i)).collect_vec()
         }
     }
 }
