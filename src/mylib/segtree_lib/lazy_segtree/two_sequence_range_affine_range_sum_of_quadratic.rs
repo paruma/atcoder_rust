@@ -181,27 +181,27 @@ pub mod two_sequence_range_affine_range_sum_of_quadratic {
         }
 
         /// 指定された区間 `range` の `sum(xs[i] * ys[i])` を計算して返します。
-        pub fn query_sum_xy(&mut self, range: impl RangeBounds<usize>) -> T {
+        pub fn range_sum_xy(&mut self, range: impl RangeBounds<usize>) -> T {
             self.segtree.prod(range).sum_xy
         }
 
         /// 指定された区間 `range` の `sum(xs[i] * xs[i])` を計算して返します。
-        pub fn query_sum_x2(&mut self, range: impl RangeBounds<usize>) -> T {
+        pub fn range_sum_x2(&mut self, range: impl RangeBounds<usize>) -> T {
             self.segtree.prod(range).sum_x2
         }
 
         /// 指定された区間 `range` の `sum(ys[i] * ys[i])` を計算して返します。
-        pub fn query_sum_y2(&mut self, range: impl RangeBounds<usize>) -> T {
+        pub fn range_sum_y2(&mut self, range: impl RangeBounds<usize>) -> T {
             self.segtree.prod(range).sum_y2
         }
 
         /// 指定された区間 `range` の `sum(xs[i])` を計算して返します。
-        pub fn query_sum_x(&mut self, range: impl RangeBounds<usize>) -> T {
+        pub fn range_sum_x(&mut self, range: impl RangeBounds<usize>) -> T {
             self.segtree.prod(range).sum_x
         }
 
         /// 指定された区間 `range` の `sum(ys[i])` を計算して返します。
-        pub fn query_sum_y(&mut self, range: impl RangeBounds<usize>) -> T {
+        pub fn range_sum_y(&mut self, range: impl RangeBounds<usize>) -> T {
             self.segtree.prod(range).sum_y
         }
 
@@ -257,11 +257,11 @@ mod test {
         // sum_x2 = 1+4+9 = 14
         // sum_y2 = 16+25+36 = 77
         // sum_xy = 4+10+18 = 32
-        assert_eq!(segtree.query_sum_x(..), 6.into());
-        assert_eq!(segtree.query_sum_y(..), 15.into());
-        assert_eq!(segtree.query_sum_x2(..), 14.into());
-        assert_eq!(segtree.query_sum_y2(..), 77.into());
-        assert_eq!(segtree.query_sum_xy(..), 32.into());
+        assert_eq!(segtree.range_sum_x(..), 6.into());
+        assert_eq!(segtree.range_sum_y(..), 15.into());
+        assert_eq!(segtree.range_sum_x2(..), 14.into());
+        assert_eq!(segtree.range_sum_y2(..), 77.into());
+        assert_eq!(segtree.range_sum_xy(..), 32.into());
 
         // Apply affine to x: x_i -> 2*x_i + 1 for i in 0..2
         // x: [1, 2] -> [3, 5]
@@ -274,11 +274,11 @@ mod test {
         segtree.apply_range_affine_x(0..2, 2.into(), 1.into());
 
         // Check sums for 0..2
-        assert_eq!(segtree.query_sum_x(0..2), 8.into());
-        assert_eq!(segtree.query_sum_y(0..2), 9.into());
-        assert_eq!(segtree.query_sum_x2(0..2), 34.into());
-        assert_eq!(segtree.query_sum_y2(0..2), 41.into());
-        assert_eq!(segtree.query_sum_xy(0..2), 37.into());
+        assert_eq!(segtree.range_sum_x(0..2), 8.into());
+        assert_eq!(segtree.range_sum_y(0..2), 9.into());
+        assert_eq!(segtree.range_sum_x2(0..2), 34.into());
+        assert_eq!(segtree.range_sum_y2(0..2), 41.into());
+        assert_eq!(segtree.range_sum_xy(0..2), 37.into());
 
         // Check full sums
         // x: [3, 5, 3], y: [4, 5, 6]
@@ -287,11 +287,11 @@ mod test {
         // sum_x2 = 9+25+9 = 43
         // sum_y2 = 16+25+36 = 77
         // sum_xy = 12+25+18 = 55
-        assert_eq!(segtree.query_sum_x(..), 11.into());
-        assert_eq!(segtree.query_sum_y(..), 15.into());
-        assert_eq!(segtree.query_sum_x2(..), 43.into());
-        assert_eq!(segtree.query_sum_y2(..), 77.into());
-        assert_eq!(segtree.query_sum_xy(..), 55.into());
+        assert_eq!(segtree.range_sum_x(..), 11.into());
+        assert_eq!(segtree.range_sum_y(..), 15.into());
+        assert_eq!(segtree.range_sum_x2(..), 43.into());
+        assert_eq!(segtree.range_sum_y2(..), 77.into());
+        assert_eq!(segtree.range_sum_xy(..), 55.into());
 
         // Apply affine to y: y_i -> 3*y_i - 2 for i in 1..3
         // Current state: x: [3, 5, 3], y: [4, 5, 6]
@@ -305,11 +305,11 @@ mod test {
         // sum_x2 = 43
         // sum_y2 = 16 + 169 + 256 = 441
         // sum_xy = 3*4 + 5*13 + 3*16 = 12 + 65 + 48 = 125
-        assert_eq!(segtree.query_sum_x(..), 11.into());
-        assert_eq!(segtree.query_sum_y(..), 33.into());
-        assert_eq!(segtree.query_sum_x2(..), 43.into());
-        assert_eq!(segtree.query_sum_y2(..), 441.into());
-        assert_eq!(segtree.query_sum_xy(..), 125.into());
+        assert_eq!(segtree.range_sum_x(..), 11.into());
+        assert_eq!(segtree.range_sum_y(..), 33.into());
+        assert_eq!(segtree.range_sum_x2(..), 43.into());
+        assert_eq!(segtree.range_sum_y2(..), 441.into());
+        assert_eq!(segtree.range_sum_xy(..), 125.into());
 
         // Check get and to_vec
         assert_eq!(segtree.get(0), (3.into(), 4.into()));
@@ -409,33 +409,33 @@ mod test {
                         );
                     }
                     7 => {
-                        // query_sum_x(range)
+                        // range_sum_x(range)
                         let l = rng.random_range(0..=n);
                         let r = rng.random_range(l..=n);
                         let expected: i64 = naive_xs[l..r].iter().sum();
                         assert_eq!(
-                            segtree.query_sum_x(l..r),
+                            segtree.range_sum_x(l..r),
                             expected,
-                            "query_sum_x({}..{}) failed",
+                            "range_sum_x({}..{}) failed",
                             l,
                             r
                         );
                     }
                     8 => {
-                        // query_sum_y(range)
+                        // range_sum_y(range)
                         let l = rng.random_range(0..=n);
                         let r = rng.random_range(l..=n);
                         let expected: i64 = naive_ys[l..r].iter().sum();
                         assert_eq!(
-                            segtree.query_sum_y(l..r),
+                            segtree.range_sum_y(l..r),
                             expected,
-                            "query_sum_y({}..{}) failed",
+                            "range_sum_y({}..{}) failed",
                             l,
                             r
                         );
                     }
                     9 => {
-                        // query_sum_xy(range)
+                        // range_sum_xy(range)
                         let l = rng.random_range(0..=n);
                         let r = rng.random_range(l..=n);
                         let expected: i64 = naive_xs[l..r]
@@ -444,35 +444,35 @@ mod test {
                             .map(|(&x, &y)| x * y)
                             .sum();
                         assert_eq!(
-                            segtree.query_sum_xy(l..r),
+                            segtree.range_sum_xy(l..r),
                             expected,
-                            "query_sum_xy({}..{}) failed",
+                            "range_sum_xy({}..{}) failed",
                             l,
                             r
                         );
                     }
                     10 => {
-                        // query_sum_x2(range)
+                        // range_sum_x2(range)
                         let l = rng.random_range(0..=n);
                         let r = rng.random_range(l..=n);
                         let expected: i64 = naive_xs[l..r].iter().map(|&x| x * x).sum();
                         assert_eq!(
-                            segtree.query_sum_x2(l..r),
+                            segtree.range_sum_x2(l..r),
                             expected,
-                            "query_sum_x2({}..{}) failed",
+                            "range_sum_x2({}..{}) failed",
                             l,
                             r
                         );
                     }
                     11 => {
-                        // query_sum_y2(range)
+                        // range_sum_y2(range)
                         let l = rng.random_range(0..=n);
                         let r = rng.random_range(l..=n);
                         let expected: i64 = naive_ys[l..r].iter().map(|&y| y * y).sum();
                         assert_eq!(
-                            segtree.query_sum_y2(l..r),
+                            segtree.range_sum_y2(l..r),
                             expected,
-                            "query_sum_y2({}..{}) failed",
+                            "range_sum_y2({}..{}) failed",
                             l,
                             r
                         );
