@@ -3,33 +3,80 @@
 PYTHONSTARTUP="$(git rev-parse --show-toplevel)/calc.py"
 export PYTHONSTARTUP
 
+# カレントディレクトリ名からタスク名を取得します。
+#
+# 前提: カレントディレクトリがタスク名のディレクトリであること。
+# (例: /path/to/contest/a の場合、 "a" を返す)
+#
+# 引数:
+#   なし
+# 出力:
+#   タスク名を標準出力に書き出します。
 _get_task() {
     basename "$(pwd)"
 }
 
+# カレントディレクトリの親ディレクトリ名からコンテスト名を取得します。
+#
+# 前提: カレントディレクトリがタスクのディレクトリであること。
+# (例: /path/to/contest/a の場合、 "contest" を返す)
+#
+# 引数:
+#   なし
+# 出力:
+#   コンテスト名を標準出力に書き出します。
 _get_contest() {
     contest_path=$(dirname "$(pwd)")
     basename "$contest_path"
 }
 
+# AtCoder から問題のテストケースをダウンロードします。
+#
+# oj (online-judge-tools) を使用して、現在のコンテストとタスクに対応する
+# テストケースをダウンロードし、'test' ディレクトリに保存します。
+#
+# 引数:
+#   なし
+# 出力:
+#   'test' ディレクトリにテストケースファイルが生成されます。
 oj_download() {
     contest="$(_get_contest)"
     task="$(_get_task)"
     oj download "https://atcoder.jp/contests/${contest}/tasks/${contest}_${task}"
 }
 
+# デバッグビルドで生成された実行ファイルのパスを取得します。
+#
+# 引数:
+#   なし
+# 出力:
+#   実行ファイルのフルパスを標準出力に書き出します。
 _get_executable_path() {
     local contest=$(_get_contest)
     local task=$(_get_task)
     echo "$(git rev-parse --show-toplevel)/target/debug/${contest}_${task}"
 }
 
+# リリースビルドで生成された実行ファイルのパスを取得します。
+#
+# 引数:
+#   なし
+# 出力:
+#   実行ファイルのフルパスを標準出力に書き出します。
 _get_release_path() {
     local contest=$(_get_contest)
     local task=$(_get_task)
     echo "$(git rev-parse --show-toplevel)/target/release/${contest}_${task}"
 }
 
+# テスト実行後に、デバッグ出力が残っていないかチェックします。
+#
+# _check_dbg_output を呼び出し、結果に応じて警告メッセージを表示します。
+#
+# 引数:
+#   なし
+# 出力:
+#   デバッグ出力が残っている場合に警告メッセージを標準出力に表示します。
 _on_after_test() {
     if ! _check_dbg_output; then
         echo
@@ -37,6 +84,15 @@ _on_after_test() {
     fi
 }
 
+# oj test を実行するための共通関数です。
+#
+# 'test' ディレクトリが存在しない場合は、先にテストケースをダウンロードします。
+#
+# 引数:
+#   $1 (必須): 実行ファイルのパス。
+#   $2 (任意): oj test に渡す追加の引数 (例: "-e 1e-6")。
+# 出力:
+#   oj test の実行結果を標準出力に表示します。
 _oj_test_common() {
     local contest=$(_get_contest)
     local task=$(_get_task)
@@ -55,6 +111,14 @@ _oj_test_common() {
     _on_after_test
 }
 
+# Rust コードをビルドし、oj を使ってテストを実行します。
+#
+# 引数:
+#   -f: 浮動小数点数向けの許容誤差 (1e-6) を設定してテストを実行します。
+#   -r: リリースビルドでテストを実行します。指定しない場合はデバッグビルドになります。
+#
+# 出力:
+#   ビルドとテストの実行結果を標準出力に表示します。
 oj_test() {
     local extra_args=""
     local bin_path
@@ -90,6 +154,12 @@ oj_test() {
     _oj_test_common "$bin_path" "$extra_args"
 }
 
+# コードをビルドして実行するための共通ロジックです。
+#
+# 引数:
+#   $1 (必須): 実行ファイルのパス。
+# 出力:
+#   cargo build の実行結果と、プログラムの実行結果を標準出力に表示します。
 _exe_common() {
     local bin_path=$1
     local contest=$(_get_contest)
@@ -100,6 +170,15 @@ _exe_common() {
     fi
 }
 
+# ソースコードに `dbg!` や `lg!` といったデバッグマクロが残っていないかチェックします。
+#
+# コメントアウトされている (`//`) デバッグマクロは無視します。
+#
+# 引数:
+#   なし
+# 返り値:
+#   デバッグマクロが見つからなかった場合: 終了コード 0
+#   デバッグマクロが見つかった場合: 終了コード 1
 _check_dbg_output() {
     local task=$(_get_task)
     if grep -Pq '^(?!.*//.*(dbg|lg)!).*(dbg|[^:]lg)!' "${task}.rs"; then
@@ -107,12 +186,28 @@ _check_dbg_output() {
     fi
 }
 
+# oj を使って AtCoder にソースコードを提出します。
+#
+# 引数:
+#   なし
+# 出力:
+#   oj submit の実行結果を標準出力に表示します。
 oj_submit() {
     local contest=$(_get_contest)
     local task=$(_get_task)
     oj submit "https://atcoder.jp/contests/${contest}/tasks/${contest}_${task}" "${task}.rs" -w 1 --no-open
 }
 
+# Rust コードをビルドして実行します。
+#
+# 注意: リリースビルドで作成した実行ファイルにリダイレクトなしで
+#       標準入力をすると、proconio との相性問題でうまく動作しない可能性があります。
+#
+# 引数:
+#   -r (任意): リリースビルドで実行します。指定しない場合はデバッグビルドになります。
+#
+# 出力:
+#   ビルドとプログラムの実行結果を標準出力に表示します。
 exe() {
     # リリースビルドで作成した実行ファイルに対してリダイレクト無しで標準入力をした場合
     # proconio との相性が悪くてうまくいかない可能性がある。
@@ -140,6 +235,14 @@ exe() {
     "$bin_path"
 }
 
+# 新しいテストケースファイル (.in, .out) を作成します。
+#
+# 'test' ディレクトリが存在しない場合は作成します。
+#
+# 引数:
+#   $1 (必須): 作成するテストケース名 (例: "sample1")。
+# 出力:
+#   'test' ディレクトリに <name>.in と <name>.out ファイルが作成されます。
 make_test() {
     mkdir -p 'test'
 
