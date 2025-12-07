@@ -1,4 +1,4 @@
-// range update range sum で黒にする部分は range で 0にして range sum で白マスカウント
+// 区間をセットで管理するテク
 #[fastout]
 fn main() {
     input! {
@@ -7,34 +7,11 @@ fn main() {
         lrs: [(i64, i64); q],
     }
 
-    // 開区間にしてみる
-    let lrs = lrs.iter().copied().map(|(l, r)| (l, r + 1)).collect_vec();
-
-    let coord = {
-        let mut coord = vec![1, n + 1];
-        for &(l, r) in &lrs {
-            coord.push(l);
-            coord.push(r);
-        }
-        coord.sort();
-        coord.dedup();
-        coord
-    };
-
-    let cnts = coord
-        .iter()
-        .copied()
-        .tuple_windows()
-        .map(|(l, r)| r - l)
-        .collect_vec();
-
-    let mut seg = RangeAffineRangeSumSegtree::new(&cnts);
+    let mut set = RangeSet::new(n); // [1,n] だけ入ってる
 
     for &(l, r) in &lrs {
-        let li = coord.binary_search(&l).unwrap();
-        let ri = coord.binary_search(&r).unwrap();
-        seg.apply_range_affine(li..ri, 0, 0);
-        let ans = seg.range_sum(..);
+        set.remove_range(l, r);
+        let ans = set.len();
         println!("{}", ans);
         // dbg!(seg.to_vec());
     }
@@ -170,156 +147,160 @@ pub mod print_util {
 }
 
 // ====== snippet ======
-use range_affine_range_sum::*;
-#[allow(clippy::module_inception)]
-pub mod range_affine_range_sum {
-    use ac_library::{LazySegtree, MapMonoid, Monoid};
-    use itertools::Itertools;
-    use std::convert::Infallible;
-    use std::marker::PhantomData;
-    use std::ops::{Add, Mul, RangeBounds};
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-    pub struct RangeSum<T> {
-        pub sum: T,
-        pub len: i64,
+
+use range_set::RangeSet;
+// 参考: 要素の追加・削除と mex を対数時間で処理するよ - えびちゃんの日記
+// https://rsk0315.hatenablog.com/entry/2020/10/11/125049
+pub mod range_set {
+    use std::collections::BTreeSet;
+
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct RangeSet {
+        set: BTreeSet<(i64, i64)>, // 閉区間を管理する
+        count: usize,
     }
-    impl<T> RangeSum<T> {
-        pub fn unit(x: T) -> RangeSum<T> {
-            RangeSum { sum: x, len: 1 }
-        }
-    }
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-    pub struct Affine<T> {
-        pub slope: T,
-        pub intercept: T,
-    }
-    impl<T> Affine<T>
-    where
-        T: From<i64>,
-    {
-        /// 区間変更用（定数関数）
-        pub fn constant_func(x: T) -> Affine<T> {
-            Affine {
-                slope: 0.into(),
-                intercept: x,
+
+    impl RangeSet {
+        pub fn new(n: i64) -> RangeSet {
+            RangeSet {
+                set: vec![(i64::MIN, i64::MIN), (1, n), (i64::MAX, i64::MAX)] // 番兵
+                    .into_iter()
+                    .collect(),
+                count: n as usize,
             }
         }
-        /// 区間加算用
-        pub fn addition_func(x: T) -> Affine<T> {
-            Affine {
-                slope: 1.into(),
-                intercept: x,
+
+        pub fn iter(&self) -> impl Iterator<Item = i64> + '_ {
+            self.set
+                .iter()
+                .copied()
+                .filter(|&(l, r)| (l, r) != (i64::MIN, i64::MIN) && (l, r) != (i64::MAX, i64::MAX)) // 番兵は除く
+                .flat_map(|(left, right)| left..=right)
+        }
+
+        pub fn insert(&mut self, x: i64) -> bool {
+            if self.contains(x) {
+                return false;
+            }
+
+            // 番兵がいるので unwrap 可能。
+            let &(prev_l, prev_r) = self.set.range(..(x + 1, x + 1)).max().unwrap();
+            let &(next_l, next_r) = self.set.range((x + 1, x + 1)..).min().unwrap();
+
+            // 以下の4パターンがある ('x' が insert する値。"[ ]" が既存の区間 )
+            // [ ]x[ ]
+            // [ ]x  [ ]
+            // [ ]  x[ ]
+            // [ ]  x  [ ]
+
+            if prev_r + 1 == x && x == next_l - 1 {
+                self.set.remove(&(prev_l, prev_r));
+                self.set.remove(&(next_l, next_r));
+                self.set.insert((prev_l, next_r));
+            } else if prev_r + 1 == x {
+                self.set.remove(&(prev_l, prev_r));
+                self.set.insert((prev_l, x));
+            } else if x == next_l - 1 {
+                self.set.remove(&(next_l, next_r));
+                self.set.insert((x, next_r));
+            } else {
+                self.set.insert((x, x));
+            }
+
+            self.count += 1;
+
+            true
+        }
+
+        pub fn remove_range(&mut self, left: i64, right: i64) {
+            // 管理している区間を右から左に見ていく
+            let (mut sl, mut sr) = *self.set.range(..(right + 1, right + 1)).max().unwrap();
+            // (sl, sr) を処理する
+            let mut to_insert: Vec<(i64, i64)> = vec![];
+            loop {
+                if sr < left {
+                    break;
+                }
+                self.set.remove(&(sl, sr));
+                self.count -= (sr - sl + 1) as usize;
+
+                if left <= sl && right < sr {
+                    to_insert.push((right + 1, sr));
+                } else if sl < left && right < sr {
+                    to_insert.push((sl, left - 1));
+                    to_insert.push((right + 1, sr));
+                } else if sl < left && sr <= right {
+                    to_insert.push((sl, left - 1));
+                }
+
+                (sl, sr) = *self.set.range(..(sl, sl)).max().unwrap();
+            }
+            for (sl, sr) in to_insert {
+                self.set.insert((sl, sr));
+                self.count += (sr - sl + 1) as usize;
             }
         }
-    }
-    pub struct ValueLenSum<T>(Infallible, PhantomData<fn() -> T>);
-    impl<T> Monoid for ValueLenSum<T>
-    where
-        T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
-    {
-        type S = RangeSum<T>;
-        fn identity() -> RangeSum<T> {
-            RangeSum {
-                sum: 0.into(),
-                len: 0,
+
+        pub fn remove(&mut self, x: i64) -> bool {
+            if !self.contains(x) {
+                return false;
             }
-        }
-        fn binary_operation(a: &RangeSum<T>, b: &RangeSum<T>) -> RangeSum<T> {
-            RangeSum {
-                sum: a.sum + b.sum,
-                len: a.len + b.len,
+
+            let &(current_l, current_r) = self.set.range(..(x + 1, x + 1)).max().unwrap();
+
+            // 削除のパターンは以下の4通り
+            //  [x]
+            // → (消滅)
+            //
+            //  [x    ]
+            // →  [   ]
+            //
+            //  [    x]
+            //→ [   ]
+            //
+            //  [  x  ]
+            // →[ ] [ ]
+
+            if current_l == x && x == current_r {
+                self.set.remove(&(current_l, current_r));
+            } else if current_l == x {
+                self.set.remove(&(current_l, current_r));
+                self.set.insert((x + 1, current_r));
+            } else if x == current_r {
+                self.set.remove(&(current_l, current_r));
+                self.set.insert((current_l, x - 1));
+            } else {
+                self.set.remove(&(current_l, current_r));
+                self.set.insert((current_l, x - 1));
+                self.set.insert((x + 1, current_r));
             }
+
+            self.count -= 1;
+            true
         }
-    }
-    pub struct RangeAffineRangeSum<T>(Infallible, PhantomData<fn() -> T>);
-    impl<T> MapMonoid for RangeAffineRangeSum<T>
-    where
-        T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
-    {
-        type M = ValueLenSum<T>;
-        type F = Affine<T>;
-        fn identity_map() -> Affine<T> {
-            Affine {
-                slope: 1.into(),
-                intercept: 0.into(),
-            }
+
+        pub fn len(&self) -> usize {
+            self.count
         }
-        fn composition(a: &Affine<T>, b: &Affine<T>) -> Affine<T> {
-            Affine {
-                slope: a.slope * b.slope,
-                intercept: a.slope * b.intercept + a.intercept,
-            }
+
+        pub fn is_empty(&self) -> bool {
+            self.count == 0
         }
-        fn mapping(f: &Affine<T>, x: &RangeSum<T>) -> RangeSum<T> {
-            RangeSum {
-                sum: f.slope * x.sum + f.intercept * x.len.into(),
-                len: x.len,
-            }
+
+        pub fn contains(&self, x: i64) -> bool {
+            let &(l, r) = self.set.range(..(x + 1, x + 1)).max().unwrap();
+            (l..=r).contains(&x)
         }
-    }
-    pub struct RangeAffineRangeSumSegtree<T>
-    where
-        T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
-    {
-        segtree: LazySegtree<RangeAffineRangeSum<T>>,
-        len: usize,
-    }
-    impl<T> RangeAffineRangeSumSegtree<T>
-    where
-        T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
-    {
-        pub fn new(xs: &[T]) -> RangeAffineRangeSumSegtree<T> {
-            let xs = xs.iter().copied().map(RangeSum::unit).collect_vec();
-            let len = xs.len();
-            RangeAffineRangeSumSegtree {
-                segtree: LazySegtree::from(xs),
-                len,
-            }
+
+        /// x 以上で self に入っていない値の最小値を返す (いわゆる mex)
+        pub fn min_exclusive_geq(&self, x: i64) -> i64 {
+            let &(l, r) = self.set.range(..(x + 1, x + 1)).max().unwrap();
+            if (l..=r).contains(&x) { r + 1 } else { x }
         }
-        pub fn set(&mut self, p: usize, x: T) {
-            self.segtree.set(p, RangeSum::unit(x));
-        }
-        pub fn get(&mut self, p: usize) -> T {
-            self.segtree.get(p).sum
-        }
-        pub fn range_sum<R>(&mut self, range: R) -> T
-        where
-            R: RangeBounds<usize>,
-        {
-            self.segtree.prod(range).sum
-        }
-        pub fn all_sum(&self) -> T {
-            self.segtree.all_prod().sum
-        }
-        pub fn apply_affine(&mut self, p: usize, slope: T, intercept: T) {
-            self.segtree.apply(p, Affine { slope, intercept })
-        }
-        pub fn apply_update(&mut self, p: usize, x: T) {
-            self.segtree.apply(p, Affine::constant_func(x))
-        }
-        pub fn apply_add(&mut self, p: usize, x: T) {
-            self.segtree.apply(p, Affine::addition_func(x))
-        }
-        pub fn apply_range_affine<R>(&mut self, range: R, slope: T, intercept: T)
-        where
-            R: RangeBounds<usize>,
-        {
-            self.segtree.apply_range(range, Affine { slope, intercept })
-        }
-        pub fn apply_range_update<R>(&mut self, range: R, x: T)
-        where
-            R: RangeBounds<usize>,
-        {
-            self.segtree.apply_range(range, Affine::constant_func(x))
-        }
-        pub fn apply_range_add<R>(&mut self, range: R, x: T)
-        where
-            R: RangeBounds<usize>,
-        {
-            self.segtree.apply_range(range, Affine::addition_func(x))
-        }
-        pub fn to_vec(&mut self) -> Vec<T> {
-            (0..self.len).map(|i| self.get(i)).collect_vec()
+        /// x 以下で self に入っていない値の最大値を返す
+        pub fn max_exclusive_leq(&self, x: i64) -> i64 {
+            let &(l, r) = self.set.range(..(x + 1, x + 1)).max().unwrap();
+            if (l..=r).contains(&x) { l - 1 } else { x }
         }
     }
 }
