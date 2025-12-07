@@ -4,5 +4,6 @@ pub mod default_hash_map;
 pub mod dsu;
 pub mod queue;
 pub mod range_set;
+pub mod range_set2;
 pub mod stack;
 pub mod union_find;

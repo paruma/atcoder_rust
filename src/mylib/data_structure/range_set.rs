@@ -9,7 +9,7 @@ pub mod range_set {
 
     #[derive(Clone, Debug, PartialEq, Eq)]
     pub struct RangeSet {
-        set: BTreeSet<(i64, i64)>,
+        set: BTreeSet<(i64, i64)>, // 閉区間を管理する
         count: usize,
     }
     impl Default for RangeSet {
