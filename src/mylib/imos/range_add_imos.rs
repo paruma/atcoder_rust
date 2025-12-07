@@ -16,7 +16,7 @@ pub mod range_add_imos {
     impl RangeAddImos {
         /// サイズ `n` の新しい `RangeAddImos` インスタンスを作成します。
         ///
-        /// # Complexity
+        /// # 計算量
         /// O(n)
         pub fn new(n: usize) -> Self {
             Self {
@@ -45,7 +45,7 @@ pub mod range_add_imos {
 
         /// 差分配列から最終的な配列を構築します。
         ///
-        /// # Complexity
+        /// # 計算量
         /// O(n)
         pub fn to_vec(mut self) -> Vec<i64> {
             if self.n == 0 {
