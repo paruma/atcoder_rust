@@ -1,211 +1,209 @@
-//! 整数の集合を隣り合わない半開区間の直和で管理するデータ構造。
-//!
-//! # 機能
-//! - 区間の追加 (`insert_range`)
-//! - 区間の削除 (`remove_range`)
-//! - 点が区間集合に含まれるかの判定 (`contains`)
-//! - 区間が完全にカバーされているかの判定 (`covered`)
-//! - 全区間の長さの合計 (`len`)
+use cargo_snippet::snippet;
 
-use std::collections::BTreeMap;
-use std::fmt;
+#[allow(clippy::module_inception)]
+#[snippet(prefix = "use range_set2::*;")]
+pub mod range_set2 {
 
-#[derive(Clone, PartialEq, Eq)]
-pub struct RangeSet2 {
-    map: BTreeMap<i64, i64>, // 半開区間 [l, r) を map.insert(l, r) で管理
-    total_length: i64,
-}
+    use std::collections::BTreeMap;
 
-impl Default for RangeSet2 {
-    fn default() -> Self {
-        Self::new()
+    /// 整数の集合を隣り合わない半開区間の直和で管理するデータ構造。
+    ///
+    /// # 機能
+    /// - 区間内の整数の追加 (`insert_range`)
+    /// - 区間内の整数の削除 (`remove_range`)
+    /// - 点が区間集合に含まれるかの判定 (`contains`)
+    /// - 区間が完全にカバーされているかの判定 (`covers`)
+    /// - 全区間の長さの合計 (`len`)
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    pub struct RangeSet2 {
+        map: BTreeMap<i64, i64>, // key: l, value: r で半開区間 [l, r) を管理
+        total_length: i64,
     }
-}
 
-impl fmt::Debug for RangeSet2 {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_list()
-            .entries(self.map.iter().map(|(&l, &r)| (l, r)))
-            .finish()
-    }
-}
-
-impl RangeSet2 {
-    /// 新しい `RangeSet2` を作成する。
-    pub fn new() -> Self {
-        Self {
-            map: BTreeMap::new(),
-            total_length: 0,
+    impl Default for RangeSet2 {
+        fn default() -> Self {
+            Self::new()
         }
     }
 
-    /// 区間 `[l, r)` を挿入する。
-    ///
-    /// 重複または隣接する区間はマージされる。
-    ///
-    /// # 計算量
-    /// amortized O(log N)
-    pub fn insert_range(&mut self, l: i64, r: i64) {
-        if l >= r {
-            return;
-        }
-
-        let mut start = l;
-        let mut end = r;
-        let mut removed_len = 0;
-
-        // --- l より前に開始し、[l, r) とマージ可能な区間を探す ---
-        if let Some((&prev_l, &prev_r)) = self.map.range(..=l).max() {
-            if prev_r >= l {
-                start = prev_l;
-                end = end.max(prev_r);
-                removed_len += prev_r - prev_l;
-                self.map.remove(&prev_l);
+    impl RangeSet2 {
+        /// 空の `RangeSet2` を作成する。
+        pub fn new() -> Self {
+            Self {
+                map: BTreeMap::new(),
+                total_length: 0,
             }
         }
 
-        // --- 新しい区間 [start, end) と重なる後続の区間をマージする ---
-        let mut to_remove = Vec::new();
-        for (&l_i, &r_i) in self.map.range(start..) {
-            if l_i > end {
-                break;
+        /// 区間 `[l, r)` の各値を集合に追加する。
+        ///
+        /// # 計算量
+        /// amortized O(log N)
+        pub fn insert_range(&mut self, l: i64, r: i64) {
+            assert!(l <= r);
+            if r == l {
+                return;
             }
-            end = end.max(r_i);
-            to_remove.push(l_i);
-            removed_len += r_i - l_i;
+
+            // マージ後の区間の開始点と終了点
+            let mut start = l;
+            let mut end = r;
+
+            let mut to_remove = Vec::new();
+            let mut removed_len = 0;
+
+            // [l, r) と重なる区間、あるいは隣接する区間に対して処理をする。
+            // 具体的には l <= r_i と l_i <= r を満たす [l_i, r_i) に対して処理をする
+            for (&l_i, &r_i) in self.map.range(..=r).rev().take_while(|&(_, r_i)| l <= *r_i) {
+                start = start.min(l_i);
+                end = end.max(r_i);
+                to_remove.push(l_i);
+                removed_len += r_i - l_i;
+            }
+
+            for l_i in to_remove {
+                self.map.remove(&l_i);
+            }
+
+            let added_len = end - start;
+            self.total_length += added_len - removed_len;
+
+            self.map.insert(start, end);
         }
 
-        for l_i in to_remove {
-            self.map.remove(&l_i);
-        }
+        /// 区間 `[l, r)` の各値を集合から削除する。
+        ///
+        /// # 計算量
+        /// amortized O(log N)
+        pub fn remove_range(&mut self, l: i64, r: i64) {
+            assert!(l <= r);
+            if r == l {
+                return;
+            }
 
-        let added_len = end - start;
-        self.total_length += added_len - removed_len;
+            let mut to_add = Vec::new();
+            let mut to_remove = Vec::new();
+            let mut len_change = 0;
 
-        self.map.insert(start, end);
-    }
+            // [l, r) と重なる区間に対して処理をする
+            // 具体的には l < r_i と l_i < r を満たす [l_i, r_i) に対して処理をする
+            for (&l_i, &r_i) in self.map.range(..r).rev().take_while(|&(_, r_i)| l < *r_i) {
+                to_remove.push(l_i);
+                len_change -= r_i - l_i;
 
-    /// 区間 `[l, r)` を削除する。
-    ///
-    /// # 計算量
-    /// amortized O(log N)
-    pub fn remove_range(&mut self, l: i64, r: i64) {
-        if l >= r {
-            return;
-        }
-
-        let mut to_add = Vec::new();
-        let mut to_remove = Vec::new();
-        let mut len_change = 0;
-
-        // --- [l, r) と重なる区間をすべて探し、処理する ---
-        // l の直前に開始し、l と重なる可能性のある区間を探す
-        if let Some((&prev_l, &prev_r)) = self.map.range(..=l).max() {
-            if prev_r > l {
-                to_remove.push(prev_l);
-                len_change -= prev_r - prev_l; // 元の区間を削除
-
-                // [prev_l, l) の部分は残す
-                if prev_l < l {
-                    to_add.push((prev_l, l));
-                    len_change += l - prev_l; // 新しい区間を追加
+                // [l_i, l) の部分が残る可能性 (削除範囲の左側にはみ出している部分)
+                if l_i < l {
+                    to_add.push((l_i, l));
+                    len_change += l - l_i;
                 }
-                // [r, prev_r) の部分が残る可能性
-                if prev_r > r {
-                    to_add.push((r, prev_r));
-                    len_change += prev_r - r; // 新しい区間を追加
+
+                // [r, r_i) の部分が残る可能性 (削除範囲の右側にはみ出している部分)
+                if r < r_i {
+                    to_add.push((r, r_i));
+                    len_change += r_i - r;
                 }
             }
+
+            for l_i in to_remove {
+                self.map.remove(&l_i);
+            }
+            for (l_add, r_add) in to_add {
+                self.map.insert(l_add, r_add);
+            }
+
+            self.total_length += len_change;
         }
 
-        // l 以降に開始し、[l, r) と重なる区間を列挙
-        for (&l_i, &r_i) in self.map.range(l..).take_while(|&(&l_i, _)| l_i < r) {
-            to_remove.push(l_i);
-            len_change -= r_i - l_i; // 元の区間を削除
+        /// 集合が `x` を含んでいるかを返す。
+        ///
+        /// # 計算量
+        /// O(log N)
+        pub fn contains(&self, x: i64) -> bool {
+            self.find_range(x).is_some()
+        }
 
-            // [r, r_i) の部分が残る可能性
-            if r_i > r {
-                to_add.push((r, r_i));
-                len_change += r_i - r; // 新しい区間を追加
+        /// 集合が区間 `[l, r)` を含んでいるかを返す。
+        ///
+        /// # 計算量
+        /// O(log N)
+        pub fn covers(&self, l: i64, r: i64) -> bool {
+            assert!(l <= r);
+            if r == l {
+                return true;
+            }
+            if let Some((_start, end)) = self.find_range(l) {
+                r <= end
+            } else {
+                false
             }
         }
 
-        for l_i in to_remove {
-            self.map.remove(&l_i);
+        /// 集合が空かどうかを返す。
+        ///
+        /// # 計算量
+        /// O(1)
+        pub fn is_empty(&self) -> bool {
+            self.map.is_empty()
         }
-        for (l_add, r_add) in to_add {
-            self.map.insert(l_add, r_add);
+
+        /// 集合の要素数を返す。
+        ///
+        /// # 計算量
+        /// O(1)
+        pub fn len(&self) -> i64 {
+            self.total_length
         }
 
-        self.total_length += len_change;
-    }
-
-    /// 点 `x` がいずれかの区間に含まれているかを返す。
-    pub fn contains(&self, x: i64) -> bool {
-        // x を含みうる区間は、x 以前に始まったものだけ
-        // そのような区間 [l, r) のうち、l が最大のものを探す
-        if let Some((&l, &r)) = self.map.range(..=x).max() {
-            // l <= x < r であれば含まれる
-            l <= x && x < r
-        } else {
-            false
+        /// x 以上で self に入っていない値の最小値を返す (いわゆる mex)
+        ///
+        /// # 計算量
+        /// O(log N)
+        pub fn min_exclusive_geq(&self, x: i64) -> i64 {
+            if let Some((_, r)) = self.find_range(x) {
+                r
+            } else {
+                x
+            }
         }
-    }
 
-    /// 区間 `[l, r)` が完全に区間集合にカバーされているかを返す。
-    pub fn covered(&self, l: i64, r: i64) -> bool {
-        if l >= r {
-            return true;
+        /// x 以下で self に入っていない値の最大値を返す
+        ///
+        /// # 計算量
+        /// O(log N)
+        pub fn max_exclusive_leq(&self, x: i64) -> i64 {
+            if let Some((l, _)) = self.find_range(x) {
+                l - 1
+            } else {
+                x
+            }
         }
-        if let Some((&start, &end)) = self.map.range(..=l).max() {
-            start <= l && r <= end
-        } else {
-            false
+
+        /// `x` が含まれる区間 `[l, r)` を検索し、`Some((l, r))` で返す。
+        /// `x` を含む区間が見つからない場合は `None` を返す。
+        fn find_range(&self, x: i64) -> Option<(i64, i64)> {
+            if let Some((&l, &r)) = self.map.range(..=x).last() {
+                if x < r {
+                    // l <= x < r
+                    Some((l, r))
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
         }
-    }
 
-    /// 区間集合が空かどうかを返す。
-    pub fn is_empty(&self) -> bool {
-        self.map.is_empty()
-    }
-
-    /// 管理している区間の総数を返す。
-    pub fn count_ranges(&self) -> usize {
-        self.map.len()
-    }
-
-    /// 全区間の長さの合計を返す。O(1)で計算できる。
-    pub fn len(&self) -> i64 {
-        self.total_length
-    }
-
-    /// 管理しているすべての区間 `[l, r)` のイテレータを返す。
-    pub fn ranges(&self) -> impl Iterator<Item = (i64, i64)> + '_ {
-        self.map.iter().map(|(&l, &r)| (l, r))
-    }
-
-    /// x 以上で self に入っていない値の最小値を返す (いわゆる mex)
-    pub fn min_exclusive_geq(&self, x: i64) -> i64 {
-        if let Some((&l, &r)) = self.map.range(..=x).max() {
-            if l <= x && x < r { r } else { x }
-        } else {
-            x
-        }
-    }
-
-    /// x 以下で self に入っていない値の最大値を返す
-    pub fn max_exclusive_leq(&self, x: i64) -> i64 {
-        if let Some((&l, &r)) = self.map.range(..=x).max() {
-            if l <= x && x < r { l - 1 } else { x }
-        } else {
-            x
+        /// 管理しているすべての区間 `[l, r)` のイテレータを返す。
+        #[cfg(test)]
+        pub(crate) fn ranges(&self) -> impl Iterator<Item = (i64, i64)> + '_ {
+            self.map.iter().map(|(&l, &r)| (l, r))
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::range_set2::*;
     use rand::{Rng, SeedableRng, rngs::StdRng};
 
     #[test]
@@ -213,7 +211,7 @@ mod tests {
         let mut set = RangeSet2::new();
         set.insert_range(0, 5);
         set.insert_range(10, 15);
-        assert_eq!(set.map.len(), 2);
+        assert_eq!(set.ranges().count(), 2);
         assert_eq!(set.ranges().collect::<Vec<_>>(), vec![(0, 5), (10, 15)]);
     }
 
@@ -222,12 +220,12 @@ mod tests {
         let mut set = RangeSet2::new();
         set.insert_range(0, 5);
         set.insert_range(3, 8); // [0, 5) と [3, 8) -> [0, 8)
-        assert_eq!(set.map.len(), 1);
+        assert_eq!(set.ranges().count(), 1);
         assert_eq!(set.ranges().collect::<Vec<_>>(), vec![(0, 8)]);
 
         set.insert_range(10, 15);
         set.insert_range(-2, 1); // [-2, 1) と [0, 8) -> [-2, 8)
-        assert_eq!(set.map.len(), 2);
+        assert_eq!(set.ranges().count(), 2);
         assert_eq!(set.ranges().collect::<Vec<_>>(), vec![(-2, 8), (10, 15)]);
     }
 
@@ -236,11 +234,11 @@ mod tests {
         let mut set = RangeSet2::new();
         set.insert_range(0, 5);
         set.insert_range(5, 10); // [0, 5) と [5, 10) -> [0, 10)
-        assert_eq!(set.map.len(), 1);
+        assert_eq!(set.ranges().count(), 1);
         assert_eq!(set.ranges().collect::<Vec<_>>(), vec![(0, 10)]);
 
         set.insert_range(-5, 0); // [-5, 0) と [0, 10) -> [-5, 10)
-        assert_eq!(set.map.len(), 1);
+        assert_eq!(set.ranges().count(), 1);
         assert_eq!(set.ranges().collect::<Vec<_>>(), vec![(-5, 10)]);
     }
 
@@ -249,11 +247,11 @@ mod tests {
         let mut set = RangeSet2::new();
         set.insert_range(0, 10);
         set.insert_range(3, 7); // [3, 7) は [0, 10) に含まれる
-        assert_eq!(set.map.len(), 1);
+        assert_eq!(set.ranges().count(), 1);
         assert_eq!(set.ranges().collect::<Vec<_>>(), vec![(0, 10)]);
 
         set.insert_range(-5, 15); // [0, 10) は [-5, 15) に含まれる
-        assert_eq!(set.map.len(), 1);
+        assert_eq!(set.ranges().count(), 1);
         assert_eq!(set.ranges().collect::<Vec<_>>(), vec![(-5, 15)]);
     }
 
@@ -264,7 +262,7 @@ mod tests {
         set.insert_range(4, 6);
         set.insert_range(8, 10);
         set.insert_range(1, 9); // [1, 9) が [0,2), [4,6), [8,10) をマージ
-        assert_eq!(set.map.len(), 1);
+        assert_eq!(set.ranges().count(), 1);
         assert_eq!(set.ranges().collect::<Vec<_>>(), vec![(0, 10)]);
     }
 
@@ -293,7 +291,7 @@ mod tests {
         let mut set = RangeSet2::new();
         set.insert_range(10, 20);
         set.remove_range(13, 17); // [10, 20) -> [10, 13) と [17, 20)
-        assert_eq!(set.map.len(), 2);
+        assert_eq!(set.ranges().count(), 2);
         assert_eq!(set.ranges().collect::<Vec<_>>(), vec![(10, 13), (17, 20)]);
     }
 
@@ -340,13 +338,13 @@ mod tests {
     }
 
     #[test]
-    fn test_covered() {
+    fn test_covers() {
         let mut set = RangeSet2::new();
         set.insert_range(0, 10);
-        assert!(set.covered(2, 8));
-        assert!(set.covered(0, 10));
-        assert!(!set.covered(0, 11));
-        assert!(!set.covered(-1, 10));
+        assert!(set.covers(2, 8));
+        assert!(set.covers(0, 10));
+        assert!(!set.covers(0, 11));
+        assert!(!set.covers(-1, 10));
     }
 
     #[test]
@@ -360,51 +358,22 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
-    fn test_random_operations() {
-        let mut rng = StdRng::seed_from_u64(42);
+    fn test_is_empty() {
         let mut set = RangeSet2::new();
-        let mut reference = vec![]; // bool 配列で区間を管理
+        assert!(set.is_empty());
 
-        const MAX_POS: i64 = 200;
-        reference.resize(MAX_POS as usize, false);
+        set.insert_range(0, 5);
+        assert!(!set.is_empty());
 
-        for _ in 0..10000 {
-            let l = rng.random_range(0..MAX_POS);
-            let r = rng.random_range(l..=MAX_POS);
+        set.remove_range(0, 5);
+        assert!(set.is_empty());
 
-            if rng.random_bool(0.5) {
-                // Insert
-                set.insert_range(l, r);
-                for i in l..r {
-                    reference[i as usize] = true;
-                }
-            } else {
-                // Remove
-                set.remove_range(l, r);
-                for i in l..r {
-                    reference[i as usize] = false;
-                }
-            }
+        set.insert_range(10, 15);
+        set.insert_range(20, 25);
+        assert!(!set.is_empty());
 
-            // 検証
-            let mut current_pos = 0;
-            for (start, end) in set.ranges() {
-                // ギャップの部分が false であることを確認
-                for i in current_pos..start {
-                    assert!(!reference[i as usize], "pos {} should be false", i);
-                }
-                // 区間の部分が true であることを確認
-                for i in start..end {
-                    assert!(reference[i as usize], "pos {} should be true", i);
-                }
-                current_pos = end;
-            }
-            // 最後の区間以降が false であることを確認
-            for i in current_pos..MAX_POS {
-                assert!(!reference[i as usize], "pos {} should be false", i);
-            }
-        }
+        set.remove_range(10, 25);
+        assert!(set.is_empty());
     }
 
     #[test]
@@ -451,5 +420,175 @@ mod tests {
         assert_eq!(set_neg.max_exclusive_leq(-1), -3);
         assert_eq!(set_neg.max_exclusive_leq(-2), -3);
         assert_eq!(set_neg.max_exclusive_leq(-3), -3);
+    }
+
+    #[test]
+    #[ignore]
+    fn test_random_ops_against_naive() {
+        let mut rng = StdRng::seed_from_u64(42);
+
+        for _ in 0..500 {
+            let len = rng.random_range(1..=30);
+            let mut set = RangeSet2::new();
+            let mut naive = NaiveRangeSet::new(len);
+
+            let num_ops = 200;
+
+            for op_idx in 0..num_ops {
+                let l = rng.random_range(0..=len as i64);
+                let r = rng.random_range(l..=len as i64);
+
+                let op_type = rng.random_range(0..2);
+
+                let (op_name, l_op, r_op) = if op_type == 0 {
+                    set.insert_range(l, r);
+                    naive.insert_range(l, r);
+                    ("insert", l, r)
+                } else {
+                    set.remove_range(l, r);
+                    naive.remove_range(l, r);
+                    ("remove", l, r)
+                };
+
+                // Assertion
+                let base_context = format!(
+                    "Operation[{}]: {}({}, {}), LEN: {}",
+                    op_idx, op_name, l_op, r_op, len
+                );
+
+                assert_eq!(
+                    set.len(),
+                    naive.len(),
+                    "Failed len check: {}\nset: {:?}\nnaive: {:?}",
+                    base_context,
+                    set,
+                    naive
+                );
+
+                assert_eq!(
+                    set.is_empty(),
+                    naive.is_empty(),
+                    "Failed is_empty check: {}\nset: {:?}\nnaive: {:?}",
+                    base_context,
+                    set,
+                    naive
+                );
+
+                for i in -2..=len as i64 + 2 {
+                    assert_eq!(
+                        set.contains(i),
+                        naive.contains(i),
+                        "Failed contains({}) check: {}\nset: {:?}\nnaive: {:?}",
+                        i,
+                        base_context,
+                        set,
+                        naive
+                    );
+                    assert_eq!(
+                        set.min_exclusive_geq(i),
+                        naive.min_exclusive_geq(i),
+                        "Failed min_exclusive_geq({}) check: {}\nset: {:?}\nnaive: {:?}",
+                        i,
+                        base_context,
+                        set,
+                        naive
+                    );
+                    assert_eq!(
+                        set.max_exclusive_leq(i),
+                        naive.max_exclusive_leq(i),
+                        "Failed max_exclusive_leq({}) check: {}\nset: {:?}\nnaive: {:?}",
+                        i,
+                        base_context,
+                        set,
+                        naive
+                    );
+                }
+
+                for _ in 0..10 {
+                    let l_cover = rng.random_range(-2..=len as i64 + 2);
+                    let r_cover = rng.random_range(l_cover..=len as i64 + 2);
+                    assert_eq!(
+                        set.covers(l_cover, r_cover),
+                        naive.covers(l_cover, r_cover),
+                        "Failed covers({}, {}) check: {}\nset: {:?}\nnaive: {:?}",
+                        l_cover,
+                        r_cover,
+                        base_context,
+                        set,
+                        naive
+                    );
+                }
+            }
+        }
+    }
+
+    /// `Vec<bool>` を使った RangeSet のナイーブな実装 (テスト用)
+    #[derive(Debug)]
+    struct NaiveRangeSet {
+        vec: Vec<bool>,
+        len: usize,
+    }
+
+    impl NaiveRangeSet {
+        fn new(len: usize) -> Self {
+            Self {
+                vec: vec![false; len],
+                len,
+            }
+        }
+
+        fn insert_range(&mut self, l: i64, r: i64) {
+            assert!(l >= 0 && r <= self.len as i64);
+            for i in l..r {
+                self.vec[i as usize] = true;
+            }
+        }
+
+        fn remove_range(&mut self, l: i64, r: i64) {
+            assert!(l >= 0 && r <= self.len as i64);
+            for i in l..r {
+                self.vec[i as usize] = false;
+            }
+        }
+
+        fn contains(&self, x: i64) -> bool {
+            if x >= 0 && x < self.len as i64 {
+                self.vec[x as usize]
+            } else {
+                false
+            }
+        }
+
+        fn covers(&self, l: i64, r: i64) -> bool {
+            assert!(l <= r);
+            if l == r {
+                return true;
+            }
+            (l..r).all(|i| self.contains(i))
+        }
+
+        fn len(&self) -> i64 {
+            self.vec.iter().filter(|&&b| b).count() as i64
+        }
+
+        fn is_empty(&self) -> bool {
+            self.len() == 0
+        }
+
+        fn min_exclusive_geq(&self, x: i64) -> i64 {
+            if !self.contains(x) {
+                return x;
+            }
+            (x + 1..self.len as i64)
+                .find(|&i| !self.contains(i))
+                .unwrap_or(self.len as i64)
+        }
+
+        fn max_exclusive_leq(&self, x: i64) -> i64 {
+            if !self.contains(x) {
+                return x;
+            }
+            (0..x).rev().find(|&i| !self.contains(i)).unwrap_or(-1)
+        }
     }
 }
