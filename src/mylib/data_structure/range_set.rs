@@ -14,6 +14,8 @@ pub mod range_set {
     /// - 点が区間集合に含まれるかの判定 (`contains`)
     /// - 区間が完全にカバーされているかの判定 (`covers`)
     /// - 全区間の長さの合計 (`len`)
+    /// - x 以上で集合に含まれない最小値 (`min_exclusive_geq`、いわゆる mex)
+    /// - x 以下で集合に含まれない最大値 (`max_exclusive_leq`)
     #[derive(Debug, Clone, PartialEq, Eq)]
     pub struct RangeSet {
         map: BTreeMap<i64, i64>, // key: l, value: r で半開区間 [l, r) を管理
@@ -430,7 +432,7 @@ mod tests {
         for _ in 0..500 {
             let len = rng.random_range(1..=30);
             let mut set = RangeSet::new();
-            let mut naive = NaiveRangeSet::new(len);
+            let mut naive = NaiveRangeSet::new();
 
             let num_ops = 200;
 
@@ -525,70 +527,54 @@ mod tests {
     /// `Vec<bool>` を使った RangeSet のナイーブな実装 (テスト用)
     #[derive(Debug)]
     struct NaiveRangeSet {
-        vec: Vec<bool>,
-        len: usize,
+        set: std::collections::HashSet<i64>,
     }
 
     impl NaiveRangeSet {
-        fn new(len: usize) -> Self {
+        fn new() -> Self {
             Self {
-                vec: vec![false; len],
-                len,
+                set: std::collections::HashSet::new(),
             }
         }
 
         fn insert_range(&mut self, l: i64, r: i64) {
-            assert!(l >= 0 && r <= self.len as i64);
             for i in l..r {
-                self.vec[i as usize] = true;
+                self.set.insert(i);
             }
         }
 
         fn remove_range(&mut self, l: i64, r: i64) {
-            assert!(l >= 0 && r <= self.len as i64);
             for i in l..r {
-                self.vec[i as usize] = false;
+                self.set.remove(&i);
             }
         }
 
         fn contains(&self, x: i64) -> bool {
-            if x >= 0 && x < self.len as i64 {
-                self.vec[x as usize]
-            } else {
-                false
-            }
+            self.set.contains(&x)
         }
 
         fn covers(&self, l: i64, r: i64) -> bool {
             assert!(l <= r);
-            if l == r {
-                return true;
-            }
-            (l..r).all(|i| self.contains(i))
+            (l..r).all(|i| self.set.contains(&i))
         }
 
         fn len(&self) -> i64 {
-            self.vec.iter().filter(|&&b| b).count() as i64
+            self.set.len() as i64
         }
 
         fn is_empty(&self) -> bool {
-            self.len() == 0
+            self.set.is_empty()
         }
 
         fn min_exclusive_geq(&self, x: i64) -> i64 {
-            if !self.contains(x) {
-                return x;
-            }
-            (x + 1..self.len as i64)
-                .find(|&i| !self.contains(i))
-                .unwrap_or(self.len as i64)
+            (x..).find(|&i| !self.set.contains(&i)).unwrap()
         }
 
         fn max_exclusive_leq(&self, x: i64) -> i64 {
-            if !self.contains(x) {
-                return x;
-            }
-            (0..x).rev().find(|&i| !self.contains(i)).unwrap_or(-1)
+            (i64::MIN..=x)
+                .rev()
+                .find(|&i| !self.set.contains(&i))
+                .unwrap()
         }
     }
 }
