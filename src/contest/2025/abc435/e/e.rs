@@ -7,18 +7,14 @@ fn main() {
         lrs: [(i64, i64); q],
     }
 
-    let mut set = RangeSet::new(n); // [1,n] だけ入ってる
+    let mut set = RangeSet::new();
+    set.insert_range(1, n + 1);
 
     for &(l, r) in &lrs {
-        set.remove_range(l, r);
+        set.remove_range(l, r + 1);
         let ans = set.len();
         println!("{}", ans);
-        // dbg!(seg.to_vec());
     }
-
-    // dbg!(cnts);
-
-    // dbg!(coord);
 }
 
 #[cfg(test)]
@@ -147,160 +143,156 @@ pub mod print_util {
 }
 
 // ====== snippet ======
-
-use range_set::RangeSet;
-// 参考: 要素の追加・削除と mex を対数時間で処理するよ - えびちゃんの日記
-// https://rsk0315.hatenablog.com/entry/2020/10/11/125049
+use range_set::*;
+#[allow(clippy::module_inception)]
 pub mod range_set {
-    use std::collections::BTreeSet;
-
-    #[derive(Clone, Debug, PartialEq, Eq)]
+    use std::collections::BTreeMap;
+    /// 整数の集合を隣り合わない半開区間の直和で管理するデータ構造。
+    /// # 機能
+    /// - 区間内の整数の追加 (`insert_range`)
+    /// - 区間内の整数の削除 (`remove_range`)
+    /// - 点が区間集合に含まれるかの判定 (`contains`)
+    /// - 区間が完全にカバーされているかの判定 (`covers`)
+    /// - 全区間の長さの合計 (`len`)
+    #[derive(Debug, Clone, PartialEq, Eq)]
     pub struct RangeSet {
-        set: BTreeSet<(i64, i64)>, // 閉区間を管理する
-        count: usize,
+        map: BTreeMap<i64, i64>,
+        total_length: i64,
     }
-
+    impl Default for RangeSet {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
     impl RangeSet {
-        pub fn new(n: i64) -> RangeSet {
-            RangeSet {
-                set: vec![(i64::MIN, i64::MIN), (1, n), (i64::MAX, i64::MAX)] // 番兵
-                    .into_iter()
-                    .collect(),
-                count: n as usize,
+        /// 空の `RangeSet2` を作成する。
+        pub fn new() -> Self {
+            Self {
+                map: BTreeMap::new(),
+                total_length: 0,
             }
         }
-
-        pub fn iter(&self) -> impl Iterator<Item = i64> + '_ {
-            self.set
-                .iter()
-                .copied()
-                .filter(|&(l, r)| (l, r) != (i64::MIN, i64::MIN) && (l, r) != (i64::MAX, i64::MAX)) // 番兵は除く
-                .flat_map(|(left, right)| left..=right)
-        }
-
-        pub fn insert(&mut self, x: i64) -> bool {
-            if self.contains(x) {
-                return false;
+        /// 区間 `[l, r)` の各値を集合に追加する。
+        /// # 計算量
+        /// amortized O(log N)
+        pub fn insert_range(&mut self, l: i64, r: i64) {
+            assert!(l <= r);
+            if r == l {
+                return;
             }
-
-            // 番兵がいるので unwrap 可能。
-            let &(prev_l, prev_r) = self.set.range(..(x + 1, x + 1)).max().unwrap();
-            let &(next_l, next_r) = self.set.range((x + 1, x + 1)..).min().unwrap();
-
-            // 以下の4パターンがある ('x' が insert する値。"[ ]" が既存の区間 )
-            // [ ]x[ ]
-            // [ ]x  [ ]
-            // [ ]  x[ ]
-            // [ ]  x  [ ]
-
-            if prev_r + 1 == x && x == next_l - 1 {
-                self.set.remove(&(prev_l, prev_r));
-                self.set.remove(&(next_l, next_r));
-                self.set.insert((prev_l, next_r));
-            } else if prev_r + 1 == x {
-                self.set.remove(&(prev_l, prev_r));
-                self.set.insert((prev_l, x));
-            } else if x == next_l - 1 {
-                self.set.remove(&(next_l, next_r));
-                self.set.insert((x, next_r));
-            } else {
-                self.set.insert((x, x));
+            let mut start = l;
+            let mut end = r;
+            let mut to_remove = Vec::new();
+            let mut removed_len = 0;
+            for (&l_i, &r_i) in self.map.range(..=r).rev().take_while(|&(_, r_i)| l <= *r_i) {
+                start = start.min(l_i);
+                end = end.max(r_i);
+                to_remove.push(l_i);
+                removed_len += r_i - l_i;
             }
-
-            self.count += 1;
-
-            true
+            for l_i in to_remove {
+                self.map.remove(&l_i);
+            }
+            let added_len = end - start;
+            self.total_length += added_len - removed_len;
+            self.map.insert(start, end);
         }
-
-        pub fn remove_range(&mut self, left: i64, right: i64) {
-            // 管理している区間を右から左に見ていく
-            let (mut sl, mut sr) = *self.set.range(..(right + 1, right + 1)).max().unwrap();
-            // (sl, sr) を処理する
-            let mut to_insert: Vec<(i64, i64)> = vec![];
-            loop {
-                if sr < left {
-                    break;
+        /// 区間 `[l, r)` の各値を集合から削除する。
+        /// # 計算量
+        /// amortized O(log N)
+        pub fn remove_range(&mut self, l: i64, r: i64) {
+            assert!(l <= r);
+            if r == l {
+                return;
+            }
+            let mut to_add = Vec::new();
+            let mut to_remove = Vec::new();
+            let mut len_change = 0;
+            for (&l_i, &r_i) in self.map.range(..r).rev().take_while(|&(_, r_i)| l < *r_i) {
+                to_remove.push(l_i);
+                len_change -= r_i - l_i;
+                if l_i < l {
+                    to_add.push((l_i, l));
+                    len_change += l - l_i;
                 }
-                self.set.remove(&(sl, sr));
-                self.count -= (sr - sl + 1) as usize;
-
-                if left <= sl && right < sr {
-                    to_insert.push((right + 1, sr));
-                } else if sl < left && right < sr {
-                    to_insert.push((sl, left - 1));
-                    to_insert.push((right + 1, sr));
-                } else if sl < left && sr <= right {
-                    to_insert.push((sl, left - 1));
+                if r < r_i {
+                    to_add.push((r, r_i));
+                    len_change += r_i - r;
                 }
-
-                (sl, sr) = *self.set.range(..(sl, sl)).max().unwrap();
             }
-            for (sl, sr) in to_insert {
-                self.set.insert((sl, sr));
-                self.count += (sr - sl + 1) as usize;
+            for l_i in to_remove {
+                self.map.remove(&l_i);
             }
-        }
-
-        pub fn remove(&mut self, x: i64) -> bool {
-            if !self.contains(x) {
-                return false;
+            for (l_add, r_add) in to_add {
+                self.map.insert(l_add, r_add);
             }
-
-            let &(current_l, current_r) = self.set.range(..(x + 1, x + 1)).max().unwrap();
-
-            // 削除のパターンは以下の4通り
-            //  [x]
-            // → (消滅)
-            //
-            //  [x    ]
-            // →  [   ]
-            //
-            //  [    x]
-            //→ [   ]
-            //
-            //  [  x  ]
-            // →[ ] [ ]
-
-            if current_l == x && x == current_r {
-                self.set.remove(&(current_l, current_r));
-            } else if current_l == x {
-                self.set.remove(&(current_l, current_r));
-                self.set.insert((x + 1, current_r));
-            } else if x == current_r {
-                self.set.remove(&(current_l, current_r));
-                self.set.insert((current_l, x - 1));
-            } else {
-                self.set.remove(&(current_l, current_r));
-                self.set.insert((current_l, x - 1));
-                self.set.insert((x + 1, current_r));
-            }
-
-            self.count -= 1;
-            true
+            self.total_length += len_change;
         }
-
-        pub fn len(&self) -> usize {
-            self.count
-        }
-
-        pub fn is_empty(&self) -> bool {
-            self.count == 0
-        }
-
+        /// 集合が `x` を含んでいるかを返す。
+        /// # 計算量
+        /// O(log N)
         pub fn contains(&self, x: i64) -> bool {
-            let &(l, r) = self.set.range(..(x + 1, x + 1)).max().unwrap();
-            (l..=r).contains(&x)
+            self.find_range(x).is_some()
         }
-
+        /// 集合が区間 `[l, r)` を含んでいるかを返す。
+        /// # 計算量
+        /// O(log N)
+        pub fn covers(&self, l: i64, r: i64) -> bool {
+            assert!(l <= r);
+            if r == l {
+                return true;
+            }
+            if let Some((_start, end)) = self.find_range(l) {
+                r <= end
+            } else {
+                false
+            }
+        }
+        /// 集合が空かどうかを返す。
+        /// # 計算量
+        /// O(1)
+        pub fn is_empty(&self) -> bool {
+            self.map.is_empty()
+        }
+        /// 集合の要素数を返す。
+        /// # 計算量
+        /// O(1)
+        pub fn len(&self) -> i64 {
+            self.total_length
+        }
         /// x 以上で self に入っていない値の最小値を返す (いわゆる mex)
+        /// # 計算量
+        /// O(log N)
         pub fn min_exclusive_geq(&self, x: i64) -> i64 {
-            let &(l, r) = self.set.range(..(x + 1, x + 1)).max().unwrap();
-            if (l..=r).contains(&x) { r + 1 } else { x }
+            if let Some((_, r)) = self.find_range(x) {
+                r
+            } else {
+                x
+            }
         }
         /// x 以下で self に入っていない値の最大値を返す
+        /// # 計算量
+        /// O(log N)
         pub fn max_exclusive_leq(&self, x: i64) -> i64 {
-            let &(l, r) = self.set.range(..(x + 1, x + 1)).max().unwrap();
-            if (l..=r).contains(&x) { l - 1 } else { x }
+            if let Some((l, _)) = self.find_range(x) {
+                l - 1
+            } else {
+                x
+            }
+        }
+        /// `x` が含まれる区間 `[l, r)` を検索し、`Some((l, r))` で返す。
+        /// `x` を含む区間が見つからない場合は `None` を返す。
+        fn find_range(&self, x: i64) -> Option<(i64, i64)> {
+            if let Some((&l, &r)) = self.map.range(..=x).last() {
+                if x < r { Some((l, r)) } else { None }
+            } else {
+                None
+            }
+        }
+        /// 管理しているすべての区間 `[l, r)` のイテレータを返す。
+        #[cfg(test)]
+        pub(crate) fn ranges(&self) -> impl Iterator<Item = (i64, i64)> + '_ {
+            self.map.iter().map(|(&l, &r)| (l, r))
         }
     }
 }
