@@ -2,10 +2,27 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let mut ans = vec![vec![-1_i64; n]; n];
+
+    let mut pos = Pos::new(((n - 1) / 2) as i64, 0);
+    ans[pos] = 1;
+
+    for k in 2..=((n * n) as i64) {
+        let next1 = pos + Pos::new(1, -1);
+        let next1 = Pos::new(next1.x.rem_euclid(n as i64), next1.y.rem_euclid(n as i64));
+        if ans[next1] == -1 {
+            ans[next1] = k;
+            pos = next1;
+        } else {
+            let next2 = pos + Pos::new(0, 1);
+            let next2 = Pos::new(next2.x.rem_euclid(n as i64), next2.y.rem_euclid(n as i64));
+            ans[next2] = k;
+            pos = next2;
+        }
+    }
+
+    print_vec2(&ans);
 }
 
 #[cfg(test)]
@@ -134,3 +151,186 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use pos::*;
+#[allow(clippy::module_inception)]
+pub mod pos {
+    use std::io::BufRead;
+    use std::iter::Sum;
+    use std::ops::{Add, AddAssign, Neg, Sub, SubAssign};
+    #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    pub struct Pos {
+        pub x: i64,
+        pub y: i64,
+    }
+    impl Pos {
+        pub fn new(x: i64, y: i64) -> Pos {
+            Pos { x, y }
+        }
+    }
+    impl Pos {
+        pub fn scala_mul(self, rhs: i64) -> Pos {
+            Pos::new(self.x * rhs, self.y * rhs)
+        }
+    }
+    impl Pos {
+        pub fn inner_product(self, rhs: Self) -> i64 {
+            self.x * rhs.x + self.y * rhs.y
+        }
+        pub fn norm_square(self) -> i64 {
+            self.inner_product(self)
+        }
+    }
+    impl Add for Pos {
+        type Output = Pos;
+        fn add(self, rhs: Self) -> Self::Output {
+            Pos::new(self.x + rhs.x, self.y + rhs.y)
+        }
+    }
+    impl Sub for Pos {
+        type Output = Pos;
+        fn sub(self, rhs: Self) -> Self::Output {
+            Pos::new(self.x - rhs.x, self.y - rhs.y)
+        }
+    }
+    impl Neg for Pos {
+        type Output = Self;
+        fn neg(self) -> Self::Output {
+            Pos::new(-self.x, -self.y)
+        }
+    }
+    impl Sum for Pos {
+        fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+            iter.fold(Pos::new(0, 0), |acc, x| acc + x)
+        }
+    }
+    impl<'a> Sum<&'a Pos> for Pos {
+        fn sum<I: Iterator<Item = &'a Self>>(iter: I) -> Self {
+            iter.fold(Pos::new(0, 0), |a, b| a + *b)
+        }
+    }
+    impl num_traits::Zero for Pos {
+        fn zero() -> Self {
+            Pos::new(0, 0)
+        }
+        fn is_zero(&self) -> bool {
+            self.x.is_zero() && self.y.is_zero()
+        }
+    }
+    impl AddAssign for Pos {
+        fn add_assign(&mut self, rhs: Self) {
+            *self = *self + rhs
+        }
+    }
+    impl SubAssign for Pos {
+        fn sub_assign(&mut self, rhs: Self) {
+            *self = *self - rhs
+        }
+    }
+    use std::fmt::{Debug, Error, Formatter};
+    impl Debug for Pos {
+        fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+            f.write_fmt(format_args!("({}, {})", self.x, self.y))?;
+            Ok(())
+        }
+    }
+    use proconio::source::{Readable, Source};
+    pub enum PosXY {}
+    impl Readable for PosXY {
+        type Output = Pos;
+        fn read<R: BufRead, S: Source<R>>(source: &mut S) -> Pos {
+            let x = i64::read(source);
+            let y = i64::read(source);
+            Pos::new(x, y)
+        }
+    }
+    pub enum PosYX {}
+    impl Readable for PosYX {
+        type Output = Pos;
+        fn read<R: BufRead, S: Source<R>>(source: &mut S) -> Pos {
+            let y = i64::read(source);
+            let x = i64::read(source);
+            Pos::new(x, y)
+        }
+    }
+    /// 1-indexed で与えられた座標(YX)
+    pub enum PosYX1 {}
+    impl Readable for PosYX1 {
+        type Output = Pos;
+        fn read<R: BufRead, S: Source<R>>(source: &mut S) -> Pos {
+            let y = i64::read(source) - 1;
+            let x = i64::read(source) - 1;
+            Pos::new(x, y)
+        }
+    }
+    pub const DIR8_LIST: [Pos; 8] = [
+        Pos { x: 0, y: 1 },
+        Pos { x: 1, y: 1 },
+        Pos { x: 1, y: 0 },
+        Pos { x: 1, y: -1 },
+        Pos { x: 0, y: -1 },
+        Pos { x: -1, y: -1 },
+        Pos { x: -1, y: 0 },
+        Pos { x: -1, y: 1 },
+    ];
+    pub const DIR4_LIST: [Pos; 4] = [
+        Pos { x: 0, y: 1 },
+        Pos { x: 1, y: 0 },
+        Pos { x: 0, y: -1 },
+        Pos { x: -1, y: 0 },
+    ];
+    impl Pos {
+        pub fn around4_pos_iter(self) -> impl Iterator<Item = Pos> {
+            DIR4_LIST.iter().copied().map(move |d| self + d)
+        }
+        pub fn around8_pos_iter(self) -> impl Iterator<Item = Pos> {
+            DIR8_LIST.iter().copied().map(move |d| self + d)
+        }
+    }
+}
+use vec_vec_at::*;
+pub mod vec_vec_at {
+    use super::pos::*;
+    use easy_ext::ext;
+    use std::ops::{Index, IndexMut};
+    #[ext(ExtVecVec)]
+    impl<T> Vec<Vec<T>> {
+        pub fn width(&self) -> usize {
+            if self.is_empty() { 0 } else { self[0].len() }
+        }
+        pub fn height(&self) -> usize {
+            self.len()
+        }
+        pub fn is_within(&self, pos: Pos) -> bool {
+            (0..self.width() as i64).contains(&pos.x) && (0..self.height() as i64).contains(&pos.y)
+        }
+    }
+    impl<T> Index<Pos> for Vec<Vec<T>> {
+        type Output = T;
+        fn index(&self, index: Pos) -> &Self::Output {
+            if cfg!(debug_assertions) && !self.is_within(index) {
+                panic!(
+                    "index out of bounds: the size (w, h) is ({}, {}) but the index (x, y) is ({}, {})",
+                    self.width(),
+                    self.height(),
+                    index.x,
+                    index.y
+                );
+            }
+            &self[index.y as usize][index.x as usize]
+        }
+    }
+    impl<T> IndexMut<Pos> for Vec<Vec<T>> {
+        fn index_mut(&mut self, index: Pos) -> &mut Self::Output {
+            if cfg!(debug_assertions) && !self.is_within(index) {
+                panic!(
+                    "index out of bounds: the size (w, h) is ({}, {}) but the index (x, y) is ({}, {})",
+                    self.width(),
+                    self.height(),
+                    index.x,
+                    index.y
+                );
+            }
+            &mut self[index.y as usize][index.x as usize]
+        }
+    }
+}

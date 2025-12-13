@@ -2,11 +2,10 @@
 fn main() {
     input! {
         n: usize,
-        ps: [Usize1; n],
+        xs: [Usize1; n],
     }
-    let mut inds = FenwickTree::new(n, 0_i64);
 
-    let inv_ps = ps
+    let inv_xs = xs
         .iter()
         .copied()
         .enumerate()
@@ -14,17 +13,31 @@ fn main() {
             acc[x] = i;
             acc
         });
-    let mut ans: i64 = 0;
 
-    for b in 0..n {
-        let pos = inv_ps[b];
-        inds.add(pos, 1);
-        let left = inds.sum(0..=pos);
-        let right = inds.sum(pos..);
+    let mut inds = vec![0_i64; n];
 
-        ans += left * right;
+    let mut ans = 0i64;
+
+    for j in 0..n {
+        // すでに合ってるものを強制送還するのはだめな気がする
+        let x = xs[j];
+        if x < j {
+            ans += 1;
+            dbg!();
+        }
+
+        if inds[j] >= 1 {
+            ans += 1;
+            dbg!();
+        }
+
+        if inds[inv_xs[j]] >= 1 {
+            ans += 1;
+            dbg!();
+        }
+
+        inds[xs[j]] += 1;
     }
-
     println!("{}", ans);
 }
 
@@ -86,7 +99,6 @@ mod tests {
     }
 }
 
-use ac_library::FenwickTree;
 // ====== import ======
 #[allow(unused_imports)]
 use {
@@ -155,3 +167,21 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+/// 転倒数 `#{(i, j) | i < j and xs[i] > xs[j]}` を求める
+/// # 計算量
+/// O(m log m + n)
+/// (m = max(xs), n = xs.len())
+pub fn inversion_number(xs: &[usize]) -> i64 {
+    use ac_library::FenwickTree;
+    if xs.is_empty() {
+        return 0;
+    }
+    let max_val = xs.iter().copied().max().unwrap();
+    let mut fenwick = FenwickTree::new(max_val + 1, 0_i64);
+    let mut cnt = 0;
+    for &x in xs {
+        cnt += fenwick.sum(x + 1..);
+        fenwick.add(x, 1);
+    }
+    cnt
+}

@@ -1,10 +1,28 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        n: i64,
+        m: usize,
+        rcs: [(i64, i64); m],
     }
-    let ans: i64 = -2_i64;
+
+    let mut set: HashSet<(i64, i64)> = HashSet::new();
+
+    let mut ans = 0_i64;
+
+    for &(r, c) in &rcs {
+        let block = [(r, c), (r + 1, c), (r, c + 1), (r + 1, c + 1)];
+        if block
+            .iter()
+            .copied()
+            .all(|(r1, c1)| !set.contains(&(r1, c1)))
+        {
+            for (r1, c1) in block {
+                set.insert((r1, c1));
+            }
+            ans += 1;
+        }
+    }
     println!("{}", ans);
 }
 
