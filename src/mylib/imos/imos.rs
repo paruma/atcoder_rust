@@ -165,8 +165,7 @@ pub mod imos_2d {
         }
 
         fn is_within(&self, y: i64, x: i64) -> bool {
-            (self.y_begin..self.y_end).contains(&y)
-                && (self.x_begin..self.x_end).contains(&x)
+            (self.y_begin..self.y_end).contains(&y) && (self.x_begin..self.x_end).contains(&x)
         }
 
         /// `(y, x)` の要素の値を取得する。
@@ -587,11 +586,7 @@ mod test_imos_2d {
         // 1 0 0
         // 0 2 0
         // 0 0 0
-        let expected = vec![
-            vec![1, 0, 0],
-            vec![0, 2, 0],
-            vec![0, 0, 0],
-        ];
+        let expected = vec![vec![1, 0, 0], vec![0, 2, 0], vec![0, 0, 0]];
         assert_eq!(actual, expected);
     }
 
@@ -619,11 +614,7 @@ mod test_imos_2d {
         let height = 5;
         let width = 5;
         let actual = (0..height)
-            .map(|y| {
-                (0..width)
-                    .map(|x| imos_sum.get(y, x))
-                    .collect_vec()
-            })
+            .map(|y| (0..width).map(|x| imos_sum.get(y, x)).collect_vec())
             .collect_vec();
 
         let expected = vec![

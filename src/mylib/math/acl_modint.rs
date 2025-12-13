@@ -55,7 +55,7 @@ pub mod modint_to_rational {
 
     impl<M: ModIntBase> ToRational for M {
         /// modint を分数の形に復元する。デバッグ用。
-        /// 
+        ///
         /// 注意: 1000 * 2000 = 2*10^6 の計算をしている
         fn to_rational(&self) -> Option<Rational64> {
             if self.val() == 0 {

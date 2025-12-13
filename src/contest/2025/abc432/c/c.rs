@@ -4,7 +4,7 @@ fn solve(n: usize, x: i64, y: i64, bs: &[i64]) -> Option<i64> {
     if bs[0] * y < bs[n - 1] * x {
         return None;
     }
-    
+
     let diff = y - x;
 
     let w_sum = bs[0] * y;
