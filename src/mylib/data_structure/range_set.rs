@@ -29,7 +29,7 @@ pub mod range_set {
     }
 
     impl RangeSet {
-        /// 空の `RangeSet2` を作成する。
+        /// 空の `RangeSet` を作成する。
         pub fn new() -> Self {
             Self {
                 map: BTreeMap::new(),
