@@ -12036,13 +12036,13 @@
       "}"
     ]
   },
-  "range_set2": {
+  "range_set": {
     "scope": "rust",
-    "prefix": "range_set2",
+    "prefix": "range_set",
     "body": [
-      "use range_set2::*;",
+      "use range_set::*;",
       "#[allow(clippy::module_inception)]",
-      "pub mod range_set2 {",
+      "pub mod range_set {",
       "    use std::collections::BTreeMap;",
       "    /// 整数の集合を隣り合わない半開区間の直和で管理するデータ構造。",
       "    /// # 機能",
@@ -12052,16 +12052,16 @@
       "    /// - 区間が完全にカバーされているかの判定 (`covers`)",
       "    /// - 全区間の長さの合計 (`len`)",
       "    #[derive(Debug, Clone, PartialEq, Eq)]",
-      "    pub struct RangeSet2 {",
+      "    pub struct RangeSet {",
       "        map: BTreeMap<i64, i64>,",
       "        total_length: i64,",
       "    }",
-      "    impl Default for RangeSet2 {",
+      "    impl Default for RangeSet {",
       "        fn default() -> Self {",
       "            Self::new()",
       "        }",
       "    }",
-      "    impl RangeSet2 {",
+      "    impl RangeSet {",
       "        /// 空の `RangeSet2` を作成する。",
       "        pub fn new() -> Self {",
       "            Self {",

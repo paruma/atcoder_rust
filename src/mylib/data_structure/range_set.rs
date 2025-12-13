@@ -1,8 +1,8 @@
 use cargo_snippet::snippet;
 
 #[allow(clippy::module_inception)]
-#[snippet(prefix = "use range_set2::*;")]
-pub mod range_set2 {
+#[snippet(prefix = "use range_set::*;")]
+pub mod range_set {
 
     use std::collections::BTreeMap;
 
@@ -15,18 +15,18 @@ pub mod range_set2 {
     /// - 区間が完全にカバーされているかの判定 (`covers`)
     /// - 全区間の長さの合計 (`len`)
     #[derive(Debug, Clone, PartialEq, Eq)]
-    pub struct RangeSet2 {
+    pub struct RangeSet {
         map: BTreeMap<i64, i64>, // key: l, value: r で半開区間 [l, r) を管理
         total_length: i64,
     }
 
-    impl Default for RangeSet2 {
+    impl Default for RangeSet {
         fn default() -> Self {
             Self::new()
         }
     }
 
-    impl RangeSet2 {
+    impl RangeSet {
         /// 空の `RangeSet2` を作成する。
         pub fn new() -> Self {
             Self {
@@ -203,12 +203,12 @@ pub mod range_set2 {
 
 #[cfg(test)]
 mod tests {
-    use super::range_set2::*;
+    use super::range_set::*;
     use rand::{Rng, SeedableRng, rngs::StdRng};
 
     #[test]
     fn test_insert_non_overlapping() {
-        let mut set = RangeSet2::new();
+        let mut set = RangeSet::new();
         set.insert_range(0, 5);
         set.insert_range(10, 15);
         assert_eq!(set.ranges().count(), 2);
@@ -217,7 +217,7 @@ mod tests {
 
     #[test]
     fn test_insert_overlapping_merge() {
-        let mut set = RangeSet2::new();
+        let mut set = RangeSet::new();
         set.insert_range(0, 5);
         set.insert_range(3, 8); // [0, 5) と [3, 8) -> [0, 8)
         assert_eq!(set.ranges().count(), 1);
@@ -231,7 +231,7 @@ mod tests {
 
     #[test]
     fn test_insert_adjacent_merge() {
-        let mut set = RangeSet2::new();
+        let mut set = RangeSet::new();
         set.insert_range(0, 5);
         set.insert_range(5, 10); // [0, 5) と [5, 10) -> [0, 10)
         assert_eq!(set.ranges().count(), 1);
@@ -244,7 +244,7 @@ mod tests {
 
     #[test]
     fn test_insert_containing_merge() {
-        let mut set = RangeSet2::new();
+        let mut set = RangeSet::new();
         set.insert_range(0, 10);
         set.insert_range(3, 7); // [3, 7) は [0, 10) に含まれる
         assert_eq!(set.ranges().count(), 1);
@@ -257,7 +257,7 @@ mod tests {
 
     #[test]
     fn test_insert_multiple_merge() {
-        let mut set = RangeSet2::new();
+        let mut set = RangeSet::new();
         set.insert_range(0, 2);
         set.insert_range(4, 6);
         set.insert_range(8, 10);
@@ -268,7 +268,7 @@ mod tests {
 
     #[test]
     fn test_remove_no_overlap() {
-        let mut set = RangeSet2::new();
+        let mut set = RangeSet::new();
         set.insert_range(10, 20);
         set.remove_range(0, 5);
         assert_eq!(set.ranges().collect::<Vec<_>>(), vec![(10, 20)]);
@@ -276,7 +276,7 @@ mod tests {
 
     #[test]
     fn test_remove_total() {
-        let mut set = RangeSet2::new();
+        let mut set = RangeSet::new();
         set.insert_range(10, 20);
         set.remove_range(10, 20);
         assert!(set.is_empty());
@@ -288,7 +288,7 @@ mod tests {
 
     #[test]
     fn test_remove_split() {
-        let mut set = RangeSet2::new();
+        let mut set = RangeSet::new();
         set.insert_range(10, 20);
         set.remove_range(13, 17); // [10, 20) -> [10, 13) と [17, 20)
         assert_eq!(set.ranges().count(), 2);
@@ -297,7 +297,7 @@ mod tests {
 
     #[test]
     fn test_remove_left_side() {
-        let mut set = RangeSet2::new();
+        let mut set = RangeSet::new();
         set.insert_range(10, 20);
         set.remove_range(5, 15);
         assert_eq!(set.ranges().collect::<Vec<_>>(), vec![(15, 20)]);
@@ -305,7 +305,7 @@ mod tests {
 
     #[test]
     fn test_remove_right_side() {
-        let mut set = RangeSet2::new();
+        let mut set = RangeSet::new();
         set.insert_range(10, 20);
         set.remove_range(15, 25);
         assert_eq!(set.ranges().collect::<Vec<_>>(), vec![(10, 15)]);
@@ -313,7 +313,7 @@ mod tests {
 
     #[test]
     fn test_remove_multiple_ranges() {
-        let mut set = RangeSet2::new();
+        let mut set = RangeSet::new();
         set.insert_range(0, 5);
         set.insert_range(10, 15);
         set.insert_range(20, 25);
@@ -323,7 +323,7 @@ mod tests {
 
     #[test]
     fn test_contains() {
-        let mut set = RangeSet2::new();
+        let mut set = RangeSet::new();
         set.insert_range(0, 5);
         set.insert_range(10, 15);
 
@@ -339,7 +339,7 @@ mod tests {
 
     #[test]
     fn test_covers() {
-        let mut set = RangeSet2::new();
+        let mut set = RangeSet::new();
         set.insert_range(0, 10);
         assert!(set.covers(2, 8));
         assert!(set.covers(0, 10));
@@ -349,7 +349,7 @@ mod tests {
 
     #[test]
     fn test_len() {
-        let mut set = RangeSet2::new();
+        let mut set = RangeSet::new();
         set.insert_range(0, 5);
         set.insert_range(10, 15);
         assert_eq!(set.len(), 10);
@@ -359,7 +359,7 @@ mod tests {
 
     #[test]
     fn test_is_empty() {
-        let mut set = RangeSet2::new();
+        let mut set = RangeSet::new();
         assert!(set.is_empty());
 
         set.insert_range(0, 5);
@@ -378,7 +378,7 @@ mod tests {
 
     #[test]
     fn test_mex() {
-        let mut set = RangeSet2::new();
+        let mut set = RangeSet::new();
         set.insert_range(1, 3); // [1, 3) -> {1, 2}
         set.insert_range(5, 7); // [5, 7) -> {5, 6}
 
@@ -404,11 +404,11 @@ mod tests {
         assert_eq!(set.max_exclusive_leq(0), 0);
 
         // Edge cases
-        let empty_set = RangeSet2::new();
+        let empty_set = RangeSet::new();
         assert_eq!(empty_set.min_exclusive_geq(100), 100);
         assert_eq!(empty_set.max_exclusive_leq(100), 100);
 
-        let mut set_neg = RangeSet2::new();
+        let mut set_neg = RangeSet::new();
         set_neg.insert_range(-2, 0); // {-2, -1}
         assert_eq!(set_neg.min_exclusive_geq(-3), -3);
         assert_eq!(set_neg.min_exclusive_geq(-2), 0);
@@ -429,7 +429,7 @@ mod tests {
 
         for _ in 0..500 {
             let len = rng.random_range(1..=30);
-            let mut set = RangeSet2::new();
+            let mut set = RangeSet::new();
             let mut naive = NaiveRangeSet::new(len);
 
             let num_ops = 200;
