@@ -162,7 +162,7 @@ mod tests {
         let n_50 = 50;
         let expected_f50 = Mint::new(607336789); // Corrected value
         assert_eq!(
-            bostan_mori(initial_terms, coeffs, n_50),
+            bostan_mori(&initial_terms, &coeffs, n_50),
             expected_f50,
             "Fibonacci({}) failed",
             n_50
