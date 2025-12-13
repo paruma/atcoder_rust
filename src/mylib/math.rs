@@ -1,5 +1,6 @@
 pub mod acl_modint;
 pub mod argcmp;
+pub mod bostan_mori;
 pub mod combinatorics;
 pub mod dynamic_matrix;
 pub mod inversion;
