@@ -116,6 +116,22 @@ pub mod range_set {
             self.total_length += len_change;
         }
 
+        /// 集合に `x` を追加する。
+        ///
+        /// # 計算量
+        /// amortized O(log N)
+        pub fn insert(&mut self, x: i64) {
+            self.insert_range(x, x + 1);
+        }
+
+        /// 集合から `x` を削除する。
+        ///
+        /// # 計算量
+        /// amortized O(log N)
+        pub fn remove(&mut self, x: i64) {
+            self.remove_range(x, x + 1);
+        }
+
         /// 集合が `x` を含んでいるかを返す。
         ///
         /// # 計算量
@@ -360,6 +376,57 @@ mod tests {
     }
 
     #[test]
+    fn test_insert_remove_single_point() {
+        let mut set = RangeSet::new();
+        assert!(!set.contains(5));
+        assert_eq!(set.len(), 0);
+
+        set.insert(5);
+        assert!(set.contains(5));
+        assert_eq!(set.len(), 1);
+        assert_eq!(set.ranges().collect::<Vec<_>>(), vec![(5, 6)]);
+
+        set.insert(5); // Inserting existing should not change state
+        assert!(set.contains(5));
+        assert_eq!(set.len(), 1);
+
+        set.insert(10);
+        assert!(set.contains(10));
+        assert_eq!(set.len(), 2);
+        assert_eq!(set.ranges().collect::<Vec<_>>(), vec![(5, 6), (10, 11)]);
+
+        set.remove(5);
+        assert!(!set.contains(5));
+        assert_eq!(set.len(), 1);
+        assert_eq!(set.ranges().collect::<Vec<_>>(), vec![(10, 11)]);
+
+        set.remove(5); // Deleting non-existing should not change state
+        assert!(!set.contains(5));
+        assert_eq!(set.len(), 1);
+
+        set.remove(10);
+        assert!(!set.contains(10));
+        assert_eq!(set.len(), 0);
+        assert!(set.is_empty());
+
+        // Test with merging adjacent points
+        set.insert(0);
+        set.insert(1);
+        set.insert(3);
+        assert_eq!(set.len(), 3);
+        assert_eq!(set.ranges().collect::<Vec<_>>(), vec![(0, 2), (3, 4)]);
+
+        set.insert(2);
+        assert_eq!(set.len(), 4);
+        assert_eq!(set.ranges().collect::<Vec<_>>(), vec![(0, 4)]);
+
+        set.remove(1);
+        assert_eq!(set.len(), 3);
+        assert!(!set.contains(1));
+        assert_eq!(set.ranges().collect::<Vec<_>>(), vec![(0, 1), (2, 4)]);
+    }
+
+    #[test]
     fn test_is_empty() {
         let mut set = RangeSet::new();
         assert!(set.is_empty());
@@ -439,17 +506,26 @@ mod tests {
             for op_idx in 0..num_ops {
                 let l = rng.random_range(0..=len as i64);
                 let r = rng.random_range(l..=len as i64);
+                let x = rng.random_range(0..len as i64);
 
-                let op_type = rng.random_range(0..2);
+                let op_type = rng.random_range(0..4); // 0: insert_range, 1: remove_range, 2: insert, 3: delete
 
                 let (op_name, l_op, r_op) = if op_type == 0 {
                     set.insert_range(l, r);
                     naive.insert_range(l, r);
-                    ("insert", l, r)
-                } else {
+                    ("insert_range", l, r)
+                } else if op_type == 1 {
                     set.remove_range(l, r);
                     naive.remove_range(l, r);
-                    ("remove", l, r)
+                    ("remove_range", l, r)
+                } else if op_type == 2 {
+                    set.insert(x);
+                    naive.insert(x);
+                    ("insert_point", x, x + 1)
+                } else {
+                    set.remove(x);
+                    naive.remove(x);
+                    ("remove_point", x, x + 1)
                 };
 
                 // Assertion
@@ -547,6 +623,14 @@ mod tests {
             for i in l..r {
                 self.set.remove(&i);
             }
+        }
+
+        fn insert(&mut self, x: i64) {
+            self.set.insert(x);
+        }
+
+        fn remove(&mut self, x: i64) {
+            self.set.remove(&x);
         }
 
         fn contains(&self, x: i64) -> bool {
