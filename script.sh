@@ -252,3 +252,7 @@ make_test() {
 
 alias ojs='oj_submit'
 alias ojt='oj_test'
+
+# あらかじめライブラリをビルドしておいて、ビルド時間を短縮させる
+cargo build --lib 2> /dev/null &
+cargo build --lib --release 2> /dev/null &
