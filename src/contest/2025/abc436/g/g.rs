@@ -19,7 +19,7 @@ fn main() {
     let mut init = vec![Mint::new(0); acc.len()];
     init[0] = Mint::new(1);
 
-    let ans = bostan_mori(&init, &acc, (m) as u64);
+    let ans = bostan_mori(init, acc, (m) as u64);
     println!("{}", ans);
 }
 
@@ -149,102 +149,75 @@ pub mod print_util {
 }
 
 // ====== snippet ======
-
 use ac_library::{Modulus, StaticModInt, convolution};
 
-// Bostan-Mori algorithm for linear recurrence relations
-//
-// Calculates the N-th term of a linear recurrence relation.
-// The recurrence relation is defined by a characteristic polynomial Q(x) and initial terms.
-//
-// Let the recurrence be a_n = c_1 a_{n-1} + c_2 a_{n-2} + ... + c_k a_{n-k}
-// The characteristic polynomial is Q(x) = 1 - c_1 x - c_2 x^2 - ... - c_k x^k.
-//
-// We want to find the N-th term of the sequence {a_n}.
-// This can be expressed as the N-th coefficient of the rational function P(x)/Q(x),
-// where P(x) is derived from the initial terms.
-//
-// The algorithm proceeds by repeatedly applying the identity:
-// [x^N] P(x)/Q(x) = [x^(N/2)] P_0(x^2) / Q_0(x^2)  if N is even
-//                   [x^(N/2)] P_1(x^2) / Q_1(x^2)  if N is odd
-// where P_0, P_1, Q_0, Q_1 are derived using polynomial arithmetic and convolution.
-//
-// Specifically, let R(x) = Q(-x).
-// Q_0(x^2) = Q(x) R(x)
-// P_0(x^2) = P(x) R(x) (for even N)
-// P_1(x^2) = (P(x) R(x)) / x (for odd N)
-//
-// All polynomials are represented as Vec<StaticModInt<M>> where the i-th element is the coefficient of x^i.
-
-/// Bostan-Mori algorithm for calculating the N-th term of a linear recurrence relation.
+/// Bostan-Mori法
 ///
-/// `initial_terms`: The initial terms of the sequence, a_0, a_1, ..., a_{k-1}.
-/// `coeffs`: The coefficients of the recurrence relation, c_1, c_2, ..., c_k.
-///           a_n = c_1 a_{n-1} + c_2 a_{n-2} + ... + c_k a_{n-k}.
-/// `n`: The index of the term to calculate (0-indexed).
+/// 有理関数 P(x)/Q(x) の N 次の係数を求める
 ///
-/// Returns the N-th term of the sequence modulo M.
+/// # 引数
 ///
-/// # Complexity
+/// * `p` - 分子多項式 P(x) の係数ベクトル
+/// * `q` - 分母多項式 Q(x) の係数ベクトル
+/// * `n` - 求める係数の次数
 ///
-/// O(K log K log N), where K is the degree of the recurrence relation (coeffs.len()).
+/// # 戻り値
+///
+/// `[x^n] P(x)/Q(x)`
+///
+/// # 計算量
+///
+/// O(K log K log N), K は Q(x) の次数
 pub fn bostan_mori<M: Modulus>(
-    p: &[StaticModInt<M>],
-    q: &[StaticModInt<M>],
+    mut p: Vec<StaticModInt<M>>,
+    mut q: Vec<StaticModInt<M>>,
     mut n: u64,
 ) -> StaticModInt<M> {
-    let k = q.len() - 1;
-    let mut p = p.to_vec();
-    let mut q = q.to_vec();
-
-    // Main loop of Bostan-Mori algorithm
     while n > 0 {
-        // Compute Q(-x)
-        let mut q_neg_x: Vec<StaticModInt<M>> = q.clone();
-        for i in (1..=k).step_by(2) {
+        let k = q.len() - 1;
+        if k == 0 {
+            return if p.is_empty() {
+                StaticModInt::new(0)
+            } else {
+                p[0] * q[0].inv()
+            };
+        }
+
+        // Q(-x) を計算
+        let mut q_neg_x = q.clone();
+        for i in (1..q.len()).step_by(2) {
             q_neg_x[i] = -q_neg_x[i];
         }
 
-        // Compute Q_new(x^2) = Q(x) * Q(-x)
-        let q_new_poly = convolution(&q, &q_neg_x);
-        let mut q_new: Vec<StaticModInt<M>> = Vec::new();
-        for i in (0..q_new_poly.len()).step_by(2) {
-            q_new.push(q_new_poly[i]);
-        }
+        // P(x) * Q(-x) と Q(x) * Q(-x) を計算
+        p = convolution(&p, &q_neg_x);
+        q = convolution(&q, &q_neg_x);
 
-        // Compute P_temp(x) = P(x) * Q(-x)
-        let p_temp_poly = convolution(&p, &q_neg_x);
-        let mut p_new: Vec<StaticModInt<M>> = Vec::new();
-
-        if n % 2 == 0 {
-            // N is even: P_new(x^2) = P_temp(x)
-            for i in (0..p_temp_poly.len()).step_by(2) {
-                p_new.push(p_temp_poly[i]);
+        // P と Q の偶数次または奇数次の項を取り出す
+        let mut p_new = Vec::new();
+        if n % 2 == 1 {
+            for i in (1..p.len()).step_by(2) {
+                p_new.push(p[i]);
             }
         } else {
-            // N is odd: P_new(x^2) = P_temp(x) / x
-            for i in (1..p_temp_poly.len()).step_by(2) {
-                p_new.push(p_temp_poly[i]);
+            for i in (0..p.len()).step_by(2) {
+                p_new.push(p[i]);
             }
         }
-
         p = p_new;
-        q = q_new;
-        n /= 2;
 
-        // Truncate polynomials to degree k-1 for P and k for Q.
-        // The degree of P_new should be less than k
-        // The degree of Q_new should be k
-        if p.len() > k {
-            p.truncate(k);
+        let mut q_new = Vec::new();
+        for i in (0..q.len()).step_by(2) {
+            q_new.push(q[i]);
         }
-        if q.len() > k + 1 {
-            q.truncate(k + 1);
-        }
+        q = q_new;
+
+        n /= 2;
     }
 
-    // When N becomes 0, P(x) will contain the terms of interest,
-    // and Q(x) will be 1. The N-th term (which is now a_0) is p[0]/q[0].
-    // Since q[0] will be 1, it's just p[0].
-    p[0] * q[0].inv()
+    if p.is_empty() {
+        StaticModInt::new(0)
+    } else {
+        p[0] * q[0].inv()
+    }
 }
