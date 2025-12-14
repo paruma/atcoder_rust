@@ -101,7 +101,7 @@ pub mod monoid_rolling_hash {
         /// let char_to_rh = RollingHash::unit(base);
         /// let rh_a = char_to_rh('a' as i64);
         /// ```
-        pub fn unit(base: i64) -> impl (Fn(i64) -> RollingHash) {
+        pub fn unit(base: i64) -> impl Fn(i64) -> RollingHash {
             move |x| RollingHash {
                 hash: Mint::new(x),
                 base: Mint::new(base),
