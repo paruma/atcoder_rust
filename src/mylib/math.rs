@@ -3,6 +3,7 @@ pub mod argcmp;
 pub mod bostan_mori;
 pub mod combinatorics;
 pub mod dynamic_matrix;
+pub mod fps;
 pub mod inversion;
 pub mod matrix;
 pub mod modint_u64;
