@@ -1,4 +1,18 @@
 // #[fastout]
+pub fn divide_conquer_convolution<M>(ps: &[Vec<StaticModInt<M>>]) -> Vec<StaticModInt<M>>
+where
+    M: Modulus,
+{
+    let len = ps.len();
+    if len == 1 {
+        ps[0].clone()
+    } else {
+        ac_library::convolution(
+            &divide_conquer_convolution(&ps[..len / 2]),
+            &divide_conquer_convolution(&ps[len / 2..]),
+        )
+    }
+}
 fn main() {
     input! {
         n: usize,
@@ -7,14 +21,26 @@ fn main() {
     }
     use ac_library::ModInt998244353 as Mint;
 
-    let mut acc = vec![Mint::new(1), Mint::new(-1)];
+    let polys = {
+        let mut polys = vec![vec![Mint::new(1), Mint::new(-1)]];
 
-    for &x in &xs {
-        let mut ys = vec![Mint::new(0); (x + 1) as usize];
-        ys[0] = Mint::new(1);
-        ys[x as usize] = Mint::new(-1);
-        acc = ac_library::convolution::convolution(&acc, &ys);
-    }
+        for &x in &xs {
+            let mut ys = vec![Mint::new(0); (x + 1) as usize];
+            ys[0] = Mint::new(1);
+            ys[x as usize] = Mint::new(-1);
+            polys.push(ys);
+        }
+        polys
+    };
+
+    // let acc = polys.iter().fold(vec![Mint::new(1)], |acc, p| {
+    //     ac_library::convolution(&acc, p)
+    // });
+
+    // メモ: 普通に畳み込みしても分割統治で畳み込みしても実行時間はあんまり変わらなかった
+    let acc = divide_conquer_convolution(&polys);
+
+    // acc = ac_library::convolution::convolution(&acc, &ys);
 
     let mut init = vec![Mint::new(0); acc.len()];
     init[0] = Mint::new(1);
