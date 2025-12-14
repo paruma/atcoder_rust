@@ -2,7 +2,7 @@
 
 //! 形式的冪級数ライブラリ
 use ac_library::{Modulus, StaticModInt, convolution};
-use std::ops::{Add, AddAssign, Mul, MulAssign, Neg, Shl, Shr, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Neg, Rem, Shl, Shr, Sub, SubAssign};
 
 /// 形式的冪級数を表す構造体。
 /// 係数を`Vec<StaticModInt<M>>`で保持する。
@@ -37,6 +37,15 @@ impl<M: Modulus> FormalPowerSeries<M> {
         while self.coeffs.last().is_some_and(|&c| c.val() == 0) {
             self.coeffs.pop();
         }
+    }
+
+    /// 多項式の係数を反転する。
+    /// 例えば、f(x) = a_0 + a_1 x + ... + a_n x^n の係数配列を
+    /// [a_n, a_{n-1}, ..., a_0] のように反転させる。
+    pub fn rev(&self) -> Self {
+        let mut reversed_coeffs = self.coeffs.clone();
+        reversed_coeffs.reverse();
+        Self::new(reversed_coeffs)
     }
 
     /// `deg` 次までの逆元 `1/f(x)` をニュートン法で計算する。
@@ -91,6 +100,7 @@ impl<M: Modulus> FormalPowerSeries<M> {
         let n = self.coeff_len();
         let mut new_coeffs = vec![StaticModInt::new(0); n + 1];
         if n > 0 {
+            // FIXME: ここ O(n log M) で遅い。O(n) にできるはず
             let invs: Vec<StaticModInt<M>> =
                 (1..=n).map(|i| StaticModInt::<M>::new(i).inv()).collect();
             for i in 0..n {
@@ -233,6 +243,92 @@ impl<M: Modulus> FormalPowerSeries<M> {
     /// `x^k` の係数を取得する。`k` が `coeffs` の配列範囲外の場合は0を返す。
     pub fn get(&self, k: usize) -> StaticModInt<M> {
         self.coeffs.get(k).copied().unwrap_or_default()
+    }
+
+    /// 多項式の割り算 `self / rhs` を計算する。
+    /// 計算量: O(N * M) (N = self.len, M = rhs.len) または O(N log N) (NTTベース)
+    pub fn div_polynomial(&self, rhs: &Self) -> Self {
+        let mut a_coeffs = self.coeffs.clone();
+        let mut b_coeffs = rhs.coeffs.clone();
+
+        // ゼロ多項式で割ることはできない
+        while b_coeffs.last().map_or(false, |&c| c.val() == 0) {
+            b_coeffs.pop();
+        }
+        if b_coeffs.is_empty() {
+            panic!("Division by zero polynomial");
+        }
+
+        let n = a_coeffs.len();
+        let m = b_coeffs.len();
+
+        // 割られる多項式の次数が割る多項式の次数より小さい場合、商は0
+        if n < m {
+            return Self::zero();
+        }
+
+        let quotient_deg = n - m + 1;
+        let long_division_threshold = 64; // C++の実装に合わせる
+
+        if m <= long_division_threshold {
+            // 長除算 (Long Division)
+            // 商の係数を格納するベクタ。次数は n - m。
+            let mut q_coeffs = vec![StaticModInt::new(0); quotient_deg];
+
+            // 割る多項式の最高次係数の逆元
+            let b_leading_inv = b_coeffs[m - 1].inv();
+
+            // 多項式の長除法
+            // 商の最高次係数から順に計算していく
+            for i in (0..=(n - m)).rev() {
+                // 現在のステップで商に立つ係数
+                // a_coeffs[i + m - 1] は、現在の割られる多項式における最高次係数
+                let current_a_leading_coeff = a_coeffs[i + m - 1];
+
+                // この係数が0の場合、商のこの項も0
+                if current_a_leading_coeff.val() == 0 {
+                    continue;
+                }
+
+                let q_coeff = current_a_leading_coeff * b_leading_inv;
+                q_coeffs[i] = q_coeff;
+
+                // 割られる多項式から (q_coeff * x^i * B(x)) を引く
+                for j in 0..m {
+                    a_coeffs[i + j] -= q_coeff * b_coeffs[j];
+                }
+            }
+
+            let mut quotient = Self::new(q_coeffs);
+            quotient.trim();
+            quotient
+        } else {
+            // NTTベースの高速除算 (Fast Polynomial Division)
+            // (A(x)を N-M 次で反転) * (B(x)を N-M 次で反転の逆元) ) を N-M 次で反転
+            let a_rev = self.rev();
+            let b_rev = rhs.rev();
+
+            let b_rev_inv = b_rev.inv(quotient_deg);
+
+            // a_rev.prefix(quotient_deg) * b_rev_inv.prefix(quotient_deg)
+            // 乗算結果は (quotient_deg - 1) + (quotient_deg - 1) + 1 = 2 * quotient_deg - 1 の長さになる可能性がある
+            // 必要なのは quotient_deg 次までの係数なので、ここで truncate しておく
+            let mut product = &a_rev.prefix(quotient_deg) * &b_rev_inv.prefix(quotient_deg);
+            product.coeffs.truncate(quotient_deg); // 必要な次数まで切り詰める
+
+            let mut quotient = product.rev();
+            quotient.trim(); // 末尾のゼロを削除して正規化
+            quotient
+        }
+    }
+
+    /// 多項式の剰余 `self % rhs` を計算する。
+    /// 計算量: O(N * M)
+    pub fn rem_polynomial(&self, rhs: &Self) -> Self {
+        let q = self.div_polynomial(rhs);
+        let mut r = self - &(&q * rhs);
+        r.trim();
+        r
     }
 }
 // --- 算術演算子 ---
@@ -422,6 +518,24 @@ impl<M: Modulus> Shr<usize> for FormalPowerSeries<M> {
             self.coeffs.drain(0..rhs);
         }
         self
+    }
+}
+
+// FPS / FPS
+impl<M: Modulus> Div for &FormalPowerSeries<M> {
+    type Output = FormalPowerSeries<M>;
+
+    fn div(self, rhs: Self) -> Self::Output {
+        self.div_polynomial(rhs)
+    }
+}
+
+// FPS % FPS
+impl<M: Modulus> Rem for &FormalPowerSeries<M> {
+    type Output = FormalPowerSeries<M>;
+
+    fn rem(self, rhs: Self) -> Self::Output {
+        self.rem_polynomial(rhs)
     }
 }
 
@@ -907,5 +1021,97 @@ mod tests {
         let empty = Fps::new(vec![]);
         assert_eq!(empty.get(0), Mint::new(0));
         assert_eq!(empty.get(5), Mint::new(0));
+    }
+
+    #[test]
+    fn test_div_simple() {
+        // (1 + 5x + 6x^2) / (1 + 2x) = 1 + 3x
+        let f = Fps::new(vec![Mint::new(1), Mint::new(5), Mint::new(6)]);
+        let g = Fps::new(vec![Mint::new(1), Mint::new(2)]);
+        let q = &f / &g;
+        assert_eq!(q.coeffs, vec![Mint::new(1), Mint::new(3)]);
+    }
+
+    #[test]
+    fn test_div_with_remainder() {
+        // (x^2 + x + 1) / (x + 1) = x (remainder 1)
+        // f(x) = 1 + x + x^2
+        // g(x) = 1 + x
+        let f = Fps::new(vec![Mint::new(1), Mint::new(1), Mint::new(1)]);
+        let g = Fps::new(vec![Mint::new(1), Mint::new(1)]);
+        let q = &f / &g;
+        assert_eq!(q.coeffs, vec![Mint::new(0), Mint::new(1)]); // x
+        let r = &f % &g;
+        assert_eq!(r.coeffs, vec![Mint::new(1)]); // 1
+    }
+
+    #[test]
+    fn test_div_by_constant() {
+        // (2 + 4x + 6x^2) / 2 = 1 + 2x + 3x^2
+        let f = Fps::new(vec![Mint::new(2), Mint::new(4), Mint::new(6)]);
+        let g = Fps::new(vec![Mint::new(2)]);
+        let q = &f / &g;
+        assert_eq!(q.coeffs, vec![Mint::new(1), Mint::new(2), Mint::new(3)]);
+    }
+
+    #[test]
+    fn test_div_dividend_smaller_than_divisor() {
+        // (1 + x) / (1 + x + x^2) = 0
+        let f = Fps::new(vec![Mint::new(1), Mint::new(1)]);
+        let g = Fps::new(vec![Mint::new(1), Mint::new(1), Mint::new(1)]);
+        let q = &f / &g;
+        assert!(q.coeffs.is_empty());
+    }
+
+    #[test]
+    fn test_div_zero_dividend() {
+        // 0 / (1 + x) = 0
+        let f = Fps::zero();
+        let g = Fps::new(vec![Mint::new(1), Mint::new(1)]);
+        let q = &f / &g;
+        assert!(q.coeffs.is_empty());
+    }
+
+    #[test]
+    #[should_panic(expected = "Division by zero polynomial")]
+    fn test_div_panic_zero_divisor() {
+        let f = Fps::new(vec![Mint::new(1), Mint::new(1)]);
+        let g = Fps::zero();
+        let _ = &f / &g;
+    }
+
+    #[test]
+    fn test_rem_zero_remainder() {
+        // (1 + 5x + 6x^2) % (1 + 2x) = 0
+        let f = Fps::new(vec![Mint::new(1), Mint::new(5), Mint::new(6)]);
+        let g = Fps::new(vec![Mint::new(1), Mint::new(2)]);
+        let r = &f % &g;
+        assert!(r.coeffs.is_empty());
+    }
+
+    #[test]
+    fn test_rem_dividend_smaller_than_divisor() {
+        // (1 + x) % (1 + x + x^2) = 1 + x
+        let f = Fps::new(vec![Mint::new(1), Mint::new(1)]);
+        let g = Fps::new(vec![Mint::new(1), Mint::new(1), Mint::new(1)]);
+        let r = &f % &g;
+        assert_eq!(r.coeffs, vec![Mint::new(1), Mint::new(1)]);
+    }
+
+    #[test]
+    fn test_rem_zero_dividend() {
+        // 0 % (1 + x) = 0
+        let f = Fps::zero();
+        let g = Fps::new(vec![Mint::new(1), Mint::new(1)]);
+        let r = &f % &g;
+        assert!(r.coeffs.is_empty());
+    }
+
+    #[test]
+    #[should_panic(expected = "Division by zero polynomial")]
+    fn test_rem_panic_zero_divisor() {
+        let f = Fps::new(vec![Mint::new(1), Mint::new(1)]);
+        let g = Fps::zero();
+        let _ = &f % &g;
     }
 }
