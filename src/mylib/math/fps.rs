@@ -1,6 +1,8 @@
+// https://github.com/NyaanNyaan/library/blob/master/fps/formal-power-series.hpp をもとに作成した。
+
 //! 形式的冪級数ライブラリ
 use ac_library::{Modulus, StaticModInt, convolution};
-use std::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Mul, MulAssign, Neg, Shl, Shr, Sub, SubAssign};
 
 /// 形式的冪級数を表す構造体。
 /// 係数を`Vec<StaticModInt<M>>`で保持する。
@@ -15,9 +17,9 @@ impl<M: Modulus> FormalPowerSeries<M> {
         Self { coeffs }
     }
 
-    /// `len` - 1 次のゼロ多項式を返す。
-    pub fn zero(len: usize) -> Self {
-        Self::new(vec![StaticModInt::new(0); len])
+    /// ゼロ多項式を返す。
+    pub fn zero() -> Self {
+        Self::new(vec![])
     }
 
     /// 定数1の多項式を返す。
@@ -26,13 +28,13 @@ impl<M: Modulus> FormalPowerSeries<M> {
     }
 
     /// 次数を返す (係数ベクトルの長さ)。
-    pub fn degree(&self) -> usize {
+    pub fn coeff_len(&self) -> usize {
         self.coeffs.len()
     }
 
     /// 末尾の0係数を削除して、表現を正規化する。
     pub fn trim(&mut self) {
-        while self.coeffs.last().map_or(false, |&c| c.val() == 0) {
+        while self.coeffs.last().is_some_and(|&c| c.val() == 0) {
             self.coeffs.pop();
         }
     }
@@ -64,17 +66,16 @@ impl<M: Modulus> FormalPowerSeries<M> {
         g
     }
 
-    /// 指定された次数 `sz` でFPSを切り詰める（足りない場合は0で埋める）。
-    pub fn pre(&self, sz: usize) -> Self {
-        let mut coeffs = self.coeffs.clone();
-        coeffs.truncate(sz);
-        coeffs.resize(sz, StaticModInt::new(0));
-        Self::new(coeffs)
+    /// 指定された次数 `len` でFPSを切り詰める（足りない場合は0で埋める）。
+    pub fn prefix(mut self, len: usize) -> Self {
+        self.coeffs.truncate(len);
+        self.coeffs.resize(len, StaticModInt::new(0));
+        self
     }
 
     /// 導関数 `f'(x)` を計算する。
     pub fn diff(&self) -> Self {
-        let n = self.degree();
+        let n = self.coeff_len();
         if n <= 1 {
             return Self::new(vec![]);
         }
@@ -87,7 +88,7 @@ impl<M: Modulus> FormalPowerSeries<M> {
 
     /// 不定積分 `∫f(x)dx` を計算する（積分定数は0）。
     pub fn integral(&self) -> Self {
-        let n = self.degree();
+        let n = self.coeff_len();
         let mut new_coeffs = vec![StaticModInt::new(0); n + 1];
         if n > 0 {
             let invs: Vec<StaticModInt<M>> =
@@ -113,7 +114,7 @@ impl<M: Modulus> FormalPowerSeries<M> {
         let mut df_inv_f = &df * &inv_f; // f'(x) * f(x)^-1
         df_inv_f.coeffs.truncate(deg); // deg次まで切り詰める
 
-        df_inv_f.integral().pre(deg) // 積分して、指定次数で切り詰める
+        df_inv_f.integral().clone().prefix(deg) // 積分して、指定次数で切り詰める
     }
 
     /// FPSの指数 `exp(f(x))` を計算する。
@@ -133,7 +134,7 @@ impl<M: Modulus> FormalPowerSeries<M> {
         let mut k = 1;
         while k < deg {
             k *= 2;
-            let f_k = self.pre(k); // f(x) を k 次まで切り詰める
+            let f_k = self.clone().prefix(k); // f(x) を k 次まで切り詰める
 
             // g = g * (1 - log(g) + f)
             let log_g = g.log(k);
@@ -142,12 +143,12 @@ impl<M: Modulus> FormalPowerSeries<M> {
             g = &g * &one_plus_val;
             g.coeffs.truncate(k);
         }
-        g.pre(deg) // 指定次数で切り詰める
+        g.prefix(deg) // 指定次数で切り詰める
     }
 
     /// FPSのべき乗 `f(x)^k` を計算する。
-    /// 計算量: O(deg log deg)
-    pub fn pow(&self, mut k: i64, deg: usize) -> Self {
+    /// 計算量: O(deg log deg) ←嘘な気がする
+    pub fn pow(&self, k: i64, deg: usize) -> Self {
         if deg == 0 {
             return Self::new(vec![]);
         }
@@ -178,8 +179,8 @@ impl<M: Modulus> FormalPowerSeries<M> {
 
             // f(x) = x^first_nonzero_idx * g(x) (g(0) != 0)
             // f(x)^k = x^(first_nonzero_idx * k) * g(x)^k
-            let mut g_coeffs = self.coeffs[first_nonzero_idx..].to_vec();
-            let mut g = Self::new(g_coeffs);
+            let g_coeffs = self.coeffs[first_nonzero_idx..].to_vec();
+            let g = Self::new(g_coeffs);
 
             // g(x)^k を計算
             let gk = g.pow(k, deg - first_nonzero_idx * k as usize);
@@ -187,35 +188,51 @@ impl<M: Modulus> FormalPowerSeries<M> {
             // x^(first_nonzero_idx * k) を掛ける (左シフト)
             let mut result_coeffs = vec![StaticModInt::new(0); first_nonzero_idx * k as usize];
             result_coeffs.extend_from_slice(&gk.coeffs);
-            Self::new(result_coeffs).pre(deg)
+            Self::new(result_coeffs).prefix(deg)
         } else {
             // f(0) != 0 の場合
-            let f0_inv = self.coeffs[0].inv();
-            let mut normalized_f = self.coeffs.iter().map(|&c| c * f0_inv).collect::<Vec<_>>();
-            let mut normalized_fps = Self::new(normalized_f);
-
-            let log_normalized_f = normalized_fps.log(deg);
-            let mut k_fps_coeffs = vec![StaticModInt::new(0); deg];
-            if deg > 0 {
-                k_fps_coeffs[1] = StaticModInt::new(k);
-            }
-            let k_fps = Self::new(k_fps_coeffs).pre(deg); // k*x のようなFPSではない。k倍するだけ
-
-            let k_times_log_normalized_f_coeffs =
-                log_normalized_f.coeffs.iter().map(|&c| c * k).collect();
-            let k_times_log_normalized_f = Self::new(k_times_log_normalized_f_coeffs);
-
-            let res = k_times_log_normalized_f.exp(deg);
-
-            let f0 = self.coeffs[0];
+            let f0 = self.coeffs[0]; // f0をここで定義
             let f0_pow_k = if k >= 0 {
+                // f0_pow_k をf0定義直後に移動
                 f0.pow(k as u64)
             } else {
                 f0.inv().pow((-k) as u64)
             };
-            let final_coeffs = res.coeffs.iter().map(|&c| c * f0_pow_k).collect();
-            Self::new(final_coeffs).pre(deg)
+
+            let f0_inv = f0.inv();
+            let normalized_f: Vec<_> = self.coeffs.iter().map(|&c| c * f0_inv).collect();
+            let normalized_fps = Self::new(normalized_f);
+
+            let log_normalized_f = normalized_fps.log(deg);
+
+            let k_val = if k >= 0 {
+                StaticModInt::new(k as u64)
+            } else {
+                StaticModInt::new(k)
+            };
+            let k_times_log_normalized_f_coeffs: Vec<_> =
+                log_normalized_f.coeffs.iter().map(|&c| c * k_val).collect();
+            let k_times_log_normalized_f = Self::new(k_times_log_normalized_f_coeffs);
+
+            let res = k_times_log_normalized_f.exp(deg);
+
+            let final_coeffs: Vec<_> = res.coeffs.iter().map(|&c| c * f0_pow_k).collect();
+            Self::new(final_coeffs).prefix(deg)
         }
+    }
+
+    /// 多項式をスカラ値 x で評価する (Horner法)。
+    pub fn eval(&self, x: StaticModInt<M>) -> StaticModInt<M> {
+        let mut res = StaticModInt::new(0);
+        for &coeff in self.coeffs.iter().rev() {
+            res = res * x + coeff;
+        }
+        res
+    }
+
+    /// `x^k` の係数を取得する。`k` が `coeffs` の配列範囲外の場合は0を返す。
+    pub fn get(&self, k: usize) -> StaticModInt<M> {
+        self.coeffs.get(k).copied().unwrap_or_default()
     }
 }
 // --- 算術演算子 ---
@@ -225,8 +242,8 @@ impl<M: Modulus> Add for &FormalPowerSeries<M> {
     type Output = FormalPowerSeries<M>;
 
     fn add(self, rhs: Self) -> Self::Output {
-        let n = self.degree();
-        let m = rhs.degree();
+        let n = self.coeff_len();
+        let m = rhs.coeff_len();
         let max_len = n.max(m);
         let mut coeffs = vec![StaticModInt::new(0); max_len];
         for i in 0..n {
@@ -239,13 +256,59 @@ impl<M: Modulus> Add for &FormalPowerSeries<M> {
     }
 }
 
+// FPS + Mint
+impl<M: Modulus> Add<StaticModInt<M>> for &FormalPowerSeries<M> {
+    type Output = FormalPowerSeries<M>;
+
+    fn add(self, rhs: StaticModInt<M>) -> Self::Output {
+        let mut res = self.coeffs.clone();
+        if res.is_empty() {
+            res.push(rhs);
+        } else {
+            res[0] += rhs;
+        }
+        FormalPowerSeries::new(res)
+    }
+}
+
 impl<M: Modulus> AddAssign for FormalPowerSeries<M> {
     fn add_assign(&mut self, rhs: Self) {
-        if self.degree() < rhs.degree() {
-            self.coeffs.resize(rhs.degree(), StaticModInt::new(0));
+        if self.coeff_len() < rhs.coeff_len() {
+            self.coeffs.resize(rhs.coeff_len(), StaticModInt::new(0));
         }
-        for i in 0..rhs.degree() {
+        for i in 0..rhs.coeff_len() {
             self.coeffs[i] += rhs.coeffs[i];
+        }
+    }
+}
+
+// FPS += Mint
+impl<M: Modulus> AddAssign<StaticModInt<M>> for FormalPowerSeries<M> {
+    fn add_assign(&mut self, rhs: StaticModInt<M>) {
+        if self.coeffs.is_empty() {
+            self.coeffs.push(rhs);
+        } else {
+            self.coeffs[0] += rhs;
+        }
+    }
+}
+
+// FPS -= Mint
+impl<M: Modulus> SubAssign<StaticModInt<M>> for FormalPowerSeries<M> {
+    fn sub_assign(&mut self, rhs: StaticModInt<M>) {
+        if self.coeffs.is_empty() {
+            self.coeffs.push(-rhs);
+        } else {
+            self.coeffs[0] -= rhs;
+        }
+    }
+}
+
+// FPS *= Mint
+impl<M: Modulus> MulAssign<StaticModInt<M>> for FormalPowerSeries<M> {
+    fn mul_assign(&mut self, rhs: StaticModInt<M>) {
+        for c in &mut self.coeffs {
+            *c *= rhs;
         }
     }
 }
@@ -255,8 +318,8 @@ impl<M: Modulus> Sub for &FormalPowerSeries<M> {
     type Output = FormalPowerSeries<M>;
 
     fn sub(self, rhs: Self) -> Self::Output {
-        let n = self.degree();
-        let m = rhs.degree();
+        let n = self.coeff_len();
+        let m = rhs.coeff_len();
         let max_len = n.max(m);
         let mut coeffs = vec![StaticModInt::new(0); max_len];
         for i in 0..n {
@@ -269,12 +332,27 @@ impl<M: Modulus> Sub for &FormalPowerSeries<M> {
     }
 }
 
+// FPS - Mint
+impl<M: Modulus> Sub<StaticModInt<M>> for &FormalPowerSeries<M> {
+    type Output = FormalPowerSeries<M>;
+
+    fn sub(self, rhs: StaticModInt<M>) -> Self::Output {
+        let mut res = self.coeffs.clone();
+        if res.is_empty() {
+            res.push(-rhs);
+        } else {
+            res[0] -= rhs;
+        }
+        FormalPowerSeries::new(res)
+    }
+}
+
 impl<M: Modulus> SubAssign for FormalPowerSeries<M> {
     fn sub_assign(&mut self, rhs: Self) {
-        if self.degree() < rhs.degree() {
-            self.coeffs.resize(rhs.degree(), StaticModInt::new(0));
+        if self.coeff_len() < rhs.coeff_len() {
+            self.coeffs.resize(rhs.coeff_len(), StaticModInt::new(0));
         }
-        for i in 0..rhs.degree() {
+        for i in 0..rhs.coeff_len() {
             self.coeffs[i] -= rhs.coeffs[i];
         }
     }
@@ -293,6 +371,16 @@ impl<M: Modulus> Mul for &FormalPowerSeries<M> {
     }
 }
 
+// FPS * Mint
+impl<M: Modulus> Mul<StaticModInt<M>> for &FormalPowerSeries<M> {
+    type Output = FormalPowerSeries<M>;
+
+    fn mul(self, rhs: StaticModInt<M>) -> Self::Output {
+        let coeffs: Vec<_> = self.coeffs.iter().map(|&c| c * rhs).collect();
+        FormalPowerSeries::new(coeffs)
+    }
+}
+
 impl<M: Modulus> MulAssign for FormalPowerSeries<M> {
     fn mul_assign(&mut self, rhs: Self) {
         *self = &*self * &rhs;
@@ -306,6 +394,34 @@ impl<M: Modulus> Neg for &FormalPowerSeries<M> {
     fn neg(self) -> Self::Output {
         let coeffs: Vec<_> = self.coeffs.iter().map(|&c| -c).collect();
         FormalPowerSeries::new(coeffs)
+    }
+}
+
+// FPS << usize
+impl<M: Modulus> Shl<usize> for FormalPowerSeries<M> {
+    type Output = Self;
+
+    fn shl(self, rhs: usize) -> Self::Output {
+        if self.coeffs.is_empty() {
+            return self;
+        }
+        let mut new_coeffs = vec![StaticModInt::new(0); rhs];
+        new_coeffs.extend_from_slice(&self.coeffs);
+        Self::new(new_coeffs)
+    }
+}
+
+// FPS >> usize
+impl<M: Modulus> Shr<usize> for FormalPowerSeries<M> {
+    type Output = Self;
+
+    fn shr(mut self, rhs: usize) -> Self::Output {
+        if self.coeffs.len() <= rhs {
+            self.coeffs.clear();
+        } else {
+            self.coeffs.drain(0..rhs);
+        }
+        self
     }
 }
 
@@ -379,10 +495,6 @@ mod tests {
 
     #[test]
     fn test_utils() {
-        // zero
-        let z = Fps::zero(5);
-        assert_eq!(z.coeffs, vec![Mint::new(0); 5]);
-
         // one
         let o = Fps::one();
         assert_eq!(o.coeffs, vec![Mint::new(1)]);
@@ -449,22 +561,22 @@ mod tests {
     }
 
     #[test]
-    fn test_pre() {
+    fn test_prefix() {
         let f = Fps::new(vec![Mint::new(1), Mint::new(2), Mint::new(3), Mint::new(4)]);
 
         // 短く切り詰める
-        let f_pre2 = f.pre(2);
+        let f_pre2 = f.clone().prefix(2);
         assert_eq!(f_pre2.coeffs, vec![Mint::new(1), Mint::new(2)]);
 
         // 同じ長さ
-        let f_pre4 = f.pre(4);
+        let f_pre4 = f.clone().prefix(4);
         assert_eq!(
             f_pre4.coeffs,
             vec![Mint::new(1), Mint::new(2), Mint::new(3), Mint::new(4)]
         );
 
         // 長くする (0で埋める)
-        let f_pre6 = f.pre(6);
+        let f_pre6 = f.clone().prefix(6);
         assert_eq!(
             f_pre6.coeffs,
             vec![
@@ -479,7 +591,7 @@ mod tests {
 
         // 空のFPS
         let empty = Fps::new(vec![]);
-        let empty_pre3 = empty.pre(3);
+        let empty_pre3 = empty.prefix(3);
         assert_eq!(empty_pre3.coeffs, vec![Mint::new(0); 3]);
     }
 
@@ -613,7 +725,7 @@ mod tests {
 
         // f(0) == 0 で k=0
         let pow_zero_k0 = f_zero_coeff.pow(0, 5);
-        assert_eq!(pow_zero_k0.coeffs, Fps::one().pre(5).coeffs);
+        assert_eq!(pow_zero_k0.coeffs, Fps::one().prefix(5).coeffs);
 
         // fが空の場合
         let empty = Fps::new(vec![]);
@@ -623,6 +735,177 @@ mod tests {
         // fが0の冪乗 (k=0)
         let f_one = Fps::one();
         let pow_k0 = f_one.pow(0, 5);
-        assert_eq!(pow_k0.coeffs, Fps::one().pre(5).coeffs);
+        assert_eq!(pow_k0.coeffs, Fps::one().prefix(5).coeffs);
+    }
+
+    #[test]
+    fn test_shl() {
+        let f = Fps::new(vec![Mint::new(1), Mint::new(2), Mint::new(3)]); // 1 + 2x + 3x^2
+
+        // 2回左シフト: (1 + 2x + 3x^2) * x^2 = x^2 + 2x^3 + 3x^4
+        let shl_f = f.clone() << 2;
+        assert_eq!(
+            shl_f.coeffs,
+            vec![
+                Mint::new(0),
+                Mint::new(0),
+                Mint::new(1),
+                Mint::new(2),
+                Mint::new(3)
+            ]
+        );
+
+        // 0回左シフト
+        let shl_f0 = f.clone() << 0;
+        assert_eq!(
+            shl_f0.coeffs,
+            vec![Mint::new(1), Mint::new(2), Mint::new(3)]
+        );
+
+        // 空のFPS
+        let empty = Fps::new(vec![]);
+        let shl_empty = empty << 5;
+        assert_eq!(shl_empty.coeffs, vec![]);
+    }
+
+    #[test]
+    fn test_scalar_assign_ops() {
+        // AddAssign
+        let mut f1 = Fps::new(vec![Mint::new(1), Mint::new(2)]); // 1 + 2x
+        f1.add_assign(Mint::new(3)); // (1 + 2x) + 3 = 4 + 2x
+        assert_eq!(f1.coeffs, vec![Mint::new(4), Mint::new(2)]);
+
+        let mut f_empty_add = Fps::new(vec![]);
+        f_empty_add.add_assign(Mint::new(5));
+        assert_eq!(f_empty_add.coeffs, vec![Mint::new(5)]);
+
+        // SubAssign
+        let mut f2 = Fps::new(vec![Mint::new(4), Mint::new(2)]); // 4 + 2x
+        f2.sub_assign(Mint::new(3)); // (4 + 2x) - 3 = 1 + 2x
+        assert_eq!(f2.coeffs, vec![Mint::new(1), Mint::new(2)]);
+
+        let mut f_empty_sub = Fps::new(vec![]);
+        f_empty_sub.sub_assign(Mint::new(5));
+        assert_eq!(f_empty_sub.coeffs, vec![Mint::new(-5)]);
+
+        // MulAssign
+        let mut f3 = Fps::new(vec![Mint::new(1), Mint::new(2)]); // 1 + 2x
+        f3.mul_assign(Mint::new(3)); // (1 + 2x) * 3 = 3 + 6x
+        assert_eq!(f3.coeffs, vec![Mint::new(3), Mint::new(6)]);
+
+        let mut f_empty_mul = Fps::new(vec![]);
+        f_empty_mul.mul_assign(Mint::new(3));
+        assert_eq!(f_empty_mul.coeffs, vec![]);
+    }
+
+    #[test]
+    fn test_scalar_ops() {
+        // Add (FPS + Mint)
+        let f = Fps::new(vec![Mint::new(1), Mint::new(2)]); // 1 + 2x
+        let add_res = &f + Mint::new(3); // (1 + 2x) + 3 = 4 + 2x
+        assert_eq!(add_res.coeffs, vec![Mint::new(4), Mint::new(2)]);
+
+        let empty = Fps::new(vec![]);
+        let empty_add = &empty + Mint::new(5);
+        assert_eq!(empty_add.coeffs, vec![Mint::new(5)]);
+
+        // Sub (FPS - Mint)
+        let f2 = Fps::new(vec![Mint::new(4), Mint::new(2)]); // 4 + 2x
+        let sub_res = &f2 - Mint::new(3); // (4 + 2x) - 3 = 1 + 2x
+        assert_eq!(sub_res.coeffs, vec![Mint::new(1), Mint::new(2)]);
+
+        let empty_sub = &empty - Mint::new(5);
+        assert_eq!(empty_sub.coeffs, vec![Mint::new(-5)]);
+
+        // Mul (FPS * Mint)
+        let f3 = Fps::new(vec![Mint::new(1), Mint::new(2)]); // 1 + 2x
+        let mul_res = &f3 * Mint::new(3); // (1 + 2x) * 3 = 3 + 6x
+        assert_eq!(mul_res.coeffs, vec![Mint::new(3), Mint::new(6)]);
+
+        let empty_mul = &empty * Mint::new(3);
+        assert_eq!(empty_mul.coeffs, vec![]);
+    }
+
+    #[test]
+    fn test_shr() {
+        let f = Fps::new(vec![
+            Mint::new(1),
+            Mint::new(2),
+            Mint::new(3),
+            Mint::new(4),
+            Mint::new(5),
+        ]); // 1 + 2x + 3x^2 + 4x^3 + 5x^4
+
+        // 2回右シフト: (1 + 2x + 3x^2 + 4x^3 + 5x^4) / x^2 = 3 + 4x + 5x^2
+        let shr_f = f.clone() >> 2;
+        assert_eq!(shr_f.coeffs, vec![Mint::new(3), Mint::new(4), Mint::new(5)]);
+
+        // 0回右シフト
+        let shr_f0 = f.clone() >> 0;
+        assert_eq!(
+            shr_f0.coeffs,
+            vec![
+                Mint::new(1),
+                Mint::new(2),
+                Mint::new(3),
+                Mint::new(4),
+                Mint::new(5)
+            ]
+        );
+
+        // シフト量が多すぎる
+        let shr_f_too_much = f.clone() >> 10;
+        assert_eq!(shr_f_too_much.coeffs, vec![]);
+
+        // 空のFPS
+        let empty = Fps::new(vec![]);
+        let shr_empty = empty >> 5;
+        assert_eq!(shr_empty.coeffs, vec![]);
+    }
+
+    #[test]
+    fn test_eval() {
+        let f = Fps::new(vec![Mint::new(1), Mint::new(2), Mint::new(3)]); // f(x) = 1 + 2x + 3x^2
+
+        // f(0) = 1
+        let eval0 = f.eval(Mint::new(0));
+        assert_eq!(eval0, Mint::new(1));
+
+        // f(1) = 1 + 2 + 3 = 6
+        let eval1 = f.eval(Mint::new(1));
+        assert_eq!(eval1, Mint::new(6));
+
+        // f(2) = 1 + 2*2 + 3*2^2 = 1 + 4 + 12 = 17
+        let eval2 = f.eval(Mint::new(2));
+        assert_eq!(eval2, Mint::new(17));
+
+        // 空のFPS
+        let empty = Fps::new(vec![]);
+        let eval_empty = empty.eval(Mint::new(100));
+        assert_eq!(eval_empty, Mint::new(0));
+
+        // 定数FPS
+        let constant = Fps::new(vec![Mint::new(5)]);
+        let eval_constant = constant.eval(Mint::new(100));
+        assert_eq!(eval_constant, Mint::new(5));
+    }
+
+    #[test]
+    fn test_get() {
+        let f = Fps::new(vec![Mint::new(1), Mint::new(2), Mint::new(3)]); // f(x) = 1 + 2x + 3x^2
+
+        // 存在する係数
+        assert_eq!(f.get(0), Mint::new(1));
+        assert_eq!(f.get(1), Mint::new(2));
+        assert_eq!(f.get(2), Mint::new(3));
+
+        // 配列外の係数 (小さいインデックス)
+        assert_eq!(f.get(3), Mint::new(0));
+        assert_eq!(f.get(4), Mint::new(0));
+
+        // 空のFPS
+        let empty = Fps::new(vec![]);
+        assert_eq!(empty.get(0), Mint::new(0));
+        assert_eq!(empty.get(5), Mint::new(0));
     }
 }
