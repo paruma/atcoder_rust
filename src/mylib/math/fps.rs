@@ -269,7 +269,7 @@ impl<M: Modulus> FormalPowerSeries<M> {
         let mut b_coeffs = rhs.coeffs.clone();
 
         // ゼロ多項式で割ることはできない
-        while b_coeffs.last().map_or(false, |&c| c.val() == 0) {
+        while b_coeffs.last().is_some_and(|&c| c.val() == 0) {
             b_coeffs.pop();
         }
         if b_coeffs.is_empty() {
