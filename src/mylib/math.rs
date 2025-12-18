@@ -9,3 +9,4 @@ pub mod matrix;
 pub mod modint_u64;
 pub mod number_thm;
 pub mod positional_notation;
+pub mod symmetric_group;

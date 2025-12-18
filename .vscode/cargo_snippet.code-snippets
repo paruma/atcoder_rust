@@ -14675,6 +14675,36 @@
       "}"
     ]
   },
+  "symmetric_group": {
+    "scope": "rust",
+    "prefix": "symmetric_group",
+    "body": [
+      "use symmetric_group::*;",
+      "#[allow(clippy::module_inception)]",
+      "pub mod symmetric_group {",
+      "    /// 置換を巡回置換の積で表す",
+      "    pub fn make_cycles(ps: &[usize]) -> Vec<Vec<usize>> {",
+      "        let n = ps.len();",
+      "        let mut visited = vec![false; n];",
+      "        let mut cycles = vec![];",
+      "        for init in 0..n {",
+      "            if visited[init] {",
+      "                continue;",
+      "            }",
+      "            let mut cycle = vec![];",
+      "            let mut cur = init;",
+      "            while !visited[cur] {",
+      "                cycle.push(cur);",
+      "                visited[cur] = true;",
+      "                cur = ps[cur];",
+      "            }",
+      "            cycles.push(cycle);",
+      "        }",
+      "        cycles",
+      "    }",
+      "}"
+    ]
+  },
   "time_keeper": {
     "scope": "rust",
     "prefix": "time_keeper",
