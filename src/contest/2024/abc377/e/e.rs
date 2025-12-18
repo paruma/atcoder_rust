@@ -15,13 +15,30 @@ impl Problem {
         }
         Problem { n, k, ps }
     }
-
     fn solve(&self) -> Answer {
         let n = self.n;
         let k = self.k;
         let ps = &self.ps;
 
-        let mut uf = UnionFind::new(n);
+        let cycles = make_cycles(ps);
+        let mut ans = vec![usize::MAX; n];
+
+        for cycle in cycles {
+            let len = cycle.len();
+            let rem = ac_library::pow_mod(2, k, len as u32) as usize;
+            for i in 0..len {
+                ans[cycle[i]] = cycle[(i + rem) % len];
+            }
+        }
+        Answer { ans }
+    }
+
+    fn solve_old(&self) -> Answer {
+        let n = self.n;
+        let k = self.k;
+        let ps = &self.ps;
+
+        let mut uf: UnionFind = UnionFind::new(n);
 
         for (i, p) in ps.iter().copied().enumerate() {
             uf.unite(i, p);
@@ -165,7 +182,7 @@ mod tests {
 use ac_library::pow_mod;
 // ====== import ======
 #[allow(unused_imports)]
-use itertools::{chain, iproduct, izip, Itertools};
+use itertools::{Itertools, chain, iproduct, izip};
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,
@@ -329,5 +346,29 @@ pub mod simple_union_find {
             };
             result.into_iter().filter(|x| !x.is_empty()).collect_vec()
         }
+    }
+}
+use symmetric_group::*;
+#[allow(clippy::module_inception)]
+pub mod symmetric_group {
+    /// 置換を巡回置換の積で表す
+    pub fn make_cycles(ps: &[usize]) -> Vec<Vec<usize>> {
+        let n = ps.len();
+        let mut visited = vec![false; n];
+        let mut cycles = vec![];
+        for init in 0..n {
+            if visited[init] {
+                continue;
+            }
+            let mut cycle = vec![];
+            let mut cur = init;
+            while !visited[cur] {
+                cycle.push(cur);
+                visited[cur] = true;
+                cur = ps[cur];
+            }
+            cycles.push(cycle);
+        }
+        cycles
     }
 }
