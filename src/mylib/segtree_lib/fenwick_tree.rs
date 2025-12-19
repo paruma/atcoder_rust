@@ -16,7 +16,7 @@ pub mod fenwick_tree {
         e: T,
     }
 
-    impl<T: Clone + std::ops::AddAssign<T>> FenwickTree<T> {
+    impl<T: Clone + std::ops::AddAssign<T> + std::ops::Sub<Output = T> + std::fmt::Debug> FenwickTree<T> {
         /// サイズ `n` の `FenwickTree` を作成します。
         ///
         /// # 計算量
@@ -117,6 +117,60 @@ pub mod fenwick_tree {
             );
             self.accum(r) - self.accum(l)
         }
+
+        /// `l` を左端として、`f(sum(l..r))` が true になる最大の `r` を返します。
+        ///
+        /// `f` は単調である必要があります。つまり、ある `r` で `f` が false になったら、
+        /// それ以降の `r' > r` でも false になる必要があります。
+        /// また、`f(0)` は true である必要があります。
+        ///
+        /// # 前提条件
+        ///
+        /// 各要素は非負であり、累積和が単調増加する必要があります。
+        ///
+        /// # 計算量
+        ///
+        /// O(log N)
+        pub fn max_right<F>(&self, l: usize, f: F) -> usize
+        where
+            T: std::ops::Sub<Output = T>,
+            F: Fn(&T) -> bool,
+        {
+            assert!(
+                l <= self.n,
+                "FenwickTree::max_right: index out of bounds. l: {}, n: {}",
+                l,
+                self.n
+            );
+            assert!(
+                f(&self.e),
+                "FenwickTree::max_right: The predicate f(e) must be true. f(e) = f({:?}) was false.",
+                self.e
+            );
+            let val_l = self.accum(l);
+            let mut r = 0;
+            let mut current_val = self.e.clone();
+            let mut k = 1;
+            while k <= self.n {
+                k <<= 1;
+            }
+            k >>= 1;
+
+            while k > 0 {
+                if r + k <= self.n {
+                    let mut next_val = current_val.clone();
+                    next_val += self.ary[r + k - 1].clone();
+                    if r + k <= l || f(&(next_val.clone() - val_l.clone())) {
+                        r += k;
+                        current_val = next_val;
+                    }
+                }
+                k >>= 1;
+            }
+            r
+        }
+
+
 
         /// `idx`番目の要素の値を取得します。
         ///
@@ -312,5 +366,56 @@ mod test_fenwick_tree {
         let mut ft_empty = FenwickTree::<i64>::new(0, 0);
         // setはパニックするはず
         ft_empty.set(0, 1);
+    }
+
+    #[ignore]
+    #[test]
+    fn test_random_max_right() {
+        let mut rng = SmallRng::seed_from_u64(100);
+
+        for _ in 0..100 {
+            let n = rng.random_range(1..=20);
+            // 非負の要素で構成する
+            let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.random_range(0..=10)).collect();
+            let mut fenwick_tree = FenwickTree::<i64>::from_slice(&naive_vec, 0);
+
+            for _ in 0..100 {
+                let op_type = rng.random_range(0..2);
+
+                if op_type == 0 {
+                    // add (非負の値を足す)
+                    let idx = rng.random_range(0..n);
+                    let val = rng.random_range(0..=10);
+                    naive_vec[idx] += val;
+                    fenwick_tree.add(idx, val);
+                } else {
+                    // query
+                    // max_right
+                    let l = rng.random_range(0..=n);
+                    // f: sum < threshold
+                    let threshold = rng.random_range(1..=200);
+                    let f = |x: &i64| *x < threshold;
+
+                    let expected_r = (l..=n)
+                        .rev()
+                        .find(|&r| {
+                            let sum: i64 = naive_vec[l..r].iter().sum();
+                            f(&sum)
+                        })
+                        .unwrap();
+
+                    assert_eq!(
+                        fenwick_tree.max_right(l, f),
+                        expected_r,
+                        "max_right failed. l={}, threshold={}, vec={:?}",
+                        l,
+                        threshold,
+                        naive_vec
+                    );
+
+
+                }
+            }
+        }
     }
 }
