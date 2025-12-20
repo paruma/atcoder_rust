@@ -1,10 +1,20 @@
 // #[fastout]
 fn main() {
     input! {
+        h: usize,
+        w: usize,
         n: usize,
-        xs: [i64; n],
+        xss: [[i64; w];h],
+        ys: [i64; n],
     }
-    let ans: i64 = -2_i64;
+    let ys = ys.iter().copied().collect::<HashSet<i64>>();
+
+    let ans = xss
+        .iter()
+        .map(|xs| xs.iter().copied().filter(|&x| ys.contains(&x)).count())
+        .max()
+        .unwrap();
+
     println!("{}", ans);
 }
 

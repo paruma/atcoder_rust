@@ -1,11 +1,80 @@
 // #[fastout]
+fn dfs(
+    index_set: &Vec<HashMap<i64, Vec<usize>>>,
+    children_set: &Vec<HashMap<i64, BTreeSet<i64>>>,
+    levels: &Vec<usize>,
+    level: usize,
+    val: i64,
+    acc: &mut Vec<usize>,
+) {
+    // dbg!(level, val);
+    if index_set[level].contains_key(&val) {
+        for &idx in &index_set[level][&val] {
+            acc.push(idx);
+            //
+        }
+    }
+    if children_set[level].contains_key(&val) {
+        for &child in &children_set[level][&val] {
+            dfs(index_set, children_set, levels, level + 1, child, acc);
+        }
+    }
+    // for child in children_set[level].entry(val).or_default() {}
+
+    //
+}
+
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        mut xys: [(usize, i64); n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    xys.insert(0, (0, 0));
+
+    // let mut tree: Vec<HashMap<i64, (Vec<usize>, Vec<i64>)>> = vec![];
+    // index_set[l][t] = l階層目で追加されたyの値が t となるような添字の集合
+    let mut index_set: Vec<HashMap<i64, Vec<usize>>> = vec![];
+    // children_set[l][t] = l階層目で追加されたyの値が t となるような子どものyの値の集合
+    let mut children_set: Vec<HashMap<i64, BTreeSet<i64>>> = vec![];
+
+    // levels[i]: A[i] がいる階層
+    let mut levels: Vec<usize> = vec![usize::MAX; n + 1];
+
+    index_set.push(HashMap::new());
+    children_set.push(HashMap::new());
+    index_set[0].insert(0, vec![0]); // key はダミー値
+    levels[0] = 0;
+
+    for (i, (x, y)) in xys.iter().copied().enumerate() {
+        if i == 0 {
+            continue;
+        }
+        levels[i] = levels[x] + 1;
+        if levels[i] >= index_set.len() {
+            index_set.push(HashMap::new());
+        }
+        if levels[i] >= children_set.len() {
+            children_set.push(HashMap::new());
+        }
+
+        //children_set[levels[x]].insert(xys[x], i);
+        children_set[levels[x]]
+            .entry(xys[x].1)
+            .or_default()
+            .insert(y);
+        index_set[levels[i]].entry(y).or_default().push(i);
+    }
+    let mut ans = vec![];
+
+    dfs(&index_set, &children_set, &levels, 0, 0, &mut ans);
+
+    // dbg!(ans);
+    // dbg!(levels);
+    // dbg!(children_set);
+    // dbg!(index_set);
+
+    print_vec(&ans[1..]);
 }
 
 #[cfg(test)]
@@ -67,6 +136,7 @@ mod tests {
 }
 
 // ====== import ======
+use std::collections::BTreeSet;
 #[allow(unused_imports)]
 use {
     itertools::{Itertools, chain, iproduct, izip},

@@ -1,11 +1,32 @@
-// #[fastout]
+#[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        t: usize
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    for _ in 0..t {
+        input! {
+            n: usize,
+            wps: [(i64,i64); n],
+        }
+
+        let w_sum = wps.iter().copied().map(|(w, _p)| w).sum::<i64>();
+
+        let xs = wps
+            .iter()
+            .copied()
+            .map(|(w, p)| w + p)
+            .sorted()
+            .rev()
+            .collect_vec();
+
+        let cumsum = prefix_sum(&xs);
+
+        let ans0 = cumsum.iter().copied().position(|sum| sum >= w_sum).unwrap();
+
+        let ans = n - ans0;
+        println!("{}", ans);
+    }
 }
 
 #[cfg(test)]
@@ -134,3 +155,123 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use cumsum::*;
+#[allow(clippy::module_inception)]
+pub mod cumsum {
+    pub fn prefix_sum(xs: &[i64]) -> Vec<i64> {
+        let mut prefix_sum = vec![0; xs.len() + 1];
+        for i in 1..xs.len() + 1 {
+            prefix_sum[i] = prefix_sum[i - 1] + xs[i - 1];
+        }
+        prefix_sum
+    }
+    use std::ops::{Bound, Range, RangeBounds};
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct CumSum {
+        pub cumsum: Vec<i64>,
+    }
+    impl CumSum {
+        /// # 計算量
+        /// O(|xs|)
+        pub fn new(xs: &[i64]) -> CumSum {
+            let mut cumsum = vec![0; xs.len() + 1];
+            for i in 1..xs.len() + 1 {
+                cumsum[i] = cumsum[i - 1] + xs[i - 1];
+            }
+            CumSum { cumsum }
+        }
+        fn open(&self, range: impl RangeBounds<usize>) -> Range<usize> {
+            use Bound::Excluded;
+            use Bound::Included;
+            use Bound::Unbounded;
+            let begin = match range.start_bound() {
+                Unbounded => 0,
+                Included(&x) => x,
+                Excluded(&x) => x + 1,
+            };
+            let end = match range.end_bound() {
+                Excluded(&x) => x,
+                Included(&x) => x + 1,
+                Unbounded => self.cumsum.len() - 1,
+            };
+            begin..end
+        }
+        /// 区間 `[begin, end)` の要素の和を計算します。
+        /// # 計算量
+        /// O(1)
+        pub fn range_sum(&self, range: impl RangeBounds<usize>) -> i64 {
+            let range = self.open(range);
+            self.cumsum[range.end] - self.cumsum[range.start]
+        }
+        /// 区間 `[0, end)` での和を計算します。
+        /// # 計算量
+        /// O(1)
+        pub fn prefix_sum(&self, end: usize) -> i64 {
+            self.cumsum[end]
+        }
+        /// 区間 `[begin, n)` の要素の和を計算します。（`n` は元の配列の長さ）
+        /// # 計算量
+        /// O(1)
+        pub fn suffix_sum(&self, begin: usize) -> i64 {
+            self.cumsum[self.cumsum.len() - 1] - self.cumsum[begin]
+        }
+        /// `f(sum(l..r))` が `true` となる最大の `r in [l, n]` を見つける。
+        /// `n` は元の配列の長さ。
+        /// `f` は単調でなければならない。
+        /// `f(sum(l..i))` が `true` => `f(sum(l..j))` が `true` for all `l <= j <= i`.
+        /// # Panics
+        /// `l > n` の場合にパニックする。
+        /// # 計算量
+        /// O(log n)
+        pub fn max_right<F>(&self, l: usize, mut f: F) -> usize
+        where
+            F: FnMut(i64) -> bool,
+        {
+            let n = self.cumsum.len() - 1;
+            assert!(l <= n);
+            assert!(f(0), "f(0) must be true");
+            if f(self.range_sum(l..n)) {
+                return n;
+            }
+            let mut ok = l;
+            let mut ng = n + 1;
+            while ng - ok > 1 {
+                let mid = ok + (ng - ok) / 2;
+                if f(self.range_sum(l..mid)) {
+                    ok = mid;
+                } else {
+                    ng = mid;
+                }
+            }
+            ok
+        }
+        /// `f(sum(l..r))` が `true` となる最小の `l in [0, r]` を見つける。
+        /// `f` は単調でなければならない。
+        /// `f(sum(i..r))` が `true` => `f(sum(j..r))` が `true` for all `i <= j <= r`.
+        /// `r > n` の場合にパニックする。
+        /// # 計算量
+        /// O(log r)
+        pub fn min_left<F>(&self, r: usize, mut f: F) -> usize
+        where
+            F: FnMut(i64) -> bool,
+        {
+            let n = self.cumsum.len() - 1;
+            assert!(r <= n);
+            assert!(f(0), "f(0) must be true");
+            if f(self.range_sum(0..r)) {
+                return 0;
+            }
+            let mut ok = r;
+            let mut ng = 0;
+            while ok - ng > 1 {
+                let mid = ng + (ok - ng) / 2;
+                if f(self.range_sum(mid..r)) {
+                    ok = mid;
+                } else {
+                    ng = mid;
+                }
+            }
+            ok
+        }
+    }
+}
