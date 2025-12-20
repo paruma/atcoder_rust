@@ -335,10 +335,10 @@ mod tests {
             let n = rng.random_range(0..=100);
 
             let p: Vec<Mint> = (0..p_len)
-                .map(|_| Mint::new(rng.random_range(0..998244353)))
+                .map(|_| Mint::new(rng.random_range(-3..=3)))
                 .collect();
             let mut q: Vec<Mint> = (0..q_len)
-                .map(|_| Mint::new(rng.random_range(0..998244353)))
+                .map(|_| Mint::new(rng.random_range(-3..=3)))
                 .collect();
             if q[0] == Mint::new(0) {
                 q[0] = Mint::new(1);
@@ -365,11 +365,11 @@ mod tests {
             let k = rng.random_range(1..=5);
 
             let initial_terms: Vec<Mint> = (0..k)
-                .map(|_| Mint::new(rng.random_range(0..998244353)))
+                .map(|_| Mint::new(rng.random_range(-3..=3)))
                 .collect();
 
             let coeffs: Vec<Mint> = (0..k)
-                .map(|_| Mint::new(rng.random_range(0..998244353)))
+                .map(|_| Mint::new(rng.random_range(-3..=3)))
                 .collect();
 
             let n = rng.random_range(0..=50);

@@ -475,37 +475,51 @@ mod tests {
 
     #[test]
     fn test_apply_range_patterns() {
-        let mut seg: SegtreeBeats<MapAddSum> = vec![S { sum: 0, size: 1 }; 10].into();
+        let n = 10;
+        let mut seg: SegtreeBeats<MapAddSum> = vec![S { sum: 0, size: 1 }; n].into();
+
+        let sums =
+            |seg: &mut SegtreeBeats<MapAddSum>| seg.to_vec().iter().map(|s| s.sum).collect_vec();
 
         // 1. ..
         seg.apply_range(.., 1);
-        assert_eq!(seg.all_prod().sum, 10);
+        assert_eq!(sums(&mut seg), vec![1; 10]);
 
         // 2. l..r
-        seg.apply_range(2..5, 10); // [1, 1, 11, 11, 11, 1, 1, 1, 1, 1]
-        assert_eq!(seg.get(2).sum, 11);
-        assert_eq!(seg.get(1).sum, 1);
+        seg.apply_range(2..5, 10);
+        assert_eq!(sums(&mut seg), vec![1, 1, 11, 11, 11, 1, 1, 1, 1, 1]);
 
         // 3. l..=r
-        seg.apply_range(2..=3, 100); // index 2, 3 に +100
-        assert_eq!(seg.get(2).sum, 111);
-        assert_eq!(seg.get(4).sum, 11);
+        seg.apply_range(2..=3, 100);
+        assert_eq!(sums(&mut seg), vec![1, 1, 111, 111, 11, 1, 1, 1, 1, 1]);
 
         // 4. ..r
-        seg.apply_range(..2, 1000); // index 0, 1 に +1000
-        assert_eq!(seg.get(0).sum, 1001);
+        seg.apply_range(..2, 1000);
+        assert_eq!(
+            sums(&mut seg),
+            vec![1001, 1001, 111, 111, 11, 1, 1, 1, 1, 1]
+        );
 
         // 5. ..=r
-        seg.apply_range(..=1, 10000); // index 0, 1 に +10000
-        assert_eq!(seg.get(1).sum, 11001);
+        seg.apply_range(..=1, 10000);
+        assert_eq!(
+            sums(&mut seg),
+            vec![11001, 11001, 111, 111, 11, 1, 1, 1, 1, 1]
+        );
 
         // 6. l..
-        seg.apply_range(8.., 50); // index 8, 9 に +50
-        assert_eq!(seg.get(9).sum, 51);
+        seg.apply_range(8.., 50);
+        assert_eq!(
+            sums(&mut seg),
+            vec![11001, 11001, 111, 111, 11, 1, 1, 1, 51, 51]
+        );
 
         // 7. Bound::Excluded for start
-        seg.apply_range((Bound::Excluded(8), Bound::Unbounded), 100000); // index 9 に +100000
-        assert_eq!(seg.get(9).sum, 100051);
+        seg.apply_range((Bound::Excluded(8), Bound::Unbounded), 100000);
+        assert_eq!(
+            sums(&mut seg),
+            vec![11001, 11001, 111, 111, 11, 1, 1, 1, 51, 100051]
+        );
     }
 
     #[test]

@@ -268,7 +268,7 @@ impl<M: Modulus> FormalPowerSeries<M> {
         let mut a_coeffs = self.coeffs.clone();
         let mut b_coeffs = rhs.coeffs.clone();
 
-        // ゼロ多項式で割ることはできない
+        // 割る式の末尾の0を削除して次数を確定させる（ゼロ多項式除算の防止）
         while b_coeffs.last().is_some_and(|&c| c.val() == 0) {
             b_coeffs.pop();
         }
@@ -323,7 +323,7 @@ impl<M: Modulus> FormalPowerSeries<M> {
             // NTTベースの高速除算 (Fast Polynomial Division)
             // (A(x)を N-M 次で反転) * (B(x)を N-M 次で反転の逆元) ) を N-M 次で反転
             let a_rev = self.rev();
-            let b_rev = rhs.rev();
+            let b_rev = Self::new(b_coeffs).rev();
 
             let b_rev_inv = b_rev.inv(quotient_deg);
 
@@ -641,21 +641,23 @@ mod tests {
             let deg = rng.random_range(1..=50);
             let mut coeffs = vec![Mint::new(0); deg];
             for i in 0..deg {
-                coeffs[i] = Mint::new(rng.random_range(0..Mint::modulus()));
+                coeffs[i] = Mint::new(rng.random_range(-3..=3));
             }
             // 定数項は0でない
-            coeffs[0] = Mint::new(rng.random_range(1..Mint::modulus()));
+            while coeffs[0].val() == 0 {
+                coeffs[0] = Mint::new(rng.random_range(-3..=3));
+            }
 
             let f = Fps::new(coeffs);
             let f_inv = f.inv(deg);
 
-            let mut one = &f * &f_inv;
-            one.coeffs.truncate(deg);
+            let mut actual = &f * &f_inv;
+            actual.coeffs.truncate(deg);
 
             let mut expected = vec![Mint::new(0); deg];
             expected[0] = Mint::new(1);
 
-            assert_eq!(one.coeffs, expected, "f * f.inv() should be 1");
+            assert_eq!(actual.coeffs, expected, "f * f.inv() should be 1");
         }
     }
 
@@ -925,7 +927,7 @@ mod tests {
             let deg = rng.random_range(1..=50);
             let mut coeffs = vec![Mint::new(0); deg];
             for i in 1..deg {
-                coeffs[i] = Mint::new(rng.random_range(0..Mint::modulus()));
+                coeffs[i] = Mint::new(rng.random_range(-3..=3));
             }
             coeffs[0] = Mint::new(0);
 
@@ -975,7 +977,7 @@ mod tests {
             let deg = rng.random_range(1..=50);
             let mut coeffs = vec![Mint::new(0); deg];
             for i in 1..deg {
-                coeffs[i] = Mint::new(rng.random_range(0..Mint::modulus()));
+                coeffs[i] = Mint::new(rng.random_range(-3..=3));
             }
             coeffs[0] = Mint::new(1);
 
@@ -1073,11 +1075,12 @@ mod tests {
                 0
             };
             for i in start..deg {
-                coeffs[i] = Mint::new(rng.random_range(0..Mint::modulus()));
+                coeffs[i] = Mint::new(rng.random_range(-3..=3));
             }
             if start < deg && coeffs[start].val() == 0 {
                 coeffs[start] = Mint::new(1);
             }
+            // 不要な要素を消す(trimはしないが、末尾が0になる可能性はある)
 
             let f = Fps::new(coeffs);
             let f_k = f.pow(k, deg);
@@ -1285,39 +1288,49 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn test_div_fast_random() {
-        // 除式の長さが 64 を超える場合の高速除算（NTTベース）をテストします。
+    fn test_div_random() {
+        // 除式の長さが 64 以下（長除算）と 64 超（NTTベース）の両方のケースをテストします。
+        // A = Q * B + R と B から、商 Q が正しく得られるかを確認します。
         let mut rng = StdRng::from_os_rng();
-        for _ in 0..100 {
-            let m = rng.random_range(65..=100); // 高速パスを起動
-            let n = rng.random_range(m..=200);
+        for _ in 0..500 {
+            let m_orig = rng.random_range(1..=100);
+            let q_len_orig = rng.random_range(1..=100);
 
-            let q_len = n - m + 1;
-            let b_len = m;
-
-            let q_coeffs: Vec<Mint> = (0..q_len)
-                .map(|_| Mint::new(rng.random_range(0..Mint::modulus())))
+            let q_coeffs: Vec<Mint> = (0..q_len_orig)
+                .map(|_| Mint::new(rng.random_range(-3..=3)))
                 .collect();
-            let mut b_coeffs: Vec<Mint> = (0..b_len)
-                .map(|_| Mint::new(rng.random_range(0..Mint::modulus())))
+            let b_coeffs: Vec<Mint> = (0..m_orig)
+                .map(|_| Mint::new(rng.random_range(-3..=3)))
                 .collect();
-            // 最高次の係数を非ゼロにする
-            if b_coeffs[b_len - 1].val() == 0 {
-                b_coeffs[b_len - 1] = Mint::new(1);
-            }
 
-            let q = Fps::new(q_coeffs);
+            let mut q = Fps::new(q_coeffs);
             let b = Fps::new(b_coeffs);
-            let a = &q * &b; // A = Q * B (+ R, ここでは R=0)
 
-            let res_q = a.div_polynomial(&b);
+            let mut b_eff = b.clone();
+            b_eff.trim();
+            if b_eff.coeffs.is_empty() {
+                // 除式が実質的にゼロの場合はスキップ
+                continue;
+            }
+            let m_eff = b_eff.coeff_len();
 
-            let mut expected_q = q;
-            expected_q.trim();
+            // 余り R (deg(R) < deg(B_eff)) をランダムに生成
+            let r_len = rng.random_range(0..m_eff);
+            let r_coeffs: Vec<Mint> = (0..r_len)
+                .map(|_| Mint::new(rng.random_range(-3..=3)))
+                .collect();
+            let r = Fps::new(r_coeffs);
+
+            let a = &(&q * &b) + &r; // A = Q * B + R
+
+            let mut res_q = a.div_polynomial(&b);
+            res_q.trim();
+            q.trim();
+
             assert_eq!(
-                res_q.coeffs, expected_q.coeffs,
-                "Fast division failed for n={}, m={}",
-                n, m
+                res_q.coeffs, q.coeffs,
+                "Division failed for m_orig={}, m_eff={}\nA: {:?}\nB: {:?}",
+                m_orig, m_eff, a.coeffs, b.coeffs
             );
         }
     }
