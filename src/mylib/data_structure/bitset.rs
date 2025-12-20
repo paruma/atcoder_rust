@@ -171,6 +171,13 @@ mod tests {
     }
 
     #[test]
+    fn test_to_iter() {
+        let b = BitSet::new(0b101);
+        let elements: Vec<usize> = b.to_iter(3).collect();
+        assert_eq!(elements, vec![0, 2]);
+    }
+
+    #[test]
     fn test_contains() {
         let b = BitSet::new(0b101);
         assert!(b.contains(0)); // true case

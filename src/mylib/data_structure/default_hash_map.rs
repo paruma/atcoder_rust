@@ -150,17 +150,111 @@ pub mod default_hash_map {
 #[cfg(test)]
 mod tests {
     use super::default_hash_map::DefaultHashMap;
+    use std::collections::HashMap;
 
-    #[allow(clippy::eq_op)]
     #[test]
-    fn test() {
+    fn test_basic_usage() {
         let mut map: DefaultHashMap<i64, i64> = DefaultHashMap::new(0);
-        dbg!(map[-1]);
-
+        assert_eq!(map[100], 0);
         map[100] = 10;
         assert_eq!(map[100], 10);
         assert_eq!(map[10], 0);
         map[100] = 11;
         assert_eq!(map[100], 11);
+    }
+
+    #[test]
+    fn test_from_hash_map() {
+        let mut hm = HashMap::new();
+        hm.insert(1, 10);
+        let map = DefaultHashMap::from_hash_map(hm, -1);
+        assert_eq!(map[1], 10);
+        assert_eq!(map[2], -1);
+    }
+
+    #[test]
+    fn test_raw() {
+        let mut map = DefaultHashMap::new(0);
+        map.insert(1, 10);
+        let raw = map.raw();
+        assert_eq!(raw.get(&1), Some(&10));
+        raw.insert(2, 20);
+        assert_eq!(map[2], 20);
+    }
+
+    #[test]
+    fn test_iterators() {
+        let mut map = DefaultHashMap::new(0);
+        map.insert(1, 10);
+        map.insert(2, 20);
+
+        let keys: Vec<_> = map.keys().copied().collect();
+        assert!(keys.contains(&1));
+        assert!(keys.contains(&2));
+        assert_eq!(keys.len(), 2);
+
+        let values: Vec<_> = map.values().copied().collect();
+        assert!(values.contains(&10));
+        assert!(values.contains(&20));
+        assert_eq!(values.len(), 2);
+
+        for v in map.values_mut() {
+            *v += 1;
+        }
+        assert_eq!(map[1], 11);
+        assert_eq!(map[2], 21);
+
+        let items: Vec<_> = map.iter().map(|(&k, &v)| (k, v)).collect();
+        assert!(items.contains(&(1, 11)));
+        assert!(items.contains(&(2, 21)));
+
+        for (&k, v) in map.iter_mut() {
+            if k == 1 {
+                *v = 100;
+            }
+        }
+        assert_eq!(map[1], 100);
+    }
+
+    #[test]
+    fn test_metadata() {
+        let mut map = DefaultHashMap::new(0);
+        assert!(map.is_empty());
+        assert_eq!(map.len(), 0);
+
+        map.insert(1, 10);
+        assert!(!map.is_empty());
+        assert_eq!(map.len(), 1);
+    }
+
+    #[test]
+    fn test_get_and_remove() {
+        let mut map = DefaultHashMap::new(-1);
+        map.insert(1, 10);
+        assert_eq!(map.get(&1), &10);
+        assert_eq!(map.get(&2), &-1);
+
+        assert_eq!(map.remove(&1), Some(10));
+        assert_eq!(map.remove(&1), None);
+        assert_eq!(map.get(&1), &-1);
+    }
+
+    #[test]
+    fn test_equality() {
+        let map1 = DefaultHashMap::from_hash_map(HashMap::from([(1, 10)]), 0);
+        let map2 = DefaultHashMap::from_hash_map(HashMap::from([(1, 10)]), 0);
+        assert_eq!(map1, map2);
+
+        let map3 = DefaultHashMap::from_hash_map(HashMap::from([(1, 11)]), 0);
+        assert_ne!(map1, map3);
+
+        let map4 = DefaultHashMap::from_hash_map(HashMap::from([(1, 10)]), 1);
+        assert_ne!(map1, map4);
+    }
+
+    #[test]
+    fn test_default_trait() {
+        let map: DefaultHashMap<i32, i32> = DefaultHashMap::default();
+        assert_eq!(map.get(&1), &0);
     }
 }

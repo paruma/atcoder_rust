@@ -8,7 +8,7 @@ pub mod reroot {
     use ac_library::Max;
 
     #[allow(dead_code)]
-    struct DistMaxReroot();
+    pub struct DistMaxReroot();
     impl Reroot for DistMaxReroot {
         type M = Max<u64>;
 
@@ -288,34 +288,13 @@ pub mod reroot {
 
 #[cfg(test)]
 mod tests {
-    use ac_library::{Max, Monoid};
-
     use super::reroot::*;
-
-    // 距離の最大値を求めるRerooting DPのテスト
-    struct DistMaxRerootTest();
-    impl Reroot for DistMaxRerootTest {
-        type M = Max<u64>;
-
-        fn add_vertex(&self, x: &<Self::M as Monoid>::S, _v: usize) -> <Self::M as Monoid>::S {
-            *x
-        }
-
-        fn add_edge(
-            &self,
-            x: &<Self::M as Monoid>::S,
-            _v: usize,
-            _ei: usize,
-        ) -> <Self::M as Monoid>::S {
-            x + 1
-        }
-    }
 
     #[test]
     fn test_reroot_path_graph() {
         // 0 -- 1 -- 2 -- 3
         let adj = vec![vec![1], vec![0, 2], vec![1, 3], vec![2]];
-        let reroot_solver = DistMaxRerootTest();
+        let reroot_solver = DistMaxReroot();
         let result = reroot_solver.reroot(&adj);
 
         // 各頂点からの最大距離
@@ -334,7 +313,7 @@ mod tests {
         //   |
         //   3
         let adj = vec![vec![1, 2, 3], vec![0], vec![0], vec![0]];
-        let reroot_solver = DistMaxRerootTest();
+        let reroot_solver = DistMaxReroot();
         let result = reroot_solver.reroot(&adj);
 
         // 各頂点からの最大距離
@@ -349,7 +328,7 @@ mod tests {
     fn test_reroot_single_node() {
         // 0
         let adj = vec![vec![]];
-        let reroot_solver = DistMaxRerootTest();
+        let reroot_solver = DistMaxReroot();
         let result = reroot_solver.reroot(&adj);
         assert_eq!(result, vec![0]);
     }
@@ -358,7 +337,7 @@ mod tests {
     fn test_reroot_two_nodes() {
         // 0 -- 1
         let adj = vec![vec![1], vec![0]];
-        let reroot_solver = DistMaxRerootTest();
+        let reroot_solver = DistMaxReroot();
         let result = reroot_solver.reroot(&adj);
         assert_eq!(result, vec![1, 1]);
     }

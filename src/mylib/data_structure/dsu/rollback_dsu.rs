@@ -113,6 +113,7 @@ pub mod rollback_dsu {
 #[cfg(test)]
 mod tests {
     use super::rollback_dsu::*;
+    use itertools::Itertools;
 
     #[test]
     fn test_rollback_dsu() {
@@ -149,5 +150,60 @@ mod tests {
         assert!(!dsu.same(0, 1));
         assert!(!dsu.same(0, 2));
         assert_eq!(dsu.size(0), 1);
+    }
+
+    #[test]
+    fn test_rollback_dsu_merge_edge_cases() {
+        let mut dsu = RollbackDsu::new(5);
+
+        // 同じ要素のマージ
+        assert_eq!(dsu.merge(0, 0), None);
+
+        // 同じグループのマージ
+        dsu.merge(0, 1);
+        assert_eq!(dsu.merge(0, 1), None);
+
+        // swap ロジックの検証 (size(a) < size(b) の場合に a と b を入れ替える)
+        // a: {0, 1} (size 2), leader 0
+        // b: {2, 3, 4} (size 3), leader 2
+        dsu.merge(2, 3);
+        dsu.merge(3, 4);
+        assert_eq!(dsu.size(0), 2);
+        assert_eq!(dsu.size(2), 3);
+
+        let res = dsu.merge(0, 2);
+        assert!(res.is_some());
+        let (leader, merged) = res.unwrap();
+        // 2の方がサイズが大きいため、2がリーダーになり、0がマージされるはず
+        assert_eq!(leader, 2);
+        assert_eq!(merged, 0);
+        assert_eq!(dsu.leader(0), 2);
+        assert_eq!(dsu.size(2), 5);
+    }
+
+    #[test]
+    fn test_rollback_dsu_groups() {
+        let mut dsu = RollbackDsu::new(5);
+        dsu.merge(0, 1);
+        dsu.merge(2, 3);
+
+        let sorted_groups = |groups: Vec<Vec<usize>>| {
+            groups
+                .into_iter()
+                .map(|mut g| {
+                    g.sort();
+                    g
+                })
+                .sorted()
+                .collect_vec()
+        };
+
+        assert_eq!(
+            sorted_groups(dsu.groups()),
+            vec![vec![0, 1], vec![2, 3], vec![4]]
+        );
+
+        dsu.merge(1, 3);
+        assert_eq!(sorted_groups(dsu.groups()), vec![vec![0, 1, 2, 3], vec![4]]);
     }
 }

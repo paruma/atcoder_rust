@@ -288,6 +288,27 @@ mod tests_monoid_rolling_hash {
         // concat(identity, a) = a
         assert_eq!(identity_rh.concat(&rh), rh);
     }
+
+    #[test]
+    fn test_monoid_rolling_hash_get_hash() {
+        let base = 100;
+        let rh = RollingHash::new(12345, base);
+        assert_eq!(rh.get_hash(), 12345);
+    }
+
+    #[test]
+    fn test_monoid_rolling_hash_unit() {
+        let base = 100;
+        let char_to_rh = RollingHash::unit(base);
+        let rh_a = char_to_rh(97); // 'a'
+        let rh_b = char_to_rh(98); // 'b'
+
+        assert_eq!(rh_a.get_hash(), 97);
+
+        let rh_ab = rh_a.concat(&rh_b);
+        // 97 * 100 + 98 = 9798
+        assert_eq!(rh_ab.get_hash(), 9798);
+    }
 }
 
 #[cfg(test)]

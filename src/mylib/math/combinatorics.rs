@@ -106,6 +106,9 @@ mod tests_i64_combinatorics {
         assert_eq!(perm(5, 0), 1);
         assert_eq!(perm(5, 5), 120);
         assert_eq!(perm(0, 0), 1);
+        assert_eq!(perm(3, 5), 0);
+        assert_eq!(perm(-1, 3), 0);
+        assert_eq!(perm(5, -1), 0);
     }
 
     #[test]
@@ -113,6 +116,7 @@ mod tests_i64_combinatorics {
         assert_eq!(factorial(0), 1);
         assert_eq!(factorial(1), 1);
         assert_eq!(factorial(5), 120);
+        assert_eq!(factorial(-1), 0);
     }
 }
 
@@ -147,6 +151,8 @@ mod tests_mod_combinatorics {
             assert_eq!(comb.perm(5, 0), 1.into());
             assert_eq!(comb.perm(5, 5), 120.into());
             assert_eq!(comb.perm(0, 0), 1.into());
+            assert_eq!(comb.perm(3, 4), 0.into());
+            assert_eq!(comb.perm(3, 5), 0.into());
         }
         {
             let comb = Comb::<Mint>::new(10000);

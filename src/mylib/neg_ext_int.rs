@@ -310,4 +310,13 @@ mod tests {
         assert_eq!(M::binary_operation(&M::identity(), &fin(5)), fin(5));
         assert_eq!(M::binary_operation(&M::identity(), &NEG_INF), NEG_INF);
     }
+
+    #[test]
+    fn test_neg_ext_int_fmt() {
+        assert_eq!(format!("{}", fin(3)), "3");
+        assert_eq!(format!("{:?}", fin(3)), "3");
+
+        assert_eq!(format!("{}", NEG_INF), "-∞");
+        assert_eq!(format!("{:?}", NEG_INF), "-∞");
+    }
 }

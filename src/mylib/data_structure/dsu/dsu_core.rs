@@ -229,4 +229,38 @@ mod tests_dsu_core {
         assert_eq!(uf.leader(4), leader4);
         assert_eq!(uf.leader(0), leader4);
     }
+
+    #[test]
+    fn test_size() {
+        use super::dsu_core::*;
+        let mut uf = DsuCore::new(5);
+
+        // 各要素の初期サイズは 1
+        for i in 0..5 {
+            assert_eq!(uf.size(i), 1);
+        }
+
+        uf.merge(0, 1);
+        assert_eq!(uf.size(0), 2);
+        assert_eq!(uf.size(1), 2);
+        assert_eq!(uf.size(2), 1);
+
+        uf.merge(2, 3);
+        assert_eq!(uf.size(2), 2);
+        assert_eq!(uf.size(3), 2);
+
+        uf.merge(0, 2);
+        assert_eq!(uf.size(0), 4);
+        assert_eq!(uf.size(1), 4);
+        assert_eq!(uf.size(2), 4);
+        assert_eq!(uf.size(3), 4);
+        assert_eq!(uf.size(4), 1);
+
+        // 既に同じグループの場合はサイズは変わらない
+        uf.merge(1, 3);
+        assert_eq!(uf.size(0), 4);
+
+        uf.merge(4, 0);
+        assert_eq!(uf.size(4), 5);
+    }
 }

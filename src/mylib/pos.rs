@@ -444,6 +444,12 @@ mod tests_pos {
         ]);
         assert_eq!(actual, expected);
     }
+
+    #[test]
+    fn test_pos_debug() {
+        let p = Pos::new(2, 3);
+        assert_eq!(format!("{:?}", p), "(2, 3)");
+    }
 }
 
 #[cfg(test)]

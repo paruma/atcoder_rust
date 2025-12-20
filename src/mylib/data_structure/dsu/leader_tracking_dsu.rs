@@ -110,4 +110,45 @@ mod tests_leader_tracking_dsu {
             sorted2(vec![vec![0, 1, 3, 4, 5, 6], vec![2], vec![7]])
         );
     }
+
+    #[test]
+    fn test_size() {
+        use super::leader_tracking_dsu::*;
+        let mut uf = LeaderTrackingDsu::new(5);
+
+        for i in 0..5 {
+            assert_eq!(uf.size(i), 1);
+        }
+
+        uf.merge(0, 1);
+        assert_eq!(uf.size(0), 2);
+        assert_eq!(uf.size(1), 2);
+
+        uf.merge(2, 3);
+        uf.merge(0, 2);
+        assert_eq!(uf.size(0), 4);
+        assert_eq!(uf.size(3), 4);
+        assert_eq!(uf.size(4), 1);
+    }
+
+    #[test]
+    fn test_count_group() {
+        use super::leader_tracking_dsu::*;
+        let mut uf = LeaderTrackingDsu::new(5);
+
+        assert_eq!(uf.count_group(), 5);
+
+        uf.merge(0, 1);
+        assert_eq!(uf.count_group(), 4);
+
+        uf.merge(2, 3);
+        assert_eq!(uf.count_group(), 3);
+
+        uf.merge(0, 2);
+        assert_eq!(uf.count_group(), 2);
+
+        // すでに同じグループの場合は減らない
+        uf.merge(1, 3);
+        assert_eq!(uf.count_group(), 2);
+    }
 }

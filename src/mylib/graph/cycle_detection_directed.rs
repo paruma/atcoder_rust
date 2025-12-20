@@ -180,4 +180,18 @@ mod tests {
         assert!(actual.is_some());
         assert!(is_cycle(&t, &actual.unwrap()));
     }
+
+    #[test]
+    fn test_cycle_detection_no_cycle_linear() {
+        // 0 -> 1 -> 2
+        // start=0 で 0, 1, 2 が訪問済みになる。
+        // start=1, 2 のループで continue が呼ばれる。
+        let t = TestCase {
+            nv: 3,
+            edges: vec![(0, 1), (1, 2)],
+        };
+
+        let actual = super::cycle_detection::cycle_detection(t.nv, &t.edges);
+        assert!(actual.is_none());
+    }
 }

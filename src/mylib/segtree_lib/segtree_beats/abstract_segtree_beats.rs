@@ -381,3 +381,169 @@ pub mod abstract_segtree_beats {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::abstract_segtree_beats::*;
+    use itertools::Itertools;
+    use std::ops::Bound;
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    struct S {
+        sum: i64,
+        size: i64,
+    }
+
+    struct AddSum;
+    impl MonoidBeats for AddSum {
+        type S = S;
+        fn identity() -> Self::S {
+            S { sum: 0, size: 0 }
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            S {
+                sum: a.sum + b.sum,
+                size: a.size + b.size,
+            }
+        }
+        fn fails(_: &Self::S) -> bool {
+            false
+        }
+    }
+
+    struct MapAddSum;
+    impl MapMonoidBeats for MapAddSum {
+        type M = AddSum;
+        type F = i64;
+        fn identity_map() -> Self::F {
+            0
+        }
+        fn mapping(f: &Self::F, x: &S) -> S {
+            S {
+                sum: x.sum + f * x.size,
+                size: x.size,
+            }
+        }
+        fn composition(f: &Self::F, g: &Self::F) -> Self::F {
+            f + g
+        }
+    }
+
+    #[test]
+    fn test_default() {
+        let seg = SegtreeBeats::<MapAddSum>::default();
+        assert_eq!(seg.all_prod(), AddSum::identity());
+    }
+
+    #[test]
+    fn test_new() {
+        let mut seg = SegtreeBeats::<MapAddSum>::new(10);
+        // identity_element() で初期化されるため、size は 0 になる
+        assert_eq!(seg.all_prod().size, 0);
+        assert_eq!(seg.get(0), S { sum: 0, size: 0 });
+    }
+
+    #[test]
+    fn test_prod_range_patterns() {
+        let v = (0..10).map(|i| S { sum: i, size: 1 }).collect_vec();
+        let mut seg: SegtreeBeats<MapAddSum> = v.into();
+
+        // 1. .. (Unbounded, Unbounded)
+        assert_eq!(seg.prod(..).sum, 45);
+
+        // 2. l..r (Included, Excluded)
+        assert_eq!(seg.prod(2..5).sum, 2 + 3 + 4);
+
+        // 3. l..=r (Included, Included)
+        assert_eq!(seg.prod(2..=4).sum, 2 + 3 + 4);
+
+        // 4. ..r (Unbounded, Excluded)
+        assert_eq!(seg.prod(..3).sum, 0 + 1 + 2);
+
+        // 5. ..=r (Unbounded, Included)
+        assert_eq!(seg.prod(..=2).sum, 0 + 1 + 2);
+
+        // 6. l.. (Included, Unbounded)
+        assert_eq!(seg.prod(7..).sum, 7 + 8 + 9);
+
+        // 7. Bound::Excluded for start
+        assert_eq!(
+            seg.prod((Bound::Excluded(1), Bound::Included(3))).sum,
+            2 + 3
+        );
+    }
+
+    #[test]
+    fn test_apply_range_patterns() {
+        let mut seg: SegtreeBeats<MapAddSum> = vec![S { sum: 0, size: 1 }; 10].into();
+
+        // 1. ..
+        seg.apply_range(.., 1);
+        assert_eq!(seg.all_prod().sum, 10);
+
+        // 2. l..r
+        seg.apply_range(2..5, 10); // [1, 1, 11, 11, 11, 1, 1, 1, 1, 1]
+        assert_eq!(seg.get(2).sum, 11);
+        assert_eq!(seg.get(1).sum, 1);
+
+        // 3. l..=r
+        seg.apply_range(2..=3, 100); // index 2, 3 に +100
+        assert_eq!(seg.get(2).sum, 111);
+        assert_eq!(seg.get(4).sum, 11);
+
+        // 4. ..r
+        seg.apply_range(..2, 1000); // index 0, 1 に +1000
+        assert_eq!(seg.get(0).sum, 1001);
+
+        // 5. ..=r
+        seg.apply_range(..=1, 10000); // index 0, 1 に +10000
+        assert_eq!(seg.get(1).sum, 11001);
+
+        // 6. l..
+        seg.apply_range(8.., 50); // index 8, 9 に +50
+        assert_eq!(seg.get(9).sum, 51);
+
+        // 7. Bound::Excluded for start
+        seg.apply_range((Bound::Excluded(8), Bound::Unbounded), 100000); // index 9 に +100000
+        assert_eq!(seg.get(9).sum, 100051);
+    }
+
+    #[test]
+    fn test_apply() {
+        let v = vec![
+            S { sum: 1, size: 1 },
+            S { sum: 2, size: 1 },
+            S { sum: 3, size: 1 },
+        ];
+        let mut seg: SegtreeBeats<MapAddSum> = v.clone().into();
+        seg.apply(1, 10);
+        assert_eq!(seg.get(1).sum, 12);
+        assert_eq!(seg.all_prod().sum, 16);
+        assert_eq!(
+            seg.to_vec(),
+            vec![
+                S { sum: 1, size: 1 },
+                S { sum: 12, size: 1 },
+                S { sum: 3, size: 1 }
+            ]
+        );
+    }
+
+    #[test]
+    fn test_max_right() {
+        let v = vec![S { sum: 1, size: 1 }; 10];
+        let mut seg: SegtreeBeats<MapAddSum> = v.into();
+        assert_eq!(seg.max_right(0, |s| s.sum <= 5), 5);
+        assert_eq!(seg.max_right(0, |s| s.sum <= 10), 10);
+        assert_eq!(seg.max_right(0, |s| s.sum <= 0), 0);
+    }
+
+    #[test]
+    fn test_min_left() {
+        let v = vec![S { sum: 1, size: 1 }; 10];
+        let mut seg: SegtreeBeats<MapAddSum> = v.into();
+        assert_eq!(seg.min_left(10, |s| s.sum <= 5), 5);
+        assert_eq!(seg.min_left(10, |s| s.sum <= 10), 0);
+        assert_eq!(seg.min_left(10, |s| s.sum <= 0), 10);
+    }
+}

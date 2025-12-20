@@ -30,16 +30,10 @@ pub mod lca_doubling {
                 }
             }
 
-            let k = if nv == 0 {
-                0
-            } else {
-                (usize::BITS - nv.leading_zeros()) as usize
-            };
+            let k = (usize::BITS - nv.leading_zeros()) as usize;
 
             let mut ancestor = vec![vec![0; nv]; k];
-            if nv > 0 {
-                ancestor[0] = parent;
-            }
+            ancestor[0] = parent;
 
             for i in 1..k {
                 for v in 0..nv {
@@ -469,5 +463,18 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn test_get_ancestor_out_of_bounds() {
+        // 0 -> 1 -> 2
+        let adj = vec![vec![1], vec![0, 2], vec![1]];
+        let lca = Lca::new(&adj, 0);
+
+        assert_eq!(lca.get_ancestor(2, 0), Some(2));
+        assert_eq!(lca.get_ancestor(2, 1), Some(1));
+        assert_eq!(lca.get_ancestor(2, 2), Some(0));
+        assert_eq!(lca.get_ancestor(2, 3), None); // Out of bounds
+        assert_eq!(lca.get_ancestor(0, 1), None); // Out of bounds
     }
 }

@@ -255,6 +255,105 @@ mod tests_dual_segtree {
     use super::dual_segtree::DualSegtree;
     use super::range_add_dual_segtree::AddMonoid;
 
+    #[test]
+    fn test_new() {
+        let mut segtree = DualSegtree::<AddMonoid>::new(10);
+        assert_eq!(segtree.to_vec(), vec![0; 10]);
+    }
+
+    #[test]
+    fn test_default() {
+        let mut segtree = DualSegtree::<AddMonoid>::default();
+        assert_eq!(segtree.to_vec(), Vec::<i64>::new());
+    }
+
+    #[test]
+    fn test_apply_range_patterns() {
+        let n = 10;
+        let mut segtree = DualSegtree::<AddMonoid>::new(n);
+        let mut expected = vec![0; n];
+
+        // 1. ..
+        segtree.apply_range(.., 1);
+        expected.iter_mut().for_each(|x| *x += 1);
+        assert_eq!(segtree.to_vec(), expected);
+
+        // 2. l..r
+        segtree.apply_range(2..5, 10);
+        (2..5).for_each(|i| expected[i] += 10);
+        assert_eq!(segtree.to_vec(), expected);
+
+        // 3. l..=r
+        segtree.apply_range(4..=6, 100);
+        (4..=6).for_each(|i| expected[i] += 100);
+        assert_eq!(segtree.to_vec(), expected);
+
+        // 4. ..r
+        segtree.apply_range(..2, 1000);
+        (0..2).for_each(|i| expected[i] += 1000);
+        assert_eq!(segtree.to_vec(), expected);
+
+        // 5. ..=r
+        segtree.apply_range(..=1, 10000);
+        (0..=1).for_each(|i| expected[i] += 10000);
+        assert_eq!(segtree.to_vec(), expected);
+
+        // 6. l..
+        segtree.apply_range(8.., 50);
+        (8..10).for_each(|i| expected[i] += 50);
+        assert_eq!(segtree.to_vec(), expected);
+
+        // 7. Bound::Excluded for start
+        use std::ops::Bound;
+        segtree.apply_range((Bound::Excluded(1), Bound::Excluded(4)), 100000);
+        (2..4).for_each(|i| expected[i] += 100000);
+        assert_eq!(segtree.to_vec(), expected);
+    }
+
+    #[test]
+    #[ignore]
+    fn test_random_dual_segtree() {
+        use rand::{Rng, SeedableRng, rngs::SmallRng};
+        let mut rng = SmallRng::seed_from_u64(42);
+
+        for _ in 0..100 {
+            let n = rng.random_range(1..=30);
+            let mut naive = vec![0i64; n];
+            let mut seg = DualSegtree::<AddMonoid>::new(n);
+
+            for _ in 0..100 {
+                let op = rng.random_range(0..4);
+                if op == 0 {
+                    // set
+                    let p = rng.random_range(0..n);
+                    let x = rng.random_range(-100..=100);
+                    naive[p] = x;
+                    seg.set(p, x);
+                } else if op == 1 {
+                    // get
+                    let p = rng.random_range(0..n);
+                    assert_eq!(seg.get(p), naive[p]);
+                } else if op == 2 {
+                    // apply
+                    let p = rng.random_range(0..n);
+                    let f = rng.random_range(-100..=100);
+                    naive[p] += f;
+                    seg.apply(p, f);
+                } else {
+                    // apply_range
+                    let l = rng.random_range(0..=n);
+                    let r = rng.random_range(l..=n);
+                    let f = rng.random_range(-100..=100);
+                    for i in l..r {
+                        naive[i] += f;
+                    }
+                    seg.apply_range(l..r, f);
+                }
+            }
+            assert_eq!(seg.to_vec(), naive);
+        }
+    }
+
     // ACL の lazysegtree のテストを流用したもの
     #[test]
     fn test_range_add_dual_segtree() {

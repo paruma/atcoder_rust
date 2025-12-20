@@ -184,4 +184,10 @@ mod tests_pos_f64 {
         let p: PosF64 = PosF64::new(2.0, 3.0);
         assert_eq!(p.norm_square(), 13.0);
     }
+
+    #[test]
+    fn test_pos_debug() {
+        let p = PosF64::new(2.5, 3.5);
+        assert_eq!(format!("{:?}", p), "(2.5, 3.5)");
+    }
 }

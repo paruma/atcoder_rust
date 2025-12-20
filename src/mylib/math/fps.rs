@@ -593,7 +593,9 @@ impl<M: Modulus> Rem for &FormalPowerSeries<M> {
 mod tests {
     use super::*;
     use ac_library::Mod998244353;
-    use rand::{Rng, rngs::ThreadRng};
+    use rand::Rng;
+    use rand::SeedableRng;
+    use rand::rngs::StdRng;
 
     type Mint = StaticModInt<Mod998244353>;
     type Fps = FormalPowerSeries<Mod998244353>;
@@ -634,9 +636,9 @@ mod tests {
     #[test]
     #[ignore]
     fn test_inv_random() {
-        let mut rng = ThreadRng::default();
-        for _ in 0..10000 {
-            let deg = rng.random_range(1..=20);
+        let mut rng = StdRng::from_os_rng();
+        for _ in 0..1000 {
+            let deg = rng.random_range(1..=50);
             let mut coeffs = vec![Mint::new(0); deg];
             for i in 0..deg {
                 coeffs[i] = Mint::new(rng.random_range(0..Mint::modulus()));
@@ -842,6 +844,153 @@ mod tests {
     }
 
     #[test]
+    fn test_exp_zero() {
+        let f = Fps::zero();
+        let exp_f = f.exp(5);
+        let expected = vec![
+            Mint::new(1),
+            Mint::new(0),
+            Mint::new(0),
+            Mint::new(0),
+            Mint::new(0),
+        ];
+        assert_eq!(exp_f.coeffs, expected);
+    }
+
+    /// テイラー展開 exp(f) = Σ_{i=0}^∞ (f^i / i!) を用いて愚直に計算する。
+    fn naive_exp<M: Modulus>(f: &FormalPowerSeries<M>, deg: usize) -> FormalPowerSeries<M> {
+        let mut res = FormalPowerSeries::new(vec![StaticModInt::new(0); deg]);
+        let mut term = FormalPowerSeries::one().prefix(deg);
+        let mut fact_inv = StaticModInt::new(1);
+        for i in 0..deg {
+            if i > 0 {
+                fact_inv *= StaticModInt::new(i as u64).inv();
+            }
+            for j in 0..deg {
+                res.coeffs[j] += term.coeffs[j] * fact_inv;
+            }
+            if i + 1 < deg {
+                term = &term * f;
+                term.coeffs.truncate(deg);
+            }
+        }
+        res
+    }
+
+    /// テイラー展開 ln(1+g) = Σ_{i=1}^∞ (-1)^{i-1} * (g^i / i) (ただし g = f - 1) を用いて愚直に計算する。
+    fn naive_log<M: Modulus>(f: &FormalPowerSeries<M>, deg: usize) -> FormalPowerSeries<M> {
+        let mut g = f.clone();
+        if g.coeffs.is_empty() {
+            g.coeffs.push(StaticModInt::new(0));
+        }
+        g.coeffs[0] -= 1; // g = f - 1
+        let mut res = FormalPowerSeries::new(vec![StaticModInt::new(0); deg]);
+        let mut term = g.clone().prefix(deg);
+        for i in 1..deg {
+            let mut val = StaticModInt::new(1) / i;
+            if i % 2 == 0 {
+                val = -val;
+            }
+            for j in 0..deg {
+                res.coeffs[j] += term.coeffs[j] * val;
+            }
+            if i + 1 < deg {
+                term = &term * &g;
+                term.coeffs.truncate(deg);
+            }
+        }
+        res
+    }
+
+    fn naive_pow<M: Modulus>(
+        f: &FormalPowerSeries<M>,
+        k: usize,
+        deg: usize,
+    ) -> FormalPowerSeries<M> {
+        let mut res = FormalPowerSeries::one().prefix(deg);
+        for _ in 0..k {
+            res = &res * f;
+            res.coeffs.truncate(deg);
+        }
+        res.prefix(deg)
+    }
+
+    #[test]
+    #[ignore]
+    fn test_exp_random() {
+        // exp(f) の結果が、定義に基づくテイラー展開（naive_exp）の結果と一致するかをテストすることで、
+        // exp の実装の正当性を確認しています。
+        let mut rng = StdRng::from_os_rng();
+        for _ in 0..100 {
+            let deg = rng.random_range(1..=50);
+            let mut coeffs = vec![Mint::new(0); deg];
+            for i in 1..deg {
+                coeffs[i] = Mint::new(rng.random_range(0..Mint::modulus()));
+            }
+            coeffs[0] = Mint::new(0);
+
+            let f = Fps::new(coeffs);
+            let exp_f = f.exp(deg);
+            let exp_naive = naive_exp(&f, deg);
+
+            assert_eq!(
+                exp_f.coeffs, exp_naive.coeffs,
+                "exp(f) should match naive Taylor expansion"
+            );
+        }
+    }
+
+    #[test]
+    #[ignore]
+    fn test_exp_log_inverse_property() {
+        // log(exp(f)) == f (ただし f(0) = 0) という性質を用いて、
+        // exp と log の実装が互いに整合しているか（逆写像になっているか）をテストしています。
+        let mut rng = StdRng::from_os_rng();
+        for _ in 0..100 {
+            let deg = rng.random_range(1..=50);
+            let mut coeffs = vec![Mint::new(0); deg];
+            for i in 1..deg {
+                coeffs[i] = Mint::new(rng.random_range(0..Mint::modulus()));
+            }
+            coeffs[0] = Mint::new(0);
+
+            let f = Fps::new(coeffs);
+            let exp_f = f.exp(deg);
+            let log_exp_f = exp_f.log(deg);
+
+            assert_eq!(
+                f.coeffs, log_exp_f.coeffs,
+                "log(exp(f)) should be f for f(0)=0"
+            );
+        }
+    }
+
+    #[test]
+    #[ignore]
+    fn test_log_random() {
+        // log(f) の結果が、定義に基づくテイラー展開（naive_log）の結果と一致するかをテストすることで、
+        // log の実装の正当性を確認しています。
+        let mut rng = StdRng::from_os_rng();
+        for _ in 0..100 {
+            let deg = rng.random_range(1..=50);
+            let mut coeffs = vec![Mint::new(0); deg];
+            for i in 1..deg {
+                coeffs[i] = Mint::new(rng.random_range(0..Mint::modulus()));
+            }
+            coeffs[0] = Mint::new(1);
+
+            let f = Fps::new(coeffs);
+            let log_f = f.log(deg);
+            let log_naive = naive_log(&f, deg);
+
+            assert_eq!(
+                log_f.coeffs, log_naive.coeffs,
+                "log(f) should match naive Taylor expansion"
+            );
+        }
+    }
+
+    #[test]
     fn test_pow() {
         // (1+x)^2 = 1 + 2x + x^2
         let f = Fps::new(vec![Mint::new(1), Mint::new(1)]); // 1+x
@@ -891,15 +1040,57 @@ mod tests {
         let pow_zero_k0 = f_zero_coeff.pow(0, 5);
         assert_eq!(pow_zero_k0.coeffs, Fps::one().prefix(5).coeffs);
 
-        // fが空の場合
+        // fが空の場合 (0^k)
         let empty = Fps::new(vec![]);
         let pow_empty = empty.pow(2, 5);
         assert_eq!(pow_empty.coeffs, Fps::new(vec![Mint::new(0); 5]).coeffs);
+
+        // 0^0
+        let pow_zero_zero = empty.pow(0, 5);
+        assert_eq!(pow_zero_zero.coeffs, Fps::one().prefix(5).coeffs);
 
         // fが0の冪乗 (k=0)
         let f_one = Fps::one();
         let pow_k0 = f_one.pow(0, 5);
         assert_eq!(pow_k0.coeffs, Fps::one().prefix(5).coeffs);
+    }
+
+    #[test]
+    #[ignore]
+    fn test_pow_random() {
+        // f.pow(k, deg) の結果が、愚直な掛け算の結果（naive_pow）と一致するかをテストすることで、
+        // べき乗の実装の正当性を確認しています。
+        let mut rng = StdRng::from_os_rng();
+        for _ in 0..100 {
+            let deg = rng.random_range(1..=50);
+            let k = rng.random_range(0..=10) as i64;
+
+            let mut coeffs = vec![Mint::new(0); deg];
+            // 1/3 の確率で f(0) = 0 にする
+            let start = if rng.random_bool(0.33) && deg > 1 {
+                rng.random_range(1..deg.min(5))
+            } else {
+                0
+            };
+            for i in start..deg {
+                coeffs[i] = Mint::new(rng.random_range(0..Mint::modulus()));
+            }
+            if start < deg && coeffs[start].val() == 0 {
+                coeffs[start] = Mint::new(1);
+            }
+
+            let f = Fps::new(coeffs);
+            let f_k = f.pow(k, deg);
+
+            // 値の正当性テスト: naive_pow との比較 (k >= 0 の場合)
+            if k >= 0 {
+                let f_naive = naive_pow(&f, k as usize, deg);
+                assert_eq!(
+                    f_k.coeffs, f_naive.coeffs,
+                    "f^k should match naive multiplication"
+                );
+            }
+        }
     }
 
     #[test]
@@ -1080,6 +1271,55 @@ mod tests {
         let g = Fps::new(vec![Mint::new(1), Mint::new(2)]);
         let q = &f / &g;
         assert_eq!(q.coeffs, vec![Mint::new(1), Mint::new(3)]);
+    }
+
+    #[test]
+    fn test_div_trailing_zeros() {
+        // 除式に末尾のゼロが含まれる場合の処理（b_coeffs.pop()）をテストします。
+        // (1 + 2x + x^2) / (1 + x + 0x^2) = 1 + x
+        let f = Fps::new(vec![Mint::new(1), Mint::new(2), Mint::new(1)]);
+        let g = Fps::new(vec![Mint::new(1), Mint::new(1), Mint::new(0)]);
+        let q = &f / &g;
+        assert_eq!(q.coeffs, vec![Mint::new(1), Mint::new(1)]);
+    }
+
+    #[test]
+    #[ignore]
+    fn test_div_fast_random() {
+        // 除式の長さが 64 を超える場合の高速除算（NTTベース）をテストします。
+        let mut rng = StdRng::from_os_rng();
+        for _ in 0..100 {
+            let m = rng.random_range(65..=100); // 高速パスを起動
+            let n = rng.random_range(m..=200);
+
+            let q_len = n - m + 1;
+            let b_len = m;
+
+            let q_coeffs: Vec<Mint> = (0..q_len)
+                .map(|_| Mint::new(rng.random_range(0..Mint::modulus())))
+                .collect();
+            let mut b_coeffs: Vec<Mint> = (0..b_len)
+                .map(|_| Mint::new(rng.random_range(0..Mint::modulus())))
+                .collect();
+            // 最高次の係数を非ゼロにする
+            if b_coeffs[b_len - 1].val() == 0 {
+                b_coeffs[b_len - 1] = Mint::new(1);
+            }
+
+            let q = Fps::new(q_coeffs);
+            let b = Fps::new(b_coeffs);
+            let a = &q * &b; // A = Q * B (+ R, ここでは R=0)
+
+            let res_q = a.div_polynomial(&b);
+
+            let mut expected_q = q;
+            expected_q.trim();
+            assert_eq!(
+                res_q.coeffs, expected_q.coeffs,
+                "Fast division failed for n={}, m={}",
+                n, m
+            );
+        }
     }
 
     #[test]

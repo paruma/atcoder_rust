@@ -90,4 +90,13 @@ mod tests {
         assert_eq!(diam_len, 15);
         // path の方は library checker でチェックする
     }
+
+    #[test]
+    fn test_tree_diameter_no_weight() {
+        use super::tree_diameter_no_weight;
+        let edges = vec![(0, 1), (1, 2), (2, 3), (1, 4), (4, 5)];
+        let (diam_len, _diam_path) = tree_diameter_no_weight(&edges);
+        // 5-4-1-2-3 (length 4) or 3-2-1-4-5 (length 4)
+        assert_eq!(diam_len, 4);
+    }
 }

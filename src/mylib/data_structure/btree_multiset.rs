@@ -134,6 +134,13 @@ mod tests {
     }
 
     #[test]
+    fn test_default() {
+        let set: BTreeMultiSet<i32> = Default::default();
+        assert!(set.is_empty());
+        assert_eq!(set.len(), 0);
+    }
+
+    #[test]
     fn test_insert() {
         let mut set = BTreeMultiSet::new();
         set.insert(1);

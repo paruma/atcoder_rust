@@ -589,6 +589,13 @@ mod test_monoid_affine {
         );
         assert_eq!(M::binary_operation(&affine1, &M::identity()), affine1)
     }
+
+    #[test]
+    fn test_affine_transform_apply() {
+        let affine = super::monoid_affine::AffineTransform::new(3, 5);
+        // 3 * 10 + 5 = 35
+        assert_eq!(affine.apply(10), 35);
+    }
 }
 
 #[cfg(test)]

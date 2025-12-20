@@ -183,4 +183,21 @@ pub mod test {
         g.debug();
         g.debug_with_pos(Pos::new(1, 1));
     }
+
+    #[test]
+    fn test_index_out_of_bounds() {
+        let grid = Grid::new(vec![vec!['.']]);
+        assert_eq!(grid[Pos::new(0, 0)], '.');
+        assert_eq!(grid[Pos::new(-1, 0)], '#');
+        assert_eq!(grid[Pos::new(0, -1)], '#');
+        assert_eq!(grid[Pos::new(1, 0)], '#');
+        assert_eq!(grid[Pos::new(0, 1)], '#');
+    }
+
+    #[test]
+    fn test_index_mut() {
+        let mut grid = Grid::new(vec![vec!['.']]);
+        grid[Pos::new(0, 0)] = '#';
+        assert_eq!(grid[Pos::new(0, 0)], '#');
+    }
 }

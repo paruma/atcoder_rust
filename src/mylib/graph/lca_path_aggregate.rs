@@ -41,16 +41,10 @@ pub mod lca_path_aggregate {
                 }
             }
 
-            let k = if nv == 0 {
-                0
-            } else {
-                (usize::BITS - nv.leading_zeros()) as usize
-            };
+            let k = (usize::BITS - nv.leading_zeros()) as usize;
 
             let mut ancestor = vec![vec![0; nv]; k];
-            if nv > 0 {
-                ancestor[0] = parent;
-            }
+            ancestor[0] = parent;
 
             for i in 1..k {
                 for v in 0..nv {
@@ -60,9 +54,7 @@ pub mod lca_path_aggregate {
             }
 
             let mut path_aggregate = vec![vec![M::identity(); nv]; k];
-            if nv > 0 {
-                path_aggregate[0] = parent_edge_weight;
-            }
+            path_aggregate[0] = parent_edge_weight;
 
             for i in 1..k {
                 for v in 0..nv {
@@ -237,6 +229,44 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[test]
+    fn test_dist() {
+        // 0 --1-- 1 --2-- 3 --3-- 6
+        // |
+        // 1 --4-- 4 --1-- 7
+        // |       |--1-- 8
+        // |       '--1-- 9
+        // |
+        // 2 --1-- 5 --1-- 10
+        //         |
+        //         '--1-- 11
+        let n = 12;
+        let edges = [
+            (0, 1, 1),
+            (1, 3, 2),
+            (3, 6, 3),
+            (1, 4, 4),
+            (4, 7, 1),
+            (4, 8, 1),
+            (4, 9, 1),
+            (0, 2, 1),
+            (2, 5, 1),
+            (5, 10, 1),
+            (5, 11, 1),
+        ];
+        let adj = build_tree(n, &edges);
+        let lca_agg = LcaPathAggregate::<Additive<i64>>::new(&adj, 0);
+
+        // path: 6-3-1-4-9, edges: 6-3, 3-1, 1-4, 4-9. len = 4
+        assert_eq!(lca_agg.dist(6, 9), 4);
+        // path: 9-4-1-0-2-5-10, edges: 9-4, 4-1, 1-0, 0-2, 2-5, 5-10. len = 6
+        assert_eq!(lca_agg.dist(9, 10), 6);
+        // path: 1-3-6, edges: 1-3, 3-6. len = 2
+        assert_eq!(lca_agg.dist(1, 6), 2);
+        // path: 3-3, len = 0
+        assert_eq!(lca_agg.dist(3, 3), 0);
     }
 
     #[test]

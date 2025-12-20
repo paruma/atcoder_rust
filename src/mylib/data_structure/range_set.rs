@@ -225,6 +225,13 @@ mod tests {
     use rand::{Rng, SeedableRng, rngs::StdRng};
 
     #[test]
+    fn test_default() {
+        let set = RangeSet::default();
+        assert!(set.is_empty());
+        assert_eq!(set.len(), 0);
+    }
+
+    #[test]
     fn test_insert_non_overlapping() {
         let mut set = RangeSet::new();
         set.insert_range(0, 5);

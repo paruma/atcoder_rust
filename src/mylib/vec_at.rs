@@ -36,4 +36,11 @@ mod test {
 
         assert_eq!(xss.at(1).at(2), &8);
     }
+
+    #[test]
+    fn test_at_mut() {
+        let mut xs = vec![1, 2, 3, 4, 5];
+        *xs.at_mut(2) = 100;
+        assert_eq!(xs, vec![1, 2, 100, 4, 5]);
+    }
 }

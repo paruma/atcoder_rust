@@ -182,6 +182,37 @@ mod test_cumsum {
     }
 
     #[test]
+    fn test_range_sum_patterns() {
+        let xs = vec![1, 2, 4, 8, 16];
+        let cumsum = CumSum::new(&xs);
+
+        // 1. ..r (Excluded end)
+        assert_eq!(cumsum.range_sum(..3), 1 + 2 + 4);
+
+        // 2. ..=r (Included end)
+        assert_eq!(cumsum.range_sum(..=3), 1 + 2 + 4 + 8);
+
+        // 3. l..r (Included start, Excluded end)
+        assert_eq!(cumsum.range_sum(1..4), 2 + 4 + 8);
+
+        // 4. l..=r (Included start, Included end)
+        assert_eq!(cumsum.range_sum(1..=4), 2 + 4 + 8 + 16);
+
+        // 5. l.. (Included start, Unbounded end)
+        assert_eq!(cumsum.range_sum(2..), 4 + 8 + 16);
+
+        // 6. .. (Unbounded start, Unbounded end)
+        assert_eq!(cumsum.range_sum(..), 1 + 2 + 4 + 8 + 16);
+
+        // 7. Bound::Excluded for start (Custom range)
+        use std::ops::Bound;
+        assert_eq!(
+            cumsum.range_sum((Bound::Excluded(1), Bound::Excluded(4))),
+            4 + 8
+        );
+    }
+
+    #[test]
     fn test_cumsum_binary_search() {
         let xs = vec![1, 2, 3, 4, 5];
         let cumsum = CumSum::new(&xs);

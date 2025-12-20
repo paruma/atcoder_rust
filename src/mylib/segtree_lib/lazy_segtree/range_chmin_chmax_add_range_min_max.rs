@@ -294,6 +294,25 @@ pub mod test_range_chmin_chmax_add_range_min_max {
     }
 
     #[test]
+    fn test_all_minmax() {
+        let xs = vec![10, 20, 30, 40, 50];
+        let mut segtree = RangeChminChmaxAddRangeMinMaxSegtree::<i64>::new(&xs);
+        assert_eq!(
+            segtree.all_minmax(),
+            MinMaxResult {
+                min_val: 10,
+                max_val: 50
+            }
+        );
+        assert_eq!(segtree.all_min(), 10);
+        assert_eq!(segtree.all_max(), 50);
+
+        segtree.apply_range_add(.., 5);
+        assert_eq!(segtree.all_min(), 15);
+        assert_eq!(segtree.all_max(), 55);
+    }
+
+    #[test]
     fn test_apply_range_chmin() {
         let xs = vec![10, 20, 30, 40, 50];
         let mut segtree = RangeChminChmaxAddRangeMinMaxSegtree::<i64>::new(&xs);

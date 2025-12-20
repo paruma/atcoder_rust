@@ -405,6 +405,40 @@ mod test_fenwick_tree {
     }
 
     #[test]
+    fn test_range_sum_patterns() {
+        let initial_vec = vec![1, 2, 4, 8, 16]; // 2^i
+        let ft = FenwickTree::<i64>::from_slice(&initial_vec, 0);
+
+        // 1. ..r (Excluded end)
+        assert_eq!(ft.range_sum(..3), 1 + 2 + 4);
+
+        // 2. ..=r (Included end)
+        assert_eq!(ft.range_sum(..=3), 1 + 2 + 4 + 8);
+
+        // 3. l..r (Included start, Excluded end)
+        assert_eq!(ft.range_sum(1..4), 2 + 4 + 8);
+
+        // 4. l..=r (Included start, Included end)
+        assert_eq!(ft.range_sum(1..=4), 2 + 4 + 8 + 16);
+
+        // 5. l.. (Included start, Unbounded end)
+        assert_eq!(ft.range_sum(2..), 4 + 8 + 16);
+
+        // 6. .. (Unbounded start, Unbounded end)
+        assert_eq!(ft.range_sum(..), 1 + 2 + 4 + 8 + 16);
+
+        // 7. Bound::Excluded for start (Custom range)
+        use std::ops::Bound;
+        assert_eq!(
+            ft.range_sum((Bound::Excluded(1), Bound::Excluded(4))),
+            4 + 8
+        );
+
+        // 8. Bound::Unbounded for end
+        assert_eq!(ft.range_sum(0..), 1 + 2 + 4 + 8 + 16);
+    }
+
+    #[test]
     #[should_panic(expected = "index out of bounds")]
     fn test_add_empty_tree_panics() {
         let mut ft_empty = FenwickTree::<i64>::new(0, 0);

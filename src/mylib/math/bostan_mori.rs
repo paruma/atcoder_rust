@@ -25,10 +25,10 @@ pub fn bostan_mori<M: Modulus>(
     while n > 0 {
         let k = q.len() - 1;
         if k == 0 {
-            return if p.is_empty() {
-                StaticModInt::new(0)
+            return if n < p.len() as u64 {
+                p[n as usize] * q[0].inv()
             } else {
-                p[0] * q[0].inv()
+                StaticModInt::new(0)
             };
         }
 
@@ -64,10 +64,10 @@ pub fn bostan_mori<M: Modulus>(
         n /= 2;
     }
 
-    if p.is_empty() {
-        StaticModInt::new(0)
+    if n < p.len() as u64 {
+        p[n as usize] * q[0].inv()
     } else {
-        p[0] * q[0].inv()
+        StaticModInt::new(0)
     }
 }
 
@@ -141,7 +141,8 @@ mod tests {
     use super::*;
     use ac_library::Mod998244353;
     use rand::Rng;
-    use rand::rngs::ThreadRng;
+    use rand::SeedableRng;
+    use rand::rngs::StdRng;
 
     // フィボナッチ数列: F_0 = 0, F_1 = 1, F_n = F_{n-1} + F_{n-2}
     // 係数: c_1 = 1, c_2 = 1
@@ -187,7 +188,7 @@ mod tests {
     }
 
     #[test]
-    fn test_bostan_mori_simple() {
+    fn test_nth_linearly_recurrent_sequence_simple() {
         type Mint = StaticModInt<Mod998244353>;
         // a_n = 2 * a_{n-1} - a_{n-2}
         // a_0 = 0, a_1 = 1
@@ -203,6 +204,70 @@ mod tests {
                 i
             );
         }
+    }
+
+    #[test]
+    fn test_bostan_mori_edge_cases() {
+        type Mint = StaticModInt<Mod998244353>;
+
+        // k == 0 (分母が定数)
+        let p = vec![Mint::new(3)];
+        let q = vec![Mint::new(1)]; // Q(x) = 1
+        assert_eq!(bostan_mori(p.clone(), q.clone(), 0), Mint::new(3)); // skips loop
+        assert_eq!(bostan_mori(p.clone(), q.clone(), 1), Mint::new(0)); // enters loop, k=0 hit
+
+        // p.is_empty()
+        assert_eq!(bostan_mori(vec![], vec![Mint::new(1)], 0), Mint::new(0)); // n=0, skips loop
+        assert_eq!(bostan_mori(vec![], vec![Mint::new(1)], 5), Mint::new(0)); // n>0, k=0 hit
+        assert_eq!(
+            bostan_mori(vec![], vec![Mint::new(1), Mint::new(1)], 10),
+            Mint::new(0)
+        ); // n>0, k=1
+
+        // n = 0
+        assert_eq!(
+            bostan_mori(vec![Mint::new(5)], vec![Mint::new(1)], 0),
+            Mint::new(5)
+        );
+        assert_eq!(
+            bostan_mori(
+                vec![Mint::new(1), Mint::new(2)],
+                vec![Mint::new(1), Mint::new(-1)],
+                0
+            ),
+            Mint::new(1)
+        );
+    }
+
+    #[test]
+    fn test_nth_linearly_recurrent_sequence_edge_cases() {
+        type Mint = StaticModInt<Mod998244353>;
+
+        // nth_linearly_recurrent_sequence で k = 0
+        let initial = [Mint::new(10), Mint::new(20)];
+        let coeffs = []; // a_n = 0 (for n >= initial.len())
+        assert_eq!(
+            nth_linearly_recurrent_sequence(&initial, &coeffs, 0),
+            Mint::new(10)
+        ); // n < len
+        assert_eq!(
+            nth_linearly_recurrent_sequence(&initial, &coeffs, 1),
+            Mint::new(20)
+        ); // n < len
+        assert_eq!(
+            nth_linearly_recurrent_sequence(&initial, &coeffs, 2),
+            Mint::new(0)
+        ); // hits k=0 block
+
+        // initial_terms が空の場合
+        assert_eq!(
+            nth_linearly_recurrent_sequence::<Mod998244353>(&[], &[], 0),
+            Mint::new(0)
+        );
+        assert_eq!(
+            nth_linearly_recurrent_sequence::<Mod998244353>(&[], &[], 1),
+            Mint::new(0)
+        );
     }
 
     // ランダムテスト用の愚直な実装
@@ -227,11 +292,74 @@ mod tests {
         a[n as usize]
     }
 
+    /// 有理関数 P(x)/Q(x) の N 次の係数を定義に基づき愚直に求める。
+    ///
+    /// 多項式の割り算（筆算）と同じ原理に基づき、a_i = (1/q0) * (p_i - Σ_{j=1}^i q_j * a_{i-j}) を逐次計算する。
+    ///
+    /// # 計算量
+    /// O(NK) (N は求める次数 n, K は分母多項式 Q の次数)
+    fn naive_bostan_mori<M: Modulus>(
+        p: &[StaticModInt<M>],
+        q: &[StaticModInt<M>],
+        n: u64,
+    ) -> StaticModInt<M> {
+        let n = n as usize;
+        let mut res = vec![StaticModInt::raw(0); n + 1];
+        if q.is_empty() || q[0] == StaticModInt::new(0) {
+            return StaticModInt::new(0);
+        }
+        let inv_q0 = q[0].inv();
+        for i in 0..=n {
+            let mut sum = if i < p.len() {
+                p[i]
+            } else {
+                StaticModInt::new(0)
+            };
+            for j in 1..q.len().min(i + 1) {
+                sum -= q[j] * res[i - j];
+            }
+            res[i] = sum * inv_q0;
+        }
+        res[n]
+    }
+
     #[test]
     #[ignore]
     fn test_bostan_mori_random() {
         type Mint = StaticModInt<Mod998244353>;
-        let mut rng = ThreadRng::default();
+        let mut rng = StdRng::from_os_rng();
+
+        for _ in 0..100 {
+            let p_len = rng.random_range(0..=10);
+            let q_len = rng.random_range(1..=10);
+            let n = rng.random_range(0..=100);
+
+            let p: Vec<Mint> = (0..p_len)
+                .map(|_| Mint::new(rng.random_range(0..998244353)))
+                .collect();
+            let mut q: Vec<Mint> = (0..q_len)
+                .map(|_| Mint::new(rng.random_range(0..998244353)))
+                .collect();
+            if q[0] == Mint::new(0) {
+                q[0] = Mint::new(1);
+            }
+
+            let expected = naive_bostan_mori(&p, &q, n as u64);
+            let actual = bostan_mori(p.clone(), q.clone(), n as u64);
+
+            assert_eq!(
+                actual, expected,
+                "Random test failed for n={}, p={:?}, q={:?}",
+                n, p, q
+            );
+        }
+    }
+
+    #[test]
+    #[ignore]
+    fn test_nth_linearly_recurrent_sequence_random() {
+        type Mint = StaticModInt<Mod998244353>;
+        let mut rng = StdRng::from_os_rng();
 
         for _ in 0..100 {
             let k = rng.random_range(1..=5);

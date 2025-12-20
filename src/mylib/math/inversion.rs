@@ -29,6 +29,7 @@ mod tests {
     use super::inversion_number;
     #[test]
     fn test_inversion_nubmer() {
+        assert_eq!(inversion_number(&[]), 0);
         assert_eq!(inversion_number(&[3, 2, 1]), 3);
         assert_eq!(inversion_number(&[1, 2, 3, 4, 5, 6]), 0);
         assert_eq!(inversion_number(&[1, 6, 3, 4, 5, 2]), 7);

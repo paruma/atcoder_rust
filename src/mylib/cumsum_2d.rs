@@ -87,6 +87,44 @@ mod test_cumsum_2d {
     }
 
     #[test]
+    fn test_rect_sum_patterns() {
+        // [ 1  2  4 ]
+        // [ 8 16 32 ]
+        // [ 64 128 256 ]
+        let xss = vec![vec![1, 2, 4], vec![8, 16, 32], vec![64, 128, 256]];
+        let cumsum = CumSum2D::new(&xss);
+
+        // 1. .. (Full range)
+        assert_eq!(
+            cumsum.rect_sum(.., ..),
+            1 + 2 + 4 + 8 + 16 + 32 + 64 + 128 + 256
+        );
+
+        // 2. Row specific patterns
+        assert_eq!(cumsum.rect_sum(..2, ..), 1 + 2 + 4 + 8 + 16 + 32); // rows 0, 1
+        assert_eq!(cumsum.rect_sum(1..=2, ..), 8 + 16 + 32 + 64 + 128 + 256); // rows 1, 2
+        assert_eq!(cumsum.rect_sum(2.., ..), 64 + 128 + 256); // row 2
+
+        // 3. Col specific patterns
+        assert_eq!(cumsum.rect_sum(.., ..1), 1 + 8 + 64); // col 0
+        assert_eq!(cumsum.rect_sum(.., 1..3), 2 + 4 + 16 + 32 + 128 + 256); // cols 1, 2
+        assert_eq!(cumsum.rect_sum(.., 2..=2), 4 + 32 + 256); // col 2
+
+        // 4. Combined
+        assert_eq!(cumsum.rect_sum(1..2, 1..3), 16 + 32); // row 1, cols 1, 2
+
+        // 5. Bound::Excluded
+        use std::ops::Bound;
+        assert_eq!(
+            cumsum.rect_sum(
+                (Bound::Excluded(0), Bound::Unbounded),
+                (Bound::Included(1), Bound::Excluded(2))
+            ),
+            16 + 128 // rows 1, 2, col 1
+        );
+    }
+
+    #[test]
     fn test_cumsum_2d_empty() {
         let xss = vec![];
         let cumsum = CumSum2D::new(&xss);

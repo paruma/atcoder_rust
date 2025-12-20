@@ -329,11 +329,59 @@ mod tests {
     }
 
     #[test]
+    fn test_add_assign() {
+        let mut m1 = DynamicMatrix::<i32>::from_vec(vec![vec![1, 2], vec![3, 4]]);
+        let m2 = DynamicMatrix::<i32>::from_vec(vec![vec![5, 6], vec![7, 8]]);
+        m1 += m2;
+        assert_eq!(m1.data, [[6, 8], [10, 12]]);
+    }
+
+    #[test]
     #[should_panic(expected = "Matrices must have the same number of rows for addition.")]
     fn test_add_mismatched_rows_panic() {
         let m1 = DynamicMatrix::<i32>::new(2, 2, 0);
         let m2 = DynamicMatrix::<i32>::new(3, 2, 0);
         let _ = m1 + m2;
+    }
+
+    #[test]
+    #[should_panic(expected = "Matrices must have the same number of columns for addition.")]
+    fn test_add_assign_mismatched_cols_panic() {
+        let mut m1 = DynamicMatrix::<i32>::new(2, 2, 0);
+        let m2 = DynamicMatrix::<i32>::new(2, 3, 0);
+        m1 += m2;
+    }
+
+    #[test]
+    fn test_sub() {
+        let m1 = DynamicMatrix::<i32>::from_vec(vec![vec![5, 6], vec![7, 8]]);
+        let m2 = DynamicMatrix::<i32>::from_vec(vec![vec![1, 2], vec![3, 4]]);
+        let m3 = m1 - m2;
+        assert_eq!(m3.data, [[4, 4], [4, 4]]);
+    }
+
+    #[test]
+    fn test_sub_assign() {
+        let mut m1 = DynamicMatrix::<i32>::from_vec(vec![vec![5, 6], vec![7, 8]]);
+        let m2 = DynamicMatrix::<i32>::from_vec(vec![vec![1, 2], vec![3, 4]]);
+        m1 -= m2;
+        assert_eq!(m1.data, [[4, 4], [4, 4]]);
+    }
+
+    #[test]
+    #[should_panic(expected = "Matrices must have the same number of rows for subtraction.")]
+    fn test_sub_mismatched_rows_panic() {
+        let m1 = DynamicMatrix::<i32>::new(2, 2, 0);
+        let m2 = DynamicMatrix::<i32>::new(3, 2, 0);
+        let _ = m1 - m2;
+    }
+
+    #[test]
+    #[should_panic(expected = "Matrices must have the same number of columns for subtraction.")]
+    fn test_sub_assign_mismatched_cols_panic() {
+        let mut m1 = DynamicMatrix::<i32>::new(2, 2, 0);
+        let m2 = DynamicMatrix::<i32>::new(2, 3, 0);
+        m1 -= m2;
     }
 
     #[test]
