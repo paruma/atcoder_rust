@@ -8,7 +8,7 @@ pub mod fenwick_tree {
     // Reference: https://en.wikipedia.org/wiki/Fenwick_tree
     /// ACL の FenwickTree の拡張。
     ///
-    /// get, set, to_vec が追加されている。また sum は range_sum に名前変更している。
+    /// get, set, to_vec などが追加されている。また sum は range_sum に名前変更している。
     #[derive(Clone, Debug)]
     pub struct FenwickTree<T> {
         n: usize,
@@ -16,7 +16,9 @@ pub mod fenwick_tree {
         e: T,
     }
 
-    impl<T: Clone + std::ops::AddAssign<T> + std::ops::Sub<Output = T> + std::fmt::Debug> FenwickTree<T> {
+    impl<T: Clone + std::ops::AddAssign<T> + std::ops::Sub<Output = T> + std::fmt::Debug>
+        FenwickTree<T>
+    {
         /// サイズ `n` の `FenwickTree` を作成します。
         ///
         /// # 計算量
@@ -170,7 +172,65 @@ pub mod fenwick_tree {
             r
         }
 
+        /// `r` を右端として、`f(sum(l..r))` が true になる最小の `l` を返します。
+        ///
+        /// `f` は単調である必要があります。つまり、ある `l` で `f` が true になったら、
+        /// それ以降の `l' > l` でも true になる必要があります。
+        /// また、`f(0)` は true である必要があります。
+        ///
+        /// # 前提条件
+        ///
+        /// 各要素は非負であり、累積和が単調増加する必要があります。
+        ///
+        /// # 計算量
+        ///
+        /// O(log N)
+        pub fn min_left<F>(&self, r: usize, f: F) -> usize
+        where
+            T: std::ops::Sub<Output = T>,
+            F: Fn(&T) -> bool,
+        {
+            assert!(
+                r <= self.n,
+                "FenwickTree::min_left: index out of bounds. r: {}, n: {}",
+                r,
+                self.n
+            );
+            assert!(
+                f(&self.e),
+                "FenwickTree::min_left: The predicate f(e) must be true. f(e) = f({:?}) was false.",
+                self.e
+            );
 
+            let val_r = self.accum(r);
+            // sum(0..r) = val_r - 0 がすでに条件を満たすなら、最小の l は 0
+            if f(&val_r) {
+                return 0;
+            }
+
+            let mut idx = 0;
+            let mut current_val = self.e.clone();
+            let mut k = 1;
+            while k <= self.n {
+                k <<= 1;
+            }
+            k >>= 1;
+
+            while k > 0 {
+                if idx + k <= r {
+                    let mut next_val = current_val.clone();
+                    next_val += self.ary[idx + k - 1].clone();
+                    // sum(idx+k .. r) = val_r - next_val
+                    // f(sum) が false なら、もっと l を大きく（idx を右に）して sum を減らす必要がある
+                    if !f(&(val_r.clone() - next_val.clone())) {
+                        idx += k;
+                        current_val = next_val;
+                    }
+                }
+                k >>= 1;
+            }
+            idx + 1
+        }
 
         /// `idx`番目の要素の値を取得します。
         ///
@@ -412,8 +472,54 @@ mod test_fenwick_tree {
                         threshold,
                         naive_vec
                     );
+                }
+            }
+        }
+    }
 
+    #[ignore]
+    #[test]
+    fn test_random_min_left() {
+        let mut rng = SmallRng::seed_from_u64(200);
 
+        for _ in 0..100 {
+            let n = rng.random_range(1..=20);
+            // 非負の要素で構成する
+            let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.random_range(0..=10)).collect();
+            let mut fenwick_tree = FenwickTree::<i64>::from_slice(&naive_vec, 0);
+
+            for _ in 0..100 {
+                let op_type = rng.random_range(0..2);
+
+                if op_type == 0 {
+                    // add (非負の値を足す)
+                    let idx = rng.random_range(0..n);
+                    let val = rng.random_range(0..=10);
+                    naive_vec[idx] += val;
+                    fenwick_tree.add(idx, val);
+                } else {
+                    // query
+                    // min_left
+                    let r = rng.random_range(0..=n);
+                    // f: sum < threshold
+                    let threshold = rng.random_range(1..=200);
+                    let f = |x: &i64| *x < threshold;
+
+                    let expected_l = (0..=r)
+                        .find(|&l| {
+                            let sum: i64 = naive_vec[l..r].iter().sum();
+                            f(&sum)
+                        })
+                        .unwrap();
+
+                    assert_eq!(
+                        fenwick_tree.min_left(r, f),
+                        expected_l,
+                        "min_left failed. r={}, threshold={}, vec={:?}",
+                        r,
+                        threshold,
+                        naive_vec
+                    );
                 }
             }
         }
