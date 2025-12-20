@@ -3915,6 +3915,7 @@
     "prefix": "imos_1d",
     "body": [
       "use imos_1d::*;",
+      "#[allow(clippy::module_inception)]",
       "/// 1次元いもす法を扱うモジュール",
       "/// # Examples",
       "/// ```",
@@ -4005,6 +4006,7 @@
     "prefix": "imos_2d",
     "body": [
       "use imos_2d::*;",
+      "#[allow(clippy::module_inception)]",
       "/// 2次元いもす法を扱うモジュール",
       "/// # Examples",
       "/// ```",
