@@ -30,3 +30,18 @@ cargo が使えるイメージ。
     ```sh
     GEMINI_SANDBOX_IMAGE="gemini-rust" gemini -s --yolo
     ```
+
+## テストカバレッジ
+
+ブラウザで見る
+
+```sh
+cargo llvm-cov --open --lib --ignore-filename-regex "src/(contest|example)" -- --include-ignored mylib
+```
+
+
+VSCode で見る
+
+```sh
+cargo llvm-cov --lcov --output-path lcov.info --lib --ignore-filename-regex "src/(contest|example)" -- --include-ignored 
+```
