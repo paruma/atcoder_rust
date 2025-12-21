@@ -6,7 +6,7 @@ fn main() {
         q: usize,
     }
 
-    let mut seg = Segbeats::new(&xs);
+    let mut seg = RangeChminChmaxAddRangeSumSegtree::from(&xs);
 
     for _ in 0..q {
         input! {
@@ -14,10 +14,10 @@ fn main() {
             r: Usize1,
             k: i64,
         }
-        let before_sum = seg.query_sum(l..=r);
-        seg.range_add(l..=r, -k);
-        seg.change_max(l..=r, 0);
-        let after_sum = seg.query_sum(l..=r);
+        let before_sum = seg.sum(l..=r);
+        seg.add(l..=r, -k);
+        seg.chmax(l..=r, 0);
+        let after_sum = seg.sum(l..=r);
 
         let ans = before_sum - after_sum;
         println!("{}", ans);
@@ -150,460 +150,649 @@ pub mod print_util {
 }
 
 // ====== snippet ======
-use std::cell::RefCell;
-use std::fmt::Debug;
-use std::ops::Add;
-use std::ops::AddAssign;
-use std::ops::Bound;
-use std::ops::Range;
-use std::ops::RangeBounds;
-use std::ops::Sub;
-use std::ops::SubAssign;
-
-pub fn open(len: usize, range: impl RangeBounds<usize>) -> Range<usize> {
-    use Bound::Excluded;
-    use Bound::Included;
-    use Bound::Unbounded;
-    (match range.start_bound() {
-        Unbounded => 0,
-        Included(&x) => x,
-        Excluded(&x) => x + 1,
-    })..(match range.end_bound() {
-        Excluded(&x) => x,
-        Included(&x) => x + 1,
-        Unbounded => len,
-    })
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Segbeats<T> {
-    len: usize,
-    lg: u32,
-    table: RefCell<Vec<Node<T>>>,
-}
-
-impl<T: Elm> Segbeats<T> {
-    pub fn new(src: &[T]) -> Self {
-        let len = src.len().next_power_of_two();
-        let lg = len.trailing_zeros();
-        let mut table = vec![Node::new(); 2 * len];
-        for (i, &x) in src.iter().enumerate() {
-            table[len + i] = Node::single(x);
+use abstract_segtree_beats::*;
+use range_chmin_chmax_add_range_sum_beats::*;
+#[allow(clippy::module_inception)]
+pub mod abstract_segtree_beats {
+    fn ceil_pow2(n: u32) -> u32 {
+        32 - n.saturating_sub(1).leading_zeros()
+    }
+    pub trait MonoidBeats {
+        type S: Clone;
+        fn identity() -> Self::S;
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S;
+        fn fails(a: &Self::S) -> bool;
+    }
+    pub trait MapMonoidBeats {
+        type M: MonoidBeats;
+        type F: Clone;
+        fn identity_element() -> <Self::M as MonoidBeats>::S {
+            Self::M::identity()
         }
-        (1..len)
-            .rev()
-            .for_each(|i| table[i] = Node::merge(table[2 * i], table[2 * i + 1]));
-        Self {
-            len,
-            lg,
-            table: RefCell::new(table),
+        fn binary_operation(
+            a: &<Self::M as MonoidBeats>::S,
+            b: &<Self::M as MonoidBeats>::S,
+        ) -> <Self::M as MonoidBeats>::S {
+            Self::M::binary_operation(a, b)
+        }
+        fn fails(a: &<Self::M as MonoidBeats>::S) -> bool {
+            Self::M::fails(a)
+        }
+        fn identity_map() -> Self::F;
+        fn mapping(f: &Self::F, x: &<Self::M as MonoidBeats>::S) -> <Self::M as MonoidBeats>::S;
+        fn composition(f: &Self::F, g: &Self::F) -> Self::F;
+    }
+    impl<F: MapMonoidBeats> Default for SegtreeBeats<F> {
+        fn default() -> Self {
+            Self::new(0)
         }
     }
-
-    pub fn change_min(&mut self, range: impl Clone + RangeBounds<usize>, x: T) {
-        let range = open(self.len, range);
-        self.dfs::<ChangeMin<T>>(range, x);
-    }
-
-    pub fn change_max(&mut self, range: impl Clone + RangeBounds<usize>, x: T) {
-        let range = open(self.len, range);
-        self.dfs::<ChangeMax<T>>(range, x);
-    }
-
-    pub fn range_add(&mut self, range: impl Clone + RangeBounds<usize>, x: T) {
-        let range = open(self.len, range);
-        self.dfs::<RangeAdd<T>>(range, x);
-    }
-
-    pub fn query_min(&self, range: impl RangeBounds<usize>) -> T {
-        let range = open(self.len, range);
-        self.dfs::<QueryMin<T>>(range, ())
-    }
-
-    pub fn query_max(&self, range: impl RangeBounds<usize>) -> T {
-        let range = open(self.len, range);
-        self.dfs::<QueryMax<T>>(range, ())
-    }
-
-    pub fn query_sum(&self, range: impl RangeBounds<usize>) -> T {
-        let range = open(self.len, range);
-        self.dfs::<QuerySum<T>>(range, ())
-    }
-
-    fn push(&self, i: usize) {
-        let lz = std::mem::replace(&mut self.table.borrow_mut()[i].lazy_add, T::zero());
-        if lz != T::zero() {
-            (2 * i..2 * i + 2).for_each(|j| self.table.borrow_mut()[j].add(lz));
+    impl<F: MapMonoidBeats> SegtreeBeats<F> {
+        pub fn new(n: usize) -> Self {
+            vec![F::identity_element(); n].into()
         }
-
-        let x = self.table.borrow()[i].max[0];
-        for j in 2 * i..2 * i + 2 {
-            let node = self.table.borrow()[j];
-            if node.max[1] < x && x < node.max[0] {
-                self.table.borrow_mut()[j].change_min(x);
+    }
+    impl<F: MapMonoidBeats> From<Vec<<F::M as MonoidBeats>::S>> for SegtreeBeats<F> {
+        fn from(v: Vec<<F::M as MonoidBeats>::S>) -> Self {
+            let n = v.len();
+            let log = ceil_pow2(n as u32) as usize;
+            let size = 1 << log;
+            let mut d = vec![F::identity_element(); 2 * size];
+            let lz = vec![F::identity_map(); size];
+            d[size..(size + n)].clone_from_slice(&v);
+            let mut ret = SegtreeBeats {
+                n,
+                size,
+                log,
+                d,
+                lz,
+            };
+            for i in (1..size).rev() {
+                ret.update(i);
+            }
+            ret
+        }
+    }
+    impl<F: MapMonoidBeats> SegtreeBeats<F> {
+        pub fn set(&mut self, mut p: usize, x: <F::M as MonoidBeats>::S) {
+            assert!(p < self.n);
+            p += self.size;
+            for i in (1..=self.log).rev() {
+                self.push(p >> i);
+            }
+            self.d[p] = x;
+            for i in 1..=self.log {
+                self.update(p >> i);
             }
         }
-        let x = self.table.borrow()[i].min[0];
-        for j in 2 * i..2 * i + 2 {
-            let node = self.table.borrow()[j];
-            if node.min[0] < x && x < node.min[1] {
-                self.table.borrow_mut()[j].change_max(x);
+        pub fn get(&mut self, mut p: usize) -> <F::M as MonoidBeats>::S {
+            assert!(p < self.n);
+            p += self.size;
+            for i in (1..=self.log).rev() {
+                self.push(p >> i);
+            }
+            self.d[p].clone()
+        }
+        pub fn prod<R>(&mut self, range: R) -> <F::M as MonoidBeats>::S
+        where
+            R: RangeBounds<usize>,
+        {
+            if range.start_bound() == Bound::Unbounded && range.end_bound() == Bound::Unbounded {
+                return self.all_prod();
+            }
+            let mut r = match range.end_bound() {
+                Bound::Included(r) => r + 1,
+                Bound::Excluded(r) => *r,
+                Bound::Unbounded => self.n,
+            };
+            let mut l = match range.start_bound() {
+                Bound::Included(l) => *l,
+                Bound::Excluded(l) => l + 1,
+                Bound::Unbounded => 0,
+            };
+            assert!(l <= r && r <= self.n);
+            if l == r {
+                return F::identity_element();
+            }
+            l += self.size;
+            r += self.size;
+            for i in (1..=self.log).rev() {
+                if ((l >> i) << i) != l {
+                    self.push(l >> i);
+                }
+                if ((r >> i) << i) != r {
+                    self.push(r >> i);
+                }
+            }
+            let mut sml = F::identity_element();
+            let mut smr = F::identity_element();
+            while l < r {
+                if l & 1 != 0 {
+                    sml = F::binary_operation(&sml, &self.d[l]);
+                    l += 1;
+                }
+                if r & 1 != 0 {
+                    r -= 1;
+                    smr = F::binary_operation(&self.d[r], &smr);
+                }
+                l >>= 1;
+                r >>= 1;
+            }
+            F::binary_operation(&sml, &smr)
+        }
+        pub fn all_prod(&self) -> <F::M as MonoidBeats>::S {
+            self.d[1].clone()
+        }
+        pub fn apply(&mut self, mut p: usize, f: F::F) {
+            assert!(p < self.n);
+            p += self.size;
+            for i in (1..=self.log).rev() {
+                self.push(p >> i);
+            }
+            self.d[p] = F::mapping(&f, &self.d[p]);
+            for i in 1..=self.log {
+                self.update(p >> i);
             }
         }
+        pub fn apply_range<R>(&mut self, range: R, f: F::F)
+        where
+            R: RangeBounds<usize>,
+        {
+            let mut r = match range.end_bound() {
+                Bound::Included(r) => r + 1,
+                Bound::Excluded(r) => *r,
+                Bound::Unbounded => self.n,
+            };
+            let mut l = match range.start_bound() {
+                Bound::Included(l) => *l,
+                Bound::Excluded(l) => l + 1,
+                Bound::Unbounded => 0,
+            };
+            assert!(l <= r && r <= self.n);
+            if l == r {
+                return;
+            }
+            l += self.size;
+            r += self.size;
+            for i in (1..=self.log).rev() {
+                if ((l >> i) << i) != l {
+                    self.push(l >> i);
+                }
+                if ((r >> i) << i) != r {
+                    self.push((r - 1) >> i);
+                }
+            }
+            {
+                let l2 = l;
+                let r2 = r;
+                while l < r {
+                    if l & 1 != 0 {
+                        self.all_apply(l, f.clone());
+                        l += 1;
+                    }
+                    if r & 1 != 0 {
+                        r -= 1;
+                        self.all_apply(r, f.clone());
+                    }
+                    l >>= 1;
+                    r >>= 1;
+                }
+                l = l2;
+                r = r2;
+            }
+            for i in 1..=self.log {
+                if ((l >> i) << i) != l {
+                    self.update(l >> i);
+                }
+                if ((r >> i) << i) != r {
+                    self.update((r - 1) >> i);
+                }
+            }
+        }
+        pub fn max_right<G>(&mut self, mut l: usize, g: G) -> usize
+        where
+            G: Fn(<F::M as MonoidBeats>::S) -> bool,
+        {
+            assert!(l <= self.n);
+            assert!(g(F::identity_element()));
+            if l == self.n {
+                return self.n;
+            }
+            l += self.size;
+            for i in (1..=self.log).rev() {
+                self.push(l >> i);
+            }
+            let mut sm = F::identity_element();
+            while {
+                while l % 2 == 0 {
+                    l >>= 1;
+                }
+                if !g(F::binary_operation(&sm, &self.d[l])) {
+                    while l < self.size {
+                        self.push(l);
+                        l *= 2;
+                        let res = F::binary_operation(&sm, &self.d[l]);
+                        if g(res.clone()) {
+                            sm = res;
+                            l += 1;
+                        }
+                    }
+                    return l - self.size;
+                }
+                sm = F::binary_operation(&sm, &self.d[l]);
+                l += 1;
+                {
+                    let l = l as isize;
+                    (l & -l) != l
+                }
+            } {}
+            self.n
+        }
+        pub fn min_left<G>(&mut self, mut r: usize, g: G) -> usize
+        where
+            G: Fn(<F::M as MonoidBeats>::S) -> bool,
+        {
+            assert!(r <= self.n);
+            assert!(g(F::identity_element()));
+            if r == 0 {
+                return 0;
+            }
+            r += self.size;
+            for i in (1..=self.log).rev() {
+                self.push((r - 1) >> i);
+            }
+            let mut sm = F::identity_element();
+            while {
+                r -= 1;
+                while r > 1 && r % 2 != 0 {
+                    r >>= 1;
+                }
+                if !g(F::binary_operation(&self.d[r], &sm)) {
+                    while r < self.size {
+                        self.push(r);
+                        r = 2 * r + 1;
+                        let res = F::binary_operation(&self.d[r], &sm);
+                        if g(res.clone()) {
+                            sm = res;
+                            r -= 1;
+                        }
+                    }
+                    return r + 1 - self.size;
+                }
+                sm = F::binary_operation(&self.d[r], &sm);
+                {
+                    let r = r as isize;
+                    (r & -r) != r
+                }
+            } {}
+            0
+        }
+        pub fn to_vec(&mut self) -> Vec<<F::M as MonoidBeats>::S> {
+            (0..self.n).map(|i| self.get(i)).collect()
+        }
     }
-
-    fn dfs<D: Dfs<Value = T>>(&self, range: Range<usize>, x: D::Param) -> D::Output {
-        self.dfs_impl::<D>(1, 0..self.len, range, x)
+    pub struct SegtreeBeats<F>
+    where
+        F: MapMonoidBeats,
+    {
+        n: usize,
+        size: usize,
+        log: usize,
+        d: Vec<<F::M as MonoidBeats>::S>,
+        lz: Vec<F::F>,
     }
-
-    fn dfs_impl<D: Dfs<Value = T>>(
-        &self,
-        root: usize,
-        subtree: Range<usize>,
-        range: Range<usize>,
-        x: D::Param,
-    ) -> D::Output {
-        if disjoint(&range, &subtree) || D::break_condition(self.table.borrow()[root], x) {
-            D::identity()
-        } else if contains(&range, &subtree) && D::tag_condition(self.table.borrow()[root], x) {
-            D::tag(&mut self.table.borrow_mut()[root], x);
-            D::extract(self.table.borrow()[root])
+    impl<F> SegtreeBeats<F>
+    where
+        F: MapMonoidBeats,
+    {
+        fn update(&mut self, k: usize) {
+            self.d[k] = F::binary_operation(&self.d[2 * k], &self.d[2 * k + 1]);
+        }
+        fn all_apply(&mut self, k: usize, f: F::F) {
+            self.d[k] = F::mapping(&f, &self.d[k]);
+            if k < self.size {
+                self.lz[k] = F::composition(&f, &self.lz[k]);
+                if F::fails(&self.d[k]) {
+                    self.push(k);
+                    self.update(k)
+                }
+            }
+        }
+        fn push(&mut self, k: usize) {
+            self.all_apply(2 * k, self.lz[k].clone());
+            self.all_apply(2 * k + 1, self.lz[k].clone());
+            self.lz[k] = F::identity_map();
+        }
+    }
+    use std::{
+        fmt::{Debug, Error, Formatter, Write},
+        ops::{Bound, RangeBounds},
+    };
+    impl<F> Debug for SegtreeBeats<F>
+    where
+        F: MapMonoidBeats,
+        F::F: Debug,
+        <F::M as MonoidBeats>::S: Debug,
+    {
+        fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+            for i in 0..self.log {
+                for j in 0..1 << i {
+                    f.write_fmt(format_args!(
+                        "{:?}[{:?}]\t",
+                        self.d[(1 << i) + j],
+                        self.lz[(1 << i) + j]
+                    ))?;
+                }
+                f.write_char('\n')?;
+            }
+            for i in 0..self.size {
+                f.write_fmt(format_args!("{:?}\t", self.d[self.size + i]))?;
+            }
+            Ok(())
+        }
+    }
+}
+#[allow(clippy::module_inception)]
+pub mod range_chmin_chmax_add_range_sum_beats {
+    use super::{MapMonoidBeats, MonoidBeats, SegtreeBeats};
+    use itertools::Itertools;
+    use std::{
+        cmp::{max, min},
+        convert::Infallible,
+        ops::RangeBounds,
+    };
+    const INF: i64 = i64::MAX;
+    const NEG_INF: i64 = i64::MIN;
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub struct RangeSum {
+        pub sum: i64,
+        pub len: usize,
+        pub max: i64,
+        pub max_2nd: i64,
+        pub max_cnt: usize,
+        pub min: i64,
+        pub min_2nd: i64,
+        pub min_cnt: usize,
+    }
+    impl RangeSum {
+        pub fn unit(x: i64) -> Option<RangeSum> {
+            Some(RangeSum {
+                sum: x,
+                len: 1,
+                max: x,
+                max_2nd: NEG_INF,
+                max_cnt: 1,
+                min: x,
+                min_2nd: INF,
+                min_cnt: 1,
+            })
+        }
+    }
+    fn second_lowest(a: i64, a2: i64, b: i64, b2: i64) -> i64 {
+        if a == b {
+            min(a2, b2)
+        } else if a2 <= b {
+            a2
+        } else if b2 <= a {
+            b2
         } else {
-            let Range { start, end } = subtree;
-            let mid = (start + end) / 2;
-            self.push(root);
-            let l = self.dfs_impl::<D>(root * 2, start..mid, range.clone(), x);
-            let r = self.dfs_impl::<D>(root * 2 + 1, mid..end, range, x);
-            self.update(root);
-            D::merge(l, r)
+            max(a, b)
         }
     }
-
-    fn update(&self, i: usize) {
-        let x = Node::merge(self.table.borrow()[2 * i], self.table.borrow()[2 * i + 1]);
-        self.table.borrow_mut()[i] = x;
-    }
-}
-
-trait Dfs {
-    type Value: Elm;
-    type Param: Copy + Debug;
-    type Output: Debug;
-    fn identity() -> Self::Output;
-    fn break_condition(_node: Node<Self::Value>, _x: Self::Param) -> bool {
-        false
-    }
-    fn tag_condition(_node: Node<Self::Value>, _x: Self::Param) -> bool {
-        true
-    }
-    fn tag(_node: &mut Node<Self::Value>, _x: Self::Param) {}
-    fn merge(left: Self::Output, right: Self::Output) -> Self::Output;
-    fn extract(node: Node<Self::Value>) -> Self::Output;
-}
-struct ChangeMin<T>(std::marker::PhantomData<T>);
-impl<T: Elm> Dfs for ChangeMin<T> {
-    type Output = ();
-    type Param = T;
-    type Value = T;
-
-    fn identity() -> Self::Output {}
-
-    fn break_condition(node: Node<T>, x: Self::Param) -> bool {
-        node.max[0] <= x
-    }
-
-    fn tag_condition(node: Node<T>, x: Self::Param) -> bool {
-        node.max[1] < x
-    }
-
-    fn tag(node: &mut Node<Self::Value>, x: Self::Param) {
-        node.change_min(x);
-    }
-
-    fn merge((): (), (): ()) {}
-
-    fn extract(_node: Node<T>) {}
-}
-struct ChangeMax<T>(std::marker::PhantomData<T>);
-impl<T: Elm> Dfs for ChangeMax<T> {
-    type Output = ();
-    type Param = T;
-    type Value = T;
-
-    fn identity() -> Self::Output {}
-
-    fn break_condition(node: Node<T>, x: Self::Param) -> bool {
-        x <= node.min[0]
-    }
-
-    fn tag_condition(node: Node<T>, x: Self::Param) -> bool {
-        x < node.min[1]
-    }
-
-    fn tag(node: &mut Node<Self::Value>, x: Self::Param) {
-        node.change_max(x);
-    }
-
-    fn merge((): (), (): ()) {}
-
-    fn extract(_node: Node<T>) {}
-}
-struct RangeAdd<T>(std::marker::PhantomData<T>);
-impl<T: Elm> Dfs for RangeAdd<T> {
-    type Output = ();
-    type Param = T;
-    type Value = T;
-
-    fn identity() -> Self::Output {}
-
-    fn tag(node: &mut Node<Self::Value>, x: Self::Param) {
-        node.add(x);
-    }
-
-    fn merge((): (), (): ()) {}
-
-    fn extract(_node: Node<T>) {}
-}
-struct QueryMin<T>(std::marker::PhantomData<T>);
-impl<T: Elm> Dfs for QueryMin<T> {
-    type Output = T;
-    type Param = ();
-    type Value = T;
-
-    fn identity() -> Self::Output {
-        T::max_value()
-    }
-
-    fn merge(left: T, right: T) -> T {
-        left.min(right)
-    }
-
-    fn extract(node: Node<T>) -> T {
-        node.min[0]
-    }
-}
-struct QueryMax<T>(std::marker::PhantomData<T>);
-impl<T: Elm> Dfs for QueryMax<T> {
-    type Output = T;
-    type Param = ();
-    type Value = T;
-
-    fn identity() -> Self::Output {
-        T::min_value()
-    }
-
-    fn merge(left: T, right: T) -> T {
-        left.max(right)
-    }
-
-    fn extract(node: Node<T>) -> T {
-        node.max[0]
-    }
-}
-struct QuerySum<T>(std::marker::PhantomData<T>);
-impl<T: Elm> Dfs for QuerySum<T> {
-    type Output = T;
-    type Param = ();
-    type Value = T;
-
-    fn identity() -> Self::Output {
-        T::zero()
-    }
-
-    fn merge(left: T, right: T) -> T {
-        left + right
-    }
-
-    fn extract(node: Node<T>) -> T {
-        node.sum
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Copy, Eq)]
-struct Node<T> {
-    max: [T; 2],
-    c_max: u32,
-    min: [T; 2],
-    c_min: u32,
-    sum: T,
-    lazy_add: T,
-    len: u32,
-}
-impl<T: Elm> Node<T> {
-    fn new() -> Self {
-        Self {
-            max: [T::min_value(), T::min_value()],
-            c_max: 0,
-            min: [T::max_value(), T::max_value()],
-            c_min: 0,
-            sum: T::zero(),
-            lazy_add: T::zero(),
-            len: 0,
+    fn second_highest(a: i64, a2: i64, b: i64, b2: i64) -> i64 {
+        if a == b {
+            max(a2, b2)
+        } else if a2 >= b {
+            a2
+        } else if b2 >= a {
+            b2
+        } else {
+            min(a, b)
         }
     }
-
-    fn single(x: T) -> Self {
-        Self {
-            max: [x, T::min_value()],
-            c_max: 1,
-            min: [x, T::max_value()],
-            c_min: 1,
-            sum: x,
-            lazy_add: T::zero(),
-            len: 1,
+    pub struct RangeSumMonoid(Infallible);
+    impl MonoidBeats for RangeSumMonoid {
+        type S = Option<RangeSum>;
+        fn identity() -> Self::S {
+            Some(RangeSum {
+                sum: 0,
+                len: 0,
+                max: NEG_INF,
+                max_2nd: NEG_INF,
+                max_cnt: 0,
+                min: INF,
+                min_2nd: INF,
+                min_cnt: 0,
+            })
         }
-    }
-
-    fn add(&mut self, x: T) {
-        self.max
-            .iter_mut()
-            .filter(|y| **y != T::min_value())
-            .for_each(|y| *y += x);
-        self.min
-            .iter_mut()
-            .filter(|y| **y != T::max_value())
-            .for_each(|y| *y += x);
-        self.sum += x.mul_u32(self.len);
-        self.lazy_add += x;
-    }
-
-    fn change_min(&mut self, x: T) {
-        assert!(self.max[1] < x && x < self.max[0]);
-        self.sum += (x - self.max[0]).mul_u32(self.c_max);
-        for i in 0..2 {
-            if self.min[i] == self.max[0] {
-                self.min[i] = x;
-            }
-        }
-        self.max[0] = x;
-    }
-
-    fn change_max(&mut self, x: T) {
-        assert!(self.min[0] < x && x < self.min[1]);
-        self.sum += (x - self.min[0]).mul_u32(self.c_min);
-        for i in 0..2 {
-            if self.max[i] == self.min[0] {
-                self.max[i] = x;
-            }
-        }
-        self.min[0] = x;
-    }
-
-    fn merge(left: Self, right: Self) -> Self {
-        use std::cmp::Ordering;
-        let (max, c_max) = {
-            let [a, b] = left.max;
-            let [c, d] = right.max;
-            match a.cmp(&c) {
-                Ordering::Equal => ([a, c.max(d)], left.c_max + right.c_max),
-                Ordering::Greater => ([a, b.max(c)], left.c_max),
-                Ordering::Less => ([c, a.max(d)], right.c_max),
-            }
-        };
-        let (min, c_min) = {
-            let [a, b] = left.min;
-            let [c, d] = right.min;
-            match a.cmp(&c) {
-                Ordering::Equal => ([a, c.min(d)], left.c_min + right.c_min),
-                Ordering::Less => ([a, b.min(c)], left.c_min),
-                Ordering::Greater => ([c, a.min(d)], right.c_min),
-            }
-        };
-        Self {
-            max,
-            c_max,
-            min,
-            c_min,
-            sum: left.sum + right.sum,
-            len: left.len + right.len,
-            lazy_add: T::zero(),
-        }
-    }
-}
-
-fn contains(i: &Range<usize>, j: &Range<usize>) -> bool {
-    i.start <= j.start && j.end <= i.end
-}
-fn disjoint(i: &Range<usize>, j: &Range<usize>) -> bool {
-    i.end <= j.start || j.end <= i.start
-}
-
-pub trait Elm:
-    Sized
-    + std::fmt::Debug
-    + Copy
-    + Ord
-    + Add<Output = Self>
-    + AddAssign
-    + Sub<Output = Self>
-    + SubAssign
-{
-    fn max_value() -> Self;
-    fn min_value() -> Self;
-    fn zero() -> Self;
-    fn mul_u32(&self, x: u32) -> Self;
-}
-macro_rules! impl_elm {
-    {$($ty:ident;)*} => {
-        $(
-            impl Elm for $ty {
-                fn min_value() -> Self {
-                    $ty::MIN
-                }
-                fn max_value() -> Self {
-                    $ty::MAX
-                }
-                fn zero() -> Self {
-                    0
-                }
-                fn mul_u32(&self, x: u32) -> Self {
-                    self * (x as $ty)
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            match (a, b) {
+                (None, None) => None,
+                (None, Some(_)) => None,
+                (Some(_), None) => None,
+                (Some(a), Some(b)) => {
+                    if a.len == 0 {
+                        return Some(*b);
+                    }
+                    if b.len == 0 {
+                        return Some(*a);
+                    }
+                    Some(RangeSum {
+                        sum: a.sum + b.sum,
+                        len: a.len + b.len,
+                        max: max(a.max, b.max),
+                        max_2nd: second_highest(a.max, a.max_2nd, b.max, b.max_2nd),
+                        max_cnt: if a.max > b.max {
+                            a.max_cnt
+                        } else if a.max < b.max {
+                            b.max_cnt
+                        } else {
+                            a.max_cnt + b.max_cnt
+                        },
+                        min: min(a.min, b.min),
+                        min_2nd: second_lowest(a.min, a.min_2nd, b.min, b.min_2nd),
+                        min_cnt: if a.min < b.min {
+                            a.min_cnt
+                        } else if a.min > b.min {
+                            b.min_cnt
+                        } else {
+                            a.min_cnt + b.min_cnt
+                        },
+                    })
                 }
             }
-        )*
+        }
+        fn fails(a: &Self::S) -> bool {
+            a.is_none()
+        }
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub struct Func {
+        pub add: i64,
+        pub upper: i64,
+        pub lower: i64,
+    }
+    impl Func {
+        pub fn new_add(add: i64) -> Self {
+            Func {
+                add,
+                upper: INF,
+                lower: NEG_INF,
+            }
+        }
+        pub fn new_chmin(x: i64) -> Self {
+            Func {
+                add: 0,
+                upper: x,
+                lower: NEG_INF,
+            }
+        }
+        pub fn new_chmax(x: i64) -> Self {
+            Func {
+                add: 0,
+                upper: INF,
+                lower: x,
+            }
+        }
+    }
+    pub struct RangeChminChmaxAddRangeSum(Infallible);
+    impl MapMonoidBeats for RangeChminChmaxAddRangeSum {
+        type F = Func;
+        type M = RangeSumMonoid;
+        fn identity_map() -> Self::F {
+            Func {
+                add: 0,
+                upper: INF,
+                lower: NEG_INF,
+            }
+        }
+        fn mapping(f: &Self::F, x: &<Self::M as MonoidBeats>::S) -> <Self::M as MonoidBeats>::S {
+            match x {
+                None => None,
+                Some(x) => {
+                    if x.len == 0 {
+                        return Some(*x);
+                    }
+                    if x.len == 1 {
+                        let mut next_x = *x;
+                        if f.add != 0 {
+                            next_x.sum += f.add;
+                            next_x.max += f.add;
+                            next_x.min += f.add;
+                        }
+                        if next_x.max > f.upper {
+                            next_x.max = f.upper;
+                            next_x.min = f.upper;
+                            next_x.sum = f.upper;
+                        }
+                        if next_x.min < f.lower {
+                            next_x.min = f.lower;
+                            next_x.max = f.lower;
+                            next_x.sum = f.lower;
+                        }
+                        return Some(next_x);
+                    }
+                    let mut next_x = *x;
+                    if f.add != 0 {
+                        next_x.sum += f.add * (next_x.len as i64);
+                        if next_x.max != NEG_INF {
+                            next_x.max += f.add;
+                        }
+                        if next_x.max_2nd != NEG_INF {
+                            next_x.max_2nd += f.add;
+                        }
+                        if next_x.min != INF {
+                            next_x.min += f.add;
+                        }
+                        if next_x.min_2nd != INF {
+                            next_x.min_2nd += f.add;
+                        }
+                    }
+                    if next_x.max > f.upper {
+                        if next_x.max_2nd < f.upper {
+                            next_x.sum -= (next_x.max - f.upper) * (next_x.max_cnt as i64);
+                            next_x.max = f.upper;
+                            if next_x.min > f.upper {
+                                next_x.min = f.upper;
+                            }
+                            if next_x.min_2nd > f.upper {
+                                next_x.min_2nd = f.upper;
+                            }
+                            if next_x.max == next_x.min {
+                                next_x.min = f.upper;
+                            }
+                        } else {
+                            return None;
+                        }
+                    }
+                    if next_x.min < f.lower {
+                        if next_x.min_2nd > f.lower {
+                            next_x.sum += (f.lower - next_x.min) * (next_x.min_cnt as i64);
+                            next_x.min = f.lower;
+                            if next_x.max < f.lower {
+                                next_x.max = f.lower;
+                            }
+                            if next_x.max_2nd < f.lower {
+                                next_x.max_2nd = f.lower;
+                            }
+                            if next_x.min == next_x.max {
+                                next_x.max = f.lower;
+                            }
+                        } else {
+                            return None;
+                        }
+                    }
+                    Some(next_x)
+                }
+            }
+        }
+        fn composition(f: &Self::F, g: &Self::F) -> Self::F {
+            let add_new = g.add + f.add;
+            let upper_new = min(if g.upper == INF { INF } else { g.upper + f.add }, f.upper);
+            let lower_new = max(
+                min(
+                    if g.lower == NEG_INF {
+                        NEG_INF
+                    } else {
+                        g.lower + f.add
+                    },
+                    f.upper,
+                ),
+                f.lower,
+            );
+            Func {
+                add: add_new,
+                upper: upper_new,
+                lower: lower_new,
+            }
+        }
+    }
+    pub struct RangeChminChmaxAddRangeSumSegtree {
+        segtree: SegtreeBeats<RangeChminChmaxAddRangeSum>,
+        len: usize,
+    }
+    impl RangeChminChmaxAddRangeSumSegtree {
+        pub fn new(n: usize) -> Self {
+            let segtree = SegtreeBeats::<RangeChminChmaxAddRangeSum>::new(n);
+            Self { segtree, len: n }
+        }
+        pub fn from(xs: &[i64]) -> Self {
+            let len = xs.len();
+            let segtree = SegtreeBeats::<RangeChminChmaxAddRangeSum>::from(
+                xs.iter().copied().map(RangeSum::unit).collect_vec(),
+            );
+            Self { segtree, len }
+        }
+        #[allow(clippy::len_without_is_empty)]
+        pub fn len(&self) -> usize {
+            self.len
+        }
+        pub fn set(&mut self, p: usize, x: i64) {
+            self.segtree.set(p, RangeSum::unit(x));
+        }
+        pub fn get(&mut self, p: usize) -> i64 {
+            self.segtree.get(p).unwrap().sum
+        }
+        pub fn sum<R: RangeBounds<usize>>(&mut self, range: R) -> i64 {
+            self.segtree.prod(range).unwrap().sum
+        }
+        pub fn min<R: RangeBounds<usize>>(&mut self, range: R) -> i64 {
+            self.segtree.prod(range).unwrap().min
+        }
+        pub fn max<R: RangeBounds<usize>>(&mut self, range: R) -> i64 {
+            self.segtree.prod(range).unwrap().max
+        }
+        pub fn chmax<R: RangeBounds<usize>>(&mut self, range: R, x: i64) {
+            self.segtree.apply_range(range, Func::new_chmax(x));
+        }
+        pub fn chmin<R: RangeBounds<usize>>(&mut self, range: R, x: i64) {
+            self.segtree.apply_range(range, Func::new_chmin(x));
+        }
+        pub fn add<R: RangeBounds<usize>>(&mut self, range: R, x: i64) {
+            self.segtree.apply_range(range, Func::new_add(x));
+        }
+        pub fn to_vec(&mut self) -> Vec<i64> {
+            (0..self.len).map(|i| self.get(i)).collect_vec()
+        }
     }
 }
-impl_elm! {
-    u8; u16; u32; u64; u128; usize;
-    i8; i16; i32; i64; i128; isize;
-}
-
-// #[cfg(test)]
-// mod tests {
-//     mod impl_query;
-//     mod queries;
-//     mod vector;
-//
-//     use super::Segbeats;
-//     use queries::{ChangeMax, ChangeMin, QueryMax, QueryMin, QuerySum, RangeAdd};
-//     use query_test::{impl_help, Config};
-//     use rand::prelude::*;
-//     use vector::{Len, Value, Vector};
-//
-//     type Tester<T, G> = query_test::Tester<StdRng, Vector<T>, Segbeats<T>, G>;
-//
-//     #[test]
-//     fn test_i64() {
-//         #[derive(Debug, Clone, PartialEq, Copy, Eq)]
-//         struct G {}
-//         impl_help! {Len, |rng| rng.random_range(1..100); }
-//         impl_help! {Value<i64>, |rng| rng.random_range(-1_000_000_000, 1_000_000_000); }
-//
-//         let mut tester = Tester::<i64, G>::new(StdRng::seed_from_u64(42), Config::Short);
-//         for _ in 0..10 {
-//             tester.initialize();
-//             for _ in 0..100 {
-//                 let command = tester.rng_mut().random_range(0..6);
-//                 match command {
-//                     0 => tester.mutate::<ChangeMin<_>>(),
-//                     1 => tester.mutate::<ChangeMax<_>>(),
-//                     2 => tester.mutate::<RangeAdd<_>>(),
-//                     3 => tester.compare::<QueryMin<_>>(),
-//                     4 => tester.compare::<QueryMax<_>>(),
-//                     5 => tester.compare::<QuerySum<_>>(),
-//                     _ => unreachable!(),
-//                 }
-//             }
-//         }
-//     }
-// }
