@@ -1,14 +1,15 @@
 use cargo_snippet::snippet;
 
-use super::abstract_segtree_beats::abstract_segtree_beats::{MapMonoidBeats, MonoidBeats};
+use super::abstract_segtree_beats::abstract_segtree_beats::{
+    MapMonoidBeats, MonoidBeats, SegtreeBeats,
+};
 
 #[snippet(
     prefix = "use range_chmax_range_sum::*;",
     include = "abstract_segtree_beats"
 )]
 pub mod range_chmax_range_sum {
-    use super::{MapMonoidBeats, MonoidBeats};
-    use crate::mylib::segtree_lib::segtree_beats::abstract_segtree_beats::abstract_segtree_beats::SegtreeBeats;
+    use super::{MapMonoidBeats, MonoidBeats, SegtreeBeats};
     use itertools::Itertools;
     use std::{
         cmp::{max, min},
