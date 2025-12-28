@@ -4,7 +4,26 @@ fn main() {
         n: usize,
         xs: [i64; n],
     }
-    let ans: i64 = -2_i64;
+
+    let mut stack: Vec<i64> = vec![];
+
+    for &x in &xs {
+        stack.push(x);
+
+        let len = stack.len();
+        if len >= 4
+            && stack[len - 1] == stack[len - 2]
+            && stack[len - 2] == stack[len - 3]
+            && stack[len - 3] == stack[len - 4]
+        {
+            stack.pop();
+            stack.pop();
+            stack.pop();
+            stack.pop();
+        }
+    }
+
+    let ans: i64 = stack.len() as i64;
     println!("{}", ans);
 }
 

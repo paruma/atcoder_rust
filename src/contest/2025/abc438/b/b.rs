@@ -2,9 +2,34 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        m: usize,
+        xs: Chars,
+        ys: Chars,
     }
-    let ans: i64 = -2_i64;
+    let xs = xs
+        .iter()
+        .copied()
+        .map(|ch| ((ch as u8) - b'0') as i64)
+        .collect_vec();
+    let ys = ys
+        .iter()
+        .copied()
+        .map(|ch| ((ch as u8) - b'0') as i64)
+        .collect_vec();
+    let ans = (0..=n)
+        .tuple_combinations()
+        .map(|(begin, end)| {
+            if end - begin != m {
+                return i64::MAX;
+            }
+            let xs_sub = &xs[begin..end];
+
+            izip!(&ys, xs_sub)
+                .map(|(&y, &x)| (x - y).rem_euclid(10))
+                .sum::<i64>()
+        })
+        .min()
+        .unwrap();
     println!("{}", ans);
 }
 

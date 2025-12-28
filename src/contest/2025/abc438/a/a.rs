@@ -1,10 +1,11 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        d: i64,
+        f: i64,
     }
-    let ans: i64 = -2_i64;
+    let ans = ((f + num_integer::div_ceil(d, 7) * 7) % d) % 7;
+    let ans = if ans == 0 { 7 } else { ans };
     println!("{}", ans);
 }
 

@@ -2,10 +2,21 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        q: usize,
+        fs: [Usize1; n],
+        tbs: [(usize, Usize1); q],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    let gs = (0..n).map(|i| (i + 1) as i64).collect_vec();
+
+    let doubling = DoublingWithSum::new(&fs, &gs, 1_000_000_000);
+
+    let ans = tbs
+        .iter()
+        .copied()
+        .map(|(t, b)| doubling.eval(t, b).1)
+        .collect_vec();
+    print_vec(&ans);
 }
 
 #[cfg(test)]
@@ -134,3 +145,60 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use doubling_with_sum::*;
+#[allow(clippy::module_inception)]
+pub mod doubling_with_sum {
+    pub struct DoublingWithSum {
+        n: usize,
+        log: usize,
+        dp_f: Vec<Vec<usize>>,
+        dp_g: Vec<Vec<i64>>,
+    }
+    impl DoublingWithSum {
+        /// doubling 前処理の構築をする
+        /// * `k` は 合成回数の最大値 (`k>=1`)
+        /// * `f[x]` は `x` の遷移先
+        /// * `g[x]` は `x→f[x]` の辺重み
+        /// # 計算量
+        /// `n = f.len()` としたとき、`O(n log k)`
+        pub fn new(f: &[usize], g: &[i64], k: usize) -> DoublingWithSum {
+            let n = f.len();
+            let log = (usize::BITS - k.leading_zeros()) as usize;
+            let mut dp_f = vec![vec![0; n]; log];
+            let mut dp_g = vec![vec![0; n]; log];
+            if k >= 1 {
+                dp_f[0] = f.to_vec();
+                dp_g[0] = g.to_vec();
+            }
+            for i in 1..log {
+                for x in 0..n {
+                    let fp = &dp_f[i - 1];
+                    let gp = &dp_g[i - 1];
+                    dp_g[i][x] = gp[x] + gp[fp[x]];
+                    dp_f[i][x] = fp[fp[x]];
+                }
+            }
+            DoublingWithSum { n, log, dp_f, dp_g }
+        }
+        /// `f` の `k` 回合成を `f^k` とする。
+        /// `(f^k)(x)` と `x → f(x) → ... → (f^k)(x)` のパス重みを求める。
+        /// # 計算量
+        /// O(log k)
+        pub fn eval(&self, k: usize, x: usize) -> (usize, i64) {
+            assert!((0..self.n).contains(&x));
+            assert!(k < (1 << self.log));
+            if k == 0 {
+                return (x, 0);
+            }
+            let k_bits = (usize::BITS - k.leading_zeros()) as usize;
+            self.dp_f
+                .iter()
+                .zip(self.dp_g.iter())
+                .enumerate()
+                .take(k_bits)
+                .filter(|(i, _)| (k >> i) & 1 == 1)
+                .map(|(_, (fp, gp))| (fp, gp))
+                .fold((x, 0), |(idx, val), (fp, gp)| (fp[idx], val + gp[idx]))
+        }
+    }
+}
