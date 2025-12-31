@@ -24,7 +24,91 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "683d7910e743518b0e34f1186f92494becacb047c7b6bf616c96772180fef923"
 
 [[package]]
+name = "atcoder_rust_2023"
+version = "0.1.0"
+dependencies = [
+ "ac-library-rs",
+ "bstr",
+ "cargo-snippet",
+ "cli_test_dir",
+ "easy-ext",
+ "hashbag",
+ "itertools",
+ "maplit",
+ "ndarray",
+ "num",
+ "num-derive",
+ "num-integer",
+ "num-rational",
+ "num-traits",
+ "omniswap",
+ "permutohedron",
+ "petgraph",
+ "proconio",
+ "rand",
+ "regex",
+ "rustc-hash",
+ "superslice",
+]
+
+[[package]]
+name = "atcoder_rust_2024"
+version = "0.1.0"
+dependencies = [
+ "ac-library-rs",
+ "bstr",
+ "cargo-snippet",
+ "cli_test_dir",
+ "easy-ext",
+ "hashbag",
+ "itertools",
+ "maplit",
+ "ndarray",
+ "num",
+ "num-derive",
+ "num-integer",
+ "num-rational",
+ "num-traits",
+ "omniswap",
+ "permutohedron",
+ "petgraph",
+ "proconio",
+ "rand",
+ "regex",
+ "rustc-hash",
+ "superslice",
+]
+
+[[package]]
 name = "atcoder_rust_2025"
+version = "0.1.0"
+dependencies = [
+ "ac-library-rs",
+ "bstr",
+ "cargo-snippet",
+ "cli_test_dir",
+ "easy-ext",
+ "hashbag",
+ "itertools",
+ "maplit",
+ "ndarray",
+ "num",
+ "num-derive",
+ "num-integer",
+ "num-rational",
+ "num-traits",
+ "omniswap",
+ "permutohedron",
+ "petgraph",
+ "proconio",
+ "rand",
+ "regex",
+ "rustc-hash",
+ "superslice",
+]
+
+[[package]]
+name = "atcoder_rust_2026"
 version = "0.1.0"
 dependencies = [
  "ac-library-rs",

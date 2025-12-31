@@ -3,7 +3,10 @@ resolver = "2"
 
 members = [
     "src/contest",
+    "src/contest/2023",
+    "src/contest/2024",
     "src/contest/2025",
+    "src/contest/2026",
     "src/example",
     "src/library_checker",
     "src/mylib"
