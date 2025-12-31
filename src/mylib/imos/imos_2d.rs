@@ -6,7 +6,7 @@ use cargo_snippet::snippet;
 ///
 /// # Examples
 /// ```
-/// use atcoder_rust::mylib::imos::imos_2d::*;
+/// use mylib::imos::imos_2d::imos_2d::*;
 ///
 /// let (h, w) = (4, 5);
 /// // 1回差分を取るので、各次元の end を1つ余分に確保する

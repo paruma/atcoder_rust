@@ -1,6 +1,6 @@
 use cargo_snippet::snippet;
 
-use crate::mylib::data_structure::queue::mod_queue::Queue;
+use crate::data_structure::queue::mod_queue::Queue;
 
 #[snippet(include = "mod_queue")]
 pub fn topo_sort(adj: &[Vec<usize>]) -> Vec<usize> {
@@ -41,7 +41,7 @@ pub fn has_cycle_directed_by_topo_sort(adj: &[Vec<usize>]) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use crate::mylib::graph::{
+    use crate::graph::{
         graph::make_adj_from_directed, topo_sort::has_cycle_directed_by_topo_sort,
     };
 

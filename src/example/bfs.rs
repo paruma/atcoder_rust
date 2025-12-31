@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::mylib::data_structure::queue::mod_queue::Queue;
+use mylib::data_structure::queue::mod_queue::Queue;
 
 /// init から行ける頂点を全探索する
 /// 計算量: O(頂点の数 + 辺の数)
@@ -27,7 +27,7 @@ fn bfs(adj: &[Vec<usize>], init: usize) -> Vec<bool> {
 #[cfg(test)]
 mod tests {
 
-    use crate::mylib::graph::graph::make_adj_from_directed;
+    use mylib::graph::graph::make_adj_from_directed;
 
     use super::*;
 

@@ -91,7 +91,7 @@ pub mod symmetric_group {
 
 #[cfg(test)]
 mod test_symmetric_group {
-    use crate::mylib::math::symmetric_group::symmetric_group::{
+    use crate::math::symmetric_group::symmetric_group::{
         inv_of_permutation, inversion_number, make_cycles, mul_of_permutation, pow_of_permutation,
     };
 

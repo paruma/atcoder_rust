@@ -108,7 +108,7 @@ pub mod positional_notation {
 #[cfg(test)]
 mod test_positional_notation {
 
-    use crate::mylib::math::positional_notation::positional_notation::{
+    use crate::math::positional_notation::positional_notation::{
         count_digits, eval_base_n_value, to_base_n_value, to_base_n_value_iter,
     };
 

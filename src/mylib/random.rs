@@ -21,7 +21,7 @@ pub mod random_test {
     ///
     /// # Examples
     /// ```
-    /// use atcoder_rust::mylib::random::random_test::*;
+    /// use mylib::random::random_test::*;
     /// use rand::{Rng, rngs::SmallRng, SeedableRng};
     ///
     /// let mut rng = SmallRng::from_os_rng();
@@ -51,7 +51,7 @@ pub mod random_test {
     ///
     /// # Examples
     /// ```
-    /// use atcoder_rust::mylib::random::random_test::*;
+    /// use mylib::random::random_test::*;
     /// use rand::{Rng, rngs::SmallRng, SeedableRng};
     ///
     /// let mut rng = SmallRng::from_os_rng();
@@ -79,7 +79,7 @@ pub mod random_test {
     ///
     /// # Examples
     /// ```
-    /// use atcoder_rust::mylib::random::random_test::*;
+    /// use mylib::random::random_test::*;
     /// use rand::{Rng, rngs::SmallRng, SeedableRng};
     ///
     /// let mut rng = SmallRng::from_os_rng();
@@ -123,7 +123,7 @@ pub mod random_test {
     ///
     /// # Examples
     /// ```
-    /// use atcoder_rust::mylib::random::random_test::*;
+    /// use mylib::random::random_test::*;
     /// use rand::{Rng, rngs::SmallRng, SeedableRng};
     ///
     /// let mut rng = SmallRng::from_os_rng();

@@ -4,7 +4,7 @@ pub mod grid_template {
     use cargo_snippet::snippet;
     use itertools::{Itertools, iproduct};
 
-    use crate::mylib::pos::pos::Pos;
+    use crate::pos::pos::Pos;
 
     #[snippet(name = "Grid", prefix = "use std::ops::{Index, IndexMut};")]
     pub struct Grid {
@@ -99,7 +99,7 @@ pub mod grid_template {
 
 #[cfg(test)]
 pub mod test {
-    use crate::mylib::pos::pos::Pos;
+    use crate::pos::pos::Pos;
 
     use super::grid_template::Grid;
 

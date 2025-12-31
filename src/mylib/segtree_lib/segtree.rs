@@ -45,7 +45,7 @@ mod test_segtree_to_vec {
 
     use ac_library::{Additive, Segtree};
 
-    use crate::mylib::segtree_lib::segtree::segtree_to_vec;
+    use crate::segtree_lib::segtree::segtree_to_vec;
 
     #[test]
     fn test_segtree_to_vec() {

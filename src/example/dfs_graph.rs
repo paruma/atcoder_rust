@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::mylib::data_structure::stack::mod_stack::Stack;
+use mylib::data_structure::stack::mod_stack::Stack;
 
 struct DfsGraph<'a> {
     adj: &'a [Vec<usize>],
@@ -97,7 +97,7 @@ fn dfs_order_by_stack(adj: &[Vec<usize>], start: usize) -> (Vec<usize>, Vec<usiz
 }
 #[cfg(test)]
 mod tests {
-    use crate::mylib::graph::graph::make_adj_from_directed;
+    use mylib::graph::graph::make_adj_from_directed;
 
     use super::*;
 

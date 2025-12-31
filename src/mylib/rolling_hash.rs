@@ -1,4 +1,4 @@
-use crate::mylib::math::modint_u64::modint_u64::ModInt2305843009213693951;
+use crate::math::modint_u64::modint_u64::ModInt2305843009213693951;
 use cargo_snippet::snippet;
 
 #[snippet(prefix = "use rolling_hash::*;", include = "modint_u64")]
@@ -27,8 +27,8 @@ pub mod rolling_hash {
         ///
         /// # Examples
         /// ```
-        /// use atcoder_rust::mylib::rolling_hash0::rolling_hash::*;
-        /// use atcoder_rust::mylib::rolling_hash0::rolling_hash::generate_random_base;
+        /// use mylib::rolling_hash::rolling_hash::*;
+        /// use mylib::rolling_hash::rolling_hash::generate_random_base;
         ///
         /// let chars = ['a', 'b', 'a', 'b', 'a'];
         /// let xs = chars.iter().copied().map(|ch| ch as i64).collect::<Vec<_>>();
@@ -96,7 +96,7 @@ pub mod monoid_rolling_hash {
         ///
         /// # Examples
         /// ```
-        /// use atcoder_rust::mylib::rolling_hash0::monoid_rolling_hash::*;
+        /// use mylib::rolling_hash::monoid_rolling_hash::*;
         /// let base = generate_random_base();
         /// let char_to_rh = RollingHash::unit(base);
         /// let rh_a = char_to_rh('a' as i64);

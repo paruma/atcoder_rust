@@ -1,4 +1,4 @@
-use crate::mylib::data_structure::dsu::dsu_core::dsu_core::DsuCore;
+use crate::data_structure::dsu::dsu_core::dsu_core::DsuCore;
 use cargo_snippet::snippet;
 
 #[allow(clippy::module_inception)]

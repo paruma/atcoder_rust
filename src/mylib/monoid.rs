@@ -519,7 +519,7 @@ mod test_monoid_gcd_lcm {
 mod test_general_additive_monoid {
     use ac_library::{ModInt998244353, Monoid};
 
-    use crate::mylib::pos::pos::Pos;
+    use crate::pos::pos::Pos;
 
     use super::general_additive_monoid::*;
 

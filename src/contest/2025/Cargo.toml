@@ -1,0 +1,198 @@
+[package]
+name = "atcoder_rust_2025"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+cargo-snippet = { workspace = true }
+ac-library-rs = { workspace = true }
+hashbag = { workspace = true }
+easy-ext = { workspace = true }
+bstr = { workspace = true }
+omniswap = { workspace = true }
+num = { workspace = true }
+num-integer = { workspace = true }
+num-rational = { workspace = true }
+num-traits = { workspace = true }
+num-derive = { workspace = true }
+ndarray = { workspace = true }
+rand = { workspace = true }
+petgraph = { workspace = true }
+regex = { workspace = true }
+permutohedron = { workspace = true }
+superslice = { workspace = true }
+itertools = { workspace = true }
+maplit = { workspace = true }
+proconio = { workspace = true }
+rustc-hash = { workspace = true }
+
+[dev-dependencies]
+cli_test_dir = { workspace = true }
+
+[[bin]]
+name = "abc438_a"
+path = "abc438/a/a.rs"
+
+[[bin]]
+name = "abc438_b"
+path = "abc438/b/b.rs"
+
+[[bin]]
+name = "abc438_c"
+path = "abc438/c/c.rs"
+
+[[bin]]
+name = "abc438_d"
+path = "abc438/d/d.rs"
+
+[[bin]]
+name = "abc438_e"
+path = "abc438/e/e.rs"
+
+[[bin]]
+name = "abc438_f"
+path = "abc438/f/f.rs"
+
+[[bin]]
+name = "abc438_g"
+path = "abc438/g/g.rs"
+
+[[bin]]
+name = "abc437_a"
+path = "abc437/a/a.rs"
+
+[[bin]]
+name = "abc437_b"
+path = "abc437/b/b.rs"
+
+[[bin]]
+name = "abc437_c"
+path = "abc437/c/c.rs"
+
+[[bin]]
+name = "abc437_d"
+path = "abc437/d/d.rs"
+
+[[bin]]
+name = "abc437_e"
+path = "abc437/e/e.rs"
+
+[[bin]]
+name = "abc437_f"
+path = "abc437/f/f.rs"
+
+[[bin]]
+name = "abc437_g"
+path = "abc437/g/g.rs"
+
+[[bin]]
+name = "abc436_a"
+path = "abc436/a/a.rs"
+
+[[bin]]
+name = "abc436_b"
+path = "abc436/b/b.rs"
+
+[[bin]]
+name = "abc436_c"
+path = "abc436/c/c.rs"
+
+[[bin]]
+name = "abc436_d"
+path = "abc436/d/d.rs"
+
+[[bin]]
+name = "abc436_e"
+path = "abc436/e/e.rs"
+
+[[bin]]
+name = "abc436_f"
+path = "abc436/f/f.rs"
+
+[[bin]]
+name = "abc436_g"
+path = "abc436/g/g.rs"
+
+[[bin]]
+name = "abc435_a"
+path = "abc435/a/a.rs"
+
+[[bin]]
+name = "abc435_b"
+path = "abc435/b/b.rs"
+
+[[bin]]
+name = "abc435_c"
+path = "abc435/c/c.rs"
+
+[[bin]]
+name = "abc435_d"
+path = "abc435/d/d.rs"
+
+[[bin]]
+name = "abc435_e"
+path = "abc435/e/e.rs"
+
+[[bin]]
+name = "abc435_f"
+path = "abc435/f/f.rs"
+
+[[bin]]
+name = "abc435_g"
+path = "abc435/g/g.rs"
+
+[[bin]]
+name = "abc434_a"
+path = "abc434/a/a.rs"
+
+[[bin]]
+name = "abc434_b"
+path = "abc434/b/b.rs"
+
+[[bin]]
+name = "abc434_c"
+path = "abc434/c/c.rs"
+
+[[bin]]
+name = "abc434_d"
+path = "abc434/d/d.rs"
+
+[[bin]]
+name = "abc434_e"
+path = "abc434/e/e.rs"
+
+[[bin]]
+name = "abc434_f"
+path = "abc434/f/f.rs"
+
+[[bin]]
+name = "abc434_g"
+path = "abc434/g/g.rs"
+
+[[bin]]
+name = "abc433_a"
+path = "abc433/a/a.rs"
+
+[[bin]]
+name = "abc433_b"
+path = "abc433/b/b.rs"
+
+[[bin]]
+name = "abc433_c"
+path = "abc433/c/c.rs"
+
+[[bin]]
+name = "abc433_d"
+path = "abc433/d/d.rs"
+
+[[bin]]
+name = "abc433_e"
+path = "abc433/e/e.rs"
+
+[[bin]]
+name = "abc433_f"
+path = "abc433/f/f.rs"
+
+[[bin]]
+name = "abc433_g"
+path = "abc433/g/g.rs"

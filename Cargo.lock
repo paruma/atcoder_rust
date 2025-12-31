@@ -24,7 +24,35 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "683d7910e743518b0e34f1186f92494becacb047c7b6bf616c96772180fef923"
 
 [[package]]
-name = "atcoder_rust"
+name = "atcoder_rust_2025"
+version = "0.1.0"
+dependencies = [
+ "ac-library-rs",
+ "bstr",
+ "cargo-snippet",
+ "cli_test_dir",
+ "easy-ext",
+ "hashbag",
+ "itertools",
+ "maplit",
+ "ndarray",
+ "num",
+ "num-derive",
+ "num-integer",
+ "num-rational",
+ "num-traits",
+ "omniswap",
+ "permutohedron",
+ "petgraph",
+ "proconio",
+ "rand",
+ "regex",
+ "rustc-hash",
+ "superslice",
+]
+
+[[package]]
+name = "atcoder_template"
 version = "0.1.0"
 dependencies = [
  "ac-library-rs",
@@ -105,6 +133,35 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 
 [[package]]
+name = "example"
+version = "0.1.0"
+dependencies = [
+ "ac-library-rs",
+ "bstr",
+ "cargo-snippet",
+ "cli_test_dir",
+ "easy-ext",
+ "hashbag",
+ "itertools",
+ "maplit",
+ "mylib",
+ "ndarray",
+ "num",
+ "num-derive",
+ "num-integer",
+ "num-rational",
+ "num-traits",
+ "omniswap",
+ "permutohedron",
+ "petgraph",
+ "proconio",
+ "rand",
+ "regex",
+ "rustc-hash",
+ "superslice",
+]
+
+[[package]]
 name = "fixedbitset"
 version = "0.5.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -177,6 +234,35 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2874a2af47a2325c2001a6e6fad9b16a53b802102b528163885171cf92b15976"
 
 [[package]]
+name = "library_checker"
+version = "0.1.0"
+dependencies = [
+ "ac-library-rs",
+ "bstr",
+ "cargo-snippet",
+ "cli_test_dir",
+ "easy-ext",
+ "hashbag",
+ "itertools",
+ "maplit",
+ "mylib",
+ "ndarray",
+ "num",
+ "num-derive",
+ "num-integer",
+ "num-rational",
+ "num-traits",
+ "omniswap",
+ "permutohedron",
+ "petgraph",
+ "proconio",
+ "rand",
+ "regex",
+ "rustc-hash",
+ "superslice",
+]
+
+[[package]]
 name = "maplit"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -197,6 +283,34 @@ name = "memchr"
 version = "2.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f52b00d39961fc5b2736ea853c9cc86238e165017a493d1d5c8eac6bdc4cc273"
+
+[[package]]
+name = "mylib"
+version = "0.1.0"
+dependencies = [
+ "ac-library-rs",
+ "bstr",
+ "cargo-snippet",
+ "cli_test_dir",
+ "easy-ext",
+ "hashbag",
+ "itertools",
+ "maplit",
+ "ndarray",
+ "num",
+ "num-derive",
+ "num-integer",
+ "num-rational",
+ "num-traits",
+ "omniswap",
+ "permutohedron",
+ "petgraph",
+ "proconio",
+ "rand",
+ "regex",
+ "rustc-hash",
+ "superslice",
+]
 
 [[package]]
 name = "ndarray"

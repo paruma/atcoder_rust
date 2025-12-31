@@ -5,6 +5,9 @@ pub mod impl_readable_for_enum {
     /// 利用例
     ///
     /// ```
+    /// use mylib::impl_readable_for_enum;
+    /// use proconio::input;
+    /// use proconio::marker::Usize1;
     /// #[derive(Clone, Copy, Debug, PartialEq, Eq)]
     /// enum Query {
     ///     Move { p: usize, h: usize },

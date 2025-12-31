@@ -80,8 +80,8 @@ mod tests {
     use ac_library::Segtree;
     use itertools::Itertools;
 
-    use crate::mylib::graph::euler_tour::euler_tour::EulerTour;
-    use crate::mylib::graph::euler_tour::euler_tour::InOut::*;
+    use crate::graph::euler_tour::euler_tour::EulerTour;
+    use crate::graph::euler_tour::euler_tour::InOut::*;
 
     #[test]
     fn test_euler_tour() {

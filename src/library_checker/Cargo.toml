@@ -1,0 +1,47 @@
+[package]
+name = "library_checker"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+mylib = { path = "../mylib" }
+cargo-snippet = { workspace = true }
+ac-library-rs = { workspace = true }
+hashbag = { workspace = true }
+easy-ext = { workspace = true }
+bstr = { workspace = true }
+omniswap = { workspace = true }
+num = { workspace = true }
+num-integer = { workspace = true }
+num-rational = { workspace = true }
+num-traits = { workspace = true }
+num-derive = { workspace = true }
+ndarray = { workspace = true }
+rand = { workspace = true }
+petgraph = { workspace = true }
+regex = { workspace = true }
+permutohedron = { workspace = true }
+superslice = { workspace = true }
+itertools = { workspace = true }
+maplit = { workspace = true }
+proconio = { workspace = true }
+rustc-hash = { workspace = true }
+
+[dev-dependencies]
+cli_test_dir = { workspace = true }
+
+[[bin]]
+name = "library_checker_cycle_detection_undirected"
+path = "cycle_detection_undirected.rs"
+
+[[bin]]
+name = "library_checker_cycle_detection"
+path = "cycle_detection.rs"
+
+[[bin]]
+name = "library_checker_template"
+path = "template.rs"
+
+[[bin]]
+name = "library_checker_tree_diameter"
+path = "tree_diameter.rs"

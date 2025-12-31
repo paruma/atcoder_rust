@@ -405,7 +405,7 @@ mod tests_dual_segtree {
 
 #[cfg(test)]
 pub mod test_range_affine {
-    use crate::mylib::segtree_lib::dual_segtree::dual_segtree::MapMonoid;
+    use crate::segtree_lib::dual_segtree::dual_segtree::MapMonoid;
 
     use super::range_affine_dual_segtree::{Affine, AffineMonoid};
 

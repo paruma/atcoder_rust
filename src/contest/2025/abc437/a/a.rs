@@ -4,6 +4,7 @@ fn main() {
         a: i64,
         b: i64
     }
+    
     let ans: i64 = 12 * a + b;
     println!("{}", ans);
 }

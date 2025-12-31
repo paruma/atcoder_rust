@@ -15,7 +15,7 @@ use itertools::Itertools;
 
 - ワーシャルフロイド法
 */
-use crate::mylib::ext_int::mod_ext_int::{ExtInt, INF, fin};
+use mylib::ext_int::mod_ext_int::{ExtInt, INF, fin};
 
 macro_rules! chmin {
     ($a: expr_2021, $b: expr_2021) => {
