@@ -36,12 +36,12 @@ cargo が使えるイメージ。
 ブラウザで見る
 
 ```sh
-cargo llvm-cov --open --lib --ignore-filename-regex "src/(contest|example)" -- --include-ignored mylib
+cargo llvm-cov --open --package mylib --lib -- --include-ignored
 ```
 
 
 VSCode で見る
 
 ```sh
-cargo llvm-cov --lcov --output-path lcov.info --lib --ignore-filename-regex "src/(contest|example)" -- --include-ignored 
+cargo llvm-cov --lcov --output-path lcov.info --package mylib --lib -- --include-ignored 
 ```

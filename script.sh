@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# AtCoder の開発補助ツール (便利関数・エイリアス群)
+#
+# このスクリプトを `source script.sh` で読み込むことで、oj test (ojt) や 
+# oj submit (ojs)、ビルド・実行 (exe) などのコマンドが現在のシェルで利用可能になります。
+
 PYTHONSTARTUP="$(git rev-parse --show-toplevel)/calc.py"
 export PYTHONSTARTUP
 

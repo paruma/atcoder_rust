@@ -12,7 +12,7 @@
 - `src/contest/YYYY/abcXXX/q/q.rs`: `YYYY`年に開催されたコンテスト`abcXXX`の問題`q`の解答ファイル。
 - `src/mylib/`: 再利用可能なモジュールやコードスニペット（例: グラフアルゴリズム、データ構造）。
 - `src/example/`: 特定のアルゴリズムやデータ構造の練習用コード。
-- `Cargo.toml`: プロジェクトの依存関係と各問題のバイナリターゲットを定義。
+- `Cargo.toml`: ワークスペースの定義と共通の依存関係を定義。バイナリターゲットは各年度配下の `Cargo.toml` で定義。
 - `contest.py`: コンテスト用のディレクトリとファイルをセットアップするためのヘルパースクリプト。
 
 ## 2. 開発の進め方
@@ -35,7 +35,7 @@
 
 1. **テストの実行**
     - 該当するテスト（`#[ignore]`も含む）を実行してください。`--include-ignored` オプションを使ってください。テストを実行する場合は編集したファイルのテストのみを対象にしてください
-      - 例: `cargo test --package atcoder_rust --lib mylib::data_structure::range_set::tests -- --include-ignored --show-output`
+      - 例: `cargo test --package mylib --lib data_structure::range_set::tests -- --include-ignored --show-output`
     - コメントの変更だけの場合もテストを実行してください。コメントの修正だけのつもりがほかの部分も意図せず変更されちゃうことがあるからです。
 2. **カバレッジの確認**
     - テスト実装後は、意図せずテストが通っていない行がないかカバレッジを確認してください。
@@ -43,7 +43,7 @@
       - `rustup component add llvm-tools-preview`
       - `cargo install cargo-llvm-cov`
     - `lcov.info` を生成・更新するには以下のコマンドを実行してください。
-      - `cargo llvm-cov test --lcov --output-path lcov.info --package atcoder_rust --lib <モジュールパス> -- --include-ignored`
+      - `cargo llvm-cov test --lcov --output-path lcov.info --package mylib --lib <モジュールパス> -- --include-ignored`
     - `lcov.info` ファイルを解析することで、未実行行（`DA:行番号,0`）を特定できます。
       - 例: `sed -n '\|SF:.*/対象ファイル名.rs|,\|end_of_record|p' lcov.info | grep "DA:.*,0"`
 3. **フォーマッタの適用**: `cargo fmt` を実行してください。
@@ -51,7 +51,7 @@
 
 ### 2.3. コーディング規約
 
-- **`rand` クレートの利用**: `rand` クレートのバージョンは `0.9.0` です。古い記法は使用しないでください。
+- **`rand` クレートの利用**: `rand` クレートのバージョンは `0.9.2` です。古い記法は使用しないでください。
     - `rng.random_range` を使用してください (`rng.gen_range` は不可。)。
     - `from_os_rng` を使用してください (`from_entropy` は不可)。
     - rand クレートに関してあなたの知識は間違っている可能性が高いです。この文章を正として扱ってください。
@@ -106,11 +106,11 @@
 - **ライブラリのテスト**:
   - 通常のテスト:
     ```bash
-    cargo test --package atcoder_rust --lib -- mylib::segtree_lib::lazy_segtree::range_update_range_sum::test_range_update_range_sum::test_random_update --exact --show-output
+    cargo test --package mylib --lib -- segtree_lib::lazy_segtree::range_update_range_sum::test_range_update_range_sum::test_random_update --exact --show-output
     ```
   - `ignored` 指定のテスト:
     ```bash
-    cargo test --package atcoder_rust --lib -- mylib::segtree_lib::lazy_segtree::range_update_range_sum::test_range_update_range_sum::test_random_update --exact --show-output --ignored
+    cargo test --package mylib --lib -- segtree_lib::lazy_segtree::range_update_range_sum::test_range_update_range_sum::test_random_update --exact --show-output --ignored
     ```
 
 ## 4. 開発環境
