@@ -32,3 +32,405 @@ cli_test_dir = { workspace = true }
 [[bin]]
 name = "abc334_a"
 path = "abc334/a/a.rs"
+
+# --- Automatically added (commented out) ---
+
+# [[bin]]
+# name = "abc317_a"
+# path = "abc317/a/a.rs"
+
+# [[bin]]
+# name = "abc317_b"
+# path = "abc317/b/b.rs"
+
+# [[bin]]
+# name = "abc317_c"
+# path = "abc317/c/c.rs"
+
+# [[bin]]
+# name = "abc317_d"
+# path = "abc317/d/d.rs"
+
+# [[bin]]
+# name = "abc317_e"
+# path = "abc317/e/e.rs"
+
+# [[bin]]
+# name = "abc319_a"
+# path = "abc319/a/a.rs"
+
+# [[bin]]
+# name = "abc319_b"
+# path = "abc319/b/b.rs"
+
+# [[bin]]
+# name = "abc319_c"
+# path = "abc319/c/c.rs"
+
+# [[bin]]
+# name = "abc319_d"
+# path = "abc319/d/d.rs"
+
+# [[bin]]
+# name = "abc319_e"
+# path = "abc319/e/e.rs"
+
+# [[bin]]
+# name = "abc320_a"
+# path = "abc320/a/a.rs"
+
+# [[bin]]
+# name = "abc320_b"
+# path = "abc320/b/b.rs"
+
+# [[bin]]
+# name = "abc320_c"
+# path = "abc320/c/c.rs"
+
+# [[bin]]
+# name = "abc320_d"
+# path = "abc320/d/d.rs"
+
+# [[bin]]
+# name = "abc320_e"
+# path = "abc320/e/e.rs"
+
+# [[bin]]
+# name = "abc321_a"
+# path = "abc321/a/a.rs"
+
+# [[bin]]
+# name = "abc321_b"
+# path = "abc321/b/b.rs"
+
+# [[bin]]
+# name = "abc321_c"
+# path = "abc321/c/c.rs"
+
+# [[bin]]
+# name = "abc321_d"
+# path = "abc321/d/d.rs"
+
+# [[bin]]
+# name = "abc321_e"
+# path = "abc321/e/e.rs"
+
+# [[bin]]
+# name = "abc321_f"
+# path = "abc321/f/f.rs"
+
+# [[bin]]
+# name = "abc322_a"
+# path = "abc322/a/a.rs"
+
+# [[bin]]
+# name = "abc322_b"
+# path = "abc322/b/b.rs"
+
+# [[bin]]
+# name = "abc322_c"
+# path = "abc322/c/c.rs"
+
+# [[bin]]
+# name = "abc322_d"
+# path = "abc322/d/d.rs"
+
+# [[bin]]
+# name = "abc322_e"
+# path = "abc322/e/e.rs"
+
+# [[bin]]
+# name = "abc323_a"
+# path = "abc323/a/a.rs"
+
+# [[bin]]
+# name = "abc323_b"
+# path = "abc323/b/b.rs"
+
+# [[bin]]
+# name = "abc323_c"
+# path = "abc323/c/c.rs"
+
+# [[bin]]
+# name = "abc323_d"
+# path = "abc323/d/d.rs"
+
+# [[bin]]
+# name = "abc323_e"
+# path = "abc323/e/e.rs"
+
+# [[bin]]
+# name = "abc324_a"
+# path = "abc324/a/a.rs"
+
+# [[bin]]
+# name = "abc324_b"
+# path = "abc324/b/b.rs"
+
+# [[bin]]
+# name = "abc324_c"
+# path = "abc324/c/c.rs"
+
+# [[bin]]
+# name = "abc324_d"
+# path = "abc324/d/d.rs"
+
+# [[bin]]
+# name = "abc324_e"
+# path = "abc324/e/e.rs"
+
+# [[bin]]
+# name = "abc324_f"
+# path = "abc324/f/f.rs"
+
+# [[bin]]
+# name = "abc325_a"
+# path = "abc325/a/a.rs"
+
+# [[bin]]
+# name = "abc325_b"
+# path = "abc325/b/b.rs"
+
+# [[bin]]
+# name = "abc325_c"
+# path = "abc325/c/c.rs"
+
+# [[bin]]
+# name = "abc325_d"
+# path = "abc325/d/d.rs"
+
+# [[bin]]
+# name = "abc325_e"
+# path = "abc325/e/e.rs"
+
+# [[bin]]
+# name = "abc326_a"
+# path = "abc326/a/a.rs"
+
+# [[bin]]
+# name = "abc326_b"
+# path = "abc326/b/b.rs"
+
+# [[bin]]
+# name = "abc326_c"
+# path = "abc326/c/c.rs"
+
+# [[bin]]
+# name = "abc326_d"
+# path = "abc326/d/d.rs"
+
+# [[bin]]
+# name = "abc326_e"
+# path = "abc326/e/e.rs"
+
+# [[bin]]
+# name = "abc326_f"
+# path = "abc326/f/f.rs"
+
+# [[bin]]
+# name = "abc327_a"
+# path = "abc327/a/a.rs"
+
+# [[bin]]
+# name = "abc327_b"
+# path = "abc327/b/b.rs"
+
+# [[bin]]
+# name = "abc327_c"
+# path = "abc327/c/c.rs"
+
+# [[bin]]
+# name = "abc327_d"
+# path = "abc327/d/d.rs"
+
+# [[bin]]
+# name = "abc327_e"
+# path = "abc327/e/e.rs"
+
+# [[bin]]
+# name = "abc327_f"
+# path = "abc327/f/f.rs"
+
+# [[bin]]
+# name = "abc328_a"
+# path = "abc328/a/a.rs"
+
+# [[bin]]
+# name = "abc328_b"
+# path = "abc328/b/b.rs"
+
+# [[bin]]
+# name = "abc328_c"
+# path = "abc328/c/c.rs"
+
+# [[bin]]
+# name = "abc328_d"
+# path = "abc328/d/d.rs"
+
+# [[bin]]
+# name = "abc328_e"
+# path = "abc328/e/e.rs"
+
+# [[bin]]
+# name = "abc328_f"
+# path = "abc328/f/f.rs"
+
+# [[bin]]
+# name = "abc329_a"
+# path = "abc329/a/a.rs"
+
+# [[bin]]
+# name = "abc329_b"
+# path = "abc329/b/b.rs"
+
+# [[bin]]
+# name = "abc329_c"
+# path = "abc329/c/c.rs"
+
+# [[bin]]
+# name = "abc329_d"
+# path = "abc329/d/d.rs"
+
+# [[bin]]
+# name = "abc329_e"
+# path = "abc329/e/e.rs"
+
+# [[bin]]
+# name = "abc329_f"
+# path = "abc329/f/f.rs"
+
+# [[bin]]
+# name = "abc331_a"
+# path = "abc331/a/a.rs"
+
+# [[bin]]
+# name = "abc331_b"
+# path = "abc331/b/b.rs"
+
+# [[bin]]
+# name = "abc331_c"
+# path = "abc331/c/c.rs"
+
+# [[bin]]
+# name = "abc331_d"
+# path = "abc331/d/d.rs"
+
+# [[bin]]
+# name = "abc331_e"
+# path = "abc331/e/e.rs"
+
+# [[bin]]
+# name = "abc331_f"
+# path = "abc331/f/f.rs"
+
+# [[bin]]
+# name = "abc332_a"
+# path = "abc332/a/a.rs"
+
+# [[bin]]
+# name = "abc332_b"
+# path = "abc332/b/b.rs"
+
+# [[bin]]
+# name = "abc332_c"
+# path = "abc332/c/c.rs"
+
+# [[bin]]
+# name = "abc332_d"
+# path = "abc332/d/d.rs"
+
+# [[bin]]
+# name = "abc332_e"
+# path = "abc332/e/e.rs"
+
+# [[bin]]
+# name = "abc332_f"
+# path = "abc332/f/f.rs"
+
+# [[bin]]
+# name = "abc333_a"
+# path = "abc333/a/a.rs"
+
+# [[bin]]
+# name = "abc333_b"
+# path = "abc333/b/b.rs"
+
+# [[bin]]
+# name = "abc333_c"
+# path = "abc333/c/c.rs"
+
+# [[bin]]
+# name = "abc333_d"
+# path = "abc333/d/d.rs"
+
+# [[bin]]
+# name = "abc333_e"
+# path = "abc333/e/e.rs"
+
+# [[bin]]
+# name = "abc333_f"
+# path = "abc333/f/f.rs"
+
+# [[bin]]
+# name = "abc334_b"
+# path = "abc334/b/b.rs"
+
+# [[bin]]
+# name = "abc334_c"
+# path = "abc334/c/c.rs"
+
+# [[bin]]
+# name = "abc334_d"
+# path = "abc334/d/d.rs"
+
+# [[bin]]
+# name = "abc334_e"
+# path = "abc334/e/e.rs"
+
+# [[bin]]
+# name = "abc334_f"
+# path = "abc334/f/f.rs"
+
+# [[bin]]
+# name = "arc166_a"
+# path = "arc166/a/a.rs"
+
+# [[bin]]
+# name = "arc166_b"
+# path = "arc166/b/b.rs"
+
+# [[bin]]
+# name = "arc167_a"
+# path = "arc167/a/a.rs"
+
+# [[bin]]
+# name = "arc167_b"
+# path = "arc167/b/b.rs"
+
+# [[bin]]
+# name = "arc168_a"
+# path = "arc168/a/a.rs"
+
+# [[bin]]
+# name = "arc168_b"
+# path = "arc168/b/b.rs"
+
+# [[bin]]
+# name = "arc168_c"
+# path = "arc168/c/c.rs"
+
+# [[bin]]
+# name = "arc169_a"
+# path = "arc169/a/a.rs"
+
+# [[bin]]
+# name = "arc169_b"
+# path = "arc169/b/b.rs"
+
+# [[bin]]
+# name = "arc169_c"
+# path = "arc169/c/c.rs"
+
+# [[bin]]
+# name = "arc169_d"
+# path = "arc169/d/d.rs"

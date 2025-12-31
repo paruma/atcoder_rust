@@ -196,3 +196,1400 @@ path = "abc433/f/f.rs"
 [[bin]]
 name = "abc433_g"
 path = "abc433/g/g.rs"
+# --- Automatically added (commented out) ---
+
+# [[bin]]
+# name = "abc387_a"
+# path = "abc387/a/a.rs"
+
+# [[bin]]
+# name = "abc387_b"
+# path = "abc387/b/b.rs"
+
+# [[bin]]
+# name = "abc387_c"
+# path = "abc387/c/c.rs"
+
+# [[bin]]
+# name = "abc387_d"
+# path = "abc387/d/d.rs"
+
+# [[bin]]
+# name = "abc387_e"
+# path = "abc387/e/e.rs"
+
+# [[bin]]
+# name = "abc387_f"
+# path = "abc387/f/f.rs"
+
+# [[bin]]
+# name = "abc387_g"
+# path = "abc387/g/g.rs"
+
+# [[bin]]
+# name = "abc388_a"
+# path = "abc388/a/a.rs"
+
+# [[bin]]
+# name = "abc388_b"
+# path = "abc388/b/b.rs"
+
+# [[bin]]
+# name = "abc388_c"
+# path = "abc388/c/c.rs"
+
+# [[bin]]
+# name = "abc388_d"
+# path = "abc388/d/d.rs"
+
+# [[bin]]
+# name = "abc388_e"
+# path = "abc388/e/e.rs"
+
+# [[bin]]
+# name = "abc388_f"
+# path = "abc388/f/f.rs"
+
+# [[bin]]
+# name = "abc388_g"
+# path = "abc388/g/g.rs"
+
+# [[bin]]
+# name = "abc389_a"
+# path = "abc389/a/a.rs"
+
+# [[bin]]
+# name = "abc389_b"
+# path = "abc389/b/b.rs"
+
+# [[bin]]
+# name = "abc389_c"
+# path = "abc389/c/c.rs"
+
+# [[bin]]
+# name = "abc389_d"
+# path = "abc389/d/d.rs"
+
+# [[bin]]
+# name = "abc389_e"
+# path = "abc389/e/e.rs"
+
+# [[bin]]
+# name = "abc389_f"
+# path = "abc389/f/f.rs"
+
+# [[bin]]
+# name = "abc389_g"
+# path = "abc389/g/g.rs"
+
+# [[bin]]
+# name = "abc390_a"
+# path = "abc390/a/a.rs"
+
+# [[bin]]
+# name = "abc390_b"
+# path = "abc390/b/b.rs"
+
+# [[bin]]
+# name = "abc390_c"
+# path = "abc390/c/c.rs"
+
+# [[bin]]
+# name = "abc390_d"
+# path = "abc390/d/d.rs"
+
+# [[bin]]
+# name = "abc390_e"
+# path = "abc390/e/e.rs"
+
+# [[bin]]
+# name = "abc390_f"
+# path = "abc390/f/f.rs"
+
+# [[bin]]
+# name = "abc390_g"
+# path = "abc390/g/g.rs"
+
+# [[bin]]
+# name = "abc391_a"
+# path = "abc391/a/a.rs"
+
+# [[bin]]
+# name = "abc391_b"
+# path = "abc391/b/b.rs"
+
+# [[bin]]
+# name = "abc391_c"
+# path = "abc391/c/c.rs"
+
+# [[bin]]
+# name = "abc391_d"
+# path = "abc391/d/d.rs"
+
+# [[bin]]
+# name = "abc391_e"
+# path = "abc391/e/e.rs"
+
+# [[bin]]
+# name = "abc391_f"
+# path = "abc391/f/f.rs"
+
+# [[bin]]
+# name = "abc391_g"
+# path = "abc391/g/g.rs"
+
+# [[bin]]
+# name = "abc392_a"
+# path = "abc392/a/a.rs"
+
+# [[bin]]
+# name = "abc392_b"
+# path = "abc392/b/b.rs"
+
+# [[bin]]
+# name = "abc392_c"
+# path = "abc392/c/c.rs"
+
+# [[bin]]
+# name = "abc392_d"
+# path = "abc392/d/d.rs"
+
+# [[bin]]
+# name = "abc392_e"
+# path = "abc392/e/e.rs"
+
+# [[bin]]
+# name = "abc392_f"
+# path = "abc392/f/f.rs"
+
+# [[bin]]
+# name = "abc392_g"
+# path = "abc392/g/g.rs"
+
+# [[bin]]
+# name = "abc393_a"
+# path = "abc393/a/a.rs"
+
+# [[bin]]
+# name = "abc393_b"
+# path = "abc393/b/b.rs"
+
+# [[bin]]
+# name = "abc393_c"
+# path = "abc393/c/c.rs"
+
+# [[bin]]
+# name = "abc393_d"
+# path = "abc393/d/d.rs"
+
+# [[bin]]
+# name = "abc393_e"
+# path = "abc393/e/e.rs"
+
+# [[bin]]
+# name = "abc393_f"
+# path = "abc393/f/f.rs"
+
+# [[bin]]
+# name = "abc393_g"
+# path = "abc393/g/g.rs"
+
+# [[bin]]
+# name = "abc394_a"
+# path = "abc394/a/a.rs"
+
+# [[bin]]
+# name = "abc394_b"
+# path = "abc394/b/b.rs"
+
+# [[bin]]
+# name = "abc394_c"
+# path = "abc394/c/c.rs"
+
+# [[bin]]
+# name = "abc394_d"
+# path = "abc394/d/d.rs"
+
+# [[bin]]
+# name = "abc394_e"
+# path = "abc394/e/e.rs"
+
+# [[bin]]
+# name = "abc394_f"
+# path = "abc394/f/f.rs"
+
+# [[bin]]
+# name = "abc394_g"
+# path = "abc394/g/g.rs"
+
+# [[bin]]
+# name = "abc395_a"
+# path = "abc395/a/a.rs"
+
+# [[bin]]
+# name = "abc395_b"
+# path = "abc395/b/b.rs"
+
+# [[bin]]
+# name = "abc395_c"
+# path = "abc395/c/c.rs"
+
+# [[bin]]
+# name = "abc395_d"
+# path = "abc395/d/d.rs"
+
+# [[bin]]
+# name = "abc395_e"
+# path = "abc395/e/e.rs"
+
+# [[bin]]
+# name = "abc395_f"
+# path = "abc395/f/f.rs"
+
+# [[bin]]
+# name = "abc395_g"
+# path = "abc395/g/g.rs"
+
+# [[bin]]
+# name = "abc396_a"
+# path = "abc396/a/a.rs"
+
+# [[bin]]
+# name = "abc396_b"
+# path = "abc396/b/b.rs"
+
+# [[bin]]
+# name = "abc396_c"
+# path = "abc396/c/c.rs"
+
+# [[bin]]
+# name = "abc396_d"
+# path = "abc396/d/d.rs"
+
+# [[bin]]
+# name = "abc396_e"
+# path = "abc396/e/e.rs"
+
+# [[bin]]
+# name = "abc396_f"
+# path = "abc396/f/f.rs"
+
+# [[bin]]
+# name = "abc396_g"
+# path = "abc396/g/g.rs"
+
+# [[bin]]
+# name = "abc397_a"
+# path = "abc397/a/a.rs"
+
+# [[bin]]
+# name = "abc397_b"
+# path = "abc397/b/b.rs"
+
+# [[bin]]
+# name = "abc397_c"
+# path = "abc397/c/c.rs"
+
+# [[bin]]
+# name = "abc397_d"
+# path = "abc397/d/d.rs"
+
+# [[bin]]
+# name = "abc397_e"
+# path = "abc397/e/e.rs"
+
+# [[bin]]
+# name = "abc397_f"
+# path = "abc397/f/f.rs"
+
+# [[bin]]
+# name = "abc397_g"
+# path = "abc397/g/g.rs"
+
+# [[bin]]
+# name = "abc398_a"
+# path = "abc398/a/a.rs"
+
+# [[bin]]
+# name = "abc398_b"
+# path = "abc398/b/b.rs"
+
+# [[bin]]
+# name = "abc398_c"
+# path = "abc398/c/c.rs"
+
+# [[bin]]
+# name = "abc398_d"
+# path = "abc398/d/d.rs"
+
+# [[bin]]
+# name = "abc398_e"
+# path = "abc398/e/e.rs"
+
+# [[bin]]
+# name = "abc398_f"
+# path = "abc398/f/f.rs"
+
+# [[bin]]
+# name = "abc398_g"
+# path = "abc398/g/g.rs"
+
+# [[bin]]
+# name = "abc399_a"
+# path = "abc399/a/a.rs"
+
+# [[bin]]
+# name = "abc399_b"
+# path = "abc399/b/b.rs"
+
+# [[bin]]
+# name = "abc399_c"
+# path = "abc399/c/c.rs"
+
+# [[bin]]
+# name = "abc399_d"
+# path = "abc399/d/d.rs"
+
+# [[bin]]
+# name = "abc399_e"
+# path = "abc399/e/e.rs"
+
+# [[bin]]
+# name = "abc399_f"
+# path = "abc399/f/f.rs"
+
+# [[bin]]
+# name = "abc399_g"
+# path = "abc399/g/g.rs"
+
+# [[bin]]
+# name = "abc400_a"
+# path = "abc400/a/a.rs"
+
+# [[bin]]
+# name = "abc400_b"
+# path = "abc400/b/b.rs"
+
+# [[bin]]
+# name = "abc400_c"
+# path = "abc400/c/c.rs"
+
+# [[bin]]
+# name = "abc400_d"
+# path = "abc400/d/d.rs"
+
+# [[bin]]
+# name = "abc400_e"
+# path = "abc400/e/e.rs"
+
+# [[bin]]
+# name = "abc400_f"
+# path = "abc400/f/f.rs"
+
+# [[bin]]
+# name = "abc400_g"
+# path = "abc400/g/g.rs"
+
+# [[bin]]
+# name = "abc401_a"
+# path = "abc401/a/a.rs"
+
+# [[bin]]
+# name = "abc401_b"
+# path = "abc401/b/b.rs"
+
+# [[bin]]
+# name = "abc401_c"
+# path = "abc401/c/c.rs"
+
+# [[bin]]
+# name = "abc401_d"
+# path = "abc401/d/d.rs"
+
+# [[bin]]
+# name = "abc401_e"
+# path = "abc401/e/e.rs"
+
+# [[bin]]
+# name = "abc401_f"
+# path = "abc401/f/f.rs"
+
+# [[bin]]
+# name = "abc401_g"
+# path = "abc401/g/g.rs"
+
+# [[bin]]
+# name = "abc402_a"
+# path = "abc402/a/a.rs"
+
+# [[bin]]
+# name = "abc402_b"
+# path = "abc402/b/b.rs"
+
+# [[bin]]
+# name = "abc402_c"
+# path = "abc402/c/c.rs"
+
+# [[bin]]
+# name = "abc402_d"
+# path = "abc402/d/d.rs"
+
+# [[bin]]
+# name = "abc402_e"
+# path = "abc402/e/e.rs"
+
+# [[bin]]
+# name = "abc402_f"
+# path = "abc402/f/f.rs"
+
+# [[bin]]
+# name = "abc402_g"
+# path = "abc402/g/g.rs"
+
+# [[bin]]
+# name = "abc403_a"
+# path = "abc403/a/a.rs"
+
+# [[bin]]
+# name = "abc403_b"
+# path = "abc403/b/b.rs"
+
+# [[bin]]
+# name = "abc403_c"
+# path = "abc403/c/c.rs"
+
+# [[bin]]
+# name = "abc403_d"
+# path = "abc403/d/d.rs"
+
+# [[bin]]
+# name = "abc403_e"
+# path = "abc403/e/e.rs"
+
+# [[bin]]
+# name = "abc403_f"
+# path = "abc403/f/f.rs"
+
+# [[bin]]
+# name = "abc403_g"
+# path = "abc403/g/g.rs"
+
+# [[bin]]
+# name = "abc404_a"
+# path = "abc404/a/a.rs"
+
+# [[bin]]
+# name = "abc404_b"
+# path = "abc404/b/b.rs"
+
+# [[bin]]
+# name = "abc404_c"
+# path = "abc404/c/c.rs"
+
+# [[bin]]
+# name = "abc404_d"
+# path = "abc404/d/d.rs"
+
+# [[bin]]
+# name = "abc404_e"
+# path = "abc404/e/e.rs"
+
+# [[bin]]
+# name = "abc404_f"
+# path = "abc404/f/f.rs"
+
+# [[bin]]
+# name = "abc404_g"
+# path = "abc404/g/g.rs"
+
+# [[bin]]
+# name = "abc405_a"
+# path = "abc405/a/a.rs"
+
+# [[bin]]
+# name = "abc405_b"
+# path = "abc405/b/b.rs"
+
+# [[bin]]
+# name = "abc405_c"
+# path = "abc405/c/c.rs"
+
+# [[bin]]
+# name = "abc405_d"
+# path = "abc405/d/d.rs"
+
+# [[bin]]
+# name = "abc405_e"
+# path = "abc405/e/e.rs"
+
+# [[bin]]
+# name = "abc405_f"
+# path = "abc405/f/f.rs"
+
+# [[bin]]
+# name = "abc405_g"
+# path = "abc405/g/g.rs"
+
+# [[bin]]
+# name = "abc406_a"
+# path = "abc406/a/a.rs"
+
+# [[bin]]
+# name = "abc406_b"
+# path = "abc406/b/b.rs"
+
+# [[bin]]
+# name = "abc406_c"
+# path = "abc406/c/c.rs"
+
+# [[bin]]
+# name = "abc406_d"
+# path = "abc406/d/d.rs"
+
+# [[bin]]
+# name = "abc406_e"
+# path = "abc406/e/e.rs"
+
+# [[bin]]
+# name = "abc406_f"
+# path = "abc406/f/f.rs"
+
+# [[bin]]
+# name = "abc406_g"
+# path = "abc406/g/g.rs"
+
+# [[bin]]
+# name = "abc407_a"
+# path = "abc407/a/a.rs"
+
+# [[bin]]
+# name = "abc407_b"
+# path = "abc407/b/b.rs"
+
+# [[bin]]
+# name = "abc407_c"
+# path = "abc407/c/c.rs"
+
+# [[bin]]
+# name = "abc407_d"
+# path = "abc407/d/d.rs"
+
+# [[bin]]
+# name = "abc407_e"
+# path = "abc407/e/e.rs"
+
+# [[bin]]
+# name = "abc407_f"
+# path = "abc407/f/f.rs"
+
+# [[bin]]
+# name = "abc407_g"
+# path = "abc407/g/g.rs"
+
+# [[bin]]
+# name = "abc408_a"
+# path = "abc408/a/a.rs"
+
+# [[bin]]
+# name = "abc408_b"
+# path = "abc408/b/b.rs"
+
+# [[bin]]
+# name = "abc408_c"
+# path = "abc408/c/c.rs"
+
+# [[bin]]
+# name = "abc408_d"
+# path = "abc408/d/d.rs"
+
+# [[bin]]
+# name = "abc408_e"
+# path = "abc408/e/e.rs"
+
+# [[bin]]
+# name = "abc408_f"
+# path = "abc408/f/f.rs"
+
+# [[bin]]
+# name = "abc408_g"
+# path = "abc408/g/g.rs"
+
+# [[bin]]
+# name = "abc409_a"
+# path = "abc409/a/a.rs"
+
+# [[bin]]
+# name = "abc409_b"
+# path = "abc409/b/b.rs"
+
+# [[bin]]
+# name = "abc409_c"
+# path = "abc409/c/c.rs"
+
+# [[bin]]
+# name = "abc409_d"
+# path = "abc409/d/d.rs"
+
+# [[bin]]
+# name = "abc409_e"
+# path = "abc409/e/e.rs"
+
+# [[bin]]
+# name = "abc409_f"
+# path = "abc409/f/f.rs"
+
+# [[bin]]
+# name = "abc409_g"
+# path = "abc409/g/g.rs"
+
+# [[bin]]
+# name = "abc410_a"
+# path = "abc410/a/a.rs"
+
+# [[bin]]
+# name = "abc410_b"
+# path = "abc410/b/b.rs"
+
+# [[bin]]
+# name = "abc410_c"
+# path = "abc410/c/c.rs"
+
+# [[bin]]
+# name = "abc410_d"
+# path = "abc410/d/d.rs"
+
+# [[bin]]
+# name = "abc410_e"
+# path = "abc410/e/e.rs"
+
+# [[bin]]
+# name = "abc410_f"
+# path = "abc410/f/f.rs"
+
+# [[bin]]
+# name = "abc410_g"
+# path = "abc410/g/g.rs"
+
+# [[bin]]
+# name = "abc411_a"
+# path = "abc411/a/a.rs"
+
+# [[bin]]
+# name = "abc411_b"
+# path = "abc411/b/b.rs"
+
+# [[bin]]
+# name = "abc411_c"
+# path = "abc411/c/c.rs"
+
+# [[bin]]
+# name = "abc411_d"
+# path = "abc411/d/d.rs"
+
+# [[bin]]
+# name = "abc411_e"
+# path = "abc411/e/e.rs"
+
+# [[bin]]
+# name = "abc411_f"
+# path = "abc411/f/f.rs"
+
+# [[bin]]
+# name = "abc411_g"
+# path = "abc411/g/g.rs"
+
+# [[bin]]
+# name = "abc412_a"
+# path = "abc412/a/a.rs"
+
+# [[bin]]
+# name = "abc412_b"
+# path = "abc412/b/b.rs"
+
+# [[bin]]
+# name = "abc412_c"
+# path = "abc412/c/c.rs"
+
+# [[bin]]
+# name = "abc412_d"
+# path = "abc412/d/d.rs"
+
+# [[bin]]
+# name = "abc412_e"
+# path = "abc412/e/e.rs"
+
+# [[bin]]
+# name = "abc412_f"
+# path = "abc412/f/f.rs"
+
+# [[bin]]
+# name = "abc412_g"
+# path = "abc412/g/g.rs"
+
+# [[bin]]
+# name = "abc413_a"
+# path = "abc413/a/a.rs"
+
+# [[bin]]
+# name = "abc413_b"
+# path = "abc413/b/b.rs"
+
+# [[bin]]
+# name = "abc413_c"
+# path = "abc413/c/c.rs"
+
+# [[bin]]
+# name = "abc413_d"
+# path = "abc413/d/d.rs"
+
+# [[bin]]
+# name = "abc413_e"
+# path = "abc413/e/e.rs"
+
+# [[bin]]
+# name = "abc413_f"
+# path = "abc413/f/f.rs"
+
+# [[bin]]
+# name = "abc413_g"
+# path = "abc413/g/g.rs"
+
+# [[bin]]
+# name = "abc414_a"
+# path = "abc414/a/a.rs"
+
+# [[bin]]
+# name = "abc414_b"
+# path = "abc414/b/b.rs"
+
+# [[bin]]
+# name = "abc414_c"
+# path = "abc414/c/c.rs"
+
+# [[bin]]
+# name = "abc414_d"
+# path = "abc414/d/d.rs"
+
+# [[bin]]
+# name = "abc414_e"
+# path = "abc414/e/e.rs"
+
+# [[bin]]
+# name = "abc414_f"
+# path = "abc414/f/f.rs"
+
+# [[bin]]
+# name = "abc414_g"
+# path = "abc414/g/g.rs"
+
+# [[bin]]
+# name = "abc415_a"
+# path = "abc415/a/a.rs"
+
+# [[bin]]
+# name = "abc415_b"
+# path = "abc415/b/b.rs"
+
+# [[bin]]
+# name = "abc415_c"
+# path = "abc415/c/c.rs"
+
+# [[bin]]
+# name = "abc415_d"
+# path = "abc415/d/d.rs"
+
+# [[bin]]
+# name = "abc415_e"
+# path = "abc415/e/e.rs"
+
+# [[bin]]
+# name = "abc415_f"
+# path = "abc415/f/f.rs"
+
+# [[bin]]
+# name = "abc415_g"
+# path = "abc415/g/g.rs"
+
+# [[bin]]
+# name = "abc416_a"
+# path = "abc416/a/a.rs"
+
+# [[bin]]
+# name = "abc416_b"
+# path = "abc416/b/b.rs"
+
+# [[bin]]
+# name = "abc416_c"
+# path = "abc416/c/c.rs"
+
+# [[bin]]
+# name = "abc416_d"
+# path = "abc416/d/d.rs"
+
+# [[bin]]
+# name = "abc416_e"
+# path = "abc416/e/e.rs"
+
+# [[bin]]
+# name = "abc416_f"
+# path = "abc416/f/f.rs"
+
+# [[bin]]
+# name = "abc416_g"
+# path = "abc416/g/g.rs"
+
+# [[bin]]
+# name = "abc417_a"
+# path = "abc417/a/a.rs"
+
+# [[bin]]
+# name = "abc417_b"
+# path = "abc417/b/b.rs"
+
+# [[bin]]
+# name = "abc417_c"
+# path = "abc417/c/c.rs"
+
+# [[bin]]
+# name = "abc417_d"
+# path = "abc417/d/d.rs"
+
+# [[bin]]
+# name = "abc417_e"
+# path = "abc417/e/e.rs"
+
+# [[bin]]
+# name = "abc417_f"
+# path = "abc417/f/f.rs"
+
+# [[bin]]
+# name = "abc417_g"
+# path = "abc417/g/g.rs"
+
+# [[bin]]
+# name = "abc418_a"
+# path = "abc418/a/a.rs"
+
+# [[bin]]
+# name = "abc418_b"
+# path = "abc418/b/b.rs"
+
+# [[bin]]
+# name = "abc418_c"
+# path = "abc418/c/c.rs"
+
+# [[bin]]
+# name = "abc418_d"
+# path = "abc418/d/d.rs"
+
+# [[bin]]
+# name = "abc418_e"
+# path = "abc418/e/e.rs"
+
+# [[bin]]
+# name = "abc418_f"
+# path = "abc418/f/f.rs"
+
+# [[bin]]
+# name = "abc418_g"
+# path = "abc418/g/g.rs"
+
+# [[bin]]
+# name = "abc419_a"
+# path = "abc419/a/a.rs"
+
+# [[bin]]
+# name = "abc419_b"
+# path = "abc419/b/b.rs"
+
+# [[bin]]
+# name = "abc419_c"
+# path = "abc419/c/c.rs"
+
+# [[bin]]
+# name = "abc419_d"
+# path = "abc419/d/d.rs"
+
+# [[bin]]
+# name = "abc419_e"
+# path = "abc419/e/e.rs"
+
+# [[bin]]
+# name = "abc419_f"
+# path = "abc419/f/f.rs"
+
+# [[bin]]
+# name = "abc419_g"
+# path = "abc419/g/g.rs"
+
+# [[bin]]
+# name = "abc420_a"
+# path = "abc420/a/a.rs"
+
+# [[bin]]
+# name = "abc420_b"
+# path = "abc420/b/b.rs"
+
+# [[bin]]
+# name = "abc420_c"
+# path = "abc420/c/c.rs"
+
+# [[bin]]
+# name = "abc420_d"
+# path = "abc420/d/d.rs"
+
+# [[bin]]
+# name = "abc420_e"
+# path = "abc420/e/e.rs"
+
+# [[bin]]
+# name = "abc420_f"
+# path = "abc420/f/f.rs"
+
+# [[bin]]
+# name = "abc420_g"
+# path = "abc420/g/g.rs"
+
+# [[bin]]
+# name = "abc421_a"
+# path = "abc421/a/a.rs"
+
+# [[bin]]
+# name = "abc421_b"
+# path = "abc421/b/b.rs"
+
+# [[bin]]
+# name = "abc421_c"
+# path = "abc421/c/c.rs"
+
+# [[bin]]
+# name = "abc421_d"
+# path = "abc421/d/d.rs"
+
+# [[bin]]
+# name = "abc421_e"
+# path = "abc421/e/e.rs"
+
+# [[bin]]
+# name = "abc421_f"
+# path = "abc421/f/f.rs"
+
+# [[bin]]
+# name = "abc421_g"
+# path = "abc421/g/g.rs"
+
+# [[bin]]
+# name = "abc422_a"
+# path = "abc422/a/a.rs"
+
+# [[bin]]
+# name = "abc422_b"
+# path = "abc422/b/b.rs"
+
+# [[bin]]
+# name = "abc422_c"
+# path = "abc422/c/c.rs"
+
+# [[bin]]
+# name = "abc422_d"
+# path = "abc422/d/d.rs"
+
+# [[bin]]
+# name = "abc422_e"
+# path = "abc422/e/e.rs"
+
+# [[bin]]
+# name = "abc422_f"
+# path = "abc422/f/f.rs"
+
+# [[bin]]
+# name = "abc422_g"
+# path = "abc422/g/g.rs"
+
+# [[bin]]
+# name = "abc423_a"
+# path = "abc423/a/a.rs"
+
+# [[bin]]
+# name = "abc423_b"
+# path = "abc423/b/b.rs"
+
+# [[bin]]
+# name = "abc423_c"
+# path = "abc423/c/c.rs"
+
+# [[bin]]
+# name = "abc423_d"
+# path = "abc423/d/d.rs"
+
+# [[bin]]
+# name = "abc423_e"
+# path = "abc423/e/e.rs"
+
+# [[bin]]
+# name = "abc423_f"
+# path = "abc423/f/f.rs"
+
+# [[bin]]
+# name = "abc423_g"
+# path = "abc423/g/g.rs"
+
+# [[bin]]
+# name = "abc424_a"
+# path = "abc424/a/a.rs"
+
+# [[bin]]
+# name = "abc424_b"
+# path = "abc424/b/b.rs"
+
+# [[bin]]
+# name = "abc424_c"
+# path = "abc424/c/c.rs"
+
+# [[bin]]
+# name = "abc424_d"
+# path = "abc424/d/d.rs"
+
+# [[bin]]
+# name = "abc424_e"
+# path = "abc424/e/e.rs"
+
+# [[bin]]
+# name = "abc424_f"
+# path = "abc424/f/f.rs"
+
+# [[bin]]
+# name = "abc424_g"
+# path = "abc424/g/g.rs"
+
+# [[bin]]
+# name = "abc425_a"
+# path = "abc425/a/a.rs"
+
+# [[bin]]
+# name = "abc425_b"
+# path = "abc425/b/b.rs"
+
+# [[bin]]
+# name = "abc425_c"
+# path = "abc425/c/c.rs"
+
+# [[bin]]
+# name = "abc425_d"
+# path = "abc425/d/d.rs"
+
+# [[bin]]
+# name = "abc425_e"
+# path = "abc425/e/e.rs"
+
+# [[bin]]
+# name = "abc425_f"
+# path = "abc425/f/f.rs"
+
+# [[bin]]
+# name = "abc425_g"
+# path = "abc425/g/g.rs"
+
+# [[bin]]
+# name = "abc426_a"
+# path = "abc426/a/a.rs"
+
+# [[bin]]
+# name = "abc426_b"
+# path = "abc426/b/b.rs"
+
+# [[bin]]
+# name = "abc426_c"
+# path = "abc426/c/c.rs"
+
+# [[bin]]
+# name = "abc426_d"
+# path = "abc426/d/d.rs"
+
+# [[bin]]
+# name = "abc426_e"
+# path = "abc426/e/e.rs"
+
+# [[bin]]
+# name = "abc426_f"
+# path = "abc426/f/f.rs"
+
+# [[bin]]
+# name = "abc426_g"
+# path = "abc426/g/g.rs"
+
+# [[bin]]
+# name = "abc427_a"
+# path = "abc427/a/a.rs"
+
+# [[bin]]
+# name = "abc427_b"
+# path = "abc427/b/b.rs"
+
+# [[bin]]
+# name = "abc427_c"
+# path = "abc427/c/c.rs"
+
+# [[bin]]
+# name = "abc427_d"
+# path = "abc427/d/d.rs"
+
+# [[bin]]
+# name = "abc427_e"
+# path = "abc427/e/e.rs"
+
+# [[bin]]
+# name = "abc427_f"
+# path = "abc427/f/f.rs"
+
+# [[bin]]
+# name = "abc427_g"
+# path = "abc427/g/g.rs"
+
+# [[bin]]
+# name = "abc428_a"
+# path = "abc428/a/a.rs"
+
+# [[bin]]
+# name = "abc428_b"
+# path = "abc428/b/b.rs"
+
+# [[bin]]
+# name = "abc428_c"
+# path = "abc428/c/c.rs"
+
+# [[bin]]
+# name = "abc428_d"
+# path = "abc428/d/d.rs"
+
+# [[bin]]
+# name = "abc428_e"
+# path = "abc428/e/e.rs"
+
+# [[bin]]
+# name = "abc428_f"
+# path = "abc428/f/f.rs"
+
+# [[bin]]
+# name = "abc428_g"
+# path = "abc428/g/g.rs"
+
+# [[bin]]
+# name = "abc429_a"
+# path = "abc429/a/a.rs"
+
+# [[bin]]
+# name = "abc429_b"
+# path = "abc429/b/b.rs"
+
+# [[bin]]
+# name = "abc429_c"
+# path = "abc429/c/c.rs"
+
+# [[bin]]
+# name = "abc429_d"
+# path = "abc429/d/d.rs"
+
+# [[bin]]
+# name = "abc429_e"
+# path = "abc429/e/e.rs"
+
+# [[bin]]
+# name = "abc429_f"
+# path = "abc429/f/f.rs"
+
+# [[bin]]
+# name = "abc429_g"
+# path = "abc429/g/g.rs"
+
+# [[bin]]
+# name = "abc430_a"
+# path = "abc430/a/a.rs"
+
+# [[bin]]
+# name = "abc430_b"
+# path = "abc430/b/b.rs"
+
+# [[bin]]
+# name = "abc430_c"
+# path = "abc430/c/c.rs"
+
+# [[bin]]
+# name = "abc430_d"
+# path = "abc430/d/d.rs"
+
+# [[bin]]
+# name = "abc430_e"
+# path = "abc430/e/e.rs"
+
+# [[bin]]
+# name = "abc430_f"
+# path = "abc430/f/f.rs"
+
+# [[bin]]
+# name = "abc430_g"
+# path = "abc430/g/g.rs"
+
+# [[bin]]
+# name = "abc431_a"
+# path = "abc431/a/a.rs"
+
+# [[bin]]
+# name = "abc431_b"
+# path = "abc431/b/b.rs"
+
+# [[bin]]
+# name = "abc431_c"
+# path = "abc431/c/c.rs"
+
+# [[bin]]
+# name = "abc431_d"
+# path = "abc431/d/d.rs"
+
+# [[bin]]
+# name = "abc431_e"
+# path = "abc431/e/e.rs"
+
+# [[bin]]
+# name = "abc431_f"
+# path = "abc431/f/f.rs"
+
+# [[bin]]
+# name = "abc431_g"
+# path = "abc431/g/g.rs"
+
+# [[bin]]
+# name = "abc432_a"
+# path = "abc432/a/a.rs"
+
+# [[bin]]
+# name = "abc432_b"
+# path = "abc432/b/b.rs"
+
+# [[bin]]
+# name = "abc432_c"
+# path = "abc432/c/c.rs"
+
+# [[bin]]
+# name = "abc432_d"
+# path = "abc432/d/d.rs"
+
+# [[bin]]
+# name = "abc432_e"
+# path = "abc432/e/e.rs"
+
+# [[bin]]
+# name = "abc432_f"
+# path = "abc432/f/f.rs"
+
+# [[bin]]
+# name = "abc432_g"
+# path = "abc432/g/g.rs"
+
+# [[bin]]
+# name = "arc192_a"
+# path = "arc192/a/a.rs"
+
+# [[bin]]
+# name = "arc192_b"
+# path = "arc192/b/b.rs"
+
+# [[bin]]
+# name = "arc192_c"
+# path = "arc192/c/c.rs"
+
+# [[bin]]
+# name = "arc192_d"
+# path = "arc192/d/d.rs"
+
+# [[bin]]
+# name = "arc192_e"
+# path = "arc192/e/e.rs"
+
+# [[bin]]
+# name = "arc194_a"
+# path = "arc194/a/a.rs"
+
+# [[bin]]
+# name = "arc194_b"
+# path = "arc194/b/b.rs"
+
+# [[bin]]
+# name = "arc194_c"
+# path = "arc194/c/c.rs"
+
+# [[bin]]
+# name = "arc194_d"
+# path = "arc194/d/d.rs"
+
+# [[bin]]
+# name = "arc194_e"
+# path = "arc194/e/e.rs"
+
+# [[bin]]
+# name = "arc197_a"
+# path = "arc197/a/a.rs"
+
+# [[bin]]
+# name = "arc197_b"
+# path = "arc197/b/b.rs"
+
+# [[bin]]
+# name = "arc197_c"
+# path = "arc197/c/c.rs"
+
+# [[bin]]
+# name = "arc197_d"
+# path = "arc197/d/d.rs"
+
+# [[bin]]
+# name = "arc197_e"
+# path = "arc197/e/e.rs"
+
+# [[bin]]
+# name = "arc205_a"
+# path = "arc205/a/a.rs"
+
+# [[bin]]
+# name = "arc205_b"
+# path = "arc205/b/b.rs"
+
+# [[bin]]
+# name = "arc205_c"
+# path = "arc205/c/c.rs"
+
+# [[bin]]
+# name = "arc205_d"
+# path = "arc205/d/d.rs"
+
+# [[bin]]
+# name = "arc205_e"
+# path = "arc205/e/e.rs"
+
+# [[bin]]
+# name = "arc208_a"
+# path = "arc208/a/a.rs"
+
+# [[bin]]
+# name = "arc208_b"
+# path = "arc208/b/b.rs"
+
+# [[bin]]
+# name = "arc208_c"
+# path = "arc208/c/c.rs"
+
+# [[bin]]
+# name = "arc208_d"
+# path = "arc208/d/d.rs"
+
+# [[bin]]
+# name = "arc208_e"
+# path = "arc208/e/e.rs"
+
+# [[bin]]
+# name = "arc208_f"
+# path = "arc208/f/f.rs"
+
+# [[bin]]
+# name = "arc208_g"
+# path = "arc208/g/g.rs"

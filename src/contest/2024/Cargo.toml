@@ -32,3 +32,1529 @@ cli_test_dir = { workspace = true }
 [[bin]]
 name = "abc386_a"
 path = "abc386/a/a.rs"
+
+# --- Automatically added (commented out) ---
+
+# [[bin]]
+# name = "abc344_a"
+# path = "abc344/a/a.rs"
+
+# [[bin]]
+# name = "abc344_b"
+# path = "abc344/b/b.rs"
+
+# [[bin]]
+# name = "abc344_c"
+# path = "abc344/c/c.rs"
+
+# [[bin]]
+# name = "abc344_d"
+# path = "abc344/d/d.rs"
+
+# [[bin]]
+# name = "abc344_e"
+# path = "abc344/e/e.rs"
+
+# [[bin]]
+# name = "abc344_f"
+# path = "abc344/f/f.rs"
+
+# [[bin]]
+# name = "abc345_a"
+# path = "abc345/a/a.rs"
+
+# [[bin]]
+# name = "abc345_b"
+# path = "abc345/b/b.rs"
+
+# [[bin]]
+# name = "abc345_c"
+# path = "abc345/c/c.rs"
+
+# [[bin]]
+# name = "abc345_d"
+# path = "abc345/d/d.rs"
+
+# [[bin]]
+# name = "abc345_e"
+# path = "abc345/e/e.rs"
+
+# [[bin]]
+# name = "abc345_f"
+# path = "abc345/f/f.rs"
+
+# [[bin]]
+# name = "abc346_a"
+# path = "abc346/a/a.rs"
+
+# [[bin]]
+# name = "abc346_b"
+# path = "abc346/b/b.rs"
+
+# [[bin]]
+# name = "abc346_c"
+# path = "abc346/c/c.rs"
+
+# [[bin]]
+# name = "abc346_d"
+# path = "abc346/d/d.rs"
+
+# [[bin]]
+# name = "abc346_e"
+# path = "abc346/e/e.rs"
+
+# [[bin]]
+# name = "abc346_f"
+# path = "abc346/f/f.rs"
+
+# [[bin]]
+# name = "abc346_g"
+# path = "abc346/g/g.rs"
+
+# [[bin]]
+# name = "abc347_a"
+# path = "abc347/a/a.rs"
+
+# [[bin]]
+# name = "abc347_b"
+# path = "abc347/b/b.rs"
+
+# [[bin]]
+# name = "abc347_c"
+# path = "abc347/c/c.rs"
+
+# [[bin]]
+# name = "abc347_d"
+# path = "abc347/d/d.rs"
+
+# [[bin]]
+# name = "abc347_e"
+# path = "abc347/e/e.rs"
+
+# [[bin]]
+# name = "abc347_f"
+# path = "abc347/f/f.rs"
+
+# [[bin]]
+# name = "abc347_g"
+# path = "abc347/g/g.rs"
+
+# [[bin]]
+# name = "abc348_a"
+# path = "abc348/a/a.rs"
+
+# [[bin]]
+# name = "abc348_b"
+# path = "abc348/b/b.rs"
+
+# [[bin]]
+# name = "abc348_c"
+# path = "abc348/c/c.rs"
+
+# [[bin]]
+# name = "abc348_d"
+# path = "abc348/d/d.rs"
+
+# [[bin]]
+# name = "abc348_e"
+# path = "abc348/e/e.rs"
+
+# [[bin]]
+# name = "abc348_f"
+# path = "abc348/f/f.rs"
+
+# [[bin]]
+# name = "abc348_g"
+# path = "abc348/g/g.rs"
+
+# [[bin]]
+# name = "abc349_a"
+# path = "abc349/a/a.rs"
+
+# [[bin]]
+# name = "abc349_b"
+# path = "abc349/b/b.rs"
+
+# [[bin]]
+# name = "abc349_c"
+# path = "abc349/c/c.rs"
+
+# [[bin]]
+# name = "abc349_d"
+# path = "abc349/d/d.rs"
+
+# [[bin]]
+# name = "abc349_e"
+# path = "abc349/e/e.rs"
+
+# [[bin]]
+# name = "abc349_f"
+# path = "abc349/f/f.rs"
+
+# [[bin]]
+# name = "abc349_g"
+# path = "abc349/g/g.rs"
+
+# [[bin]]
+# name = "abc350_a"
+# path = "abc350/a/a.rs"
+
+# [[bin]]
+# name = "abc350_b"
+# path = "abc350/b/b.rs"
+
+# [[bin]]
+# name = "abc350_c"
+# path = "abc350/c/c.rs"
+
+# [[bin]]
+# name = "abc350_d"
+# path = "abc350/d/d.rs"
+
+# [[bin]]
+# name = "abc350_e"
+# path = "abc350/e/e.rs"
+
+# [[bin]]
+# name = "abc350_f"
+# path = "abc350/f/f.rs"
+
+# [[bin]]
+# name = "abc350_g"
+# path = "abc350/g/g.rs"
+
+# [[bin]]
+# name = "abc351_a"
+# path = "abc351/a/a.rs"
+
+# [[bin]]
+# name = "abc351_b"
+# path = "abc351/b/b.rs"
+
+# [[bin]]
+# name = "abc351_c"
+# path = "abc351/c/c.rs"
+
+# [[bin]]
+# name = "abc351_d"
+# path = "abc351/d/d.rs"
+
+# [[bin]]
+# name = "abc351_e"
+# path = "abc351/e/e.rs"
+
+# [[bin]]
+# name = "abc351_f"
+# path = "abc351/f/f.rs"
+
+# [[bin]]
+# name = "abc351_g"
+# path = "abc351/g/g.rs"
+
+# [[bin]]
+# name = "abc352_a"
+# path = "abc352/a/a.rs"
+
+# [[bin]]
+# name = "abc352_b"
+# path = "abc352/b/b.rs"
+
+# [[bin]]
+# name = "abc352_c"
+# path = "abc352/c/c.rs"
+
+# [[bin]]
+# name = "abc352_d"
+# path = "abc352/d/d.rs"
+
+# [[bin]]
+# name = "abc352_e"
+# path = "abc352/e/e.rs"
+
+# [[bin]]
+# name = "abc352_f"
+# path = "abc352/f/f.rs"
+
+# [[bin]]
+# name = "abc352_g"
+# path = "abc352/g/g.rs"
+
+# [[bin]]
+# name = "abc353_a"
+# path = "abc353/a/a.rs"
+
+# [[bin]]
+# name = "abc353_b"
+# path = "abc353/b/b.rs"
+
+# [[bin]]
+# name = "abc353_c"
+# path = "abc353/c/c.rs"
+
+# [[bin]]
+# name = "abc353_d"
+# path = "abc353/d/d.rs"
+
+# [[bin]]
+# name = "abc353_e"
+# path = "abc353/e/e.rs"
+
+# [[bin]]
+# name = "abc353_f"
+# path = "abc353/f/f.rs"
+
+# [[bin]]
+# name = "abc353_g"
+# path = "abc353/g/g.rs"
+
+# [[bin]]
+# name = "abc354_a"
+# path = "abc354/a/a.rs"
+
+# [[bin]]
+# name = "abc354_b"
+# path = "abc354/b/b.rs"
+
+# [[bin]]
+# name = "abc354_c"
+# path = "abc354/c/c.rs"
+
+# [[bin]]
+# name = "abc354_d"
+# path = "abc354/d/d.rs"
+
+# [[bin]]
+# name = "abc354_e"
+# path = "abc354/e/e.rs"
+
+# [[bin]]
+# name = "abc354_f"
+# path = "abc354/f/f.rs"
+
+# [[bin]]
+# name = "abc354_g"
+# path = "abc354/g/g.rs"
+
+# [[bin]]
+# name = "abc355_a"
+# path = "abc355/a/a.rs"
+
+# [[bin]]
+# name = "abc355_b"
+# path = "abc355/b/b.rs"
+
+# [[bin]]
+# name = "abc355_c"
+# path = "abc355/c/c.rs"
+
+# [[bin]]
+# name = "abc355_d"
+# path = "abc355/d/d.rs"
+
+# [[bin]]
+# name = "abc355_e"
+# path = "abc355/e/e.rs"
+
+# [[bin]]
+# name = "abc355_f"
+# path = "abc355/f/f.rs"
+
+# [[bin]]
+# name = "abc355_g"
+# path = "abc355/g/g.rs"
+
+# [[bin]]
+# name = "abc356_a"
+# path = "abc356/a/a.rs"
+
+# [[bin]]
+# name = "abc356_b"
+# path = "abc356/b/b.rs"
+
+# [[bin]]
+# name = "abc356_c"
+# path = "abc356/c/c.rs"
+
+# [[bin]]
+# name = "abc356_d"
+# path = "abc356/d/d.rs"
+
+# [[bin]]
+# name = "abc356_e"
+# path = "abc356/e/e.rs"
+
+# [[bin]]
+# name = "abc356_f"
+# path = "abc356/f/f.rs"
+
+# [[bin]]
+# name = "abc356_g"
+# path = "abc356/g/g.rs"
+
+# [[bin]]
+# name = "abc357_a"
+# path = "abc357/a/a.rs"
+
+# [[bin]]
+# name = "abc357_b"
+# path = "abc357/b/b.rs"
+
+# [[bin]]
+# name = "abc357_c"
+# path = "abc357/c/c.rs"
+
+# [[bin]]
+# name = "abc357_d"
+# path = "abc357/d/d.rs"
+
+# [[bin]]
+# name = "abc357_e"
+# path = "abc357/e/e.rs"
+
+# [[bin]]
+# name = "abc357_f"
+# path = "abc357/f/f.rs"
+
+# [[bin]]
+# name = "abc357_g"
+# path = "abc357/g/g.rs"
+
+# [[bin]]
+# name = "abc358_a"
+# path = "abc358/a/a.rs"
+
+# [[bin]]
+# name = "abc358_b"
+# path = "abc358/b/b.rs"
+
+# [[bin]]
+# name = "abc358_c"
+# path = "abc358/c/c.rs"
+
+# [[bin]]
+# name = "abc358_d"
+# path = "abc358/d/d.rs"
+
+# [[bin]]
+# name = "abc358_e"
+# path = "abc358/e/e.rs"
+
+# [[bin]]
+# name = "abc358_f"
+# path = "abc358/f/f.rs"
+
+# [[bin]]
+# name = "abc358_g"
+# path = "abc358/g/g.rs"
+
+# [[bin]]
+# name = "abc359_a"
+# path = "abc359/a/a.rs"
+
+# [[bin]]
+# name = "abc359_b"
+# path = "abc359/b/b.rs"
+
+# [[bin]]
+# name = "abc359_c"
+# path = "abc359/c/c.rs"
+
+# [[bin]]
+# name = "abc359_d"
+# path = "abc359/d/d.rs"
+
+# [[bin]]
+# name = "abc359_e"
+# path = "abc359/e/e.rs"
+
+# [[bin]]
+# name = "abc359_f"
+# path = "abc359/f/f.rs"
+
+# [[bin]]
+# name = "abc359_g"
+# path = "abc359/g/g.rs"
+
+# [[bin]]
+# name = "abc360_a"
+# path = "abc360/a/a.rs"
+
+# [[bin]]
+# name = "abc360_b"
+# path = "abc360/b/b.rs"
+
+# [[bin]]
+# name = "abc360_c"
+# path = "abc360/c/c.rs"
+
+# [[bin]]
+# name = "abc360_d"
+# path = "abc360/d/d.rs"
+
+# [[bin]]
+# name = "abc360_e"
+# path = "abc360/e/e.rs"
+
+# [[bin]]
+# name = "abc360_f"
+# path = "abc360/f/f.rs"
+
+# [[bin]]
+# name = "abc360_g"
+# path = "abc360/g/g.rs"
+
+# [[bin]]
+# name = "abc361_a"
+# path = "abc361/a/a.rs"
+
+# [[bin]]
+# name = "abc361_b"
+# path = "abc361/b/b.rs"
+
+# [[bin]]
+# name = "abc361_c"
+# path = "abc361/c/c.rs"
+
+# [[bin]]
+# name = "abc361_d"
+# path = "abc361/d/d.rs"
+
+# [[bin]]
+# name = "abc361_e"
+# path = "abc361/e/e.rs"
+
+# [[bin]]
+# name = "abc361_f"
+# path = "abc361/f/f.rs"
+
+# [[bin]]
+# name = "abc361_g"
+# path = "abc361/g/g.rs"
+
+# [[bin]]
+# name = "abc362_a"
+# path = "abc362/a/a.rs"
+
+# [[bin]]
+# name = "abc362_b"
+# path = "abc362/b/b.rs"
+
+# [[bin]]
+# name = "abc362_c"
+# path = "abc362/c/c.rs"
+
+# [[bin]]
+# name = "abc362_d"
+# path = "abc362/d/d.rs"
+
+# [[bin]]
+# name = "abc362_e"
+# path = "abc362/e/e.rs"
+
+# [[bin]]
+# name = "abc362_f"
+# path = "abc362/f/f.rs"
+
+# [[bin]]
+# name = "abc362_g"
+# path = "abc362/g/g.rs"
+
+# [[bin]]
+# name = "abc363_a"
+# path = "abc363/a/a.rs"
+
+# [[bin]]
+# name = "abc363_b"
+# path = "abc363/b/b.rs"
+
+# [[bin]]
+# name = "abc363_c"
+# path = "abc363/c/c.rs"
+
+# [[bin]]
+# name = "abc363_d"
+# path = "abc363/d/d.rs"
+
+# [[bin]]
+# name = "abc363_e"
+# path = "abc363/e/e.rs"
+
+# [[bin]]
+# name = "abc363_f"
+# path = "abc363/f/f.rs"
+
+# [[bin]]
+# name = "abc363_g"
+# path = "abc363/g/g.rs"
+
+# [[bin]]
+# name = "abc364_a"
+# path = "abc364/a/a.rs"
+
+# [[bin]]
+# name = "abc364_b"
+# path = "abc364/b/b.rs"
+
+# [[bin]]
+# name = "abc364_c"
+# path = "abc364/c/c.rs"
+
+# [[bin]]
+# name = "abc364_d"
+# path = "abc364/d/d.rs"
+
+# [[bin]]
+# name = "abc364_e"
+# path = "abc364/e/e.rs"
+
+# [[bin]]
+# name = "abc364_f"
+# path = "abc364/f/f.rs"
+
+# [[bin]]
+# name = "abc364_g"
+# path = "abc364/g/g.rs"
+
+# [[bin]]
+# name = "abc365_a"
+# path = "abc365/a/a.rs"
+
+# [[bin]]
+# name = "abc365_b"
+# path = "abc365/b/b.rs"
+
+# [[bin]]
+# name = "abc365_c"
+# path = "abc365/c/c.rs"
+
+# [[bin]]
+# name = "abc365_d"
+# path = "abc365/d/d.rs"
+
+# [[bin]]
+# name = "abc365_e"
+# path = "abc365/e/e.rs"
+
+# [[bin]]
+# name = "abc365_f"
+# path = "abc365/f/f.rs"
+
+# [[bin]]
+# name = "abc365_g"
+# path = "abc365/g/g.rs"
+
+# [[bin]]
+# name = "abc366_a"
+# path = "abc366/a/a.rs"
+
+# [[bin]]
+# name = "abc366_b"
+# path = "abc366/b/b.rs"
+
+# [[bin]]
+# name = "abc366_c"
+# path = "abc366/c/c.rs"
+
+# [[bin]]
+# name = "abc366_d"
+# path = "abc366/d/d.rs"
+
+# [[bin]]
+# name = "abc366_e"
+# path = "abc366/e/e.rs"
+
+# [[bin]]
+# name = "abc366_f"
+# path = "abc366/f/f.rs"
+
+# [[bin]]
+# name = "abc366_g"
+# path = "abc366/g/g.rs"
+
+# [[bin]]
+# name = "abc367_a"
+# path = "abc367/a/a.rs"
+
+# [[bin]]
+# name = "abc367_b"
+# path = "abc367/b/b.rs"
+
+# [[bin]]
+# name = "abc367_c"
+# path = "abc367/c/c.rs"
+
+# [[bin]]
+# name = "abc367_d"
+# path = "abc367/d/d.rs"
+
+# [[bin]]
+# name = "abc367_e"
+# path = "abc367/e/e.rs"
+
+# [[bin]]
+# name = "abc367_f"
+# path = "abc367/f/f.rs"
+
+# [[bin]]
+# name = "abc367_g"
+# path = "abc367/g/g.rs"
+
+# [[bin]]
+# name = "abc368_a"
+# path = "abc368/a/a.rs"
+
+# [[bin]]
+# name = "abc368_b"
+# path = "abc368/b/b.rs"
+
+# [[bin]]
+# name = "abc368_c"
+# path = "abc368/c/c.rs"
+
+# [[bin]]
+# name = "abc368_d"
+# path = "abc368/d/d.rs"
+
+# [[bin]]
+# name = "abc368_e"
+# path = "abc368/e/e.rs"
+
+# [[bin]]
+# name = "abc368_f"
+# path = "abc368/f/f.rs"
+
+# [[bin]]
+# name = "abc368_g"
+# path = "abc368/g/g.rs"
+
+# [[bin]]
+# name = "abc369_a"
+# path = "abc369/a/a.rs"
+
+# [[bin]]
+# name = "abc369_b"
+# path = "abc369/b/b.rs"
+
+# [[bin]]
+# name = "abc369_c"
+# path = "abc369/c/c.rs"
+
+# [[bin]]
+# name = "abc369_d"
+# path = "abc369/d/d.rs"
+
+# [[bin]]
+# name = "abc369_e"
+# path = "abc369/e/e.rs"
+
+# [[bin]]
+# name = "abc369_f"
+# path = "abc369/f/f.rs"
+
+# [[bin]]
+# name = "abc369_g"
+# path = "abc369/g/g.rs"
+
+# [[bin]]
+# name = "abc370_a"
+# path = "abc370/a/a.rs"
+
+# [[bin]]
+# name = "abc370_b"
+# path = "abc370/b/b.rs"
+
+# [[bin]]
+# name = "abc370_c"
+# path = "abc370/c/c.rs"
+
+# [[bin]]
+# name = "abc370_d"
+# path = "abc370/d/d.rs"
+
+# [[bin]]
+# name = "abc370_e"
+# path = "abc370/e/e.rs"
+
+# [[bin]]
+# name = "abc370_f"
+# path = "abc370/f/f.rs"
+
+# [[bin]]
+# name = "abc370_g"
+# path = "abc370/g/g.rs"
+
+# [[bin]]
+# name = "abc371_a"
+# path = "abc371/a/a.rs"
+
+# [[bin]]
+# name = "abc371_b"
+# path = "abc371/b/b.rs"
+
+# [[bin]]
+# name = "abc371_c"
+# path = "abc371/c/c.rs"
+
+# [[bin]]
+# name = "abc371_d"
+# path = "abc371/d/d.rs"
+
+# [[bin]]
+# name = "abc371_e"
+# path = "abc371/e/e.rs"
+
+# [[bin]]
+# name = "abc371_f"
+# path = "abc371/f/f.rs"
+
+# [[bin]]
+# name = "abc371_g"
+# path = "abc371/g/g.rs"
+
+# [[bin]]
+# name = "abc372_a"
+# path = "abc372/a/a.rs"
+
+# [[bin]]
+# name = "abc372_b"
+# path = "abc372/b/b.rs"
+
+# [[bin]]
+# name = "abc372_c"
+# path = "abc372/c/c.rs"
+
+# [[bin]]
+# name = "abc372_d"
+# path = "abc372/d/d.rs"
+
+# [[bin]]
+# name = "abc372_e"
+# path = "abc372/e/e.rs"
+
+# [[bin]]
+# name = "abc372_f"
+# path = "abc372/f/f.rs"
+
+# [[bin]]
+# name = "abc372_g"
+# path = "abc372/g/g.rs"
+
+# [[bin]]
+# name = "abc373_a"
+# path = "abc373/a/a.rs"
+
+# [[bin]]
+# name = "abc373_b"
+# path = "abc373/b/b.rs"
+
+# [[bin]]
+# name = "abc373_c"
+# path = "abc373/c/c.rs"
+
+# [[bin]]
+# name = "abc373_d"
+# path = "abc373/d/d.rs"
+
+# [[bin]]
+# name = "abc373_e"
+# path = "abc373/e/e.rs"
+
+# [[bin]]
+# name = "abc373_f"
+# path = "abc373/f/f.rs"
+
+# [[bin]]
+# name = "abc373_g"
+# path = "abc373/g/g.rs"
+
+# [[bin]]
+# name = "abc374_a"
+# path = "abc374/a/a.rs"
+
+# [[bin]]
+# name = "abc374_b"
+# path = "abc374/b/b.rs"
+
+# [[bin]]
+# name = "abc374_c"
+# path = "abc374/c/c.rs"
+
+# [[bin]]
+# name = "abc374_d"
+# path = "abc374/d/d.rs"
+
+# [[bin]]
+# name = "abc374_e"
+# path = "abc374/e/e.rs"
+
+# [[bin]]
+# name = "abc374_f"
+# path = "abc374/f/f.rs"
+
+# [[bin]]
+# name = "abc374_g"
+# path = "abc374/g/g.rs"
+
+# [[bin]]
+# name = "abc375_a"
+# path = "abc375/a/a.rs"
+
+# [[bin]]
+# name = "abc375_b"
+# path = "abc375/b/b.rs"
+
+# [[bin]]
+# name = "abc375_c"
+# path = "abc375/c/c.rs"
+
+# [[bin]]
+# name = "abc375_d"
+# path = "abc375/d/d.rs"
+
+# [[bin]]
+# name = "abc375_e"
+# path = "abc375/e/e.rs"
+
+# [[bin]]
+# name = "abc375_f"
+# path = "abc375/f/f.rs"
+
+# [[bin]]
+# name = "abc375_g"
+# path = "abc375/g/g.rs"
+
+# [[bin]]
+# name = "abc376_a"
+# path = "abc376/a/a.rs"
+
+# [[bin]]
+# name = "abc376_b"
+# path = "abc376/b/b.rs"
+
+# [[bin]]
+# name = "abc376_c"
+# path = "abc376/c/c.rs"
+
+# [[bin]]
+# name = "abc376_d"
+# path = "abc376/d/d.rs"
+
+# [[bin]]
+# name = "abc376_e"
+# path = "abc376/e/e.rs"
+
+# [[bin]]
+# name = "abc376_f"
+# path = "abc376/f/f.rs"
+
+# [[bin]]
+# name = "abc376_g"
+# path = "abc376/g/g.rs"
+
+# [[bin]]
+# name = "abc377_a"
+# path = "abc377/a/a.rs"
+
+# [[bin]]
+# name = "abc377_b"
+# path = "abc377/b/b.rs"
+
+# [[bin]]
+# name = "abc377_c"
+# path = "abc377/c/c.rs"
+
+# [[bin]]
+# name = "abc377_d"
+# path = "abc377/d/d.rs"
+
+# [[bin]]
+# name = "abc377_e"
+# path = "abc377/e/e.rs"
+
+# [[bin]]
+# name = "abc377_f"
+# path = "abc377/f/f.rs"
+
+# [[bin]]
+# name = "abc377_g"
+# path = "abc377/g/g.rs"
+
+# [[bin]]
+# name = "abc378_a"
+# path = "abc378/a/a.rs"
+
+# [[bin]]
+# name = "abc378_b"
+# path = "abc378/b/b.rs"
+
+# [[bin]]
+# name = "abc378_c"
+# path = "abc378/c/c.rs"
+
+# [[bin]]
+# name = "abc378_d"
+# path = "abc378/d/d.rs"
+
+# [[bin]]
+# name = "abc378_e"
+# path = "abc378/e/e.rs"
+
+# [[bin]]
+# name = "abc378_f"
+# path = "abc378/f/f.rs"
+
+# [[bin]]
+# name = "abc378_g"
+# path = "abc378/g/g.rs"
+
+# [[bin]]
+# name = "abc379_a"
+# path = "abc379/a/a.rs"
+
+# [[bin]]
+# name = "abc379_b"
+# path = "abc379/b/b.rs"
+
+# [[bin]]
+# name = "abc379_c"
+# path = "abc379/c/c.rs"
+
+# [[bin]]
+# name = "abc379_d"
+# path = "abc379/d/d.rs"
+
+# [[bin]]
+# name = "abc379_e"
+# path = "abc379/e/e.rs"
+
+# [[bin]]
+# name = "abc379_f"
+# path = "abc379/f/f.rs"
+
+# [[bin]]
+# name = "abc379_g"
+# path = "abc379/g/g.rs"
+
+# [[bin]]
+# name = "abc380_a"
+# path = "abc380/a/a.rs"
+
+# [[bin]]
+# name = "abc380_b"
+# path = "abc380/b/b.rs"
+
+# [[bin]]
+# name = "abc380_c"
+# path = "abc380/c/c.rs"
+
+# [[bin]]
+# name = "abc380_d"
+# path = "abc380/d/d.rs"
+
+# [[bin]]
+# name = "abc380_e"
+# path = "abc380/e/e.rs"
+
+# [[bin]]
+# name = "abc380_f"
+# path = "abc380/f/f.rs"
+
+# [[bin]]
+# name = "abc380_g"
+# path = "abc380/g/g.rs"
+
+# [[bin]]
+# name = "abc381_a"
+# path = "abc381/a/a.rs"
+
+# [[bin]]
+# name = "abc381_b"
+# path = "abc381/b/b.rs"
+
+# [[bin]]
+# name = "abc381_c"
+# path = "abc381/c/c.rs"
+
+# [[bin]]
+# name = "abc381_d"
+# path = "abc381/d/d.rs"
+
+# [[bin]]
+# name = "abc381_e"
+# path = "abc381/e/e.rs"
+
+# [[bin]]
+# name = "abc381_f"
+# path = "abc381/f/f.rs"
+
+# [[bin]]
+# name = "abc381_g"
+# path = "abc381/g/g.rs"
+
+# [[bin]]
+# name = "abc382_a"
+# path = "abc382/a/a.rs"
+
+# [[bin]]
+# name = "abc382_b"
+# path = "abc382/b/b.rs"
+
+# [[bin]]
+# name = "abc382_c"
+# path = "abc382/c/c.rs"
+
+# [[bin]]
+# name = "abc382_d"
+# path = "abc382/d/d.rs"
+
+# [[bin]]
+# name = "abc382_e"
+# path = "abc382/e/e.rs"
+
+# [[bin]]
+# name = "abc382_f"
+# path = "abc382/f/f.rs"
+
+# [[bin]]
+# name = "abc382_g"
+# path = "abc382/g/g.rs"
+
+# [[bin]]
+# name = "abc383_a"
+# path = "abc383/a/a.rs"
+
+# [[bin]]
+# name = "abc383_b"
+# path = "abc383/b/b.rs"
+
+# [[bin]]
+# name = "abc383_c"
+# path = "abc383/c/c.rs"
+
+# [[bin]]
+# name = "abc383_d"
+# path = "abc383/d/d.rs"
+
+# [[bin]]
+# name = "abc383_e"
+# path = "abc383/e/e.rs"
+
+# [[bin]]
+# name = "abc383_f"
+# path = "abc383/f/f.rs"
+
+# [[bin]]
+# name = "abc383_g"
+# path = "abc383/g/g.rs"
+
+# [[bin]]
+# name = "abc384_a"
+# path = "abc384/a/a.rs"
+
+# [[bin]]
+# name = "abc384_b"
+# path = "abc384/b/b.rs"
+
+# [[bin]]
+# name = "abc384_c"
+# path = "abc384/c/c.rs"
+
+# [[bin]]
+# name = "abc384_d"
+# path = "abc384/d/d.rs"
+
+# [[bin]]
+# name = "abc384_e"
+# path = "abc384/e/e.rs"
+
+# [[bin]]
+# name = "abc384_f"
+# path = "abc384/f/f.rs"
+
+# [[bin]]
+# name = "abc384_g"
+# path = "abc384/g/g.rs"
+
+# [[bin]]
+# name = "abc385_a"
+# path = "abc385/a/a.rs"
+
+# [[bin]]
+# name = "abc385_b"
+# path = "abc385/b/b.rs"
+
+# [[bin]]
+# name = "abc385_c"
+# path = "abc385/c/c.rs"
+
+# [[bin]]
+# name = "abc385_d"
+# path = "abc385/d/d.rs"
+
+# [[bin]]
+# name = "abc385_e"
+# path = "abc385/e/e.rs"
+
+# [[bin]]
+# name = "abc385_f"
+# path = "abc385/f/f.rs"
+
+# [[bin]]
+# name = "abc385_g"
+# path = "abc385/g/g.rs"
+
+# [[bin]]
+# name = "abc386_b"
+# path = "abc386/b/b.rs"
+
+# [[bin]]
+# name = "abc386_c"
+# path = "abc386/c/c.rs"
+
+# [[bin]]
+# name = "abc386_d"
+# path = "abc386/d/d.rs"
+
+# [[bin]]
+# name = "abc386_e"
+# path = "abc386/e/e.rs"
+
+# [[bin]]
+# name = "abc386_f"
+# path = "abc386/f/f.rs"
+
+# [[bin]]
+# name = "abc386_g"
+# path = "abc386/g/g.rs"
+
+# [[bin]]
+# name = "arc172_a"
+# path = "arc172/a/a.rs"
+
+# [[bin]]
+# name = "arc172_b"
+# path = "arc172/b/b.rs"
+
+# [[bin]]
+# name = "arc172_c"
+# path = "arc172/c/c.rs"
+
+# [[bin]]
+# name = "arc172_d"
+# path = "arc172/d/d.rs"
+
+# [[bin]]
+# name = "arc172_e"
+# path = "arc172/e/e.rs"
+
+# [[bin]]
+# name = "arc173_a"
+# path = "arc173/a/a.rs"
+
+# [[bin]]
+# name = "arc173_b"
+# path = "arc173/b/b.rs"
+
+# [[bin]]
+# name = "arc173_c"
+# path = "arc173/c/c.rs"
+
+# [[bin]]
+# name = "arc173_d"
+# path = "arc173/d/d.rs"
+
+# [[bin]]
+# name = "arc173_e"
+# path = "arc173/e/e.rs"
+
+# [[bin]]
+# name = "arc174_a"
+# path = "arc174/a/a.rs"
+
+# [[bin]]
+# name = "arc174_b"
+# path = "arc174/b/b.rs"
+
+# [[bin]]
+# name = "arc174_c"
+# path = "arc174/c/c.rs"
+
+# [[bin]]
+# name = "arc174_d"
+# path = "arc174/d/d.rs"
+
+# [[bin]]
+# name = "arc174_e"
+# path = "arc174/e/e.rs"
+
+# [[bin]]
+# name = "arc175_a"
+# path = "arc175/a/a.rs"
+
+# [[bin]]
+# name = "arc175_b"
+# path = "arc175/b/b.rs"
+
+# [[bin]]
+# name = "arc175_c"
+# path = "arc175/c/c.rs"
+
+# [[bin]]
+# name = "arc175_d"
+# path = "arc175/d/d.rs"
+
+# [[bin]]
+# name = "arc175_e"
+# path = "arc175/e/e.rs"
+
+# [[bin]]
+# name = "arc176_a"
+# path = "arc176/a/a.rs"
+
+# [[bin]]
+# name = "arc176_b"
+# path = "arc176/b/b.rs"
+
+# [[bin]]
+# name = "arc176_c"
+# path = "arc176/c/c.rs"
+
+# [[bin]]
+# name = "arc176_d"
+# path = "arc176/d/d.rs"
+
+# [[bin]]
+# name = "arc176_e"
+# path = "arc176/e/e.rs"
+
+# [[bin]]
+# name = "arc176_f"
+# path = "arc176/f/f.rs"
+
+# [[bin]]
+# name = "arc177_a"
+# path = "arc177/a/a.rs"
+
+# [[bin]]
+# name = "arc177_b"
+# path = "arc177/b/b.rs"
+
+# [[bin]]
+# name = "arc177_c"
+# path = "arc177/c/c.rs"
+
+# [[bin]]
+# name = "arc177_d"
+# path = "arc177/d/d.rs"
+
+# [[bin]]
+# name = "arc177_e"
+# path = "arc177/e/e.rs"
+
+# [[bin]]
+# name = "arc177_f"
+# path = "arc177/f/f.rs"
+
+# [[bin]]
+# name = "arc178_a"
+# path = "arc178/a/a.rs"
+
+# [[bin]]
+# name = "arc178_b"
+# path = "arc178/b/b.rs"
+
+# [[bin]]
+# name = "arc178_c"
+# path = "arc178/c/c.rs"
+
+# [[bin]]
+# name = "arc178_d"
+# path = "arc178/d/d.rs"
+
+# [[bin]]
+# name = "arc178_e"
+# path = "arc178/e/e.rs"
+
+# [[bin]]
+# name = "arc178_f"
+# path = "arc178/f/f.rs"
+
+# [[bin]]
+# name = "arc179_a"
+# path = "arc179/a/a.rs"
+
+# [[bin]]
+# name = "arc179_b"
+# path = "arc179/b/b.rs"
+
+# [[bin]]
+# name = "arc179_c"
+# path = "arc179/c/c.rs"
+
+# [[bin]]
+# name = "arc179_d"
+# path = "arc179/d/d.rs"
+
+# [[bin]]
+# name = "arc179_e"
+# path = "arc179/e/e.rs"
+
+# [[bin]]
+# name = "arc179_f"
+# path = "arc179/f/f.rs"
+
+# [[bin]]
+# name = "arc180_a"
+# path = "arc180/a/a.rs"
+
+# [[bin]]
+# name = "arc180_b"
+# path = "arc180/b/b.rs"
+
+# [[bin]]
+# name = "arc180_c"
+# path = "arc180/c/c.rs"
+
+# [[bin]]
+# name = "arc180_d"
+# path = "arc180/d/d.rs"
+
+# [[bin]]
+# name = "arc180_e"
+# path = "arc180/e/e.rs"
+
+# [[bin]]
+# name = "arc180_f"
+# path = "arc180/f/f.rs"
+
+# [[bin]]
+# name = "arc181_a"
+# path = "arc181/a/a.rs"
+
+# [[bin]]
+# name = "arc181_b"
+# path = "arc181/b/b.rs"
+
+# [[bin]]
+# name = "arc181_c"
+# path = "arc181/c/c.rs"
+
+# [[bin]]
+# name = "arc181_d"
+# path = "arc181/d/d.rs"
+
+# [[bin]]
+# name = "arc181_e"
+# path = "arc181/e/e.rs"
+
+# [[bin]]
+# name = "arc181_f"
+# path = "arc181/f/f.rs"
+
+# [[bin]]
+# name = "arc182_a"
+# path = "arc182/a/a.rs"
+
+# [[bin]]
+# name = "arc182_b"
+# path = "arc182/b/b.rs"
+
+# [[bin]]
+# name = "arc182_c"
+# path = "arc182/c/c.rs"
+
+# [[bin]]
+# name = "arc182_d"
+# path = "arc182/d/d.rs"
+
+# [[bin]]
+# name = "arc182_e"
+# path = "arc182/e/e.rs"
+
+# [[bin]]
+# name = "arc182_f"
+# path = "arc182/f/f.rs"
+
+# [[bin]]
+# name = "arc183_a"
+# path = "arc183/a/a.rs"
+
+# [[bin]]
+# name = "arc183_b"
+# path = "arc183/b/b.rs"
+
+# [[bin]]
+# name = "arc183_c"
+# path = "arc183/c/c.rs"
+
+# [[bin]]
+# name = "arc183_d"
+# path = "arc183/d/d.rs"
+
+# [[bin]]
+# name = "arc183_e"
+# path = "arc183/e/e.rs"
+
+# [[bin]]
+# name = "arc183_f"
+# path = "arc183/f/f.rs"
+
+# [[bin]]
+# name = "arc187_a"
+# path = "arc187/a/a.rs"
+
+# [[bin]]
+# name = "arc187_b"
+# path = "arc187/b/b.rs"
+
+# [[bin]]
+# name = "arc187_c"
+# path = "arc187/c/c.rs"
+
+# [[bin]]
+# name = "arc187_d"
+# path = "arc187/d/d.rs"
+
+# [[bin]]
+# name = "arc187_e"
+# path = "arc187/e/e.rs"
+
+# [[bin]]
+# name = "arc188_a"
+# path = "arc188/a/a.rs"
+
+# [[bin]]
+# name = "arc188_b"
+# path = "arc188/b/b.rs"
+
+# [[bin]]
+# name = "arc188_c"
+# path = "arc188/c/c.rs"
+
+# [[bin]]
+# name = "arc188_d"
+# path = "arc188/d/d.rs"
+
+# [[bin]]
+# name = "arc188_e"
+# path = "arc188/e/e.rs"
+
+# [[bin]]
+# name = "arc189_a"
+# path = "arc189/a/a.rs"
+
+# [[bin]]
+# name = "arc189_b"
+# path = "arc189/b/b.rs"
+
+# [[bin]]
+# name = "arc189_c"
+# path = "arc189/c/c.rs"
+
+# [[bin]]
+# name = "arc189_d"
+# path = "arc189/d/d.rs"
+
+# [[bin]]
+# name = "arc189_e"
+# path = "arc189/e/e.rs"
