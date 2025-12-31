@@ -1,11 +1,32 @@
 // #[fastout]
+fn solve1(d: i64, f: i64) -> i64 {
+    // コンテスト中の解法 (あってるのか知らない)
+    let ans = ((f + num_integer::div_ceil(d, 7) * 7) % d) % 7;
+    if ans == 0 { 7 } else { ans }
+}
+
+fn solve2(d: i64, f: i64) -> i64 {
+    // f + 7n > d となる最小の n を求めると、f + 7n - d が答え
+    let n = (d - f) / 7 + 1;
+    f + 7 * n - d
+}
+
+fn solve3(d: i64, f: i64) -> i64 {
+    // 来年は f + 7n - d 日に開催される。最初の開催日は それの mod 7 (ただし 0の場合は7)
+    let ans = (f - d).rem_euclid(7);
+    if ans == 0 { 7 } else { ans }
+}
+
+fn solve4(d: i64, f: i64) -> i64 {
+    // シミュレーション (solve2 の愚直)
+    (0..).map(|i| f + 7 * i).find(|x| *x > d).unwrap() - d
+}
 fn main() {
     input! {
         d: i64,
         f: i64,
     }
-    let ans = ((f + num_integer::div_ceil(d, 7) * 7) % d) % 7;
-    let ans = if ans == 0 { 7 } else { ans };
+    let ans = solve4(d, f);
     println!("{}", ans);
 }
 

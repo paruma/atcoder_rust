@@ -14,6 +14,7 @@ fn main() {
     let sa_minus_sb = izip!(&psum_xs, &psum_ys)
         .map(|(&sx, &sy)| sx - sy)
         .collect_vec();
+
     let seg = Segtree::<Max<i64>>::from(sa_minus_sb);
 
     let ans = (2..n)

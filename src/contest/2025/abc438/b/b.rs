@@ -16,20 +16,20 @@ fn main() {
         .copied()
         .map(|ch| ((ch as u8) - b'0') as i64)
         .collect_vec();
-    let ans = (0..=n)
-        .tuple_combinations()
-        .map(|(begin, end)| {
-            if end - begin != m {
-                return i64::MAX;
-            }
-            let xs_sub = &xs[begin..end];
+    // ys を xs の部分文字列にする
+    // xs の部分文字列を全探索する
 
+    let ans = xs
+        .windows(ys.len())
+        .map(|xs_sub| {
+            // ys を xs_sub にするための操作回数
             izip!(&ys, xs_sub)
                 .map(|(&y, &x)| (x - y).rem_euclid(10))
                 .sum::<i64>()
         })
         .min()
         .unwrap();
+
     println!("{}", ans);
 }
 

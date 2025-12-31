@@ -11,11 +11,7 @@ fn main() {
         stack.push(x);
 
         let len = stack.len();
-        if len >= 4
-            && stack[len - 1] == stack[len - 2]
-            && stack[len - 2] == stack[len - 3]
-            && stack[len - 3] == stack[len - 4]
-        {
+        if len >= 4 && stack[len - 4..].iter().all_equal() {
             stack.pop();
             stack.pop();
             stack.pop();
