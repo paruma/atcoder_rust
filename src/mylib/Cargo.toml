@@ -6,6 +6,9 @@ edition = "2024"
 [lib]
 path = "lib.rs"
 
+[lints]
+workspace = true
+
 [dependencies]
 cargo-snippet = { workspace = true }
 ac-library-rs = { workspace = true }

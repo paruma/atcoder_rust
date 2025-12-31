@@ -9,7 +9,7 @@ members = [
     "src/contest/2026",
     "src/example",
     "src/library_checker",
-    "src/mylib"
+    "src/mylib",
 ]
 
 [workspace.dependencies]
@@ -157,3 +157,12 @@ rustc-hash = "=2.1.1"
 
 # dev-dependencies も [workspace.dependencies] に統合
 cli_test_dir = "0.1"
+
+[workspace.lints.clippy]
+needless_range_loop = "allow"
+too_many_arguments = "allow"
+collapsible_if = "allow"
+collapsible_else_if = "allow"
+if_same_then_else = "allow"
+int_plus_one = "allow"
+comparison_chain = "allow"

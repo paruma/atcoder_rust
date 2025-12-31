@@ -6,6 +6,9 @@ edition = "2024"
 [lib]
 path = "lib.rs"
 
+[lints]
+workspace = true
+
 [dependencies]
 mylib = { path = "../mylib" }
 cargo-snippet = { workspace = true }
