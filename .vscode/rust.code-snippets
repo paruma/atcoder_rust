@@ -31,6 +31,26 @@
 		],
 		"description": "use ac_library::ModInt998244353 as Mint;"
 	},
+	"dynamic_modint": {
+		"scope": "rust",
+		"prefix": "dynamic_modint",
+		"body": [
+			"use ac_library::ModInt as Mint;",
+			"Mint::set_modulus(${1:m});"
+		],
+		"description": "use ac_library::ModInt as Mint; Mint::set_modulus(m);"
+	},
+	"input_grid": {
+		"scope": "rust",
+		"prefix": "input_grid",
+		"body": [
+			"input! {",
+			"    h: usize, w: usize,",
+			"    grid: [Chars; h],",
+			"}"
+		],
+		"description": "Read H, W and grid as Vec<Vec<char>>"
+	},
 	"print_option": {
 		"scope": "rust",
 		"prefix": "print_option",
