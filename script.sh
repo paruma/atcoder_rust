@@ -254,5 +254,5 @@ alias ojs='oj_submit'
 alias ojt='oj_test'
 
 # あらかじめライブラリをビルドしておいて、ビルド時間を短縮させる
-cargo build --lib 2> /dev/null &
-cargo build --lib --release 2> /dev/null &
+cargo build -p atcoder_rust_2026 2> /dev/null &
+cargo build -p atcoder_rust_2026 --release 2> /dev/null &
