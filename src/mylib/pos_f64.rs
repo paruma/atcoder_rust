@@ -4,7 +4,7 @@ use cargo_snippet::snippet;
 #[snippet(prefix = "use pos_f64::*;")]
 pub mod pos_f64 {
     use std::iter::Sum;
-    use std::ops::{Add, AddAssign, Neg, Sub, SubAssign};
+    use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
     #[derive(Clone, Copy, PartialEq, PartialOrd)]
     pub struct PosF64 {
@@ -16,20 +16,42 @@ pub mod pos_f64 {
         pub fn new(x: f64, y: f64) -> PosF64 {
             PosF64 { x, y }
         }
-    }
 
-    impl PosF64 {
         pub fn scala_mul(self, rhs: f64) -> PosF64 {
-            PosF64::new(self.x * rhs, self.y * rhs)
+            self * rhs
         }
-    }
 
-    impl PosF64 {
         pub fn inner_product(self, rhs: Self) -> f64 {
             self.x * rhs.x + self.y * rhs.y
         }
+
+        pub fn outer_product(self, rhs: Self) -> f64 {
+            self.x * rhs.y - self.y * rhs.x
+        }
+
         pub fn norm_square(self) -> f64 {
             self.inner_product(self)
+        }
+
+        pub fn norm(self) -> f64 {
+            self.norm_square().sqrt()
+        }
+
+        pub fn dist(self, rhs: Self) -> f64 {
+            (self - rhs).norm()
+        }
+
+        pub fn dist_square(self, rhs: Self) -> f64 {
+            (self - rhs).norm_square()
+        }
+
+        pub fn rotate(self, theta: f64) -> PosF64 {
+            let (s, c) = theta.sin_cos();
+            PosF64::new(self.x * c - self.y * s, self.x * s + self.y * c)
+        }
+
+        pub fn normalize(self) -> PosF64 {
+            self / self.norm()
         }
     }
 
@@ -91,6 +113,34 @@ pub mod pos_f64 {
         }
     }
 
+    impl Mul<f64> for PosF64 {
+        type Output = PosF64;
+
+        fn mul(self, rhs: f64) -> Self::Output {
+            PosF64::new(self.x * rhs, self.y * rhs)
+        }
+    }
+
+    impl MulAssign<f64> for PosF64 {
+        fn mul_assign(&mut self, rhs: f64) {
+            *self = *self * rhs;
+        }
+    }
+
+    impl Div<f64> for PosF64 {
+        type Output = PosF64;
+
+        fn div(self, rhs: f64) -> Self::Output {
+            PosF64::new(self.x / rhs, self.y / rhs)
+        }
+    }
+
+    impl DivAssign<f64> for PosF64 {
+        fn div_assign(&mut self, rhs: f64) {
+            *self = *self / rhs;
+        }
+    }
+
     use std::fmt::{Debug, Error, Formatter};
 
     impl Debug for PosF64 {
@@ -99,12 +149,33 @@ pub mod pos_f64 {
             Ok(())
         }
     }
+
+    use proconio::source::{Readable, Source};
+    use std::io::BufRead;
+
+    impl Readable for PosF64 {
+        type Output = PosF64;
+        fn read<R: BufRead, S: Source<R>>(source: &mut S) -> PosF64 {
+            let x = f64::read(source);
+            let y = f64::read(source);
+            PosF64::new(x, y)
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests_pos_f64 {
     use super::pos_f64::*;
     use num::Zero;
+    use proconio::source::Readable;
+    use proconio::source::once::OnceSource;
+
+    #[test]
+    fn test_read() {
+        let mut source = OnceSource::from("1.5 2.5");
+        let p = PosF64::read(&mut source);
+        assert_eq!(p, PosF64::new(1.5, 2.5));
+    }
 
     #[test]
     fn test_pos_add() {
@@ -170,6 +241,21 @@ mod tests_pos_f64 {
     fn test_pos_scala_mul() {
         let p: PosF64 = PosF64::new(2.0, 3.0);
         assert_eq!(p.scala_mul(4.0), PosF64::new(8.0, 12.0));
+        assert_eq!(p * 4.0, PosF64::new(8.0, 12.0));
+
+        let mut p2 = p;
+        p2 *= 4.0;
+        assert_eq!(p2, PosF64::new(8.0, 12.0));
+    }
+
+    #[test]
+    fn test_pos_div() {
+        let p = PosF64::new(8.0, 12.0);
+        assert_eq!(p / 4.0, PosF64::new(2.0, 3.0));
+
+        let mut p2 = p;
+        p2 /= 4.0;
+        assert_eq!(p2, PosF64::new(2.0, 3.0));
     }
 
     #[test]
@@ -180,9 +266,42 @@ mod tests_pos_f64 {
     }
 
     #[test]
-    fn test_pos_norm_square() {
-        let p: PosF64 = PosF64::new(2.0, 3.0);
-        assert_eq!(p.norm_square(), 13.0);
+    fn test_pos_outer_product() {
+        let p1: PosF64 = PosF64::new(2.0, 3.0);
+        let p2: PosF64 = PosF64::new(4.0, 5.0);
+        assert_eq!(p1.outer_product(p2), -2.0);
+    }
+
+    #[test]
+    fn test_pos_norm() {
+        let p: PosF64 = PosF64::new(3.0, 4.0);
+        assert_eq!(p.norm_square(), 25.0);
+        assert_eq!(p.norm(), 5.0);
+    }
+
+    #[test]
+    fn test_pos_dist() {
+        let p1 = PosF64::new(1.0, 2.0);
+        let p2 = PosF64::new(4.0, 6.0);
+        assert_eq!(p1.dist(p2), 5.0);
+        assert_eq!(p1.dist_square(p2), 25.0);
+    }
+
+    #[test]
+    fn test_pos_rotate() {
+        let p = PosF64::new(1.0, 0.0);
+        let p_rotated = p.rotate(std::f64::consts::FRAC_PI_2);
+        assert!((p_rotated.x - 0.0).abs() < 1e-10);
+        assert!((p_rotated.y - 1.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_pos_normalize() {
+        let p = PosF64::new(3.0, 4.0);
+        let p_normed = p.normalize();
+        assert!((p_normed.norm() - 1.0).abs() < 1e-10);
+        assert_eq!(p_normed.x, 0.6);
+        assert_eq!(p_normed.y, 0.8);
     }
 
     #[test]

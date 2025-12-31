@@ -5,7 +5,7 @@ use cargo_snippet::snippet;
 pub mod pos {
     use std::io::BufRead;
     use std::iter::Sum;
-    use std::ops::{Add, AddAssign, Neg, Sub, SubAssign};
+    use std::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
     #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     pub struct Pos {
@@ -76,6 +76,28 @@ pub mod pos {
             Pos::new(self.y, -self.x)
         }
 
+        /// グリッドの幅 `width` を指定して、座標 `(x, y)` を 1次元インデックス `y * width + x` に変換する。
+        pub fn to_index_1d(self, width: usize) -> usize {
+            assert!(
+                self.x >= 0 && self.y >= 0,
+                "Pos::to_index_1d: x と y は 0 以上である必要があります。pos: ({}, {})",
+                self.x,
+                self.y
+            );
+            assert!(
+                (self.x as usize) < width,
+                "Pos::to_index_1d: x は width 未満である必要があります。x: {}, width: {}",
+                self.x,
+                width
+            );
+            (self.y as usize) * width + (self.x as usize)
+        }
+
+        /// 1次元インデックスとグリッドの幅 `width` から、座標 `(x, y)` を復元する。
+        pub fn from_index_1d(index: usize, width: usize) -> Pos {
+            Pos::new((index % width) as i64, (index / width) as i64)
+        }
+
         pub fn around4_pos_iter(self) -> impl Iterator<Item = Pos> {
             DIR4_LIST.iter().copied().map(move |d| self + d)
         }
@@ -140,6 +162,20 @@ pub mod pos {
     impl SubAssign for Pos {
         fn sub_assign(&mut self, rhs: Self) {
             *self = *self - rhs
+        }
+    }
+
+    impl Mul<i64> for Pos {
+        type Output = Pos;
+
+        fn mul(self, rhs: i64) -> Self::Output {
+            Pos::new(self.x * rhs, self.y * rhs)
+        }
+    }
+
+    impl MulAssign<i64> for Pos {
+        fn mul_assign(&mut self, rhs: i64) {
+            *self = *self * rhs
         }
     }
 
@@ -271,8 +307,25 @@ mod tests_pos {
     use std::collections::HashSet;
 
     use num::Zero;
+    use proconio::source::Readable;
+    use proconio::source::once::OnceSource;
 
     use super::pos::*;
+
+    #[test]
+    fn test_read() {
+        let mut source = OnceSource::from("1 2");
+        let p = PosXY::read(&mut source);
+        assert_eq!(p, Pos::new(1, 2));
+
+        let mut source = OnceSource::from("3 4");
+        let p = PosYX::read(&mut source);
+        assert_eq!(p, Pos::new(4, 3));
+
+        let mut source = OnceSource::from("5 6");
+        let p = PosYX1::read(&mut source);
+        assert_eq!(p, Pos::new(5, 4));
+    }
 
     #[test]
     fn test_pos_add() {
@@ -334,6 +387,11 @@ mod tests_pos {
     fn test_pos_scala_mul() {
         let p: Pos = Pos::new(2, 3);
         assert_eq!(p.scala_mul(4), Pos::new(8, 12));
+        assert_eq!(p * 4, Pos::new(8, 12));
+
+        let mut p2 = Pos::new(2, 3);
+        p2 *= 4;
+        assert_eq!(p2, Pos::new(8, 12));
     }
 
     #[test]
@@ -368,6 +426,30 @@ mod tests_pos {
         let p2 = Pos::new(1, 0);
         assert_eq!(p2.rotate90(), Pos::new(0, 1));
         assert_eq!(p2.rotate270(), Pos::new(0, -1));
+    }
+
+    #[test]
+    fn test_pos_index_1d() {
+        let width = 10;
+        let p = Pos::new(2, 3); // y=3, x=2 -> 3*10 + 2 = 32
+        assert_eq!(p.to_index_1d(width), 32);
+        assert_eq!(Pos::from_index_1d(32, width), p);
+
+        let p_zero = Pos::new(0, 0);
+        assert_eq!(p_zero.to_index_1d(width), 0);
+        assert_eq!(Pos::from_index_1d(0, width), p_zero);
+    }
+
+    #[test]
+    #[should_panic(expected = "x と y は 0 以上である必要があります")]
+    fn test_pos_index_1d_panic_negative() {
+        Pos::new(-1, 0).to_index_1d(10);
+    }
+
+    #[test]
+    #[should_panic(expected = "x は width 未満である必要があります")]
+    fn test_pos_index_1d_panic_width() {
+        Pos::new(10, 0).to_index_1d(10);
     }
 
     #[test]
@@ -433,6 +515,7 @@ mod tests_pos {
 #[cfg(test)]
 mod tests_vec_vec_at {
     use super::pos::*;
+    use super::vec_vec_at::ExtVecVec;
 
     #[test]
     fn test_vec_vec_at() {
@@ -441,5 +524,26 @@ mod tests_vec_vec_at {
         xss[Pos::new(2, 1)] = 60;
 
         assert_eq!(xss, vec![vec![1, 2, 3], vec![4, 5, 60]])
+    }
+
+    #[test]
+    #[should_panic(expected = "index out of bounds")]
+    fn test_vec_vec_at_panic_index() {
+        let xss = vec![vec![1, 2, 3], vec![4, 5, 6]];
+        let _ = xss[Pos::new(3, 1)];
+    }
+
+    #[test]
+    #[should_panic(expected = "index out of bounds")]
+    fn test_vec_vec_at_panic_index_mut() {
+        let mut xss = vec![vec![1, 2, 3], vec![4, 5, 6]];
+        xss[Pos::new(2, 2)] = 100;
+    }
+
+    #[test]
+    fn test_vec_vec_at_empty() {
+        let xss: Vec<Vec<i32>> = vec![];
+        assert_eq!(xss.width(), 0);
+        assert_eq!(xss.height(), 0);
     }
 }
