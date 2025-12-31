@@ -17,20 +17,71 @@ pub mod pos {
         pub fn new(x: i64, y: i64) -> Pos {
             Pos { x, y }
         }
-    }
 
-    impl Pos {
         pub fn scala_mul(self, rhs: i64) -> Pos {
             Pos::new(self.x * rhs, self.y * rhs)
         }
-    }
 
-    impl Pos {
         pub fn inner_product(self, rhs: Self) -> i64 {
             self.x * rhs.x + self.y * rhs.y
         }
+
+        pub fn outer_product(self, rhs: Self) -> i64 {
+            self.x * rhs.y - self.y * rhs.x
+        }
+
         pub fn norm_square(self) -> i64 {
             self.inner_product(self)
+        }
+
+        pub fn l1_norm(self) -> i64 {
+            self.x.abs() + self.y.abs()
+        }
+
+        pub fn linf_norm(self) -> i64 {
+            self.x.abs().max(self.y.abs())
+        }
+
+        pub fn dist_square(self, rhs: Self) -> i64 {
+            (self - rhs).norm_square()
+        }
+
+        pub fn l1_dist(self, rhs: Self) -> i64 {
+            (self - rhs).l1_norm()
+        }
+
+        pub fn linf_dist(self, rhs: Self) -> i64 {
+            (self - rhs).linf_norm()
+        }
+
+        // ベクトルを正規化する（最大公約数で割る）。
+        // (0,0)の場合は(0,0)を返す。
+        //
+        // 計算量: O(log(min(|x|, |y|)))
+        pub fn normalize(self) -> Pos {
+            if self.x == 0 && self.y == 0 {
+                return self;
+            }
+            let g = num::integer::gcd(self.x.abs(), self.y.abs());
+            Pos::new(self.x / g, self.y / g)
+        }
+
+        // 原点を中心に反時計回りに90度回転
+        pub fn rotate90(self) -> Pos {
+            Pos::new(-self.y, self.x)
+        }
+
+        // 原点を中心に時計回りに90度回転
+        pub fn rotate270(self) -> Pos {
+            Pos::new(self.y, -self.x)
+        }
+
+        pub fn around4_pos_iter(self) -> impl Iterator<Item = Pos> {
+            DIR4_LIST.iter().copied().map(move |d| self + d)
+        }
+
+        pub fn around8_pos_iter(self) -> impl Iterator<Item = Pos> {
+            DIR8_LIST.iter().copied().map(move |d| self + d)
         }
     }
 
@@ -151,122 +202,6 @@ pub mod pos {
         Pos { x: 0, y: -1 },
         Pos { x: -1, y: 0 },
     ];
-
-    impl Pos {
-        pub fn around4_pos_iter(self) -> impl Iterator<Item = Pos> {
-            DIR4_LIST.iter().copied().map(move |d| self + d)
-        }
-
-        pub fn around8_pos_iter(self) -> impl Iterator<Item = Pos> {
-            DIR8_LIST.iter().copied().map(move |d| self + d)
-        }
-    }
-}
-
-// 廃止したい
-pub mod general_pos {
-    use std::ops::{Add, AddAssign, Mul, Neg, Sub, SubAssign};
-
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-    pub struct Pos<T> {
-        pub x: T,
-        pub y: T,
-    }
-
-    impl<T> Pos<T> {
-        pub fn new(x: T, y: T) -> Pos<T> {
-            Pos { x, y }
-        }
-    }
-
-    impl<T: Mul<Output = T> + Copy> Pos<T> {
-        pub fn scala_mul(self, rhs: T) -> Pos<T> {
-            Pos::new(self.x * rhs, self.y * rhs)
-        }
-    }
-
-    impl<T: Add<Output = T> + Mul<Output = T> + Copy> Pos<T> {
-        pub fn inner_product(self, rhs: Self) -> T {
-            self.x * rhs.x + self.y * rhs.y
-        }
-        pub fn norm_square(self) -> T {
-            self.inner_product(self)
-        }
-    }
-
-    impl<T: Add<Output = T> + Copy> Add for Pos<T> {
-        type Output = Pos<T>;
-
-        fn add(self, rhs: Self) -> Self::Output {
-            Pos::new(self.x + rhs.x, self.y + rhs.y)
-        }
-    }
-
-    impl<T: Sub<Output = T> + Copy> Sub for Pos<T> {
-        type Output = Pos<T>;
-
-        fn sub(self, rhs: Self) -> Self::Output {
-            Pos::new(self.x - rhs.x, self.y - rhs.y)
-        }
-    }
-
-    impl<T: Neg<Output = T>> Neg for Pos<T> {
-        type Output = Self;
-
-        fn neg(self) -> Self::Output {
-            Pos::new(-self.x, -self.y)
-        }
-    }
-
-    impl<T: num_traits::Zero + Copy> num_traits::Zero for Pos<T> {
-        fn zero() -> Self {
-            Pos::new(T::zero(), T::zero())
-        }
-
-        fn is_zero(&self) -> bool {
-            self.x.is_zero() && self.y.is_zero()
-        }
-    }
-
-    impl<T: Add<Output = T> + Copy> AddAssign for Pos<T> {
-        fn add_assign(&mut self, rhs: Self) {
-            *self = *self + rhs
-        }
-    }
-
-    impl<T: Sub<Output = T> + Copy> SubAssign for Pos<T> {
-        fn sub_assign(&mut self, rhs: Self) {
-            *self = *self - rhs
-        }
-    }
-
-    pub const DIR8_LIST: [Pos<i64>; 8] = [
-        Pos { x: 0, y: 1 },
-        Pos { x: 1, y: 1 },
-        Pos { x: 1, y: 0 },
-        Pos { x: 1, y: -1 },
-        Pos { x: 0, y: -1 },
-        Pos { x: -1, y: -1 },
-        Pos { x: -1, y: 0 },
-        Pos { x: -1, y: 1 },
-    ];
-
-    pub const DIR4_LIST: [Pos<i64>; 4] = [
-        Pos { x: 0, y: 1 },
-        Pos { x: 1, y: 0 },
-        Pos { x: 0, y: -1 },
-        Pos { x: -1, y: 0 },
-    ];
-
-    impl Pos<i64> {
-        pub fn around4_pos_iter(self) -> impl Iterator<Item = Pos<i64>> {
-            DIR4_LIST.iter().copied().map(move |d| d + self)
-        }
-
-        pub fn around8_pos_iter(self) -> impl Iterator<Item = Pos<i64>> {
-            DIR8_LIST.iter().copied().map(move |d| d + self)
-        }
-    }
 }
 
 #[snippet(prefix = "use vec_vec_at::*;")]
@@ -409,9 +344,52 @@ mod tests_pos {
     }
 
     #[test]
+    fn test_pos_outer_product() {
+        let p1: Pos = Pos::new(2, 3);
+        let p2: Pos = Pos::new(4, 5);
+        // 2*5 - 3*4 = 10 - 12 = -2
+        assert_eq!(p1.outer_product(p2), -2);
+    }
+
+    #[test]
+    fn test_pos_normalize() {
+        assert_eq!(Pos::new(6, 9).normalize(), Pos::new(2, 3));
+        assert_eq!(Pos::new(-6, 9).normalize(), Pos::new(-2, 3));
+        assert_eq!(Pos::new(0, 5).normalize(), Pos::new(0, 1));
+        assert_eq!(Pos::new(0, 0).normalize(), Pos::new(0, 0));
+    }
+
+    #[test]
+    fn test_pos_rotate() {
+        let p = Pos::new(2, 3);
+        assert_eq!(p.rotate90(), Pos::new(-3, 2));
+        assert_eq!(p.rotate270(), Pos::new(3, -2));
+
+        let p2 = Pos::new(1, 0);
+        assert_eq!(p2.rotate90(), Pos::new(0, 1));
+        assert_eq!(p2.rotate270(), Pos::new(0, -1));
+    }
+
+    #[test]
     fn test_pos_norm_square() {
         let p: Pos = Pos::new(2, 3);
         assert_eq!(p.norm_square(), 13);
+    }
+
+    #[test]
+    fn test_pos_norms() {
+        let p = Pos::new(2, -3);
+        assert_eq!(p.l1_norm(), 5);
+        assert_eq!(p.linf_norm(), 3);
+    }
+
+    #[test]
+    fn test_pos_dists() {
+        let p1 = Pos::new(1, 2);
+        let p2 = Pos::new(4, -2);
+        assert_eq!(p1.l1_dist(p2), 7);
+        assert_eq!(p1.linf_dist(p2), 4);
+        assert_eq!(p1.dist_square(p2), 25);
     }
 
     #[test]
