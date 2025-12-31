@@ -31,24 +31,6 @@
 		],
 		"description": "use ac_library::ModInt998244353 as Mint;"
 	},
-	"cfg_debug": {
-		"scope": "rust",
-		"prefix": "cfg_debug",
-		"body": [
-			"if cfg!(debug_assertions){",
-			"    $1",
-			"}"
-		],
-		"description": "if cfg!(debug_assertions)"
-	},
-	"closure": {
-		"scope": "rust",
-		"prefix": "cl",
-		"body": [
-			"|$1|{$2}"
-		],
-		"description": "closure"
-	},
 	"print_option": {
 		"scope": "rust",
 		"prefix": "print_option",
@@ -59,7 +41,7 @@
 			"    println!(\"-1\");",
 			"}",
 		],
-		"description": "closure"
+		"description": "print Option"
 	},
 	"edge_snippet": {
 		"scope": "rust",
@@ -93,5 +75,27 @@
 			"}"
 		],
 		"description": "snippet of edge"
+	},
+	"multi_test_case": {
+		"prefix": "multi_test_case",
+		"body": [
+			"// #[fastout]",
+			"fn main() {",
+			"    input! {",
+			"        t: usize",
+			"    }",
+			"",
+			"    for _ in 0..t {",
+			"        input! {",
+			"            n: usize,",
+			"            xs: [i64; n],",
+			"        }",
+			"        let ans = -2_i64;",
+			"        println!(\"{}\", ans);",
+			"    }",
+			"}",
+			"",
+		],
+		"description": "multi test case"
 	}
 }
