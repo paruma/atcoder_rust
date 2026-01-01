@@ -1,3 +1,4 @@
+pub mod ab_group;
 pub mod array_2d_transformation;
 pub mod bin_search;
 pub mod chminmax;

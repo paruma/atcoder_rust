@@ -41,9 +41,7 @@ pub fn has_cycle_directed_by_topo_sort(adj: &[Vec<usize>]) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use crate::graph::{
-        graph::make_adj_from_directed, topo_sort::has_cycle_directed_by_topo_sort,
-    };
+    use crate::graph::{graph::make_adj_from_directed, topo_sort::has_cycle_directed_by_topo_sort};
 
     use super::topo_sort;
 

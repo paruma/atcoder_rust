@@ -1,56 +1,10 @@
 use cargo_snippet::snippet;
 
 #[allow(clippy::module_inception)]
-#[snippet(prefix = "use potentialized_dsu::*;")]
+#[snippet(prefix = "use potentialized_dsu::*;", include = "ab_group")]
 pub mod potentialized_dsu {
-    use std::{
-        convert::Infallible,
-        iter::Sum,
-        marker::PhantomData,
-        ops::{Add, Neg},
-    };
+    use crate::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
 
-    /// 可換群 (Abelian Group)
-    pub trait AbGroup {
-        type S: Clone;
-        fn zero() -> Self::S;
-        fn add(a: &Self::S, b: &Self::S) -> Self::S;
-        fn neg(a: &Self::S) -> Self::S;
-        fn sub(a: &Self::S, b: &Self::S) -> Self::S {
-            Self::add(a, &Self::neg(b))
-        }
-    }
-
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-    pub struct AdditiveAbGroup<T>(Infallible, PhantomData<fn() -> T>);
-    impl<T: Sum + Add<Output = T> + Neg<Output = T> + Copy> AbGroup for AdditiveAbGroup<T> {
-        type S = T;
-        fn zero() -> Self::S {
-            std::iter::empty().sum()
-        }
-        fn add(a: &Self::S, b: &Self::S) -> Self::S {
-            *a + *b
-        }
-        fn neg(a: &Self::S) -> Self::S {
-            -(*a)
-        }
-    }
-
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-    pub struct XorAbGroup(Infallible);
-
-    impl AbGroup for XorAbGroup {
-        type S = u64;
-        fn zero() -> Self::S {
-            0
-        }
-        fn add(a: &Self::S, b: &Self::S) -> Self::S {
-            *a ^ *b
-        }
-        fn neg(a: &Self::S) -> Self::S {
-            *a
-        }
-    }
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub enum MergeResult {
         /// 新しくマージされた場合
@@ -62,7 +16,7 @@ pub mod potentialized_dsu {
     }
 
     #[derive(Clone, Debug)]
-    pub struct PotentializedDsu<G: AbGroup>
+    pub struct PotentializedDsuArbitrary<G: AbGroup>
     where
         G::S: PartialEq,
     {
@@ -75,7 +29,9 @@ pub mod potentialized_dsu {
         cnt_groups: usize,
     }
 
-    impl<G: AbGroup> PotentializedDsu<G>
+    pub type PotentializedDsu = PotentializedDsuArbitrary<AdditiveAbGroup<i64>>;
+
+    impl<G: AbGroup> PotentializedDsuArbitrary<G>
     where
         G::S: PartialEq,
     {
@@ -207,6 +163,8 @@ pub mod potentialized_dsu {
 
 #[cfg(test)]
 mod tests_potentialized_dsu {
+    use crate::ab_group::ab_group::AdditiveAbGroup;
+
     use super::potentialized_dsu::*;
     use itertools::Itertools;
 
@@ -220,7 +178,7 @@ mod tests_potentialized_dsu {
     #[test]
     fn test_potentialized_dsu_functionality() {
         type Add = AdditiveAbGroup<i32>;
-        let mut pdsu = PotentializedDsu::<Add>::new(8);
+        let mut pdsu = PotentializedDsuArbitrary::<Add>::new(8);
 
         // p[1] - p[0] = 1
         matches!(pdsu.merge(0, 1, 1), MergeResult::Merged { .. });
@@ -250,7 +208,7 @@ mod tests_potentialized_dsu {
     #[test]
     fn test_diff() {
         type Add = AdditiveAbGroup<i32>;
-        let mut pdsu = PotentializedDsu::<Add>::new(5);
+        let mut pdsu = PotentializedDsuArbitrary::<Add>::new(5);
 
         // p[1] - p[0] = 1
         pdsu.merge(0, 1, 1);
@@ -286,7 +244,7 @@ mod tests_potentialized_dsu {
     #[test]
     fn test_merge() {
         type Add = AdditiveAbGroup<i32>;
-        let mut uf = PotentializedDsu::<Add>::new(5);
+        let mut uf = PotentializedDsuArbitrary::<Add>::new(5);
 
         // Merge 0 and 1
         // {0}, {1}, {2}, {3}, {4}
@@ -373,7 +331,7 @@ mod tests_potentialized_dsu {
     #[test]
     fn test_size() {
         type Add = AdditiveAbGroup<i32>;
-        let mut uf = PotentializedDsu::<Add>::new(5);
+        let mut uf = PotentializedDsuArbitrary::<Add>::new(5);
 
         for i in 0..5 {
             assert_eq!(uf.size(i), 1);
