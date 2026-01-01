@@ -1,9 +1,10 @@
+use crate::ab_group::ab_group::AbGroup;
 use cargo_snippet::snippet;
 
 #[snippet(prefix = "use range_add_imos_arbitrary::*;", include = "ab_group")]
 #[allow(clippy::module_inception)]
 pub mod range_add_imos_arbitrary {
-    use crate::ab_group::ab_group::AbGroup;
+    use super::AbGroup;
 
     #[derive(Clone, Debug, PartialEq, Eq)]
     pub struct RangeAddImosArbitrary<G: AbGroup> {

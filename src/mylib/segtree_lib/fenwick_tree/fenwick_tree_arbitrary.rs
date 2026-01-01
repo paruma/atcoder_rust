@@ -1,9 +1,10 @@
+use crate::ab_group::ab_group::AbGroup;
 use cargo_snippet::snippet;
 
 #[snippet(prefix = "use fenwick_tree_arbitrary::*;", include = "ab_group")]
 #[allow(clippy::module_inception)]
 pub mod fenwick_tree_arbitrary {
-    use crate::ab_group::ab_group::AbGroup;
+    use super::AbGroup;
     use std::ops::{Bound, RangeBounds};
 
     #[derive(Clone, Debug)]
@@ -353,6 +354,7 @@ mod tests {
 
         for _ in 0..100 {
             let n = rng.random_range(1..=20);
+            // 非負の要素で構成する
             let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.random_range(0..=10)).collect();
             let mut fenwick_tree = FenwickTreeArbitrary::<G>::from_slice(&naive_vec);
 
@@ -397,6 +399,7 @@ mod tests {
 
         for _ in 0..100 {
             let n = rng.random_range(1..=20);
+            // 非負の要素で構成する
             let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.random_range(0..=10)).collect();
             let mut fenwick_tree = FenwickTreeArbitrary::<G>::from_slice(&naive_vec);
 

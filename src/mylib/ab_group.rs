@@ -1,15 +1,14 @@
 use cargo_snippet::snippet;
-use std::{
-    convert::Infallible,
-    iter::Sum,
-    marker::PhantomData,
-    ops::{Add, Neg, Sub},
-};
 
 #[snippet(prefix = "use ab_group::*;")]
 #[allow(clippy::module_inception)]
 pub mod ab_group {
-    use super::*;
+    use std::{
+        convert::Infallible,
+        iter::Sum,
+        marker::PhantomData,
+        ops::{Add, Neg, Sub},
+    };
 
     /// 可換群 (Abelian Group)
     pub trait AbGroup {

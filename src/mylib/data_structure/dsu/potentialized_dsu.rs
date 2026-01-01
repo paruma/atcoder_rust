@@ -1,9 +1,10 @@
+use crate::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
 use cargo_snippet::snippet;
 
 #[allow(clippy::module_inception)]
 #[snippet(prefix = "use potentialized_dsu::*;", include = "ab_group")]
 pub mod potentialized_dsu {
-    use crate::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
+    use super::{AbGroup, AdditiveAbGroup};
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub enum MergeResult {

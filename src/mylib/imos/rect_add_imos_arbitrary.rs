@@ -1,9 +1,10 @@
+use crate::ab_group::ab_group::AbGroup;
 use cargo_snippet::snippet;
 
 #[snippet(prefix = "use rect_add_imos_arbitrary::*;", include = "ab_group")]
 #[allow(clippy::module_inception)]
 pub mod rect_add_imos_arbitrary {
-    use crate::ab_group::ab_group::AbGroup;
+    use super::AbGroup;
     use std::ops::{Bound, RangeBounds};
 
     #[derive(Clone, Debug, PartialEq, Eq)]
