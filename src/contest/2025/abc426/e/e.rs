@@ -1,63 +1,80 @@
-fn solve1(start: Pos, goal: Pos) -> f64 {
-    let coef = Pos::inner_product(goal - start, -start) / ((goal - start).norm_square());
-
-    if 0.0 <= coef && coef <= 1.0 {
-        // start と goal を通る直線の方程式
-
-        let a = start.y - goal.y;
-        let b = -(start.x - goal.x);
-        let c = start.x * goal.y - goal.x * start.y;
-
-        return c.abs() / f64::sqrt((a * a) + (b * b));
+// 点 p と線分 ab の距離を求める
+fn dist_point_segment(p: PosF64, a: PosF64, b: PosF64) -> f64 {
+    if a == b {
+        return p.dist(a);
     }
+    // a を原点にする
+    let ap = p - a;
+    let ab = b - a;
 
-    let d2 = f64::sqrt(start.norm_square());
-    let d3 = f64::sqrt(goal.norm_square());
-
-    f64::min(d2, d3)
+    // ap から ab への正射影を求める
+    let t = ap.inner_product(ab) / ab.norm_square();
+    if t < 0.0 {
+        p.dist(a)
+    } else if t > 1.0 {
+        p.dist(b)
+    } else {
+        let ah = ab * t;
+        ah.dist(ap)
+    }
 }
 
-fn solve2(start: Pos, goal: Pos) -> f64 {
-    if start == goal {
-        return 0.0;
+// min f(x) s.t. x in [l, r] を求める（最小となる x を返す）
+fn ternary_search<F>(mut l: f64, mut r: f64, mut f: F) -> f64
+where
+    F: FnMut(f64) -> f64,
+{
+    const NUM_ITERATION: i64 = 200;
+    for _ in 0..NUM_ITERATION {
+        let ml = (l * 2.0 + r) / 3.0;
+        let mr = (l + r * 2.0) / 3.0;
+        if f(ml) < f(mr) {
+            r = mr;
+        } else {
+            l = ml;
+        }
     }
-    let coef = Pos::inner_product(goal - start, -start) / ((goal - start).norm_square());
-
-    if 0.0 <= coef && coef <= 1.0 {
-        // start と goal を通る直線の方程式
-
-        let a = start.y - goal.y;
-        let b = -(start.x - goal.x);
-        let c = start.x * goal.y - goal.x * start.y;
-
-        return c.abs() / f64::sqrt((a * a) + (b * b));
-    }
-
-    let d2 = f64::sqrt(start.norm_square());
-    let d3 = f64::sqrt(goal.norm_square());
-
-    f64::min(d2, d3)
+    (l + r) / 2.0
 }
 
-fn solve0(start1: Pos, goal1: Pos, start2: Pos, goal2: Pos) -> f64 {
+// 点 p と線分 ab の距離を求める (三分探索を使う)
+fn dist_point_segment2(p: PosF64, a: PosF64, b: PosF64) -> f64 {
+    if a == b {
+        return p.dist(a);
+    }
+    let f = |t| p.dist(a * (1.0 - t) + b * t);
+    let t = ternary_search(0.0, 1.0, f);
+    f(t)
+}
+
+// min dist(start1 * (1 - t) + goal1 * t,
+//          start2 * (1 - t) + goal2 * t)
+// s.t. t ∈ [0,1]
+// を求める
+fn solve0(start1: PosF64, goal1: PosF64, start2: PosF64, goal2: PosF64) -> f64 {
     let start = start2 - start1;
     let goal = goal2 - goal1;
-    solve2(start, goal)
+    dist_point_segment2(PosF64::zero(), start, goal)
 }
 
-fn solve(start1: Pos, goal1: Pos, start2: Pos, goal2: Pos) -> f64 {
-    if (goal1 - start1).norm_square() > (goal2 - start2).norm_square() {
+// 元の問題のソルバー
+fn solve(start1: PosF64, goal1: PosF64, start2: PosF64, goal2: PosF64) -> f64 {
+    let dist1 = start1.dist(goal1);
+    let dist2 = start2.dist(goal2);
+
+    if dist1 > dist2 {
         return solve(start2, goal2, start1, goal1);
     }
-    let dist1 = (goal1 - start1).norm_square().sqrt();
-    let dist2 = (goal2 - start2).norm_square().sqrt();
+    assert!(dist1 <= dist2);
 
-    let mid2 = (start2.scala_mul(dist2 - dist1) + goal2.scala_mul(dist1)).scala_mul(1.0 / dist2);
+    // "1" がゴールに辿り着いたときの "2" の場所
+    // dist1 : (dist2 - dist1) で内分した点
+    let mid2 = (start2 * (dist2 - dist1) + goal2 * dist1) / dist2;
 
+    // どっちも動いている時間での最近接距離
     let ans1 = solve0(start1, goal1, start2, mid2);
-    let ans2 = solve1(mid2 - goal1, goal2 - goal1);
-    // dbg!(ans1);
-    // dbg!(ans2);
+    // "1" はゴールで止まっていて、"2" のみ動いている時間での最近接距離
+    let ans2 = dist_point_segment2(goal1, mid2, goal2);
 
     f64::min(ans1, ans2)
 }
@@ -69,10 +86,10 @@ fn main() {
     let ans: Vec<f64> = (0..t)
         .map(|_| {
             input! {
-                start1: PosXY,
-                goal1: PosXY,
-                start2: PosXY,
-                goal2: PosXY,
+                start1: PosF64,
+                goal1: PosF64,
+                start2: PosF64,
+                goal2: PosF64,
             }
 
             solve(start1, goal1, start2, goal2)
@@ -207,86 +224,132 @@ pub mod print_util {
 }
 
 // ====== snippet ======
-use {core::f64, pos::*};
-pub mod pos {
-    use std::io::BufRead;
-    use std::ops::{Add, AddAssign, Neg, Sub, SubAssign};
+use {num::Zero, pos_f64::*};
+#[allow(clippy::module_inception)]
+pub mod pos_f64 {
+    use std::iter::Sum;
+    use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
     #[derive(Clone, Copy, PartialEq, PartialOrd)]
-    pub struct Pos {
+    pub struct PosF64 {
         pub x: f64,
         pub y: f64,
     }
-    impl Pos {
-        pub fn new(x: f64, y: f64) -> Pos {
-            Pos { x, y }
+    impl PosF64 {
+        pub fn new(x: f64, y: f64) -> PosF64 {
+            PosF64 { x, y }
         }
-    }
-    impl Pos {
-        pub fn scala_mul(self, rhs: f64) -> Pos {
-            Pos::new(self.x * rhs, self.y * rhs)
+        pub fn scala_mul(self, rhs: f64) -> PosF64 {
+            self * rhs
         }
-    }
-    impl Pos {
         pub fn inner_product(self, rhs: Self) -> f64 {
             self.x * rhs.x + self.y * rhs.y
+        }
+        pub fn outer_product(self, rhs: Self) -> f64 {
+            self.x * rhs.y - self.y * rhs.x
         }
         pub fn norm_square(self) -> f64 {
             self.inner_product(self)
         }
+        pub fn norm(self) -> f64 {
+            self.norm_square().sqrt()
+        }
+        pub fn dist(self, rhs: Self) -> f64 {
+            (self - rhs).norm()
+        }
+        pub fn dist_square(self, rhs: Self) -> f64 {
+            (self - rhs).norm_square()
+        }
+        pub fn rotate(self, theta: f64) -> PosF64 {
+            let (s, c) = theta.sin_cos();
+            PosF64::new(self.x * c - self.y * s, self.x * s + self.y * c)
+        }
+        pub fn normalize(self) -> PosF64 {
+            self / self.norm()
+        }
     }
-    impl Add for Pos {
-        type Output = Pos;
+    impl Add for PosF64 {
+        type Output = PosF64;
         fn add(self, rhs: Self) -> Self::Output {
-            Pos::new(self.x + rhs.x, self.y + rhs.y)
+            PosF64::new(self.x + rhs.x, self.y + rhs.y)
         }
     }
-    impl Sub for Pos {
-        type Output = Pos;
+    impl Sub for PosF64 {
+        type Output = PosF64;
         fn sub(self, rhs: Self) -> Self::Output {
-            Pos::new(self.x - rhs.x, self.y - rhs.y)
+            PosF64::new(self.x - rhs.x, self.y - rhs.y)
         }
     }
-    impl Neg for Pos {
+    impl Neg for PosF64 {
         type Output = Self;
         fn neg(self) -> Self::Output {
-            Pos::new(-self.x, -self.y)
+            PosF64::new(-self.x, -self.y)
         }
     }
-
-    impl AddAssign for Pos {
+    impl Sum for PosF64 {
+        fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+            iter.fold(PosF64::new(0.0, 0.0), |acc, x| acc + x)
+        }
+    }
+    impl<'a> Sum<&'a PosF64> for PosF64 {
+        fn sum<I: Iterator<Item = &'a Self>>(iter: I) -> Self {
+            iter.fold(PosF64::new(0.0, 0.0), |a, b| a + *b)
+        }
+    }
+    impl num_traits::Zero for PosF64 {
+        fn zero() -> Self {
+            PosF64::new(0.0, 0.0)
+        }
+        fn is_zero(&self) -> bool {
+            self.x.is_zero() && self.y.is_zero()
+        }
+    }
+    impl AddAssign for PosF64 {
         fn add_assign(&mut self, rhs: Self) {
             *self = *self + rhs
         }
     }
-    impl SubAssign for Pos {
+    impl SubAssign for PosF64 {
         fn sub_assign(&mut self, rhs: Self) {
             *self = *self - rhs
         }
     }
+    impl Mul<f64> for PosF64 {
+        type Output = PosF64;
+        fn mul(self, rhs: f64) -> Self::Output {
+            PosF64::new(self.x * rhs, self.y * rhs)
+        }
+    }
+    impl MulAssign<f64> for PosF64 {
+        fn mul_assign(&mut self, rhs: f64) {
+            *self = *self * rhs;
+        }
+    }
+    impl Div<f64> for PosF64 {
+        type Output = PosF64;
+        fn div(self, rhs: f64) -> Self::Output {
+            PosF64::new(self.x / rhs, self.y / rhs)
+        }
+    }
+    impl DivAssign<f64> for PosF64 {
+        fn div_assign(&mut self, rhs: f64) {
+            *self = *self / rhs;
+        }
+    }
     use std::fmt::{Debug, Error, Formatter};
-    impl Debug for Pos {
+    impl Debug for PosF64 {
         fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
             f.write_fmt(format_args!("({}, {})", self.x, self.y))?;
             Ok(())
         }
     }
     use proconio::source::{Readable, Source};
-    pub enum PosXY {}
-    impl Readable for PosXY {
-        type Output = Pos;
-        fn read<R: BufRead, S: Source<R>>(source: &mut S) -> Pos {
+    use std::io::BufRead;
+    impl Readable for PosF64 {
+        type Output = PosF64;
+        fn read<R: BufRead, S: Source<R>>(source: &mut S) -> PosF64 {
             let x = f64::read(source);
             let y = f64::read(source);
-            Pos::new(x, y)
-        }
-    }
-    pub enum PosYX {}
-    impl Readable for PosYX {
-        type Output = Pos;
-        fn read<R: BufRead, S: Source<R>>(source: &mut S) -> Pos {
-            let y = f64::read(source);
-            let x = f64::read(source);
-            Pos::new(x, y)
+            PosF64::new(x, y)
         }
     }
 }
