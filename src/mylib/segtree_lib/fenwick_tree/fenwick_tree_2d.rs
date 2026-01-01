@@ -173,6 +173,7 @@ mod tests {
     use rand::{Rng, SeedableRng, rngs::SmallRng};
 
     #[test]
+    #[allow(clippy::useless_vec)]
     fn test_fenwick_tree_2d_basic() {
         type G = AdditiveAbGroup<i64>;
         let mut ft = FenwickTree2DArbitrary::<G>::new(3, 3);

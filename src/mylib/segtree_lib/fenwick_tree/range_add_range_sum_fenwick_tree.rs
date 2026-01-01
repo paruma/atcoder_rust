@@ -130,6 +130,7 @@ mod tests {
     use rand::{Rng, SeedableRng, rngs::SmallRng};
 
     #[test]
+    #[allow(clippy::identity_op)]
     fn test_range_add_range_sum_basic() {
         type G = AdditiveAbGroup<i64>;
         let n = 5;
