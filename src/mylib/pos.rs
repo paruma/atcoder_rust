@@ -528,6 +528,7 @@ mod tests_vec_vec_at {
 
     #[test]
     #[should_panic(expected = "index out of bounds")]
+    #[allow(clippy::useless_vec)]
     fn test_vec_vec_at_panic_index() {
         let xss = vec![vec![1, 2, 3], vec![4, 5, 6]];
         let _ = xss[Pos::new(3, 1)];
@@ -535,6 +536,7 @@ mod tests_vec_vec_at {
 
     #[test]
     #[should_panic(expected = "index out of bounds")]
+    #[allow(clippy::useless_vec)]
     fn test_vec_vec_at_panic_index_mut() {
         let mut xss = vec![vec![1, 2, 3], vec![4, 5, 6]];
         xss[Pos::new(2, 2)] = 100;
