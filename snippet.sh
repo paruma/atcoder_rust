@@ -1,3 +1,3 @@
 #!/bin/sh
 
-cargo snippet -t vscode src/mylib | sed -r "s/\"prefix\"/\"scope\": \"rust\",\n    \"prefix\"/" > .vscode/cargo_snippet.code-snippets
+cargo snippet -t vscode src/mylib | sed -r 's/"prefix"/"scope": "rust",\n    "prefix"/' > .vscode/cargo_snippet.code-snippets
