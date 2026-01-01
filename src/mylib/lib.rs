@@ -24,5 +24,6 @@ pub mod random;
 pub mod reroot;
 pub mod rolling_hash;
 pub mod segtree_lib;
+pub mod ternary_search;
 pub mod time;
 pub mod vec_at;

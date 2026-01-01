@@ -132,6 +132,36 @@ pub fn upper_bound_dec<T: PartialOrd>(xs: &[T], key: T) -> usize {
     bin_search(xs.len() as i64, -1_i64, pred) as usize
 }
 
+/// 実数領域における二分探索を行い、判定関数 `p` の結果が切り替わる境界値を返す。
+///
+/// 100回の反復を行うことで、元の区間幅の 2^-100 倍の精度で境界値を求める。
+///
+/// ## 単調性の前提
+/// `ok` と `ng` の間において、判定関数 `p` は単調（一箇所でのみ真偽が切り替わる）である必要がある。
+///
+/// ## Arguments
+/// * `ok`: 判定関数 `p` が `true` を返す値
+/// * `ng`: 判定関数 `p` が `false` を返す値
+/// * `p`: 判定関数
+///
+/// ## Return
+/// 判定関数 `p` の結果が切り替わる境界値を返す。
+#[snippet]
+pub fn bin_search_f64<F>(mut ok: f64, mut ng: f64, mut p: F) -> f64
+where
+    F: FnMut(f64) -> bool,
+{
+    for _ in 0..100 {
+        let mid = (ok + ng) / 2.0;
+        if p(mid) {
+            ok = mid;
+        } else {
+            ng = mid;
+        }
+    }
+    ok
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -263,5 +293,16 @@ mod tests {
         assert_eq!(upper_bound_dec(&[2, 2, 1, 1], 0), 4); // 答えが右端
         assert_eq!(upper_bound_dec(&[2, 2, 1, 1], 10), 0); // 答えが左端
         assert_eq!(upper_bound_dec(&[], 2), 0); // 空列
+    }
+
+    #[test]
+    fn test_bin_search_f64() {
+        // x^2 = 2 となる正の x (√2) を求める
+        let sqrt2 = bin_search_f64(2.0, 0.0, |x| x * x >= 2.0);
+        assert!((sqrt2 - 2.0f64.sqrt()).abs() < 1e-15);
+
+        // f(x) = x^3 - 8 = 0 (x=2)
+        let res = bin_search_f64(10.0, -10.0, |x| x.powi(3) >= 8.0);
+        assert!((res - 2.0).abs() < 1e-15);
     }
 }
