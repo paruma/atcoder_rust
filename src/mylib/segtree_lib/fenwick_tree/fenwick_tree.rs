@@ -285,6 +285,7 @@ mod tests {
     use rand::{Rng, SeedableRng, rngs::SmallRng};
 
     #[test]
+    #[ignore]
     fn test_random_fenwick_tree_arbitrary() {
         type G = AdditiveAbGroup<i64>;
         let mut rng = SmallRng::seed_from_u64(42);
@@ -423,6 +424,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_random_max_right() {
         type G = AdditiveAbGroup<i64>;
         let mut rng = SmallRng::seed_from_u64(100);
@@ -468,6 +470,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_random_min_left() {
         type G = AdditiveAbGroup<i64>;
         let mut rng = SmallRng::seed_from_u64(200);

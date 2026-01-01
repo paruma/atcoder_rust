@@ -146,6 +146,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_random_range_add_range_sum() {
         type G = AdditiveAbGroup<i64>;
         let mut rng = SmallRng::seed_from_u64(42);

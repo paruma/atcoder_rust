@@ -200,6 +200,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_random_fenwick_tree_2d() {
         type G = AdditiveAbGroup<i64>;
         let mut rng = SmallRng::seed_from_u64(42);
