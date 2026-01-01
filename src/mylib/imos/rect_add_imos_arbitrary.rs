@@ -146,7 +146,11 @@ mod tests {
         let mut imos = RectAddImosArbitrary::<G>::new(5, 5);
         use std::ops::Bound;
         // Excluded start, Excluded end
-        imos.rect_add((Bound::Excluded(0), Bound::Excluded(2)), (Bound::Excluded(0), Bound::Excluded(2)), 1);
+        imos.rect_add(
+            (Bound::Excluded(0), Bound::Excluded(2)),
+            (Bound::Excluded(0), Bound::Excluded(2)),
+            1,
+        );
         let res = imos.to_vec();
         assert_eq!(res[1][1], 1);
         assert_eq!(res[0][0], 0);
