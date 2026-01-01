@@ -11,6 +11,7 @@
         "chmax",
         "chmin",
         "cnts",
+        "coef",
         "cumsum",
         "cumsums",
         "Deque",
