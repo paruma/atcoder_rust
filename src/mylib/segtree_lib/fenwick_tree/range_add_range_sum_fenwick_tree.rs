@@ -1,4 +1,4 @@
-use crate::ab_group::ab_group::AbGroup;
+use crate::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
 use crate::segtree_lib::fenwick_tree::fenwick_tree::fenwick_tree::FenwickTreeArbitrary;
 use cargo_snippet::snippet;
 
@@ -8,18 +8,22 @@ use cargo_snippet::snippet;
 )]
 #[allow(clippy::module_inception)]
 pub mod range_add_range_sum_fenwick_tree {
-    use super::{AbGroup, FenwickTreeArbitrary};
+    use super::{AbGroup, AdditiveAbGroup, FenwickTreeArbitrary};
     use std::ops::{Bound, RangeBounds};
 
     /// 区間加算・区間和取得が可能な Fenwick Tree。
     #[derive(Clone)]
-    pub struct RangeAddRangeSumFenwickTree<G: AbGroup> {
+    pub struct RangeAddRangeSumFenwickTreeArbitrary<G: AbGroup> {
         n: usize,
         ft0: FenwickTreeArbitrary<G>,
         ft1: FenwickTreeArbitrary<G>,
     }
 
-    impl<G: AbGroup> RangeAddRangeSumFenwickTree<G>
+    /// i64 の加算群を用いた標準的な Range Add Range Sum Fenwick Tree のエイリアス。
+    pub type RangeAddRangeSumFenwickTreeI64 =
+        RangeAddRangeSumFenwickTreeArbitrary<AdditiveAbGroup<i64>>;
+
+    impl<G: AbGroup> RangeAddRangeSumFenwickTreeArbitrary<G>
     where
         G::S: Copy + std::ops::Mul<Output = G::S> + From<i64>,
     {
@@ -28,7 +32,7 @@ pub mod range_add_range_sum_fenwick_tree {
         /// # 計算量
         /// O(n)
         pub fn new(n: usize) -> Self {
-            RangeAddRangeSumFenwickTree {
+            RangeAddRangeSumFenwickTreeArbitrary {
                 n,
                 ft0: FenwickTreeArbitrary::new(n + 1),
                 ft1: FenwickTreeArbitrary::new(n + 1),
@@ -47,18 +51,18 @@ pub mod range_add_range_sum_fenwick_tree {
             R: RangeBounds<usize>,
         {
             let r = match range.end_bound() {
-                std::ops::Bound::Included(r) => r + 1,
-                std::ops::Bound::Excluded(r) => *r,
-                std::ops::Bound::Unbounded => self.n,
+                Bound::Included(r) => r + 1,
+                Bound::Excluded(r) => *r,
+                Bound::Unbounded => self.n,
             };
             let l = match range.start_bound() {
-                std::ops::Bound::Included(l) => *l,
-                std::ops::Bound::Excluded(l) => l + 1,
-                std::ops::Bound::Unbounded => 0,
+                Bound::Included(l) => *l,
+                Bound::Excluded(l) => l + 1,
+                Bound::Unbounded => 0,
             };
             assert!(
                 l <= r && r <= self.n,
-                "RangeAddRangeSumFenwickTree::range_add: invalid range. l: {}, r: {}, n: {}",
+                "RangeAddRangeSumFenwickTreeArbitrary::range_add: invalid range. l: {}, r: {}, n: {}",
                 l,
                 r,
                 self.n
@@ -98,18 +102,18 @@ pub mod range_add_range_sum_fenwick_tree {
             R: RangeBounds<usize>,
         {
             let r = match range.end_bound() {
-                std::ops::Bound::Included(r) => r + 1,
-                std::ops::Bound::Excluded(r) => *r,
-                std::ops::Bound::Unbounded => self.n,
+                Bound::Included(r) => r + 1,
+                Bound::Excluded(r) => *r,
+                Bound::Unbounded => self.n,
             };
             let l = match range.start_bound() {
                 Bound::Included(l) => *l,
                 Bound::Excluded(l) => l + 1,
-                std::ops::Bound::Unbounded => return self.accum(r),
+                Bound::Unbounded => return self.accum(r),
             };
             assert!(
                 l <= r && r <= self.n,
-                "RangeAddRangeSumFenwickTree::range_sum: invalid range. l: {}, r: {}, n: {}",
+                "RangeAddRangeSumFenwickTreeArbitrary::range_sum: invalid range. l: {}, r: {}, n: {}",
                 l,
                 r,
                 self.n
@@ -129,16 +133,16 @@ mod tests {
     fn test_range_add_range_sum_basic() {
         type G = AdditiveAbGroup<i64>;
         let n = 5;
-        let mut ft = RangeAddRangeSumFenwickTree::<G>::new(n);
+        let mut ft = RangeAddRangeSumFenwickTreeArbitrary::<G>::new(n);
 
         ft.range_add(1..4, 10);
-        assert_eq!(ft.range_sum(0..5), 30);
-        assert_eq!(ft.range_sum(1..4), 30);
-        assert_eq!(ft.range_sum(2..3), 10);
-        assert_eq!(ft.range_sum(0..2), 10);
+        assert_eq!(ft.range_sum(0..5), 30i64);
+        assert_eq!(ft.range_sum(1..4), 30i64);
+        assert_eq!(ft.range_sum(2..3), 10i64);
+        assert_eq!(ft.range_sum(0..2), 10i64);
 
         ft.range_add(2..5, 5);
-        assert_eq!(ft.range_sum(0..5), 0 + 10 + 15 + 15 + 5);
+        assert_eq!(ft.range_sum(0..5), (0 + 10 + 15 + 15 + 5) as i64);
     }
 
     #[test]
@@ -149,7 +153,7 @@ mod tests {
         for _ in 0..100 {
             let n = rng.random_range(1..=20);
             let mut naive_vec = vec![0; n];
-            let mut ft = RangeAddRangeSumFenwickTree::<G>::new(n);
+            let mut ft = RangeAddRangeSumFenwickTreeArbitrary::<G>::new(n);
 
             for _ in 0..100 {
                 let op = rng.random_range(0..2);

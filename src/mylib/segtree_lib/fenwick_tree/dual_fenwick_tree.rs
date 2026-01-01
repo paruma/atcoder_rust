@@ -1,28 +1,25 @@
-use crate::ab_group::ab_group::AbGroup;
+use crate::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
 use crate::segtree_lib::fenwick_tree::fenwick_tree::fenwick_tree::FenwickTreeArbitrary;
 use cargo_snippet::snippet;
 
 #[snippet(prefix = "use dual_fenwick_tree::*;", include = "fenwick_tree")]
 #[allow(clippy::module_inception)]
 pub mod dual_fenwick_tree {
-    use super::{AbGroup, FenwickTreeArbitrary};
+    use super::{AbGroup, AdditiveAbGroup, FenwickTreeArbitrary};
     use std::ops::RangeBounds;
 
     /// 区間加算・一点取得が可能な Fenwick Tree (Dual Fenwick Tree)。
     ///
     /// 内部的には階差数列を `FenwickTreeArbitrary` で管理しています。
-    #[derive(Clone, Debug)]
-    pub struct DualFenwickTree<G: AbGroup>
-    where
-        G::S: std::fmt::Debug,
-    {
+    #[derive(Clone)]
+    pub struct DualFenwickTreeArbitrary<G: AbGroup> {
         ft: FenwickTreeArbitrary<G>,
     }
 
-    impl<G: AbGroup> DualFenwickTree<G>
-    where
-        G::S: std::fmt::Debug,
-    {
+    /// i64 の加算群を用いた標準的な 2次元双対 Fenwick Tree のエイリアス。
+    pub type DualFenwickTreeI64 = DualFenwickTreeArbitrary<AdditiveAbGroup<i64>>;
+
+    impl<G: AbGroup> DualFenwickTreeArbitrary<G> {
         /// サイズ `n` の Dual Fenwick Tree を作成します。
         /// 要素はすべて `G::zero()` で初期化されます。
         ///
@@ -80,7 +77,7 @@ pub mod dual_fenwick_tree {
             };
             assert!(
                 l <= r && r <= n,
-                "DualFenwickTree::range_add: invalid range. l: {}, r: {}, n: {}",
+                "DualFenwickTreeArbitrary::range_add: invalid range. l: {}, r: {}, n: {}",
                 l,
                 r,
                 n
@@ -101,7 +98,7 @@ pub mod dual_fenwick_tree {
             let n = self.ft.len() - 1;
             assert!(
                 idx < n,
-                "DualFenwickTree::get: index out of bounds. idx: {}, n: {}",
+                "DualFenwickTreeArbitrary::get: index out of bounds. idx: {}, n: {}",
                 idx,
                 n
             );
@@ -129,7 +126,7 @@ mod tests {
     fn test_dual_fenwick_tree_basic() {
         type G = AdditiveAbGroup<i64>;
         let n = 5;
-        let mut ft = DualFenwickTree::<G>::new(n);
+        let mut ft = DualFenwickTreeArbitrary::<G>::new(n);
 
         ft.range_add(1..4, 10);
         assert_eq!(ft.get(0), 0);
@@ -146,7 +143,7 @@ mod tests {
     fn test_from_slice() {
         type G = AdditiveAbGroup<i64>;
         let initial = vec![1, 2, 3, 4, 5];
-        let mut ft = DualFenwickTree::<G>::from_slice(&initial);
+        let mut ft = DualFenwickTreeArbitrary::<G>::from_slice(&initial);
         assert_eq!(ft.to_vec(), initial);
 
         ft.range_add(0..5, 1);
@@ -161,7 +158,7 @@ mod tests {
         for _ in 0..100 {
             let n = rng.random_range(1..=20);
             let mut naive_vec = vec![0; n];
-            let mut ft = DualFenwickTree::<G>::new(n);
+            let mut ft = DualFenwickTreeArbitrary::<G>::new(n);
 
             for _ in 0..100 {
                 let op = rng.random_range(0..2);

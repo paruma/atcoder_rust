@@ -11,16 +11,14 @@ pub mod fenwick_tree {
     ///
     /// 0-indexed で実装されています。
     /// 基本的な加算・区間和クエリに加え、get/set や、二分探索 (max_right / min_left) を提供します。
-    #[derive(Clone, Debug)]
+    #[derive(Clone)]
     pub struct FenwickTreeArbitrary<G: AbGroup> {
         n: usize,
         ary: Vec<G::S>,
     }
 
     /// i64 の加算群を用いた標準的な Fenwick Tree のエイリアス。
-    pub type FenwickTree = FenwickTreeArbitrary<AdditiveAbGroup<i64>>;
-    /// i64 の加算群を用いた標準的な Fenwick Tree のエイリアス。
-    pub type FenwickTreeI64 = FenwickTree;
+    pub type FenwickTreeI64 = FenwickTreeArbitrary<AdditiveAbGroup<i64>>;
 
     impl<G: AbGroup> FenwickTreeArbitrary<G> {
         /// サイズ `n` の Fenwick Tree を作成します。
@@ -284,7 +282,7 @@ pub mod fenwick_tree {
 mod tests {
     use super::fenwick_tree::*;
     use crate::ab_group::ab_group::AdditiveAbGroup;
-    use rand::{rngs::SmallRng, Rng, SeedableRng};
+    use rand::{Rng, SeedableRng, rngs::SmallRng};
 
     #[test]
     fn test_random_fenwick_tree_arbitrary() {
