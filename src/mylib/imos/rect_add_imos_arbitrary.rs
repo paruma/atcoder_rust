@@ -3,10 +3,14 @@ use cargo_snippet::snippet;
 
 #[snippet(prefix = "use rect_add_imos_arbitrary::*;", include = "ab_group")]
 #[allow(clippy::module_inception)]
+/// 可換群 (AbGroup) を用いた汎用的な 2次元長方形加算いもす法を扱うモジュール
 pub mod rect_add_imos_arbitrary {
     use super::AbGroup;
     use std::ops::{Bound, RangeBounds};
 
+    /// 2次元いもす法（差分配列）を用いて、2次元配列に対する長方形領域への加算クエリを効率的に処理するデータ構造 (汎用版)。
+    ///
+    /// 各長方形領域への加算操作はO(1)で、最終的な配列を構築するのにO(H*W)かかる。
     #[derive(Clone, Debug, PartialEq, Eq)]
     pub struct RectAddImosArbitrary<G: AbGroup> {
         h: usize,
@@ -15,6 +19,10 @@ pub mod rect_add_imos_arbitrary {
     }
 
     impl<G: AbGroup> RectAddImosArbitrary<G> {
+        /// サイズ `h` × `w` の `RectAddImosArbitrary` インスタンスを作成する。
+        ///
+        /// # 計算量
+        /// O(h * w)
         pub fn new(h: usize, w: usize) -> Self {
             let mut diff = Vec::with_capacity(h + 1);
             for _ in 0..=h {
@@ -27,6 +35,13 @@ pub mod rect_add_imos_arbitrary {
             Self { h, w, diff }
         }
 
+        /// 指定された `y_range` × `x_range` の長方形領域に `val` を加算する。
+        ///
+        /// # Panics
+        /// 範囲が不正な場合にパニックする。
+        ///
+        /// # 計算量
+        /// O(1)
         pub fn rect_add(
             &mut self,
             y_range: impl RangeBounds<usize>,
@@ -49,6 +64,10 @@ pub mod rect_add_imos_arbitrary {
             self.diff[y2][x2] = G::add(&self.diff[y2][x2], &val);
         }
 
+        /// 差分配列から最終的な2次元配列を構築する。
+        ///
+        /// # 計算量
+        /// O(h * w)
         pub fn to_vec(mut self) -> Vec<Vec<G::S>> {
             if self.h == 0 {
                 return Vec::new();

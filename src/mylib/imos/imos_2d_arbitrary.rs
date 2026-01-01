@@ -3,9 +3,11 @@ use cargo_snippet::snippet;
 
 #[snippet(prefix = "use imos_2d_arbitrary::*;", include = "ab_group")]
 #[allow(clippy::module_inception)]
+/// 可換群 (AbGroup) を用いた汎用的な 2次元いもす法を扱うモジュール
 pub mod imos_2d_arbitrary {
     use super::AbGroup;
 
+    /// 2次元いもす法のための構造体 (汎用版)
     #[derive(Clone, Debug, PartialEq, Eq)]
     pub struct Imos2dArbitrary<G: AbGroup> {
         raw: Vec<Vec<G::S>>,
@@ -16,6 +18,12 @@ pub mod imos_2d_arbitrary {
     }
 
     impl<G: AbGroup> Imos2dArbitrary<G> {
+        /// `[y_begin, y_end) x [x_begin, x_end)` の矩形領域を対象とする `Imos2dArbitrary` を生成する。
+        ///
+        /// `summation` を適用する方向や回数に応じて、`end` を広めに確保する必要がある。
+        ///
+        /// # Panics
+        /// `begin >= end` となる次元がある場合、デバッグビルドではパニックする。
         pub fn new(y_begin: i64, y_end: i64, x_begin: i64, x_end: i64) -> Self {
             debug_assert!(y_begin < y_end);
             debug_assert!(x_begin < x_end);
@@ -42,6 +50,12 @@ pub mod imos_2d_arbitrary {
             (self.y_begin..self.y_end).contains(&y) && (self.x_begin..self.x_end).contains(&x)
         }
 
+        /// `(y, x)` の要素の値を取得する。
+        ///
+        /// `summation` 実行前は差分が、実行後は累積和が返される。
+        ///
+        /// # Panics
+        /// `(y, x)` が範囲外の場合、デバッグビルドではパニックする。
         pub fn get(&self, y: i64, x: i64) -> G::S {
             if cfg!(debug_assertions) && !self.is_within(y, x) {
                 panic!(
@@ -68,6 +82,12 @@ pub mod imos_2d_arbitrary {
             self.x_end
         }
 
+        /// `(y, x)` の要素に `val` を加算する。
+        ///
+        /// 矩形領域 `[y1, y2) x [x1, x2)` に値を加算するには、4点の `add` を呼び出す。
+        ///
+        /// # Panics
+        /// `(y, x)` が範囲外の場合、デバッグビルドではパニックする。
         pub fn add(&mut self, y: i64, x: i64, val: G::S) {
             if cfg!(debug_assertions) && !self.is_within(y, x) {
                 panic!(
@@ -80,6 +100,14 @@ pub mod imos_2d_arbitrary {
             self.raw[row][col] = G::add(&self.raw[row][col], &val);
         }
 
+        /// `(d_y, d_x)` 方向の差分の累積和を計算する。
+        ///
+        /// - `(1, 0)`: y方向の累積和
+        /// - `(0, 1)`: x方向の累積和
+        /// - `(1, 1)`: 右下方向の累積和
+        ///
+        /// # Panics
+        /// `(d_y, d_x) == (0, 0)` の場合、デバッグビルドではパニックする。
         pub fn summation(&mut self, d_y: i64, d_x: i64) {
             debug_assert_ne!((d_y, d_x), (0, 0));
             let height = self.y_end - self.y_begin;
@@ -113,6 +141,9 @@ pub mod imos_2d_arbitrary {
             }
         }
 
+        /// 別の Imos2dArbitrary オブジェクトと要素ごとに足し合わせる。
+        ///
+        /// 2つの Imos2dArbitrary オブジェクトの領域が異なる場合は、領域の和集合を囲う最小の長方形を新しい領域とする。
         pub fn add_imos(&self, other: &Self) -> Self {
             use std::cmp::{max, min};
 

@@ -3,9 +3,14 @@ use cargo_snippet::snippet;
 
 #[snippet(prefix = "use range_add_imos_arbitrary::*;", include = "ab_group")]
 #[allow(clippy::module_inception)]
+/// 可換群 (AbGroup) を用いた汎用的な 1次元区間加算いもす法を扱うモジュール
 pub mod range_add_imos_arbitrary {
     use super::AbGroup;
 
+    /// いもす法（差分配列）を用いて、配列に対する区間加算クエリを効率的に処理するデータ構造 (汎用版)。
+    /// 最終的な配列の状態を一度に計算する場合（オフライン処理）に特に有用です。
+    ///
+    /// 各区間加算操作はO(1)で、最終的な配列を構築するのにO(N)かかります。
     #[derive(Clone, Debug, PartialEq, Eq)]
     pub struct RangeAddImosArbitrary<G: AbGroup> {
         n: usize,
@@ -13,6 +18,10 @@ pub mod range_add_imos_arbitrary {
     }
 
     impl<G: AbGroup> RangeAddImosArbitrary<G> {
+        /// サイズ `n` の新しい `RangeAddImosArbitrary` インスタンスを作成します。
+        ///
+        /// # 計算量
+        /// O(n)
         pub fn new(n: usize) -> Self {
             let mut diff = Vec::with_capacity(n + 1);
             for _ in 0..=n {
@@ -21,6 +30,13 @@ pub mod range_add_imos_arbitrary {
             Self { n, diff }
         }
 
+        /// 指定された `range` に `x` を加算します。
+        ///
+        /// # Panics
+        /// 範囲が不正な場合にパニックします。
+        ///
+        /// # 計算量
+        /// O(1)
         pub fn range_add(&mut self, range: impl std::ops::RangeBounds<usize>, x: G::S) {
             let range = open_range_bounds(range, self.n);
             let l = range.start;
@@ -32,6 +48,10 @@ pub mod range_add_imos_arbitrary {
             self.diff[r] = G::sub(&self.diff[r], &x);
         }
 
+        /// 差分配列から最終的な配列を構築します。
+        ///
+        /// # 計算量
+        /// O(n)
         pub fn to_vec(mut self) -> Vec<G::S> {
             if self.n == 0 {
                 return Vec::new();
@@ -43,10 +63,18 @@ pub mod range_add_imos_arbitrary {
             self.diff
         }
 
+        /// 指定されたインデックス `p` に `x` を加算します。
+        ///
+        /// # 計算量
+        /// O(1)
         pub fn add(&mut self, p: usize, x: G::S) {
             self.range_add(p..(p + 1), x);
         }
 
+        /// 配列スライスから `RangeAddImosArbitrary` インスタンスを作成します。
+        ///
+        /// # 計算量
+        /// O(n)
         pub fn from_slice(xs: &[G::S]) -> Self {
             let n = xs.len();
             let mut diff = Vec::with_capacity(n + 1);

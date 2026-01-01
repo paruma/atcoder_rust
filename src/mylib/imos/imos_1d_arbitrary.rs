@@ -3,9 +3,11 @@ use cargo_snippet::snippet;
 
 #[snippet(prefix = "use imos_1d_arbitrary::*;", include = "ab_group")]
 #[allow(clippy::module_inception)]
+/// 可換群 (AbGroup) を用いた汎用的な 1次元いもす法を扱うモジュール
 pub mod imos_1d_arbitrary {
     use super::AbGroup;
 
+    /// 1次元いもす法のための構造体 (汎用版)
     #[derive(Clone, Debug, PartialEq, Eq)]
     pub struct Imos1DArbitrary<G: AbGroup> {
         raw: Vec<G::S>,
@@ -14,6 +16,13 @@ pub mod imos_1d_arbitrary {
     }
 
     impl<G: AbGroup> Imos1DArbitrary<G> {
+        /// `[begin, end)` の半開区間を対象とする `Imos1DArbitrary` を生成する。
+        ///
+        /// `summation` を複数回適用する場合（例：アフィン変換や二次関数）、
+        /// その回数分だけ `end` を広めに確保する必要がある。
+        ///
+        /// # Panics
+        /// `begin >= end` の場合、デバッグビルドではパニックする。
         pub fn new(begin: i64, end: i64) -> Self {
             debug_assert!(begin < end);
             let len = (end - begin) as usize;
@@ -28,6 +37,12 @@ pub mod imos_1d_arbitrary {
             (self.begin..self.end).contains(&i)
         }
 
+        /// `i` 番目の要素の値を取得する。
+        ///
+        /// `summation` 実行前は差分が、実行後は累積和が返される。
+        ///
+        /// # Panics
+        /// `i` が `[begin, end)` の範囲外の場合、デバッグビルドではパニックする。
         pub fn get(&self, i: i64) -> G::S {
             if cfg!(debug_assertions) && !self.is_within(i) {
                 panic!(
@@ -38,6 +53,12 @@ pub mod imos_1d_arbitrary {
             self.raw[(i - self.begin) as usize].clone()
         }
 
+        /// `i` 番目の要素に `val` を加算する。
+        ///
+        /// 区間 `[l, r)` に値を加算したい場合は、`imos.add(l, val)` と `imos.add(r, G::neg(&val))` を呼び出す。
+        ///
+        /// # Panics
+        /// `i` が `[begin, end)` の範囲外の場合、デバッグビルドではパニックする。
         pub fn add(&mut self, i: i64, val: G::S) {
             if cfg!(debug_assertions) && !self.is_within(i) {
                 panic!(
@@ -49,12 +70,16 @@ pub mod imos_1d_arbitrary {
             self.raw[idx] = G::add(&self.raw[idx], &val);
         }
 
+        /// 差分の累積和を計算する。
+        ///
+        /// この操作により、各要素は区間加算を反映した最終的な値を持つようになる。
         pub fn summation(&mut self) {
             for i in 1..self.raw.len() {
                 self.raw[i] = G::add(&self.raw[i - 1], &self.raw[i]);
             }
         }
 
+        /// 累積和から差分を計算する（デバッグ用）。
         pub fn difference(&mut self) {
             for i in (1..self.raw.len()).rev() {
                 self.raw[i] = G::sub(&self.raw[i], &self.raw[i - 1]);

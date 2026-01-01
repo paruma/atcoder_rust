@@ -7,6 +7,10 @@ pub mod fenwick_tree_arbitrary {
     use super::AbGroup;
     use std::ops::{Bound, RangeBounds};
 
+    /// 可換群 (AbGroup) を用いた汎用的な Fenwick Tree (Binary Indexed Tree)。
+    ///
+    /// 0-indexed で実装されています。
+    /// 基本的な加算・区間和クエリに加え、get/set や、二分探索 (max_right / min_left) を提供します。
     #[derive(Clone, Debug)]
     pub struct FenwickTreeArbitrary<G: AbGroup> {
         n: usize,
@@ -17,6 +21,11 @@ pub mod fenwick_tree_arbitrary {
     where
         G::S: std::fmt::Debug,
     {
+        /// サイズ `n` の Fenwick Tree を作成します。
+        /// 要素はすべて `G::zero()` で初期化されます。
+        ///
+        /// # 計算量
+        /// O(n)
         pub fn new(n: usize) -> Self {
             let mut ary = Vec::with_capacity(n);
             for _ in 0..n {
@@ -25,6 +34,10 @@ pub mod fenwick_tree_arbitrary {
             FenwickTreeArbitrary { n, ary }
         }
 
+        /// 配列スライスから Fenwick Tree を作成します。
+        ///
+        /// # 計算量
+        /// O(n)
         pub fn from_slice(slice: &[G::S]) -> Self {
             let n = slice.len();
             let mut ary = slice.to_vec();
@@ -38,6 +51,13 @@ pub mod fenwick_tree_arbitrary {
             FenwickTreeArbitrary { n, ary }
         }
 
+        /// `[0, idx)` の区間の総和を計算します。
+        ///
+        /// # Panics
+        /// `idx > n` の場合にパニックします。
+        ///
+        /// # 計算量
+        /// O(log n)
         pub fn accum(&self, mut idx: usize) -> G::S {
             assert!(
                 idx <= self.n,
@@ -53,6 +73,13 @@ pub mod fenwick_tree_arbitrary {
             sum
         }
 
+        /// `idx` 番目の要素に `val` を加算（群の演算を適用）します。
+        ///
+        /// # Panics
+        /// `idx >= n` の場合にパニックします。
+        ///
+        /// # 計算量
+        /// O(log n)
         pub fn add(&mut self, mut idx: usize, val: G::S) {
             assert!(
                 idx < self.n,
@@ -68,6 +95,13 @@ pub mod fenwick_tree_arbitrary {
             }
         }
 
+        /// 指定された範囲の区間和を計算します。
+        ///
+        /// # Panics
+        /// 範囲が不正、または `n` を超える場合にパニックします。
+        ///
+        /// # 計算量
+        /// O(log n)
         pub fn range_sum<R>(&self, range: R) -> G::S
         where
             R: RangeBounds<usize>,
@@ -92,6 +126,17 @@ pub mod fenwick_tree_arbitrary {
             G::sub(&self.accum(r), &self.accum(l))
         }
 
+        /// `l` を左端として、`f(sum(l..r))` が true になる最大の `r` を返します。
+        ///
+        /// `f` は単調性を持つ必要があります。
+        /// 具体的には、`f(sum(l..i))` が true ならば、任意の `j < i` に対して `f(sum(l..j))` も true である必要があります。
+        /// また、`f(zero)` は true である必要があります。
+        ///
+        /// # Panics
+        /// `l > n` または `f(zero)` が false の場合にパニックします。
+        ///
+        /// # 計算量
+        /// O(log n)
         pub fn max_right<F>(&self, l: usize, mut f: F) -> usize
         where
             F: FnMut(&G::S) -> bool,
@@ -129,6 +174,17 @@ pub mod fenwick_tree_arbitrary {
             r
         }
 
+        /// `r` を右端として、`f(sum(l..r))` が true になる最小の `l` を返します。
+        ///
+        /// `f` は単調性を持つ必要があります。
+        /// 具体的には、`f(sum(i..r))` が true ならば、任意の `j > i` に対して `f(sum(j..r))` も true である必要があります。
+        /// また、`f(zero)` は true である必要があります。
+        ///
+        /// # Panics
+        /// `r > n` または `f(zero)` が false の場合にパニックします。
+        ///
+        /// # 計算量
+        /// O(log n)
         pub fn min_left<F>(&self, r: usize, mut f: F) -> usize
         where
             F: FnMut(&G::S) -> bool,
@@ -171,6 +227,13 @@ pub mod fenwick_tree_arbitrary {
             idx + 1
         }
 
+        /// `idx` 番目の要素の値を取得します。
+        ///
+        /// # Panics
+        /// `idx >= n` の場合にパニックします。
+        ///
+        /// # 計算量
+        /// O(log n)
         pub fn get(&self, idx: usize) -> G::S {
             assert!(
                 idx < self.n,
@@ -181,6 +244,13 @@ pub mod fenwick_tree_arbitrary {
             self.range_sum(idx..=idx)
         }
 
+        /// `idx` 番目の要素の値を `val` に設定します。
+        ///
+        /// # Panics
+        /// `idx >= n` の場合にパニックします。
+        ///
+        /// # 計算量
+        /// O(log n)
         pub fn set(&mut self, idx: usize, val: G::S) {
             assert!(
                 idx < self.n,
@@ -192,10 +262,15 @@ pub mod fenwick_tree_arbitrary {
             self.add(idx, G::sub(&val, &old_val));
         }
 
+        /// Fenwick Tree の現在の状態を `Vec<G::S>` として返します。
+        ///
+        /// # 計算量
+        /// O(n log n)
         pub fn to_vec(&self) -> Vec<G::S> {
             (0..self.n).map(|i| self.get(i)).collect()
         }
 
+        /// 保持している要素数を返します。
         #[allow(clippy::len_without_is_empty)]
         pub fn len(&self) -> usize {
             self.n
