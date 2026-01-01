@@ -4,7 +4,6 @@ pub mod bin_search;
 pub mod chminmax;
 pub mod coordinate_compression;
 pub mod cumsum;
-pub mod cumsum_2d;
 pub mod data_structure;
 pub mod debug;
 pub mod doubling;
