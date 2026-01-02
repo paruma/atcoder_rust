@@ -1,4 +1,4 @@
-use crate::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
+use crate::math::algebra::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
 use cargo_snippet::snippet;
 
 #[allow(clippy::module_inception)]
@@ -164,7 +164,7 @@ pub mod potentialized_dsu {
 
 #[cfg(test)]
 mod tests_potentialized_dsu {
-    use crate::ab_group::ab_group::AdditiveAbGroup;
+    use crate::math::algebra::ab_group::ab_group::AdditiveAbGroup;
 
     use super::potentialized_dsu::*;
     use itertools::Itertools;

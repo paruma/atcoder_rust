@@ -1,4 +1,4 @@
-use crate::ab_group::ab_group::AbGroup;
+use crate::math::algebra::ab_group::ab_group::AbGroup;
 use cargo_snippet::snippet;
 
 #[snippet(prefix = "use cumsum_2d_arbitrary::*;", include = "ab_group")]
@@ -84,7 +84,7 @@ pub mod cumsum_2d_arbitrary {
 #[cfg(test)]
 mod tests_cumsum_2d_arbitrary {
     use super::cumsum_2d_arbitrary::*;
-    use crate::ab_group::ab_group::AdditiveAbGroup;
+    use crate::math::algebra::ab_group::ab_group::AdditiveAbGroup;
     use std::ops::Bound;
 
     #[test]

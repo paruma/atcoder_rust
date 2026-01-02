@@ -1,4 +1,4 @@
-use crate::ab_group::ab_group::AbGroup;
+use crate::math::algebra::ab_group::ab_group::AbGroup;
 use cargo_snippet::snippet;
 
 #[snippet(prefix = "use range_add_imos_arbitrary::*;", include = "ab_group")]
@@ -113,7 +113,7 @@ pub mod range_add_imos_arbitrary {
 #[cfg(test)]
 mod tests {
     use super::range_add_imos_arbitrary::*;
-    use crate::ab_group::ab_group::AdditiveAbGroup;
+    use crate::math::algebra::ab_group::ab_group::AdditiveAbGroup;
     use rand::{Rng, SeedableRng};
 
     #[test]

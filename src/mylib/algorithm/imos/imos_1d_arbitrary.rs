@@ -1,4 +1,4 @@
-use crate::ab_group::ab_group::AbGroup;
+use crate::math::algebra::ab_group::ab_group::AbGroup;
 use cargo_snippet::snippet;
 
 #[snippet(prefix = "use imos_1d_arbitrary::*;", include = "ab_group")]
@@ -91,7 +91,7 @@ pub mod imos_1d_arbitrary {
 #[cfg(test)]
 mod tests_imos_1d_arbitrary {
     use super::imos_1d_arbitrary::*;
-    use crate::ab_group::ab_group::AdditiveAbGroup;
+    use crate::math::algebra::ab_group::ab_group::AdditiveAbGroup;
     use itertools::Itertools;
 
     #[test]

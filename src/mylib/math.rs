@@ -1,10 +1,11 @@
 pub mod acl_modint;
-pub mod argcmp;
+pub mod algebra;
 pub mod bostan_mori;
 pub mod combinatorics;
 pub mod dynamic_matrix;
 pub mod ext_int;
 pub mod fps;
+pub mod geometry;
 pub mod impartial_game;
 pub mod inversion;
 pub mod matrix;

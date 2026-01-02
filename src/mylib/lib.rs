@@ -1,15 +1,7 @@
-pub mod ab_group;
-pub mod bin_search;
-pub mod coordinate_compression;
-pub mod cumsum;
+pub mod algorithm;
 pub mod data_structure;
-pub mod geometry;
 pub mod graph;
-pub mod imos;
 pub mod math;
-pub mod monoid;
 pub mod old;
-pub mod segtree_lib;
 pub mod string;
-pub mod ternary_search;
 pub mod utils;

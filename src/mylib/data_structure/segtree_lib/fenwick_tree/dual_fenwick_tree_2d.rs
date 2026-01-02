@@ -1,5 +1,5 @@
-use crate::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
-use crate::segtree_lib::fenwick_tree::fenwick_tree_2d::fenwick_tree_2d::FenwickTree2DArbitrary;
+use crate::math::algebra::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
+use crate::data_structure::segtree_lib::fenwick_tree::fenwick_tree_2d::fenwick_tree_2d::FenwickTree2DArbitrary;
 use cargo_snippet::snippet;
 
 #[snippet(prefix = "use dual_fenwick_tree_2d::*;", include = "fenwick_tree_2d")]
@@ -115,7 +115,7 @@ pub mod dual_fenwick_tree_2d {
 #[cfg(test)]
 mod tests {
     use super::dual_fenwick_tree_2d::*;
-    use crate::ab_group::ab_group::AdditiveAbGroup;
+    use crate::math::algebra::ab_group::ab_group::AdditiveAbGroup;
     use rand::{Rng, SeedableRng, rngs::SmallRng};
 
     #[test]

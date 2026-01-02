@@ -5,7 +5,7 @@ pub mod grid_union_find {
 
     use crate::{
         data_structure::union_find::simple_union_find::simple_union_find::UnionFind,
-        geometry::pos::pos::Pos,
+        math::geometry::pos::pos::Pos,
     };
 
     #[snippet(name = "GridUnionFind")]
@@ -64,7 +64,7 @@ pub mod grid_union_find {
 #[cfg(test)]
 mod tests {
     use super::grid_union_find::GridUnionFind;
-    use crate::geometry::pos::pos::Pos;
+    use crate::math::geometry::pos::pos::Pos;
 
     #[test]
     fn test_new() {

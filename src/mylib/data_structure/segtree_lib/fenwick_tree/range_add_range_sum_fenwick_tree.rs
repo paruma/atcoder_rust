@@ -1,5 +1,5 @@
-use crate::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
-use crate::segtree_lib::fenwick_tree::fenwick_tree::fenwick_tree::FenwickTreeArbitrary;
+use crate::math::algebra::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
+use crate::data_structure::segtree_lib::fenwick_tree::fenwick_tree::fenwick_tree::FenwickTreeArbitrary;
 use cargo_snippet::snippet;
 
 #[snippet(
@@ -126,7 +126,7 @@ pub mod range_add_range_sum_fenwick_tree {
 #[cfg(test)]
 mod tests {
     use super::range_add_range_sum_fenwick_tree::*;
-    use crate::ab_group::ab_group::AdditiveAbGroup;
+    use crate::math::algebra::ab_group::ab_group::AdditiveAbGroup;
     use rand::{Rng, SeedableRng, rngs::SmallRng};
 
     #[test]

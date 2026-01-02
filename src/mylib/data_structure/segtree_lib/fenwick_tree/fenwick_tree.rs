@@ -1,4 +1,4 @@
-use crate::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
+use crate::math::algebra::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
 use cargo_snippet::snippet;
 
 #[snippet(prefix = "use fenwick_tree::*;", include = "ab_group")]
@@ -281,7 +281,7 @@ pub mod fenwick_tree {
 #[cfg(test)]
 mod tests {
     use super::fenwick_tree::*;
-    use crate::ab_group::ab_group::AdditiveAbGroup;
+    use crate::math::algebra::ab_group::ab_group::AdditiveAbGroup;
     use rand::{Rng, SeedableRng, rngs::SmallRng};
 
     #[test]

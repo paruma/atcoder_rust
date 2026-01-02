@@ -203,7 +203,7 @@ mod test_range_affine_range_minmax {
     use ac_library::{LazySegtree, MapMonoid, Monoid};
     use itertools::Itertools;
 
-    use crate::segtree_lib::lazy_segtree::lazy_segtree_to_vec;
+    use crate::data_structure::segtree_lib::lazy_segtree::lazy_segtree_to_vec;
 
     use super::range_affine_range_minmax::*;
 
