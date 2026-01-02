@@ -1,4 +1,4 @@
-use mylib::{data_structure::bitset::bitset::BitSet, ext_int::mod_ext_int::ExtInt};
+use mylib::{data_structure::bitset::bitset::BitSet, math::ext_int::mod_ext_int::ExtInt};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct Edge {
