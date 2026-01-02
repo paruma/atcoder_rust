@@ -1,3 +1,4 @@
+// ローリングハッシュによる解法
 fn solve(xs: &[char], ys: &[char]) -> Option<usize> {
     type M = RollingHashConcat;
     let base = generate_random_base();
@@ -36,6 +37,30 @@ fn solve(xs: &[char], ys: &[char]) -> Option<usize> {
     None
 }
 
+// Z アルゴリズムによる解法
+fn solve2(xs: &[char], ys: &[char]) -> Option<usize> {
+    // xs + xs から ys を探す
+
+    let n = xs.len();
+
+    let yxx = [ys, xs, xs].concat();
+
+    let z_arr = z_algorithm_arbitrary(&yxx);
+
+    z_arr[n..].iter().position(|l| *l >= n)
+}
+// SA による解法
+fn solve3(xs: &[char], ys: &[char]) -> Option<usize> {
+    // xs + xs から ys を探す
+    let target = [xs, xs].concat();
+    let pattern = ys;
+
+    let sa = suffix_array_arbitrary(&target);
+    let eq_range = sa.equal_range_by_key(&pattern, |&i| {
+        &target[i..(i + pattern.len()).min(target.len())]
+    });
+    sa[eq_range].iter().copied().min()
+}
 #[fastout]
 fn main() {
     input! {
@@ -47,7 +72,7 @@ fn main() {
             xs: Chars,
             ys: Chars,
         }
-        let ans = solve(&xs, &ys);
+        let ans = solve3(&xs, &ys);
         if let Some(ans) = ans {
             println!("{}", ans);
         } else {
@@ -129,9 +154,11 @@ use {
     },
 };
 
+use ac_library::suffix_array_arbitrary;
 // ====== output func ======
 #[allow(unused_imports)]
 use print_util::*;
+use superslice::Ext;
 pub mod print_util {
     use itertools::Itertools;
     use proconio::fastout;
@@ -182,8 +209,8 @@ pub mod print_util {
 }
 
 // ====== snippet ======
-use monoid_rolling_hash::*;
 use {ac_library::Monoid, modint_u64::*};
+use {ac_library::z_algorithm_arbitrary, monoid_rolling_hash::*};
 #[allow(clippy::module_inception)]
 pub mod modint_u64 {
     use std::{
