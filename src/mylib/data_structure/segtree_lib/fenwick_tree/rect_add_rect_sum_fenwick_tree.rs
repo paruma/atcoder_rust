@@ -1,8 +1,11 @@
-use crate::math::algebra::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
 use crate::data_structure::segtree_lib::fenwick_tree::fenwick_tree_2d::fenwick_tree_2d::FenwickTree2DArbitrary;
+use crate::math::algebra::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
 use cargo_snippet::snippet;
 
-#[snippet(prefix = "use rect_add_rect_sum_fenwick_tree::*;", include = "fenwick_tree_2d")]
+#[snippet(
+    prefix = "use rect_add_rect_sum_fenwick_tree::*;",
+    include = "fenwick_tree_2d"
+)]
 #[allow(clippy::module_inception)]
 pub mod rect_add_rect_sum_fenwick_tree {
     use super::{AbGroup, AdditiveAbGroup, FenwickTree2DArbitrary};
@@ -86,7 +89,8 @@ pub mod rect_add_rect_sum_fenwick_tree {
                     this.bit00.add(y, x, v);
                     this.bit01.add(y, x, v * G::S::from(x as i64));
                     this.bit10.add(y, x, v * G::S::from(y as i64));
-                    this.bit11.add(y, x, v * G::S::from(y as i64) * G::S::from(x as i64));
+                    this.bit11
+                        .add(y, x, v * G::S::from(y as i64) * G::S::from(x as i64));
                 }
             };
 
@@ -172,7 +176,7 @@ pub mod rect_add_rect_sum_fenwick_tree {
 mod tests {
     use super::rect_add_rect_sum_fenwick_tree::*;
     use crate::math::algebra::ab_group::ab_group::AdditiveAbGroup;
-    use rand::{rngs::SmallRng, Rng, SeedableRng};
+    use rand::{Rng, SeedableRng, rngs::SmallRng};
 
     #[test]
     fn test_rect_add_rect_sum_2d_basic() {

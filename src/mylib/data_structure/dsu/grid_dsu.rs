@@ -1,15 +1,12 @@
 use cargo_snippet::snippet;
 
-use crate::{
-    data_structure::dsu::dsu_core::dsu_core::DsuCore,
-    math::geometry::pos::pos::Pos,
-};
+use crate::{data_structure::dsu::dsu_core::dsu_core::DsuCore, math::geometry::pos::pos::Pos};
 
 #[allow(clippy::module_inception)]
 #[snippet(prefix = "use grid_dsu::*;")]
 pub mod grid_dsu {
-    use itertools::Itertools;
     use super::{DsuCore, Pos};
+    use itertools::Itertools;
 
     pub struct GridDsu {
         dsu: DsuCore,

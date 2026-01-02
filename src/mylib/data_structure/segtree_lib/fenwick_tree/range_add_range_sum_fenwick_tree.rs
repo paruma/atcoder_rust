@@ -1,5 +1,5 @@
-use crate::math::algebra::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
 use crate::data_structure::segtree_lib::fenwick_tree::fenwick_tree::fenwick_tree::FenwickTreeArbitrary;
+use crate::math::algebra::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
 use cargo_snippet::snippet;
 
 #[snippet(
