@@ -1,4 +1,11 @@
-pub fn find_target_by_z_algorithm<T: Ord + Clone>(target: &[T], pattern: &[T]) -> Vec<usize> {
+use cargo_snippet::snippet;
+
+#[snippet]
+/// Z-algorithm を用いて、`target `に出現する `pattern` の開始位置をすべて検索する。
+/// 結果はソートされている。
+///
+/// 計算量: O(|T| + |P|)
+pub fn find_pattern_by_z_algorithm<T: Ord + Clone>(target: &[T], pattern: &[T]) -> Vec<usize> {
     use ac_library::z_algorithm_arbitrary;
     use itertools::Itertools;
 
@@ -23,7 +30,7 @@ mod tests {
 
         // 期待される正しい一致位置
         let expected = vec![0, 7];
-        let actual = find_target_by_z_algorithm(&target, &pattern);
+        let actual = find_pattern_by_z_algorithm(&target, &pattern);
 
         assert_eq!(
             actual, expected,
@@ -39,7 +46,7 @@ mod tests {
 
         // パターンのほうが長い場合は空であるべき
         let expected: Vec<usize> = vec![];
-        let actual = find_target_by_z_algorithm(&target, &pattern);
+        let actual = find_pattern_by_z_algorithm(&target, &pattern);
         assert_eq!(actual, expected);
     }
 
@@ -48,21 +55,20 @@ mod tests {
         // target が空
         let target: Vec<char> = vec![];
         let pattern = vec!['a'];
-        let actual = find_target_by_z_algorithm(&target, &pattern);
+        let actual = find_pattern_by_z_algorithm(&target, &pattern);
         assert!(actual.is_empty());
 
         // pattern が空
         let target = vec!['a', 'b'];
         let pattern: Vec<char> = vec![];
-        let actual = find_target_by_z_algorithm(&target, &pattern);
-        // 仕様を確認するための println (テスト失敗時のみ表示)
-        println!("target='ab', pattern='' actual: {:?}", actual);
+        let actual = find_pattern_by_z_algorithm(&target, &pattern);
+        assert_eq!(actual, vec![0, 1]);
 
         // 両方空
         let target: Vec<char> = vec![];
         let pattern: Vec<char> = vec![];
-        let actual = find_target_by_z_algorithm(&target, &pattern);
-        println!("target='', pattern='' actual: {:?}", actual);
+        let actual = find_pattern_by_z_algorithm(&target, &pattern);
+        assert!(actual.is_empty());
     }
 
     #[test]
@@ -84,7 +90,7 @@ mod tests {
                 .map(|(i, _)| i)
                 .collect_vec();
 
-            let actual = find_target_by_z_algorithm(&target, &pattern);
+            let actual = find_pattern_by_z_algorithm(&target, &pattern);
 
             assert_eq!(
                 actual, expected,

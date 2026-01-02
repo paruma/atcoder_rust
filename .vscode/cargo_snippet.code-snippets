@@ -535,6 +535,41 @@
       "}"
     ]
   },
+  "acl_suffix_array_finder": {
+    "scope": "rust",
+    "prefix": "acl_suffix_array_finder",
+    "body": [
+      "use acl_suffix_array_finder::*;",
+      "pub mod acl_suffix_array_finder {",
+      "    use ac_library::suffix_array_arbitrary;",
+      "    use superslice::Ext;",
+      "    /// Suffix Array を用いた文字列検索を行う構造体",
+      "    #[derive(Clone, Debug)]",
+      "    pub struct SuffixArrayFinder<'a, T: Ord> {",
+      "        target: &'a [T],",
+      "        sa: Vec<usize>,",
+      "    }",
+      "    impl<'a, T: Ord> SuffixArrayFinder<'a, T> {",
+      "        /// 指定された `target` に対して SuffixArray を構築し、検索の準備を行う。",
+      "        /// 計算量は O(|T| log |T|)",
+      "        pub fn new(target: &'a [T]) -> Self {",
+      "            let sa = suffix_array_arbitrary(target);",
+      "            SuffixArrayFinder { target, sa }",
+      "        }",
+      "        /// `target` に出現する `pattern` の開始位置をすべて返す。",
+      "        /// 結果はソートされているとは限らない。",
+      "        /// 計算量は O(|P| log |T|)",
+      "        pub fn find_all(&self, pattern: &[T]) -> &[usize] {",
+      "            let range = self.sa.equal_range_by_key(&pattern, |&begin| {",
+      "                let suffix = &self.target[begin..];",
+      "                &suffix[..pattern.len().min(suffix.len())]",
+      "            });",
+      "            &self.sa[range]",
+      "        }",
+      "    }",
+      "}"
+    ]
+  },
   "argcmp": {
     "scope": "rust",
     "prefix": "argcmp",
@@ -5099,6 +5134,25 @@
       "            self.w",
       "        }",
       "    }",
+      "}"
+    ]
+  },
+  "find_pattern_by_z_algorithm": {
+    "scope": "rust",
+    "prefix": "find_pattern_by_z_algorithm",
+    "body": [
+      "/// Z-algorithm を用いて、`target `に出現する `pattern` の開始位置をすべて検索する。",
+      "/// 結果はソートされている。",
+      "/// 計算量: O(|T| + |P|)",
+      "pub fn find_pattern_by_z_algorithm<T: Ord + Clone>(target: &[T], pattern: &[T]) -> Vec<usize> {",
+      "    use ac_library::z_algorithm_arbitrary;",
+      "    use itertools::Itertools;",
+      "    let pt = [pattern, target].concat();",
+      "    let z_arr = z_algorithm_arbitrary(&pt);",
+      "    z_arr[pattern.len()..]",
+      "        .iter()",
+      "        .positions(|l| *l >= pattern.len())",
+      "        .collect_vec()",
       "}"
     ]
   },
