@@ -90,7 +90,7 @@ pub mod lg {
     /// # Examples
     ///
     /// ```rust
-    /// use mylib::lg;
+    /// # use mylib::*;
     /// let x = 42;
     /// let y = 43;
     /// lg!(x);
@@ -122,7 +122,7 @@ pub mod lg {
                     eprint!(
                         " {} = {}",
                         stringify!($value),
-                        $crate::utils::debug::lg::__quiet(format!("{:?}", &head))
+                        $crate::__quiet(format!("{:?}", &head))
                     );
                 }
             }
@@ -133,7 +133,7 @@ pub mod lg {
     ///
     /// # Examples
     /// ```rust
-    /// use mylib::rows;
+    /// # use mylib::*;
     /// let a = [1, 2, 3];
     /// let b = [4, 5, 6];
     /// let c = [7, 8, 9];
@@ -153,7 +153,7 @@ pub mod lg {
         $($(@$label:literal =>)? $values:expr_2021),* $(,)?
     } => {{
         #![allow(unused_assignments)]
-        let mut rows = $crate::utils::debug::lg::Rows::default();
+        let mut rows = $crate::Rows::default();
         rows.line_number(line!());
         $(rows.offset($offset);)?
         $(rows.verticalbar($verticalbar);)*
@@ -177,7 +177,7 @@ pub mod lg {
     ///
     /// # Examples
     /// ```rust
-    /// use mylib::table;
+    /// # use mylib::*;
     /// let a = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
     /// table! {
     ///    @"a" => a,
@@ -200,7 +200,7 @@ pub mod lg {
             let name_: &'static str = $name;
             name = name_.to_string();
         })?
-        let mut rows = $crate::utils::debug::lg::Rows::default();
+        let mut rows = $crate::Rows::default();
         rows.line_number(line!());
         rows.table_name(name);
         #[allow(array_into_iter)]
