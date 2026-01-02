@@ -6,7 +6,7 @@ use cargo_snippet::snippet;
 ///
 /// # Examples
 /// ```
-/// use mylib::imos::imos_1d::imos_1d::*;
+/// use mylib::algorithm::imos::imos_1d::imos_1d::*;
 ///
 /// // [0, 5) の範囲で考える。1回差分を取るので end は 1つ余分に確保する
 /// let mut imos = Imos1D::new(0, 5 + 1);

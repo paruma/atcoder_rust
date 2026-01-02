@@ -122,7 +122,7 @@ pub mod lg {
                     eprint!(
                         " {} = {}",
                         stringify!($value),
-                        $crate::debug::lg::__quiet(format!("{:?}", &head))
+                        $crate::utils::debug::lg::__quiet(format!("{:?}", &head))
                     );
                 }
             }
@@ -153,7 +153,7 @@ pub mod lg {
         $($(@$label:literal =>)? $values:expr_2021),* $(,)?
     } => {{
         #![allow(unused_assignments)]
-        let mut rows = $crate::debug::lg::Rows::default();
+        let mut rows = $crate::utils::debug::lg::Rows::default();
         rows.line_number(line!());
         $(rows.offset($offset);)?
         $(rows.verticalbar($verticalbar);)*
@@ -200,7 +200,7 @@ pub mod lg {
             let name_: &'static str = $name;
             name = name_.to_string();
         })?
-        let mut rows = $crate::debug::lg::Rows::default();
+        let mut rows = $crate::utils::debug::lg::Rows::default();
         rows.line_number(line!());
         rows.table_name(name);
         #[allow(array_into_iter)]
