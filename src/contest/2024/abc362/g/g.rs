@@ -5,6 +5,35 @@ struct Problem {
     qs: Vec<Vec<char>>,
 }
 
+use acl_suffix_array_finder::*;
+pub mod acl_suffix_array_finder {
+    use ac_library::suffix_array_arbitrary;
+    use superslice::Ext;
+    /// Suffix Array を用いた文字列検索を行う構造体
+    #[derive(Clone, Debug)]
+    pub struct SuffixArrayFinder<'a, T: Ord> {
+        target: &'a [T],
+        sa: Vec<usize>,
+    }
+    impl<'a, T: Ord> SuffixArrayFinder<'a, T> {
+        /// 指定された `target` に対して SuffixArray を構築し、検索の準備を行う。
+        /// 計算量は O(|T| log |T|)
+        pub fn new(target: &'a [T]) -> Self {
+            let sa = suffix_array_arbitrary(target);
+            SuffixArrayFinder { target, sa }
+        }
+        /// `target` に出現する `pattern` の開始位置をすべて返す。
+        /// 計算量は O(|P| log |T|)
+        pub fn find_all(&self, pattern: &[T]) -> &[usize] {
+            let range = self.sa.equal_range_by_key(&pattern, |&begin| {
+                let suffix = &self.target[begin..];
+                &suffix[..pattern.len().min(suffix.len())]
+            });
+            &self.sa[range]
+        }
+    }
+}
+
 impl Problem {
     fn read() -> Problem {
         input! {
@@ -16,28 +45,11 @@ impl Problem {
     }
     fn solve(&self) -> Answer {
         let s = &self.s;
-        let sa = suffix_array_arbitrary(s);
-
+        let finder = SuffixArrayFinder::new(s);
         let ans = self
             .qs
             .iter()
-            .map(|t| {
-                // t を prefix に持つような s[sa[i]..] の数を求める。
-                let begin = bin_search(s.len() as i64, -1, |i| {
-                    let s_suffix = &s[sa[i as usize]..];
-
-                    t.as_slice() <= s_suffix
-                });
-
-                let end = bin_search(s.len() as i64, -1, |i| {
-                    let s_suffix = &s[sa[i as usize]..];
-                    let s_suffix_prefix = &s_suffix[..usize::min(t.len(), s_suffix.len())];
-
-                    t.as_slice() < s_suffix_prefix
-                });
-
-                end - begin
-            })
+            .map(|t| finder.find_all(t).len())
             .collect_vec();
         Answer { ans }
     }
@@ -52,7 +64,7 @@ impl Problem {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Answer {
-    ans: Vec<i64>,
+    ans: Vec<usize>,
 }
 
 impl Answer {
@@ -144,7 +156,7 @@ mod tests {
 use ac_library::suffix_array_arbitrary;
 // ====== import ======
 #[allow(unused_imports)]
-use itertools::{chain, iproduct, izip, Itertools};
+use itertools::{Itertools, chain, iproduct, izip};
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,

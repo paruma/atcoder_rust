@@ -1,65 +1,66 @@
-/// Z-algorithm を用いて、`target `に出現する `pattern` の開始位置をすべて検索する。
-/// 結果はソートされている。
-///
-/// 計算量: O(|T| + |P|)
-pub fn find_target_by_z_algorithm<T: Ord + Clone>(target: &[T], pattern: &[T]) -> Vec<usize> {
-    use ac_library::z_algorithm_arbitrary;
-    use itertools::Itertools;
-    let pt = [pattern, target].concat();
-    let z_arr = z_algorithm_arbitrary(&pt);
-    z_arr[pattern.len()..]
+// ローリングハッシュによる解法
+fn solve(xs: &[char], ys: &[char]) -> Option<usize> {
+    type M = RollingHashConcat;
+    let base = generate_random_base();
+
+    let xhs = xs
         .iter()
-        .positions(|l| *l >= pattern.len())
-        .collect_vec()
+        .copied()
+        .map(|ch| RollingHash::new((((ch as u8) - b'0') + 2) as i64, base))
+        .collect_vec();
+
+    let yhs = ys
+        .iter()
+        .copied()
+        .map(|ch| RollingHash::new((((ch as u8) - b'0') + 2) as i64, base))
+        .collect_vec();
+
+    let ys_hash = yhs
+        .iter()
+        .copied()
+        .fold(M::identity(), |acc, x| M::binary_operation(&acc, &x));
+
+    let xhs_cum = CumMonoid::<M>::new(&xhs);
+
+    for i in 0..xs.len() {
+        // xs[i..n] + xs[0..i] のハッシュ値を計算する。それが ys のハッシュ値と一致する？
+        let t1 = xhs_cum.suffix_prod(i); // xs[i..n]
+        let t2 = xhs_cum.prefix_prod(i); // xs[0..i]
+
+        let new_xs_hash = M::binary_operation(&t1, &t2);
+
+        if new_xs_hash == ys_hash {
+            return Some(i);
+        }
+    }
+
+    None
 }
 
 // Z アルゴリズムによる解法
 fn solve2(xs: &[char], ys: &[char]) -> Option<usize> {
     // xs + xs から ys を探す
-    let xsxs = [xs, xs].concat();
-    find_target_by_z_algorithm(&xsxs, ys).first().copied()
-}
 
-// ----------------------
-use acl_suffix_array_finder::*;
-pub mod acl_suffix_array_finder {
-    use ac_library::suffix_array_arbitrary;
-    use superslice::Ext;
-    /// Suffix Array を用いた文字列検索を行う構造体
-    pub struct SuffixArrayFinder<'a, T: Ord> {
-        target: &'a [T],
-        sa: Vec<usize>,
-    }
-    impl<'a, T: Ord> SuffixArrayFinder<'a, T> {
-        /// 指定された `target` に対して SuffixArray を構築し、検索の準備を行う。
-        /// 計算量は O(|T| log |T|)
-        pub fn new(target: &'a [T]) -> Self {
-            let sa = suffix_array_arbitrary(target);
-            SuffixArrayFinder { target, sa }
-        }
-        /// `target` に出現する `pattern` の開始位置をすべて返す。
-        /// 結果はソートされているとは限らない。
-        /// 計算量は O(|P| log |T|)
-        pub fn find_all(&self, pattern: &[T]) -> &[usize] {
-            let range = self.sa.equal_range_by_key(&pattern, |&begin| {
-                let suffix = &self.target[begin..];
-                &suffix[..pattern.len().min(suffix.len())]
-            });
-            &self.sa[range]
-        }
-    }
-}
+    let n = xs.len();
 
+    let yxx = [ys, xs, xs].concat();
+
+    let z_arr = z_algorithm_arbitrary(&yxx);
+
+    z_arr[n..].iter().position(|l| *l >= n)
+}
 // SA による解法
 fn solve3(xs: &[char], ys: &[char]) -> Option<usize> {
     // xs + xs から ys を探す
     let target = [xs, xs].concat();
     let pattern = ys;
 
-    let finder = SuffixArrayFinder::new(&target);
-    finder.find_all(pattern).iter().copied().min()
+    let sa = suffix_array_arbitrary(&target);
+    let eq_range = sa.equal_range_by_key(&pattern, |&begin| {
+        &target[begin..(begin + pattern.len()).min(target.len())]
+    });
+    sa[eq_range].iter().copied().min()
 }
-
 #[fastout]
 fn main() {
     input! {
