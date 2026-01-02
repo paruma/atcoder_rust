@@ -58,7 +58,6 @@ def main():
     problems: list[str] = args.task_name_list
     year: str = args.year
 
-    contest_dir_path: str = f'src/contest/{year}/{contest_name}'
     if not args.only_toml:
         make_files(f'src/contest/{year}/{contest_name}', problems)
 
