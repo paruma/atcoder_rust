@@ -33,5 +33,29 @@ rustc-hash = { workspace = true }
 cli_test_dir = { workspace = true }
 
 [[bin]]
-name = "template_2026"
-path = "../template.rs"
+name = "abc439_a"
+path = "abc439/a/a.rs"
+
+[[bin]]
+name = "abc439_b"
+path = "abc439/b/b.rs"
+
+[[bin]]
+name = "abc439_c"
+path = "abc439/c/c.rs"
+
+[[bin]]
+name = "abc439_d"
+path = "abc439/d/d.rs"
+
+[[bin]]
+name = "abc439_e"
+path = "abc439/e/e.rs"
+
+[[bin]]
+name = "abc439_f"
+path = "abc439/f/f.rs"
+
+[[bin]]
+name = "abc439_g"
+path = "abc439/g/g.rs"
