@@ -1,40 +1,45 @@
-// lis(xs)[i] = i を末尾とする xs の LIS 長
-fn lis<T: Ord>(xs: &[T]) -> Vec<usize> {
-    let n = xs.len();
-    let sorted = xs.iter().sorted().dedup().collect_vec();
-    // xs を座標圧縮したもの
-    let rank = xs
-        .iter()
-        .map(|x| sorted.binary_search(&x).unwrap())
-        .collect_vec();
-
-    let mut dp = vec![0; n];
-    let mut seg = Segtree::<Max<usize>>::new(n);
-    dp[0] = 1;
-    seg.set(rank[0], 1);
-    for (i, x) in rank.iter().copied().enumerate().skip(1) {
-        dp[i] = seg.prod(..x) + 1;
-        if seg.get(x) < dp[i] {
-            seg.set(x, dp[i])
-        }
-    }
-
-    dp
-}
 // #[fastout]
 fn main() {
     input! {
         n: usize,
         mut abs: [(i64, i64); n],
     }
-    let bs = abs
+    let neg_inf = -1_000_000_000_000_i64;
+
+    // 番兵
+    abs.insert(0, (neg_inf, neg_inf));
+    let n = n + 1;
+
+    let a_list = abs.iter().copied().map(|(a, _b)| a).collect_vec();
+    let b_list = abs.iter().copied().map(|(_a, b)| b).collect_vec();
+
+    let cc_a = CoordinateCompression::new(&a_list);
+    let cc_b = CoordinateCompression::new(&b_list);
+
+    let abs = abs
         .iter()
         .copied()
+        .map(|(a, b)| (cc_a.compress(a), cc_b.compress(b)))
         .sorted_by_key(|&(a, b)| (a, Reverse(b)))
-        .map(|(_, b)| b)
         .collect_vec();
 
-    let ans: usize = lis(&bs).iter().copied().max().unwrap();
+    let mut dp = vec![0_i64; n];
+    let mut seg_dp = Segtree::<Max<i64>>::new(cc_b.space_size());
+
+    dp[0] = 1;
+    seg_dp.set(abs[0].1, 1);
+
+    for (i, (a, b)) in abs.iter().copied().enumerate().skip(1) {
+        //seg_dp を更新するときは chmax で更新する
+
+        dp[i] = seg_dp.prod(..b) + 1;
+        let seg_dp_b = seg_dp.get(b);
+        if seg_dp_b < dp[i] {
+            seg_dp.set(b, dp[i])
+        }
+    }
+
+    let ans: i64 = dp.iter().copied().max().unwrap() - 1;
     println!("{}", ans);
 }
 
