@@ -6,15 +6,16 @@ pub mod coordinate_compression {
     use itertools::Itertools;
     use superslice::Ext;
 
-    pub struct CoordinateCompression {
-        space: Vec<i64>,
+    #[derive(Debug, Clone)]
+    pub struct CoordinateCompression<T> {
+        space: Vec<T>,
     }
 
-    impl CoordinateCompression {
+    impl<T: Ord + Copy> CoordinateCompression<T> {
         ///
         /// # 計算量
         /// O(|space|log(|space|))
-        pub fn new(space: &[i64]) -> Self {
+        pub fn new(space: &[T]) -> Self {
             let space = space.iter().copied().sorted().dedup().collect_vec();
             Self { space }
         }
@@ -22,35 +23,35 @@ pub mod coordinate_compression {
         ///
         /// # 計算量
         /// O(log(|space|))
-        pub fn compress(&self, x: i64) -> usize {
+        pub fn compress(&self, x: T) -> usize {
             self.space.binary_search(&x).unwrap()
-        }
-
-        /// 座標圧縮前の空間のうち x 以上である最小の値を座標圧縮したものを返す
-        ///
-        /// # 計算量
-        /// O(log(|space|))
-        pub fn compress_floor(&self, x: i64) -> usize {
-            self.space.upper_bound(&x) - 1
         }
 
         /// 座標圧縮前の空間のうち x 以下である最大の値を座標圧縮したものを返す
         ///
         /// # 計算量
         /// O(log(|space|))
-        pub fn compress_ceil(&self, x: i64) -> usize {
+        pub fn compress_floor(&self, x: T) -> usize {
+            self.space.upper_bound(&x) - 1
+        }
+
+        /// 座標圧縮前の空間のうち x 以上である最小の値を座標圧縮したものを返す
+        ///
+        /// # 計算量
+        /// O(log(|space|))
+        pub fn compress_ceil(&self, x: T) -> usize {
             self.space.lower_bound(&x)
         }
 
         /// # 計算量
         /// O(|xs|log(|space|))
-        pub fn compress_vec(&self, xs: &[i64]) -> Vec<usize> {
-            xs.iter().copied().map(|x| self.compress(x)).collect_vec()
+        pub fn compress_vec(&self, xs: &[T]) -> Vec<usize> {
+            xs.iter().map(|&x| self.compress(x)).collect_vec()
         }
 
         /// # 計算量
         /// O(1)
-        pub fn decompress(&self, i: usize) -> i64 {
+        pub fn decompress(&self, i: usize) -> T {
             self.space[i]
         }
 
