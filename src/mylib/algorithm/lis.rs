@@ -35,6 +35,23 @@ pub mod lis {
 
         dp
     }
+
+    /// 最長増加部分列 (LIS) の長さを求める
+    ///
+    /// # 計算量
+    /// O(N log N)
+    pub fn lis_len<T: Ord>(xs: &[T]) -> usize {
+        let mut dp = vec![];
+        for x in xs {
+            let i = dp.binary_search(&x).unwrap_or_else(|i| i);
+            if i < dp.len() {
+                dp[i] = x;
+            } else {
+                dp.push(x);
+            }
+        }
+        dp.len()
+    }
 }
 
 #[cfg(test)]
@@ -43,7 +60,7 @@ mod tests {
     use itertools::Itertools;
 
     #[test]
-    fn test_lis() {
+    fn test_lis_array() {
         assert_eq!(lis_array(&[1, 3, 5, 2, 4, 6]), vec![1, 2, 3, 2, 3, 4]);
         assert_eq!(lis_array(&[1, 1, 1]), vec![1, 1, 1]);
         assert_eq!(lis_array(&[5, 4, 3, 2, 1]), vec![1, 1, 1, 1, 1]);
@@ -57,8 +74,19 @@ mod tests {
     }
 
     #[test]
+    fn test_lis_len() {
+        assert_eq!(lis_len(&[1, 3, 5, 2, 4, 6]), 4);
+        assert_eq!(lis_len(&[1, 1, 1]), 1);
+        assert_eq!(lis_len(&[5, 4, 3, 2, 1]), 1);
+        assert_eq!(lis_len::<i32>(&[]), 0);
+        assert_eq!(lis_len(&[10]), 1);
+        assert_eq!(lis_len(&[1, 2, 3, 1, 2, 3]), 3);
+        assert_eq!(lis_len(&[3, 1, 4, 1, 5, 9, 2, 6, 5]), 4);
+    }
+
+    #[test]
     #[ignore]
-    fn test_random_lis() {
+    fn test_random_lis_array() {
         use rand::Rng;
         let mut rng = rand::rng();
         for _ in 0..1000 {
@@ -66,6 +94,20 @@ mod tests {
             let xs = (0..n).map(|_| rng.random_range(0..=50)).collect_vec();
             let expected = lis_array_naive(&xs);
             let actual = lis_array(&xs);
+            assert_eq!(actual, expected, "xs: {:?}", xs);
+        }
+    }
+
+    #[test]
+    #[ignore]
+    fn test_random_lis_len() {
+        use rand::Rng;
+        let mut rng = rand::rng();
+        for _ in 0..1000 {
+            let n = rng.random_range(0..=50);
+            let xs = (0..n).map(|_| rng.random_range(0..=50)).collect_vec();
+            let expected = lis_array_naive(&xs).into_iter().max().unwrap_or(0);
+            let actual = lis_len(&xs);
             assert_eq!(actual, expected, "xs: {:?}", xs);
         }
     }

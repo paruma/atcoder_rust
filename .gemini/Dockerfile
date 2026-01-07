@@ -1,4 +1,4 @@
-FROM us-docker.pkg.dev/gemini-code-dev/gemini-cli/sandbox:0.22.5
+FROM us-docker.pkg.dev/gemini-code-dev/gemini-cli/sandbox:0.23.0
 
 
 # root でパッケージをインストール（Rust の依存や curl など）

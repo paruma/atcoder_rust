@@ -1,232 +1,377 @@
-// とりあえず作ってみたけど、あまり使いこなせる気がしない。
-// もう少し尺取法必須の問題に触れてから考える。
-// 今回は述語が単調減少のパターンしか扱ってないが、単調増加のパターンも欲しくなる？
-
 use cargo_snippet::snippet;
 
-#[snippet]
-/// 尺取法を用いて、各開始位置 `left` に対して条件を満たす最大の `right` を計算する。
-///
-/// 連続する部分列 `target[left..right]` の集計状態を管理しながら、条件を満たす最大の範囲を探索する。
-///
-/// # 引数
-/// * `target` - 走査対象の要素スライス
-/// * `identity` - 空の区間における集計状態の初期値
-/// * `p` - 現在の区間の集計状態に、右端の要素を新しく含めても条件を満たし続けられるか判定する述語
-/// * `op` - 区間の右端を伸ばし、新しい要素を含めた集計状態を返す演算
-/// * `inv_op` - 区間の左端を縮め、要素を除外した集計状態を返す演算
-///
-/// # 戻り値
-/// 各開始位置 `left` (0..=target.len()) に対して、条件を満たす最大の `right` を格納した配列。
-/// 各 `left` に対して、`target[left..right]` が条件を満たす最大の連続部分列となる。
-pub fn shakutori_max_right<T, S, P, Op, InvOp>(
-    target: &[T],
-    identity: S,
-    mut p: P,
-    mut op: Op,
-    mut inv_op: InvOp,
-) -> Vec<usize>
-where
-    S: Clone,
-    P: FnMut(&S, &T) -> bool,
-    Op: FnMut(S, &T) -> S,
-    InvOp: FnMut(S, &T) -> S,
-{
-    let n = target.len();
-    let mut state = identity;
-    let mut right = 0;
-    let mut max_rights = Vec::with_capacity(n + 1);
+#[snippet(prefix = "use shakutori::*;")]
+#[allow(clippy::module_inception)]
+pub mod shakutori {
+    /// 各開始位置 `left` に対し、区間 `[left, right)` が条件を満たすような最大の `right` を求める。
+    ///
+    /// # 引数
+    /// * `xs` - 対象の配列
+    /// * `init` - 空の区間に対応する初期状態
+    /// * `add` - 状態に要素を追加する関数。追加可能なら追加して `true`、不可なら状態を変更せずに `false` を返す。
+    /// * `remove` - 状態から要素を削除する関数。
+    ///
+    /// # 戻り値
+    /// `Vec<usize>`: 長さ `n + 1` の Vec。
+    /// 各 `left` (0 <= left <= n) に対し、`result[left]` には区間 `[left, right)` が条件を満たす最大の `right` が格納される。
+    pub fn shakutori_max_right<T, S, Add, Rem>(
+        xs: &[T],
+        init: S,
+        mut add: Add,
+        mut remove: Rem,
+    ) -> Vec<usize>
+    where
+        Add: FnMut(&mut S, &T) -> bool,
+        Rem: FnMut(&mut S, &T),
+    {
+        let n = xs.len();
+        let mut state = init;
+        let mut left = 0;
+        let mut right = 0;
+        let mut result = vec![0; n + 1];
 
-    for left in 0..n {
-        while right < n && p(&state, &target[right]) {
-            state = op(state, &target[right]);
-            right += 1;
+        while left < n {
+            if right < n && add(&mut state, &xs[right]) {
+                // 右端を伸ばせる場合
+                right += 1;
+            } else if left < right {
+                // これ以上右を伸ばせない場合、現在の left に対する答えを確定させ、左を縮める
+                result[left] = right;
+                remove(&mut state, &xs[left]);
+                left += 1;
+            } else {
+                // left == right かつ add に失敗：要素 xs[left] 単体で NG の場合
+                // この要素をスキップするため、left と right を共に進める
+                result[left] = right;
+                right += 1;
+                left += 1;
+                // state は既に初期状態 (空) なのでそのまま
+            }
         }
-
-        max_rights.push(right);
-
-        if left == right {
-            right += 1;
-        } else {
-            state = inv_op(state, &target[left]);
-        }
+        result[n] = n;
+        result
     }
-    // left = n のケース
-    max_rights.push(n);
-    max_rights
-}
 
-#[snippet]
-/// 尺取法を用いて、各終了位置 `right` に対して条件を満たす最小の `left` を計算する。
-///
-/// 連続する部分列 `target[left..right]` の集計状態を管理しながら、`right` を固定した際に条件を満たす最小の `left` を探索する。
-///
-/// # 引数
-/// * `target` - 走査対象の要素スライス
-/// * `identity` - 空の区間における集計状態の初期値
-/// * `p` - 区間の左端の要素を除外しても、条件を満たし続けられるか判定する述語
-/// * `op` - 区間の右端を伸ばし、新しい要素を含めた集計状態を返す演算
-/// * `inv_op` - 区間の左端を縮め、要素を除外した集計状態を返す演算
-///
-/// # 戻り値
-/// 各終了位置 `right` (0..=target.len()) に対して、条件を満たす最小の `left` を格納した配列。
-/// 各 `right` に対して、`target[left..right]` が条件を満たす範囲で限界まで左端を削った連続部分列となる。
-pub fn shakutori_min_left<T, S, P, Op, InvOp>(
-    target: &[T],
-    identity: S,
-    mut p: P,
-    mut op: Op,
-    mut inv_op: InvOp,
-) -> Vec<usize>
-where
-    S: Clone,
-    P: FnMut(&S, &T) -> bool,
-    Op: FnMut(S, &T) -> S,
-    InvOp: FnMut(S, &T) -> S,
-{
-    let n = target.len();
-    let mut state = identity;
-    let mut left = 0;
-    let mut min_lefts = Vec::with_capacity(n + 1);
+    /// 各終了位置 `right` に対し、区間 `[left, right)` が条件を満たすような最小の `left` を求める。
+    ///
+    /// # 引数
+    /// * `xs` - 対象の配列
+    /// * `init` - 空の区間に対応する初期状態
+    /// * `add` - 状態に要素を追加する関数。追加可能なら追加して `true`、不可なら状態を変更せずに `false` を返す。
+    /// * `remove` - 状態から要素を削除する関数。
+    ///
+    /// # 戻り値
+    /// `Vec<usize>`: 長さ `n + 1` の Vec。
+    /// 各 `right` (0 <= right <= n) に対し、`result[right]` には区間 `[left, right)` が条件を満たす最小の `left` が格納される。
+    pub fn shakutori_min_left<T, S, Add, Rem>(
+        xs: &[T],
+        init: S,
+        mut add: Add,
+        mut remove: Rem,
+    ) -> Vec<usize>
+    where
+        Add: FnMut(&mut S, &T) -> bool,
+        Rem: FnMut(&mut S, &T),
+    {
+        let n = xs.len();
+        let mut state = init;
+        let mut left = 0;
+        let mut right = 0;
+        let mut result = vec![0; n + 1];
 
-    // right = 0 のケース
-    min_lefts.push(0);
-
-    for right in 0..n {
-        state = op(state, &target[right]);
-        while left <= right && p(&state, &target[left]) {
-            state = inv_op(state, &target[left]);
-            left += 1;
+        while right < n {
+            if add(&mut state, &xs[right]) {
+                // 右端の要素 xs[right] を含めても条件を満たす場合
+                right += 1;
+                result[right] = left;
+            } else if left < right {
+                // xs[right] を含めると NG。条件を満たすまで左端を削る
+                remove(&mut state, &xs[left]);
+                left += 1;
+            } else {
+                // left == right かつ add に失敗：要素 xs[right] 単体で NG の場合
+                // この要素を含めることは不可能。left と right を共に進めることでスキップする。
+                right += 1;
+                left += 1;
+                result[right] = left;
+                // state は既に初期状態 (空)
+            }
         }
-        min_lefts.push(left);
+        result
     }
-    min_lefts
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use itertools::Itertools;
-    use rand::{Rng, SeedableRng, rngs::SmallRng};
-    use std::collections::HashMap;
+    use super::shakutori::*;
+    use hashbag::HashBag;
+    use rand::prelude::*;
+    use std::collections::HashSet;
+
+    // --- Basic Tests ---
 
     #[test]
-    fn test_max_len_with_sum_le() {
-        let target = vec![2, 2, 1, 1, 3];
-        let k = 5;
+    fn test_sum_limit_max_right() {
+        // 各開始位置に対し、区間和が K 以下となる最大の終了位置をテストする。
+        let xs = vec![1, 2, 3, 4, 5];
+        let k = 6;
 
-        let max_len = shakutori_max_right(
-            &target,
+        let result = shakutori_max_right(
+            &xs,
             0,
-            |&sum, &x| sum + x <= k,
-            |sum, &x| sum + x,
-            |sum, &x| sum - x,
-        )
-        .into_iter()
-        .enumerate()
-        .map(|(l, r)| r - l)
-        .max()
-        .unwrap_or(0);
-
-        assert_eq!(max_len, 3);
-    }
-
-    #[test]
-    fn test_min_len_with_sum_ge() {
-        let target = vec![1, 2, 1, 3, 1, 2];
-        let k = 4;
-
-        // 合計が k 以上になる最小の長さを求める
-        let res = shakutori_min_left(
-            &target,
-            0,
-            |&sum, &x| sum - x >= k,
-            |sum, &x| sum + x,
-            |sum, &x| sum - x,
+            |sum, &x| {
+                if *sum + x <= k {
+                    *sum += x;
+                    true
+                } else {
+                    false
+                }
+            },
+            |sum, &x| *sum -= x,
         );
 
-        // res[r] は終了位置 r (0..=n) における最小の left。
-        let min_len = res
-            .into_iter()
-            .enumerate()
-            .filter(|&(r, l)| target[l..r].iter().sum::<i32>() >= k)
-            .map(|(r, l)| r - l)
-            .min();
-
-        assert_eq!(min_len, Some(2)); // [1, 3] や [3, 1] が長さ 2
+        assert_eq!(result, vec![3, 3, 3, 4, 5, 5]);
     }
 
     #[test]
-    fn test_max_len_with_types_le() {
-        let target = vec![1, 2, 3, 3, 4, 4, 5];
-        let k = 3;
+    fn test_min_left_sum_limit() {
+        // 各終了位置に対し、区間和が K 以下となる最小の開始位置をテストする。
+        let xs = vec![1, 2, 3, 4, 5];
+        let k = 6;
 
-        let max_len = shakutori_max_right(
-            &target,
-            HashMap::new(),
-            |bag, x| bag.len() < k || bag.contains_key(x),
-            |mut bag, &x| {
-                *bag.entry(x).or_insert(0) += 1;
-                bag
-            },
-            |mut bag, &x| {
-                let count = bag.get_mut(&x).unwrap();
-                *count -= 1;
-                if *count == 0 {
-                    bag.remove(&x);
+        let result = shakutori_min_left(
+            &xs,
+            0,
+            |sum, &x| {
+                if *sum + x <= k {
+                    *sum += x;
+                    true
+                } else {
+                    false
                 }
-                bag
             },
-        )
-        .into_iter()
-        .enumerate()
-        .map(|(l, r)| r - l)
-        .max()
-        .unwrap_or(0);
+            |sum, &x| *sum -= x,
+        );
 
-        assert_eq!(max_len, 5);
+        assert_eq!(result, vec![0, 0, 0, 0, 3, 4]);
     }
 
     #[test]
-    fn test_empty_target() {
-        let target: Vec<i32> = vec![];
-        let actual = shakutori_max_right(&target, 0, |_, _| true, |s, _| s, |s, _| s);
-        assert_eq!(actual, vec![0]);
+    fn test_kind_count_limit_max_right() {
+        // 各開始位置に対し、区間に含まれる要素の種類数が K 以下となる最大の終了位置をテストする。
+        let xs = vec![1, 2, 1, 3, 3, 2, 1];
+        let k = 2;
 
-        let actual_min = shakutori_min_left(&target, 0, |_, _| true, |s, _| s, |s, _| s);
-        assert_eq!(actual_min, vec![0]);
+        let result = shakutori_max_right(
+            &xs,
+            HashBag::new(),
+            |bag, &x| {
+                if bag.contains(&x) > 0 || bag.set_len() < k {
+                    bag.insert(x);
+                    true
+                } else {
+                    false
+                }
+            },
+            |bag, &x| {
+                bag.remove(&x);
+            },
+        );
+
+        assert_eq!(result, vec![3, 3, 5, 6, 6, 7, 7, 7]);
     }
+
+    #[test]
+    fn test_kind_count_limit_min_left() {
+        // 各終了位置に対し、区間に含まれる要素の種類数が K 以下となる最小の開始位置をテストする。
+        let xs = vec![1, 2, 1, 3, 3, 2, 1];
+        let k = 2;
+
+        let result = shakutori_min_left(
+            &xs,
+            HashBag::new(),
+            |bag, &x| {
+                if bag.contains(&x) > 0 || bag.set_len() < k {
+                    bag.insert(x);
+                    true
+                } else {
+                    false
+                }
+            },
+            |bag, &x| {
+                bag.remove(&x);
+            },
+        );
+
+        assert_eq!(result, vec![0, 0, 0, 0, 2, 2, 3, 5]);
+    }
+
+    #[test]
+    fn test_unique_limit() {
+        // 各開始位置に対し、区間に重複する要素が含まれない最大の終了位置をテストする。
+        let xs = vec![1, 2, 1, 3, 2];
+
+        let result = shakutori_max_right(
+            &xs,
+            HashSet::new(),
+            |set, &x| set.insert(x),
+            |set, &x| {
+                set.remove(&x);
+            },
+        );
+
+        assert_eq!(result, vec![2, 4, 5, 5, 5, 5]);
+    }
+
+    #[test]
+    fn test_min_left_unique() {
+        // 各終了位置に対し、区間に重複する要素が含まれない最小の開始位置をテストする。
+        let xs = vec![1, 2, 1, 3, 2];
+
+        let result = shakutori_min_left(
+            &xs,
+            HashSet::new(),
+            |set, &x| set.insert(x),
+            |set, &x| {
+                set.remove(&x);
+            },
+        );
+
+        assert_eq!(result, vec![0, 0, 0, 1, 1, 2]);
+    }
+
+    // --- Impossible Element Tests (Edge Cases) ---
+
+    #[test]
+    fn test_sum_limit_impossible_max_right() {
+        // 単体で条件を満たさない要素が含まれる場合に、
+        // 各開始位置に対する最大の終了位置を正しく計算できるかテストする。
+        let xs = vec![1, 10, 2, 3];
+        let k = 5;
+
+        let result = shakutori_max_right(
+            &xs,
+            0,
+            |sum, &x| {
+                if *sum + x <= k {
+                    *sum += x;
+                    true
+                } else {
+                    false
+                }
+            },
+            |sum, &x| *sum -= x,
+        );
+        assert_eq!(result, vec![1, 1, 4, 4, 4]);
+    }
+
+    #[test]
+    fn test_sum_limit_impossible_min_left() {
+        // 単体で条件を満たさない要素が含まれる場合に、
+        // 各終了位置に対する最小の開始位置を正しく計算できるかテストする。
+        let xs = vec![1, 10, 2, 3];
+        let k = 5;
+
+        let result = shakutori_min_left(
+            &xs,
+            0,
+            |sum, &x| {
+                if *sum + x <= k {
+                    *sum += x;
+                    true
+                } else {
+                    false
+                }
+            },
+            |sum, &x| *sum -= x,
+        );
+        assert_eq!(result, vec![0, 0, 2, 2, 2]);
+    }
+
+    // --- Random Tests ---
 
     #[test]
     #[ignore]
-    fn test_random() {
-        let mut rng = SmallRng::seed_from_u64(42);
-        for _ in 0..1000 {
-            let n = rng.random_range(1..50);
-            let target: Vec<i64> = (0..n).map(|_| rng.random_range(1..20)).collect();
-            let k = rng.random_range(1..100);
+    fn test_random_sum_limit() {
+        // ランダムな配列と区間和制限 K に対し、愚直解としゃくとり法の結果が一致するかテストする。
+        let mut rng = rand::rng();
 
-            let actual = shakutori_max_right(
-                &target,
-                0,
-                |&sum, &x| sum + x <= k,
-                |sum, &x| sum + x,
-                |sum, &x| sum - x,
+        for _ in 0..100 {
+            let n = rng.random_range(1..=30);
+            let k: i64 = rng.random_range(1..=50);
+            let xs: Vec<i64> = (0..n)
+                .map(|_| {
+                    let x = rng.random_range(1..=20);
+                    if rng.random_bool(0.1) { k + x } else { x }
+                })
+                .collect();
+
+            // リファレンス実装: max_right
+            // 区間 [l, r) が条件を満たす最大の r を求める
+            // 条件: sum(sub) <= k
+            let expected_max_right: Vec<usize> = (0..=n)
+                .map(|l| {
+                    (l..=n)
+                        .take_while(|&r| {
+                            let sub = &xs[l..r];
+                            sub.iter().sum::<i64>() <= k
+                        })
+                        .last()
+                        .unwrap()
+                })
+                .collect();
+
+            // リファレンス実装: min_left
+            // 区間 [l, r) が条件を満たす最小の l を求める
+            let expected_min_left: Vec<usize> = (0..=n)
+                .map(|r| {
+                    (0..=r)
+                        .find(|&l| {
+                            let sub = &xs[l..r];
+                            sub.iter().sum::<i64>() <= k
+                        })
+                        .unwrap_or(r)
+                })
+                .collect();
+
+            let actual_max_right = shakutori_max_right(
+                &xs,
+                0i64,
+                |sum, &x| {
+                    if *sum + x <= k {
+                        *sum += x;
+                        true
+                    } else {
+                        false
+                    }
+                },
+                |sum, &x| *sum -= x,
             );
 
-            let expected = (0..=n)
-                .map(|left| {
-                    let mut sum = 0;
-                    let mut right = left;
-                    while right < n && sum + target[right] <= k {
-                        sum += target[right];
-                        right += 1;
+            let actual_min_left = shakutori_min_left(
+                &xs,
+                0i64,
+                |sum, &x| {
+                    if *sum + x <= k {
+                        *sum += x;
+                        true
+                    } else {
+                        false
                     }
-                    right
-                })
-                .collect_vec();
+                },
+                |sum, &x| *sum -= x,
+            );
 
-            assert_eq!(actual, expected, "Failed on target={:?}, k={}", target, k);
+            assert_eq!(
+                actual_max_right, expected_max_right,
+                "max_right failed for xs={:?}, k={}",
+                xs, k
+            );
+            assert_eq!(
+                actual_min_left, expected_min_left,
+                "min_left failed for xs={:?}, k={}",
+                xs, k
+            );
         }
     }
 }
