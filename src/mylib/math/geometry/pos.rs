@@ -1,5 +1,7 @@
 use cargo_snippet::snippet;
 
+use crate::data_structure::ix::Ix;
+
 #[snippet(prefix = "use pos::*;")]
 #[allow(clippy::module_inception)]
 pub mod pos {
@@ -301,6 +303,50 @@ pub mod vec_vec_at {
     }
 }
 
+#[snippet(prefix = "use pos_ix::*;")]
+pub mod pos_ix {
+    use super::Ix;
+    use super::pos::Pos;
+
+    impl Ix for Pos {
+        fn range((min, max): (Self, Self)) -> impl Iterator<Item = Self> {
+            (min.y..=max.y).flat_map(move |y| (min.x..=max.x).map(move |x| Pos::new(x, y)))
+        }
+
+        fn range_size((min, max): (Self, Self)) -> usize {
+            if min.x > max.x || min.y > max.y {
+                0
+            } else {
+                ((max.x - min.x + 1) * (max.y - min.y + 1)) as usize
+            }
+        }
+
+        fn to_index((min, max): (Self, Self), i: Self) -> usize {
+            if !Self::in_range((min, max), i) {
+                panic!("index out of bounds: {:?} is not in {:?}", i, (min, max));
+            }
+            let width = (max.x - min.x + 1) as usize;
+            let dy = (i.y - min.y) as usize;
+            let dx = (i.x - min.x) as usize;
+            dy * width + dx
+        }
+
+        fn from_index((min, max): (Self, Self), index: usize) -> Self {
+            if index >= Self::range_size((min, max)) {
+                panic!("index out of range: {} for bounds {:?}", index, (min, max));
+            }
+            let width = (max.x - min.x + 1) as usize;
+            let dy = (index / width) as i64;
+            let dx = (index % width) as i64;
+            Pos::new(min.x + dx, min.y + dy)
+        }
+
+        fn in_range((min, max): (Self, Self), i: Self) -> bool {
+            min.x <= i.x && i.x <= max.x && min.y <= i.y && i.y <= max.y
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests_pos {
 
@@ -547,5 +593,46 @@ mod tests_vec_vec_at {
         let xss: Vec<Vec<i32>> = vec![];
         assert_eq!(xss.width(), 0);
         assert_eq!(xss.height(), 0);
+    }
+}
+
+#[cfg(test)]
+mod tests_pos_ix {
+    use super::Ix;
+    use super::pos::*;
+
+    #[test]
+    fn test_pos_ix() {
+        let min = Pos::new(1, 1);
+        let max = Pos::new(3, 2);
+        // x: 1..=3, y: 1..=2
+        // y=1: (1,1), (2,1), (3,1)
+        // y=2: (1,2), (2,2), (3,2)
+
+        let bounds = (min, max);
+        assert_eq!(Pos::range_size(bounds), 6);
+
+        let vec: Vec<Pos> = Pos::range(bounds).collect();
+        assert_eq!(
+            vec,
+            vec![
+                Pos::new(1, 1),
+                Pos::new(2, 1),
+                Pos::new(3, 1),
+                Pos::new(1, 2),
+                Pos::new(2, 2),
+                Pos::new(3, 2)
+            ]
+        );
+
+        assert_eq!(Pos::to_index(bounds, Pos::new(1, 1)), 0);
+        assert_eq!(Pos::to_index(bounds, Pos::new(2, 1)), 1);
+        assert_eq!(Pos::to_index(bounds, Pos::new(3, 1)), 2);
+        assert_eq!(Pos::to_index(bounds, Pos::new(1, 2)), 3);
+        assert_eq!(Pos::to_index(bounds, Pos::new(3, 2)), 5);
+
+        assert!(Pos::in_range(bounds, Pos::new(2, 1)));
+        assert!(!Pos::in_range(bounds, Pos::new(0, 1)));
+        assert!(!Pos::in_range(bounds, Pos::new(1, 3)));
     }
 }
