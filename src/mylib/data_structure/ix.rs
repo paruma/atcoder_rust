@@ -110,7 +110,9 @@ pub mod ix {
         };
     }
 
-    impl_ix_for_integer!(u8, u16, u32, u64, u128, usize, i8, i16, i32, i64, i128, isize);
+    impl_ix_for_integer!(
+        u8, u16, u32, u64, u128, usize, i8, i16, i32, i64, i128, isize
+    );
 
     impl Ix for bool {
         fn range((l, r): (Self, Self)) -> impl Iterator<Item = Self> {
@@ -234,7 +236,8 @@ pub mod ix {
     impl<A: Ix, B: Ix, C: Ix> Ix for (A, B, C) {
         fn range(((l1, l2, l3), (u1, u2, u3)): (Self, Self)) -> impl Iterator<Item = Self> {
             A::range((l1, u1)).flat_map(move |i1| {
-                B::range((l2, u2)).flat_map(move |i2| C::range((l3, u3)).map(move |i3| (i1, i2, i3)))
+                B::range((l2, u2))
+                    .flat_map(move |i2| C::range((l3, u3)).map(move |i3| (i1, i2, i3)))
             })
         }
 
@@ -287,7 +290,10 @@ pub mod ix {
                 * D::range_size((l4, u4))
         }
 
-        fn to_index(((l1, l2, l3, l4), (u1, u2, u3, u4)): (Self, Self), (i1, i2, i3, i4): Self) -> usize {
+        fn to_index(
+            ((l1, l2, l3, l4), (u1, u2, u3, u4)): (Self, Self),
+            (i1, i2, i3, i4): Self,
+        ) -> usize {
             let idx1 = A::to_index((l1, u1), i1);
             let idx2 = B::to_index((l2, u2), i2);
             let idx3 = C::to_index((l3, u3), i3);
@@ -719,7 +725,8 @@ mod tests {
         let raw_vec: Vec<usize> = v_pair.into_vec();
         assert_eq!(raw_vec.len(), 4);
 
-        let v_from_vec: IxVec<(usize, usize), usize> = IxVec::from_vec(bounds_pair, vec![0, 1, 2, 3]);
+        let v_from_vec: IxVec<(usize, usize), usize> =
+            IxVec::from_vec(bounds_pair, vec![0, 1, 2, 3]);
         assert_eq!(v_from_vec[(1, 1)], 0);
         assert_eq!(v_from_vec.bounds().min, (1, 1));
     }

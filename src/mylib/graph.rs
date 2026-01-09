@@ -1,5 +1,8 @@
 pub mod bellman_ford;
+pub mod bfs;
+pub mod bfs01;
 pub mod cycle_detection_directed;
+pub mod dijkstra;
 pub mod doubling;
 pub mod euler_tour;
 #[allow(clippy::module_inception)]
