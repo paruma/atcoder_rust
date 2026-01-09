@@ -253,4 +253,87 @@ mod tests {
         assert_eq!(res_restore.dist, vec![Some(0), Some(0), Some(0)]);
         assert_eq!(res_restore.restore(1), Some(vec![0, 2, 1]));
     }
+
+    fn solve_bellman_ford(nv: usize, adj: &[Vec<(usize, i64)>], starts: &[usize]) -> Vec<Option<i64>> {
+        let mut dist = vec![None; nv];
+        for &s in starts {
+            dist[s] = Some(0);
+        }
+        for _ in 0..nv {
+            let mut updated = false;
+            for u in 0..nv {
+                if let Some(d) = dist[u] {
+                    for &(v, cost) in &adj[u] {
+                        let next_d = d + cost;
+                        if dist[v].is_none_or(|cur| cur > next_d) {
+                            dist[v] = Some(next_d);
+                            updated = true;
+                        }
+                    }
+                }
+            }
+            if !updated {
+                break;
+            }
+        }
+        dist
+    }
+
+    #[test]
+    #[ignore]
+    fn test_bfs01_random() {
+        use itertools::iproduct;
+        use rand::prelude::*;
+        let mut rng = StdRng::seed_from_u64(42);
+
+        for _ in 0..100 {
+            let nv = rng.random_range(1..=20);
+            let adj = iproduct!(0..nv, 0..nv)
+                .filter_map(|(u, v)| {
+                    if u != v && rng.random_bool(0.3) {
+                        let cost = if rng.random_bool(0.5) { 0 } else { 1 };
+                        Some((u, v, cost))
+                    } else {
+                        None
+                    }
+                })
+                .fold(vec![vec![]; nv], |mut acc, (u, v, cost)| {
+                    acc[u].push((v, cost));
+                    acc
+                });
+            // Multiple starts
+            let num_starts = rng.random_range(0..=3.min(nv));
+            let starts = (0..nv).choose_multiple(&mut rng, num_starts);
+
+            // Expected
+            let expected_dist = solve_bellman_ford(nv, &adj, &starts);
+
+            // Test bfs01
+            let res_dist = bfs01(nv, |u| adj[u].iter().copied(), starts.iter().copied());
+            assert_eq!(res_dist, expected_dist, "bfs01 dist mismatch");
+
+            // Test bfs01_with_restore
+            let res = bfs01_with_restore(nv, |u| adj[u].iter().copied(), starts.iter().copied());
+            assert_eq!(res.dist, expected_dist, "bfs01_with_restore dist mismatch");
+
+            for i in 0..nv {
+                if let Some(path) = res.restore(i) {
+                    assert!(starts.contains(&path[0]), "Path must start from one of the sources");
+                    assert_eq!(*path.last().unwrap(), i);
+
+                    // Path check & cost sum
+                    let mut sum = 0;
+                    for win in path.windows(2) {
+                        let u = win[0];
+                        let v = win[1];
+                        let edge = adj[u].iter().find(|&&(vv, _)| vv == v).expect("Edge not found");
+                        sum += edge.1;
+                    }
+                    assert_eq!(Some(sum), res.dist[i], "Path cost mismatch for vertex {}", i);
+                } else {
+                    assert!(res.dist[i].is_none());
+                }
+            }
+        }
+    }
 }

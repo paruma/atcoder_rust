@@ -444,6 +444,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::identity_op)]
     fn test_prod_range_patterns() {
         let v = (0..10).map(|i| S { sum: i, size: 1 }).collect_vec();
         let mut seg: SegtreeBeats<MapAddSum> = v.into();

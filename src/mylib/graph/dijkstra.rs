@@ -237,4 +237,83 @@ mod tests {
         assert_eq!(res.dist[2], Some(15));
         assert_eq!(res.restore(2), Some(vec![0, 1, 2]));
     }
+
+    fn solve_bellman_ford(nv: usize, adj: &[Vec<(usize, i64)>], starts: &[usize]) -> Vec<Option<i64>> {
+        let mut dist = vec![None; nv];
+        for &s in starts {
+            dist[s] = Some(0);
+        }
+        for _ in 0..nv {
+            let mut updated = false;
+            for u in 0..nv {
+                if let Some(d) = dist[u] {
+                    for &(v, cost) in &adj[u] {
+                        let next_d = d + cost;
+                        if dist[v].is_none_or(|cur| cur > next_d) {
+                            dist[v] = Some(next_d);
+                            updated = true;
+                        }
+                    }
+                }
+            }
+            if !updated {
+                break;
+            }
+        }
+        dist
+    }
+
+    #[test]
+    #[ignore]
+    fn test_dijkstra_random() {
+        use itertools::iproduct;
+        use rand::prelude::*;
+        let mut rng = StdRng::seed_from_u64(42);
+
+        for _ in 0..100 {
+            let nv = rng.random_range(1..=20);
+            let adj = iproduct!(0..nv, 0..nv)
+                .filter(|&(u, v)| u != v)
+                .fold(vec![vec![]; nv], |mut acc, (u, v)| {
+                    if rng.random_bool(0.3) {
+                        let cost = rng.random_range(0..=100);
+                        acc[u].push((v, cost));
+                    }
+                    acc
+                });
+            // Multiple starts
+            let num_starts = rng.random_range(0..=3.min(nv));
+            let starts = (0..nv).choose_multiple(&mut rng, num_starts);
+
+            // Expected
+            let expected_dist = solve_bellman_ford(nv, &adj, &starts);
+
+            // Test dijkstra
+            let res_dist = dijkstra(nv, |u| adj[u].iter().copied(), starts.iter().copied());
+            assert_eq!(res_dist, expected_dist, "dijkstra dist mismatch");
+
+            // Test dijkstra_with_restore
+            let res = dijkstra_with_restore(nv, |u| adj[u].iter().copied(), starts.iter().copied());
+            assert_eq!(res.dist, expected_dist, "dijkstra_with_restore dist mismatch");
+
+            for i in 0..nv {
+                if let Some(path) = res.restore(i) {
+                    assert!(starts.contains(&path[0]), "Path must start from one of the sources");
+                    assert_eq!(*path.last().unwrap(), i);
+
+                    // Path check & cost sum
+                    let mut sum = 0;
+                    for win in path.windows(2) {
+                        let u = win[0];
+                        let v = win[1];
+                        let edge = adj[u].iter().find(|&&(vv, _)| vv == v).expect("Edge not found");
+                        sum += edge.1;
+                    }
+                    assert_eq!(Some(sum), res.dist[i], "Path cost mismatch for vertex {}", i);
+                } else {
+                    assert!(res.dist[i].is_none());
+                }
+            }
+        }
+    }
 }

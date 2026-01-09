@@ -253,4 +253,79 @@ mod tests {
         assert_eq!(path.last(), Some(&(1, 1)));
         assert_eq!(path.len(), 3);
     }
+
+    fn solve_bellman_ford(nv: usize, adj: &[Vec<usize>], starts: &[usize]) -> Vec<Option<i64>> {
+        let mut dist = vec![None; nv];
+        for &s in starts {
+            dist[s] = Some(0);
+        }
+        for _ in 0..nv {
+            let mut updated = false;
+            for u in 0..nv {
+                if let Some(d) = dist[u] {
+                    for &v in &adj[u] {
+                        if dist[v].is_none_or(|cur| cur > d + 1) {
+                            dist[v] = Some(d + 1);
+                            updated = true;
+                        }
+                    }
+                }
+            }
+            if !updated {
+                break;
+            }
+        }
+        dist
+    }
+
+    #[test]
+    #[ignore]
+    fn test_bfs_random() {
+        use itertools::iproduct;
+        use rand::prelude::*;
+        let mut rng = StdRng::seed_from_u64(42);
+
+        for _ in 0..100 {
+            let nv = rng.random_range(1..=20);
+            let adj = iproduct!(0..nv, 0..nv)
+                .filter_map(|(u, v)| (u != v && rng.random_bool(0.3)).then_some((u, v)))
+                .fold(vec![vec![]; nv], |mut acc, (u, v)| {
+                    acc[u].push(v);
+                    acc
+                });
+
+            // Multiple starts
+            let num_starts = rng.random_range(0..=3.min(nv));
+            let starts = (0..nv).choose_multiple(&mut rng, num_starts);
+
+            // Expected
+            let expected_dist = solve_bellman_ford(nv, &adj, &starts);
+
+            // Test bfs
+            let res_dist = bfs(nv, |u| adj[u].iter().copied(), starts.iter().copied());
+            assert_eq!(res_dist, expected_dist, "bfs dist mismatch");
+
+            // Test bfs_with_restore
+            let res = bfs_with_restore(nv, |u| adj[u].iter().copied(), starts.iter().copied());
+            assert_eq!(res.dist, expected_dist, "bfs_with_restore dist mismatch");
+
+            // Path Check
+            for i in 0..nv {
+                if let Some(path) = res.restore(i) {
+                    assert!(starts.contains(&path[0]), "Path must start from one of the sources");
+                    assert_eq!(*path.last().unwrap(), i);
+                    assert_eq!(path.len() as i64 - 1, res.dist[i].unwrap());
+
+                    // Path check
+                    for win in path.windows(2) {
+                        let u = win[0];
+                        let v = win[1];
+                        assert!(adj[u].contains(&v), "Invalid edge in path: {} -> {}", u, v);
+                    }
+                } else {
+                    assert!(res.dist[i].is_none());
+                }
+            }
+        }
+    }
 }
