@@ -13,3 +13,5 @@ pub mod lca_path_aggregate;
 pub mod reroot;
 pub mod topo_sort;
 pub mod tree_diameter;
+pub mod lowlink;
+pub mod acl_scc_ix;

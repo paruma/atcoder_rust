@@ -5,3 +5,4 @@ pub mod leader_tracking_dsu;
 pub mod monoid_dsu;
 pub mod potentialized_dsu;
 pub mod rollback_dsu;
+pub mod dsu_ix;

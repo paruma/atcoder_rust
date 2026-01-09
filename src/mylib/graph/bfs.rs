@@ -97,11 +97,100 @@ pub mod bfs {
         }
         BfsResult { dist, prev }
     }
+
+    /// BFS での訪問順序（キューに入れた順）を返す
+    ///
+    /// # Arguments
+    /// * `nv` - 頂点数
+    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返すクロージャー
+    /// * `init` - 始点となる頂点集合のイテレータ
+    ///
+    /// # Returns
+    /// 到達可能な頂点を訪問順に格納した `Vec<usize>`
+    pub fn bfs_order<F, It>(
+        nv: usize,
+        mut adj: F,
+        init: impl IntoIterator<Item = usize>,
+    ) -> Vec<usize>
+    where
+        F: FnMut(usize) -> It,
+        It: IntoIterator<Item = usize>,
+    {
+        let mut visited = vec![false; nv];
+        let mut order = Vec::new();
+        let mut q = VecDeque::new();
+
+        for s in init {
+            if !visited[s] {
+                visited[s] = true;
+                order.push(s);
+                q.push_back(s);
+            }
+        }
+
+        while let Some(u) = q.pop_front() {
+            for v in adj(u) {
+                if !visited[v] {
+                    visited[v] = true;
+                    order.push(v);
+                    q.push_back(v);
+                }
+            }
+        }
+        order
+    }
+
+    /// 始点集合から `target` に到達可能かを判定する
+    ///
+    /// # Arguments
+    /// * `nv` - 頂点数
+    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返すクロージャー
+    /// * `init` - 始点となる頂点集合のイテレータ
+    /// * `target` - 目的の頂点
+    ///
+    /// # Returns
+    /// 到達可能であれば `true`、そうでなければ `false`
+    pub fn bfs_reachable<F, It>(
+        nv: usize,
+        mut adj: F,
+        init: impl IntoIterator<Item = usize>,
+        target: usize,
+    ) -> bool
+    where
+        F: FnMut(usize) -> It,
+        It: IntoIterator<Item = usize>,
+    {
+        let mut visited = vec![false; nv];
+        let mut q = VecDeque::new();
+
+        for s in init {
+            if s == target {
+                return true;
+            }
+            if !visited[s] {
+                visited[s] = true;
+                q.push_back(s);
+            }
+        }
+
+        while let Some(u) = q.pop_front() {
+            for v in adj(u) {
+                if v == target {
+                    return true;
+                }
+                if !visited[v] {
+                    visited[v] = true;
+                    q.push_back(v);
+                }
+            }
+        }
+        false
+    }
 }
 
 #[snippet(prefix = "use bfs_ix::*;")]
 pub mod bfs_ix {
-    use super::bfs::{bfs, bfs_with_restore};
+    use super::bfs::{bfs, bfs_order, bfs_reachable, bfs_with_restore};
     use crate::data_structure::ix::{Bounds, Ix, IxVec};
 
     /// BFS の結果（Ix版）
@@ -171,6 +260,52 @@ pub mod bfs_ix {
                     .collect(),
             ),
         }
+    }
+
+    /// Bounds を用いた任意の型 I に対する BFS 訪問順序
+    pub fn bfs_order_arbitrary<I, F, It>(
+        bounds: Bounds<I>,
+        mut adj: F,
+        init: impl IntoIterator<Item = I>,
+    ) -> Vec<I>
+    where
+        I: Ix,
+        F: FnMut(I) -> It,
+        It: IntoIterator<Item = I>,
+    {
+        let nv = bounds.range_size();
+        let mut adj_usize = |u_idx: usize| {
+            let u = bounds.from_index(u_idx);
+            adj(u).into_iter().map(move |v| bounds.to_index(v))
+        };
+        let init_usize = init.into_iter().map(|s| bounds.to_index(s));
+        let order_usize = bfs_order(nv, &mut adj_usize, init_usize);
+        order_usize
+            .into_iter()
+            .map(|idx| bounds.from_index(idx))
+            .collect()
+    }
+
+    /// Bounds を用いた任意の型 I に対する到達可能性判定
+    pub fn bfs_reachable_arbitrary<I, F, It>(
+        bounds: Bounds<I>,
+        mut adj: F,
+        init: impl IntoIterator<Item = I>,
+        target: I,
+    ) -> bool
+    where
+        I: Ix,
+        F: FnMut(I) -> It,
+        It: IntoIterator<Item = I>,
+    {
+        let nv = bounds.range_size();
+        let mut adj_usize = |u_idx: usize| {
+            let u = bounds.from_index(u_idx);
+            adj(u).into_iter().map(move |v| bounds.to_index(v))
+        };
+        let init_usize = init.into_iter().map(|s| bounds.to_index(s));
+        let target_usize = bounds.to_index(target);
+        bfs_reachable(nv, &mut adj_usize, init_usize, target_usize)
     }
 }
 
@@ -254,6 +389,56 @@ mod tests {
         assert_eq!(path.len(), 3);
     }
 
+    #[test]
+    fn test_bfs_order() {
+        // 0 -> 1 -> 2
+        // |
+        // v
+        // 3
+        let adj = [vec![1, 3], vec![2], vec![], vec![]];
+        let order = bfs_order(4, |u| adj[u].iter().copied(), [0]);
+        // 0, 1, 3 are depth 1. 2 is depth 2.
+        // Queue order depends on adj order: 0 -> push 1, push 3.
+        // Then pop 1 -> push 2.
+        // Then pop 3.
+        // Then pop 2.
+        // Order: 0, 1, 3, 2
+        assert_eq!(order, vec![0, 1, 3, 2]);
+    }
+
+    #[test]
+    fn test_bfs_reachable() {
+        // 0 -> 1 -> 2   3 -> 4
+        let adj = [vec![1], vec![2], vec![], vec![4], vec![]];
+        assert!(bfs_reachable(5, |u| adj[u].iter().copied(), [0], 2));
+        assert!(!bfs_reachable(5, |u| adj[u].iter().copied(), [0], 3));
+        assert!(bfs_reachable(5, |u| adj[u].iter().copied(), [3], 4));
+        // start is target
+        assert!(bfs_reachable(5, |u| adj[u].iter().copied(), [0], 0));
+    }
+
+    #[test]
+    fn test_bfs_order_arbitrary() {
+        let bounds = Bounds::new(0, 3);
+        // (0) -> (1)
+        //  |
+        //  v
+        // (2)
+        // (3)
+        let adj = [vec![1, 2], vec![], vec![], vec![]];
+        let order = bfs_order_arbitrary(bounds, |u| adj[u].iter().copied(), [0]);
+        assert_eq!(order, vec![0, 1, 2]);
+    }
+
+    #[test]
+    fn test_bfs_reachable_arbitrary() {
+        let bounds = Bounds::new(0, 2);
+        // 0 -> 1
+        let adj = [vec![1], vec![], vec![]];
+        assert!(bfs_reachable_arbitrary(bounds, |u| adj[u].iter().copied(), [0], 1));
+        assert!(!bfs_reachable_arbitrary(bounds, |u| adj[u].iter().copied(), [0], 2));
+    }
+
     fn solve_bellman_ford(nv: usize, adj: &[Vec<usize>], starts: &[usize]) -> Vec<Option<i64>> {
         let mut dist = vec![None; nv];
         for &s in starts {
@@ -325,6 +510,35 @@ mod tests {
                 } else {
                     assert!(res.dist[i].is_none());
                 }
+            }
+            
+            // Test bfs_order consistency
+            let order = bfs_order(nv, |u| adj[u].iter().copied(), starts.iter().copied());
+            let mut visited_count = 0;
+            for i in 0..nv {
+                if res_dist[i].is_some() {
+                    visited_count += 1;
+                    assert!(order.contains(&i), "Reachable node {} not in order", i);
+                } else {
+                    assert!(!order.contains(&i), "Unreachable node {} in order", i);
+                }
+            }
+            assert_eq!(order.len(), visited_count);
+            
+            // Check order property (dist is non-decreasing)
+            // Note: This is true for unweighted BFS
+            for w in order.windows(2) {
+                let u = w[0];
+                let v = w[1];
+                let d_u = res_dist[u].unwrap();
+                let d_v = res_dist[v].unwrap();
+                assert!(d_u <= d_v, "BFS order violated dist monotonicity: dist[{}]={} > dist[{}]={}", u, d_u, v, d_v);
+            }
+
+            // Test bfs_reachable
+            for i in 0..nv {
+                let reachable = bfs_reachable(nv, |u| adj[u].iter().copied(), starts.iter().copied(), i);
+                assert_eq!(reachable, res_dist[i].is_some(), "bfs_reachable mismatch for {}", i);
             }
         }
     }

@@ -94,6 +94,8 @@ pub mod dsu_core {
     }
 }
 
+pub use dsu_core::*;
+
 #[cfg(test)]
 mod tests_dsu_core {
     use itertools::Itertools;
