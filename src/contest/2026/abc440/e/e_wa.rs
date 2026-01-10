@@ -1,73 +1,30 @@
-#[fastout]
+// #[fastout]
 fn main() {
     input! {
         n: usize,
-        q: usize,
-        abs: [(usize, usize); n],
+        k: usize,
+        x: usize,
+        a_s: [i64; n],
     }
 
-    let mut a_s = abs.iter().copied().map(|(a, _b)| a).collect_vec();
-    let mut b_s = abs.iter().copied().map(|(_a, b)| b).collect_vec();
+    let ans = (0..(n + k - 1) as i64)
+        .combinations(n - 1)
+        .map(|is| {
+            chain!([-1], is.iter().copied(), [(n + k - 1) as i64])
+                .tuple_windows()
+                .enumerate()
+                .map(|(i, (i1, i2))| {
+                    //
+                    let d = i2 - i1;
+                    a_s[i] * d
+                })
+                .sum::<i64>()
+        })
+        .sorted_by_key(|&s| Reverse(s))
+        .take(x)
+        .collect_vec();
 
-    let mut cnt_b2 = 0;
-
-    let mut sums = Segtree::<Additive<i64>>::from(vec![0; 1_000_001]);
-    let mut cnts = Segtree::<Additive<i64>>::from(vec![0; 1_000_001]);
-    for &a in &a_s {
-        cnts.set(a, cnts.get(a) + 1);
-        sums.set(a, sums.get(a) + a as i64);
-    }
-
-    for &b in &b_s {
-        if b == 2 {
-            cnt_b2 += 1;
-        }
-    }
-
-    for _ in 0..q {
-        input! {
-            w: Usize1,
-            x: usize,
-            y: usize,
-        }
-
-        // dbg!(segtree_to_vec(&cnts, 12));
-        // dbg!(segtree_to_vec(&sums, 12));
-
-        cnts.set(a_s[w], cnts.get(a_s[w]) - 1);
-        sums.set(a_s[w], sums.get(a_s[w]) - a_s[w] as i64);
-        a_s[w] = x;
-        cnts.set(a_s[w], cnts.get(a_s[w]) + 1);
-        sums.set(a_s[w], sums.get(a_s[w]) + a_s[w] as i64);
-
-        if b_s[w] == 2 {
-            cnt_b2 -= 1;
-        }
-        b_s[w] = y;
-        if b_s[w] == 2 {
-            cnt_b2 += 1;
-        }
-
-        dbg!(&a_s);
-        dbg!(&b_s);
-        let pos = if cnt_b2 == 0 {
-            1_000_001
-        } else {
-            cnts.min_left(1_000_000, |s| *s < cnt_b2)
-        };
-
-        let rem = cnt_b2 - cnts.prod(pos..);
-
-        let ans_main = sums.all_prod() + sums.prod(pos..);
-        let ans_rem = if pos == 0 {
-            0
-        } else {
-            rem * sums.get(pos - 1) / cnts.get(pos - 1)
-        };
-        dbg!(ans_rem);
-        let ans = ans_main + ans_rem;
-        println!("{}", ans);
-    }
+    print_vec(&ans);
 }
 
 #[cfg(test)]
@@ -128,7 +85,6 @@ mod tests {
     }
 }
 
-use ac_library::{Additive, Segtree};
 // ====== import ======
 #[allow(unused_imports)]
 use {
@@ -197,9 +153,3 @@ pub mod print_util {
 }
 
 // ====== snippet ======
-pub fn segtree_to_vec<M: ac_library::Monoid>(
-    seg: &ac_library::Segtree<M>,
-    len: usize,
-) -> Vec<M::S> {
-    (0..len).map(|i| seg.get(i)).collect()
-}

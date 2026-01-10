@@ -1,11 +1,58 @@
 // #[fastout]
+
+fn calc_score(a_s: &[i64], cnts: &[i64]) -> i64 {
+    a_s.iter()
+        .copied()
+        .zip(cnts.iter().copied())
+        .map(|(a, c)| a * c)
+        .sum()
+}
+
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        k: i64,
+        x: usize,
+        mut a_s: [i64; n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    a_s.sort_by_key(|x| Reverse(*x));
+
+    let mut init = vec![0; n];
+    init[0] = k as i64;
+
+    let mut visited = HashSet::new();
+    visited.insert(init.clone());
+
+    let mut pq: BinaryHeap<(i64, Vec<i64>)> = BinaryHeap::new();
+    let init_score = calc_score(&a_s, &init);
+    pq.push((init_score, init));
+
+    let mut ans = vec![];
+
+    while let Some((score, cnts)) = pq.pop() {
+        ans.push(score);
+        // dbg!(x);
+        // dbg!(ans.len());
+        if ans.len() >= x {
+            break;
+        }
+
+        for i in 0..n - 1 {
+            if cnts[i] != 0 {
+                // dbg!();
+                let mut next_cnts = cnts.clone();
+                next_cnts[i] -= 1;
+                next_cnts[i + 1] += 1;
+                if !visited.contains(&next_cnts) {
+                    // todo: calc_score は差分計算でサボれる。
+                    pq.push((calc_score(&a_s, &next_cnts), next_cnts.clone()));
+                    visited.insert(next_cnts);
+                }
+            }
+        }
+    }
+
+    print_vec(&ans);
 }
 
 #[cfg(test)]
@@ -67,6 +114,7 @@ mod tests {
 }
 
 // ====== import ======
+use std::hash::Hash;
 #[allow(unused_imports)]
 use {
     itertools::{Itertools, chain, iproduct, izip},

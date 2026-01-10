@@ -2,10 +2,30 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        q: usize,
+        mut a_list: [i64; n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    a_list.sort();
+
+    for _ in 0..q {
+        input! {
+            x: i64,
+            y: i64,
+        }
+
+        let tmp = bin_search(10_000_000_000, x - 1, |ans| {
+            // x..=ans の中に a_list に含まれているものが (ans - x + 1) - y 個以上ある？
+
+            let cnts = a_list.upper_bound(&ans) as i64 - a_list.lower_bound(&x) as i64;
+            // dbg!(ans);
+            // dbg!(cnts);
+            // dbg!((ans - x + 1) - y);
+
+            cnts <= (ans - x + 1) - y
+        });
+        println!("{}", tmp);
+    }
 }
 
 #[cfg(test)]
@@ -67,6 +87,7 @@ mod tests {
 }
 
 // ====== import ======
+use superslice::Ext;
 #[allow(unused_imports)]
 use {
     itertools::{Itertools, chain, iproduct, izip},
@@ -134,3 +155,45 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+/// 二分探索をする。
+/// ```text
+/// ng ng ng ok ok ok
+///          ↑ここの引数の値を返す
+/// ```
+/// # 計算量
+/// O(log(|ok - ng|))
+/// ## Arguments
+/// * ok != ng
+/// * |ok - ng| <= 2^63 - 1, |ok + ng| <= 2^63 - 1
+/// * p の定義域について
+///     * ng < ok の場合、p は区間 ng..ok で定義されている。
+///     * ok < ng の場合、p は区間 ok..ng で定義されている。
+/// * p の単調性について
+///     * ng < ok の場合、p は単調増加
+///     * ok < ng の場合、p は単調減少
+/// ## Return
+/// * ng < ok の場合: I = { i in ng..ok | p(i) == true } としたとき
+///     * I が空でなければ、min I を返す。
+///     * I が空ならば、ok を返す。
+/// * ok < ng の場合: I = { i in ok..ng | p(i) == true } としたとき
+///     * I が空でなければ、max I を返す。
+///     * I が空ならば、ok を返す。
+pub fn bin_search<F>(mut ok: i64, mut ng: i64, mut p: F) -> i64
+where
+    F: FnMut(i64) -> bool,
+{
+    debug_assert!(ok != ng);
+    debug_assert!(ok.checked_sub(ng).is_some());
+    debug_assert!(ok.checked_add(ng).is_some());
+    while num::abs(ok - ng) > 1 {
+        let mid = (ok + ng) / 2;
+        debug_assert!(mid != ok);
+        debug_assert!(mid != ng);
+        if p(mid) {
+            ok = mid;
+        } else {
+            ng = mid;
+        }
+    }
+    ok
+}

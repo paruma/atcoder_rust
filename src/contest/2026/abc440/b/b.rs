@@ -4,8 +4,15 @@ fn main() {
         n: usize,
         xs: [i64; n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let ans = xs
+        .iter()
+        .copied()
+        .enumerate()
+        .sorted_by_key(|(_, x)| *x)
+        .map(|(i, _)| i + 1)
+        .take(3)
+        .collect_vec();
+    print_vec_1line(&ans);
 }
 
 #[cfg(test)]

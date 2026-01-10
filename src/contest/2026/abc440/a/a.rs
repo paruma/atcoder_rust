@@ -1,10 +1,10 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        x: usize,
+        y: usize,
     }
-    let ans: i64 = -2_i64;
+    let ans: usize = x * 2_usize.pow(y as u32);
     println!("{}", ans);
 }
 
