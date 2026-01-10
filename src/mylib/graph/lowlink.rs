@@ -4,7 +4,7 @@ use cargo_snippet::snippet;
 #[allow(clippy::module_inception)]
 #[snippet(prefix = "use lowlink::*;")]
 pub mod lowlink {
-    /// LowLink (橋、関節点の検出)
+    /// LowLink (無向グラフの橋、関節点の検出)
     ///
     /// 計算量: O(V + E)
     #[derive(Clone, Debug)]
@@ -24,7 +24,8 @@ pub mod lowlink {
         ///
         /// # Arguments
         /// * `nv` - 頂点数
-        /// * `adj_fn` - 頂点を受け取り、隣接する頂点のイテレータを返すクロージャー
+        /// * `adj_fn` - 頂点を受け取り、隣接する頂点のイテレータを返すクロージャー。
+        ///              **無向グラフ**として隣接頂点を返す必要があります。
         pub fn new<F, It>(nv: usize, mut adj_fn: F) -> Self
         where
             F: FnMut(usize) -> It,
@@ -162,11 +163,12 @@ pub mod lowlink_ix {
         pub articulation_points: Vec<I>,
     }
 
-    /// Bounds を用いた任意の型 I に対する LowLink
+    /// Bounds を用いた任意の型 I に対する LowLink (無向グラフ)
     ///
     /// # Arguments
     /// * `bounds` - 頂点のインデックス範囲
-    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返すクロージャー
+    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返すクロージャー。
+    ///           **無向グラフ**として隣接頂点を返す必要があります。
     ///
     /// # Returns
     /// LowLink の結果を格納した `LowLinkIxResult<I>`。
