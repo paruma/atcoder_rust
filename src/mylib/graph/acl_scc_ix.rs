@@ -44,11 +44,11 @@ pub mod acl_scc_ix {
         /// SCC の結果を含む `CondensationGraphIx`
         pub fn scc(self) -> CondensationGraphIx<I> {
             let n = self.bounds.range_size();
-            let mut g = ac_library::SccGraph::new(n);
+            let mut scc_graph = ac_library::SccGraph::new(n);
             for &(u, v) in &self.edges {
-                g.add_edge(u, v);
+                scc_graph.add_edge(u, v);
             }
-            let groups_indices = g.scc();
+            let groups_indices = scc_graph.scc();
 
             // groups を I のベクタに変換
             let groups: Vec<Vec<I>> = groups_indices

@@ -5,17 +5,17 @@ use cargo_snippet::snippet;
 pub mod acl_scc {
     /// 強連結成分分解 (SCC) を行い、縮約グラフ (DAG) を構築するための構造体
     pub struct SccGraphWrapper {
-        n: usize,
-        pub edges: Vec<(usize, usize)>,
+        nv: usize,
+        edges: Vec<(usize, usize)>,
     }
 
     impl SccGraphWrapper {
-        /// 頂点数 `n` でグラフを作成する
+        /// 頂点数 `nv` でグラフを作成する
         ///
         /// # Arguments
-        /// * `n` - 頂点数
-        pub fn new(n: usize) -> Self {
-            Self { n, edges: vec![] }
+        /// * `nv` - 頂点数
+        pub fn new(nv: usize) -> Self {
+            Self { nv, edges: vec![] }
         }
 
         /// 辺 `from -> to` を追加する
@@ -34,16 +34,16 @@ pub mod acl_scc {
         /// # Returns
         /// SCC の結果を含む `CondensationGraph`
         pub fn scc(self) -> CondensationGraph {
-            let mut g = ac_library::SccGraph::new(self.n);
+            let mut scc_graph = ac_library::SccGraph::new(self.nv);
             for &(u, v) in &self.edges {
-                g.add_edge(u, v);
+                scc_graph.add_edge(u, v);
             }
-            let groups = g.scc();
+            let groups = scc_graph.scc();
 
             CondensationGraph {
                 groups,
                 original_edges: self.edges,
-                original_nv: self.n,
+                original_nv: self.nv,
             }
         }
     }
