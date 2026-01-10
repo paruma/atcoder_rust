@@ -1,3 +1,4 @@
+use crate::data_structure::ix::{Bounds, Ix, IxVec};
 use cargo_snippet::snippet;
 
 #[allow(clippy::module_inception)]
@@ -132,7 +133,7 @@ pub mod lowlink {
 #[snippet(prefix = "use lowlink_ix::*;")]
 pub mod lowlink_ix {
     use super::lowlink::LowLink;
-    use crate::data_structure::ix::{Bounds, Ix, IxVec};
+    use super::{Bounds, Ix, IxVec};
 
     /// LowLink の結果 (Ix版)
     #[derive(Clone, Debug)]
@@ -144,10 +145,7 @@ pub mod lowlink_ix {
     }
 
     /// Bounds を用いた任意の型 I に対する LowLink
-    pub fn lowlink_arbitrary<I, F, It>(
-        bounds: Bounds<I>,
-        mut adj: F,
-    ) -> LowLinkIxResult<I>
+    pub fn lowlink_arbitrary<I, F, It>(bounds: Bounds<I>, mut adj: F) -> LowLinkIxResult<I>
     where
         I: Ix,
         F: FnMut(I) -> It,
@@ -229,7 +227,7 @@ mod tests {
         //         (1,1)
         //
         // (1,0) and (1,2) are isolated for simplicity, or just not used in edges.
-        
+
         let adj = |u: (usize, usize)| -> Vec<(usize, usize)> {
             match u {
                 (0, 0) => vec![(0, 1)],
@@ -254,22 +252,22 @@ mod tests {
 
         // Bridges indices: (0,1), (1,2), (1,4)
         // Coords: ((0,0),(0,1)), ((0,1),(0,2)), ((0,1),(1,1))
-        
+
         // Note: internal sort is by index. The output conversion maintains order?
         // IxVec map doesn't, but bridges is a Vec.
         // In `lowlink_arbitrary`, we map indices back to coords.
         // Since indices are sorted (u < v, and pairs sorted), the coords might not be sorted "visually" but will correspond to sorted indices.
-        
+
         let mut bridges = res.bridges;
         // Normalize for comparison (sort pairs, then sort vector)
-        bridges.iter_mut().for_each(|(u, v)| if u > v { std::mem::swap(u, v); });
+        bridges.iter_mut().for_each(|(u, v)| {
+            if u > v {
+                std::mem::swap(u, v);
+            }
+        });
         bridges.sort();
 
-        let expected = vec![
-            ((0, 0), (0, 1)),
-            ((0, 1), (0, 2)),
-            ((0, 1), (1, 1)),
-        ];
+        let expected = vec![((0, 0), (0, 1)), ((0, 1), (0, 2)), ((0, 1), (1, 1))];
         assert_eq!(bridges, expected);
 
         // Articulation points: (0,1) is the center.

@@ -10,4 +10,3 @@ pub mod random;
 pub mod shakutori;
 pub mod shortest_path;
 pub mod twelvefold_way_enumerate;
-pub mod bfs_ix;

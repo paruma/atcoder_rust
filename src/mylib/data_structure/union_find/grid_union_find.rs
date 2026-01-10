@@ -1,12 +1,14 @@
+use crate::{
+    data_structure::union_find::simple_union_find::simple_union_find::UnionFind,
+    math::geometry::pos::pos::Pos,
+};
+
 #[allow(clippy::module_inception)]
 pub mod grid_union_find {
     use cargo_snippet::snippet;
     use itertools::Itertools;
 
-    use crate::{
-        data_structure::union_find::simple_union_find::simple_union_find::UnionFind,
-        math::geometry::pos::pos::Pos,
-    };
+    use super::{Pos, UnionFind};
 
     #[snippet(name = "GridUnionFind")]
     pub struct GridUnionFind {

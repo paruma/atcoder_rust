@@ -1,11 +1,12 @@
-use cargo_snippet::snippet;
 use super::dsu_core::DsuCore;
+use crate::data_structure::ix::{Bounds, Ix};
+use cargo_snippet::snippet;
 
 #[allow(clippy::module_inception)]
 #[snippet(prefix = "use dsu_ix::*;")]
 pub mod dsu_ix {
     use super::DsuCore;
-    use crate::data_structure::ix::{Bounds, Ix};
+    use super::{Bounds, Ix};
 
     #[derive(Clone, Debug)]
     pub struct DsuIx<I: Ix> {

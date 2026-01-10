@@ -16,7 +16,8 @@ pub mod bfs {
         /// 頂点 `t` への最短経路を復元する（始点 -> ... -> t）
         pub fn restore(&self, t: usize) -> Option<Vec<usize>> {
             self.dist[t]?;
-            let mut path: Vec<_> = std::iter::successors(Some(t), |&curr| self.prev[curr]).collect();
+            let mut path: Vec<_> =
+                std::iter::successors(Some(t), |&curr| self.prev[curr]).collect();
             path.reverse();
             Some(path)
         }
@@ -188,10 +189,12 @@ pub mod bfs {
     }
 }
 
+use crate::data_structure::ix::{Bounds, Ix, IxVec};
+
 #[snippet(prefix = "use bfs_ix::*;")]
 pub mod bfs_ix {
     use super::bfs::{bfs, bfs_order, bfs_reachable, bfs_with_restore};
-    use crate::data_structure::ix::{Bounds, Ix, IxVec};
+    use super::{Bounds, Ix, IxVec};
 
     /// BFS の結果（Ix版）
     #[derive(Clone, Debug)]
@@ -203,7 +206,8 @@ pub mod bfs_ix {
     impl<I: Ix> BfsIxResult<I> {
         pub fn restore(&self, t: I) -> Option<Vec<I>> {
             self.dist[t]?;
-            let mut path: Vec<_> = std::iter::successors(Some(t), |&curr| self.prev[curr]).collect();
+            let mut path: Vec<_> =
+                std::iter::successors(Some(t), |&curr| self.prev[curr]).collect();
             path.reverse();
             Some(path)
         }
@@ -435,8 +439,18 @@ mod tests {
         let bounds = Bounds::new(0, 2);
         // 0 -> 1
         let adj = [vec![1], vec![], vec![]];
-        assert!(bfs_reachable_arbitrary(bounds, |u| adj[u].iter().copied(), [0], 1));
-        assert!(!bfs_reachable_arbitrary(bounds, |u| adj[u].iter().copied(), [0], 2));
+        assert!(bfs_reachable_arbitrary(
+            bounds,
+            |u| adj[u].iter().copied(),
+            [0],
+            1
+        ));
+        assert!(!bfs_reachable_arbitrary(
+            bounds,
+            |u| adj[u].iter().copied(),
+            [0],
+            2
+        ));
     }
 
     fn solve_bellman_ford(nv: usize, adj: &[Vec<usize>], starts: &[usize]) -> Vec<Option<i64>> {
@@ -497,7 +511,10 @@ mod tests {
             // Path Check
             for i in 0..nv {
                 if let Some(path) = res.restore(i) {
-                    assert!(starts.contains(&path[0]), "Path must start from one of the sources");
+                    assert!(
+                        starts.contains(&path[0]),
+                        "Path must start from one of the sources"
+                    );
                     assert_eq!(*path.last().unwrap(), i);
                     assert_eq!(path.len() as i64 - 1, res.dist[i].unwrap());
 
@@ -511,7 +528,7 @@ mod tests {
                     assert!(res.dist[i].is_none());
                 }
             }
-            
+
             // Test bfs_order consistency
             let order = bfs_order(nv, |u| adj[u].iter().copied(), starts.iter().copied());
             let mut visited_count = 0;
@@ -524,7 +541,7 @@ mod tests {
                 }
             }
             assert_eq!(order.len(), visited_count);
-            
+
             // Check order property (dist is non-decreasing)
             // Note: This is true for unweighted BFS
             for w in order.windows(2) {
@@ -532,13 +549,26 @@ mod tests {
                 let v = w[1];
                 let d_u = res_dist[u].unwrap();
                 let d_v = res_dist[v].unwrap();
-                assert!(d_u <= d_v, "BFS order violated dist monotonicity: dist[{}]={} > dist[{}]={}", u, d_u, v, d_v);
+                assert!(
+                    d_u <= d_v,
+                    "BFS order violated dist monotonicity: dist[{}]={} > dist[{}]={}",
+                    u,
+                    d_u,
+                    v,
+                    d_v
+                );
             }
 
             // Test bfs_reachable
             for i in 0..nv {
-                let reachable = bfs_reachable(nv, |u| adj[u].iter().copied(), starts.iter().copied(), i);
-                assert_eq!(reachable, res_dist[i].is_some(), "bfs_reachable mismatch for {}", i);
+                let reachable =
+                    bfs_reachable(nv, |u| adj[u].iter().copied(), starts.iter().copied(), i);
+                assert_eq!(
+                    reachable,
+                    res_dist[i].is_some(),
+                    "bfs_reachable mismatch for {}",
+                    i
+                );
             }
         }
     }

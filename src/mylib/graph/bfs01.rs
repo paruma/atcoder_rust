@@ -1,3 +1,4 @@
+use crate::data_structure::ix::{Bounds, Ix, IxVec};
 use cargo_snippet::snippet;
 
 #[snippet(prefix = "use bfs01::*;")]
@@ -16,7 +17,8 @@ pub mod bfs01 {
         /// 頂点 `t` への最短経路を復元する（始点 -> ... -> t）
         pub fn restore(&self, t: usize) -> Option<Vec<usize>> {
             self.dist[t]?;
-            let mut path: Vec<_> = std::iter::successors(Some(t), |&curr| self.prev[curr]).collect();
+            let mut path: Vec<_> =
+                std::iter::successors(Some(t), |&curr| self.prev[curr]).collect();
             path.reverse();
             Some(path)
         }
@@ -115,7 +117,7 @@ pub mod bfs01 {
 #[snippet(prefix = "use bfs01_ix::*;")]
 pub mod bfs01_ix {
     use super::bfs01::{bfs01, bfs01_with_restore};
-    use crate::data_structure::ix::{Bounds, Ix, IxVec};
+    use super::{Bounds, Ix, IxVec};
 
     /// 01-BFS の結果（Ix版）
     #[derive(Clone, Debug)]
@@ -127,7 +129,8 @@ pub mod bfs01_ix {
     impl<I: Ix> Bfs01IxResult<I> {
         pub fn restore(&self, t: I) -> Option<Vec<I>> {
             self.dist[t]?;
-            let mut path: Vec<_> = std::iter::successors(Some(t), |&curr| self.prev[curr]).collect();
+            let mut path: Vec<_> =
+                std::iter::successors(Some(t), |&curr| self.prev[curr]).collect();
             path.reverse();
             Some(path)
         }
@@ -179,7 +182,13 @@ pub mod bfs01_ix {
 
         Bfs01IxResult {
             dist: IxVec::from_vec(bounds, res.dist),
-            prev: IxVec::from_vec(bounds, res.prev.into_iter().map(|p| p.map(|idx| bounds.from_index(idx))).collect()),
+            prev: IxVec::from_vec(
+                bounds,
+                res.prev
+                    .into_iter()
+                    .map(|p| p.map(|idx| bounds.from_index(idx)))
+                    .collect(),
+            ),
         }
     }
 }
@@ -254,7 +263,11 @@ mod tests {
         assert_eq!(res_restore.restore(1), Some(vec![0, 2, 1]));
     }
 
-    fn solve_bellman_ford(nv: usize, adj: &[Vec<(usize, i64)>], starts: &[usize]) -> Vec<Option<i64>> {
+    fn solve_bellman_ford(
+        nv: usize,
+        adj: &[Vec<(usize, i64)>],
+        starts: &[usize],
+    ) -> Vec<Option<i64>> {
         let mut dist = vec![None; nv];
         for &s in starts {
             dist[s] = Some(0);
@@ -318,7 +331,10 @@ mod tests {
 
             for i in 0..nv {
                 if let Some(path) = res.restore(i) {
-                    assert!(starts.contains(&path[0]), "Path must start from one of the sources");
+                    assert!(
+                        starts.contains(&path[0]),
+                        "Path must start from one of the sources"
+                    );
                     assert_eq!(*path.last().unwrap(), i);
 
                     // Path check & cost sum
@@ -326,10 +342,18 @@ mod tests {
                     for win in path.windows(2) {
                         let u = win[0];
                         let v = win[1];
-                        let edge = adj[u].iter().find(|&&(vv, _)| vv == v).expect("Edge not found");
+                        let edge = adj[u]
+                            .iter()
+                            .find(|&&(vv, _)| vv == v)
+                            .expect("Edge not found");
                         sum += edge.1;
                     }
-                    assert_eq!(Some(sum), res.dist[i], "Path cost mismatch for vertex {}", i);
+                    assert_eq!(
+                        Some(sum),
+                        res.dist[i],
+                        "Path cost mismatch for vertex {}",
+                        i
+                    );
                 } else {
                     assert!(res.dist[i].is_none());
                 }

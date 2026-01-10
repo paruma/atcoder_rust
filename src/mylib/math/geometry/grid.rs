@@ -1,10 +1,12 @@
+use crate::math::geometry::pos::pos::Pos;
+
 pub mod grid_template {
     use std::ops::{Index, IndexMut};
 
     use cargo_snippet::snippet;
     use itertools::{Itertools, iproduct};
 
-    use crate::math::geometry::pos::pos::Pos;
+    use super::Pos;
 
     #[snippet(name = "Grid", prefix = "use std::ops::{Index, IndexMut};")]
     pub struct Grid {
