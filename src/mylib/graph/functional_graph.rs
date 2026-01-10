@@ -28,10 +28,10 @@ pub mod functional_graph {
         ///
         /// # Arguments
         /// * `next` - 各頂点の遷移先 (0..nv-1)
-        pub fn new(next: Vec<usize>) -> Self {
+        pub fn new(next: &[usize]) -> Self {
             let nv = next.len();
             let mut in_degree = vec![0; nv];
-            for &v in &next {
+            for &v in next {
                 in_degree[v] += 1;
             }
 
@@ -218,8 +218,7 @@ mod tests {
         // 4 -> 3
         // 5 -> 5 (self-loop cycle)
         let next = vec![1, 2, 0, 1, 3, 5];
-        let fg = FunctionalGraph::new(next);
-
+        let fg = FunctionalGraph::new(&next);
         // 距離判定
         assert_eq!(fg.distance(4, 1), Some(2));
         assert_eq!(fg.distance(4, 2), Some(3));
@@ -239,8 +238,7 @@ mod tests {
         // 0 -> 1 -> 0
         // 2 -> 3 -> 2
         let next = vec![1, 0, 3, 2];
-        let fg = FunctionalGraph::new(next);
-
+        let fg = FunctionalGraph::new(&next);
         assert_eq!(fg.distance(0, 1), Some(1));
         assert_eq!(fg.distance(0, 2), None);
     }
@@ -258,7 +256,7 @@ mod tests {
                 next[i] = rng.random_range(0..nv);
             }
 
-            let fg = FunctionalGraph::new(next.clone());
+            let fg = FunctionalGraph::new(&next);
 
             for u in 0..nv {
                 for v in 0..nv {
