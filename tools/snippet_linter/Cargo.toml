@@ -1,0 +1,13 @@
+[package]
+name = "snippet_linter"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0"
+clap = { version = "4.4", features = ["derive"] }
+proc-macro2 = "1.0"
+quote = "1.0"
+syn = { version = "2.0", features = ["full", "visit", "extra-traits"] }
+walkdir = "2.4"
+colored = "2.0"

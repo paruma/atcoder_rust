@@ -2,6 +2,7 @@
 resolver = "2"
 
 members = [
+    "tools/snippet_linter",
     "src/contest",
     "src/contest/2023",
     "src/contest/2024",
