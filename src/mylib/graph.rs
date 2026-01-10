@@ -7,6 +7,7 @@ pub mod cycle_detection_directed;
 pub mod dijkstra;
 pub mod doubling;
 pub mod euler_tour;
+pub mod functional_graph;
 #[allow(clippy::module_inception)]
 pub mod graph;
 pub mod lca;

@@ -25,7 +25,7 @@ pub mod lowlink {
         /// # Arguments
         /// * `nv` - 頂点数
         /// * `adj_fn` - 頂点を受け取り、隣接する頂点のイテレータを返すクロージャー。
-        ///              **無向グラフ**として隣接頂点を返す必要があります。
+        ///   **無向グラフ**として隣接頂点を返す必要があります。
         pub fn new<F, It>(nv: usize, mut adj_fn: F) -> Self
         where
             F: FnMut(usize) -> It,
@@ -168,7 +168,7 @@ pub mod lowlink_ix {
     /// # Arguments
     /// * `bounds` - 頂点のインデックス範囲
     /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返すクロージャー。
-    ///           **無向グラフ**として隣接頂点を返す必要があります。
+    ///   **無向グラフ**として隣接頂点を返す必要があります。
     ///
     /// # Returns
     /// LowLink の結果を格納した `LowLinkIxResult<I>`。
