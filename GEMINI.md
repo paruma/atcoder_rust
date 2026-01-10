@@ -53,10 +53,7 @@
     - コメントの変更だけの場合もテストを実行してください。コメントの修正だけのつもりがほかの部分も意図せず変更されちゃうことがあるからです。
 2. **カバレッジの確認**
     - テスト実装後は、意図せずテストが通っていない行がないかカバレッジを確認してください。
-    - まずは、以下のコマンドでインストールを実行してください。
-      - `rustup component add llvm-tools-preview`
-      - `cargo install cargo-llvm-cov`
-    - `lcov.info` を生成・更新するには以下のコマンドを実行してください。
+    - 以下のコマンドでカバレッジ結果ファイル `lcov.info` を生成してください
       - `cargo llvm-cov test --lcov --output-path lcov.info --package mylib --lib <モジュールパス> -- --include-ignored`
     - `lcov.info` ファイルを解析することで、未実行行（`DA:行番号,0`）を特定できます。
       - 例: `sed -n '\|SF:.*/対象ファイル名.rs|,\|end_of_record|p' lcov.info | grep "DA:.*,0"`

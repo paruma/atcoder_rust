@@ -19,7 +19,9 @@ ENV RUSTUP_HOME=/home/node/.rustup
 ENV PATH="${CARGO_HOME}/bin:${PATH}"
 
 # rustup を node ユーザーのホームにインストール
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.90.0 \
+    && rustup component add llvm-tools-preview \
+    && cargo install cargo-llvm-cov \
     && echo 'export PATH=$CARGO_HOME/bin:$PATH' >> ~/.bashrc \
     && cargo --version
 
