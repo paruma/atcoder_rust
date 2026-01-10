@@ -14,6 +14,9 @@ pub mod bfs {
 
     impl BfsResult {
         /// 頂点 `t` への最短経路を復元する（始点 -> ... -> t）
+        ///
+        /// # Returns
+        /// 始点から `t` までの頂点列。`t` に到達不可能な場合は `None`。
         pub fn restore(&self, t: usize) -> Option<Vec<usize>> {
             self.dist[t]?;
             let mut path: Vec<_> =
@@ -62,6 +65,11 @@ pub mod bfs {
     }
 
     /// 経路復元可能な BFS
+    ///
+    /// # Arguments
+    /// * `nv` - 頂点数
+    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返すクロージャー
+    /// * `init` - 始点となる頂点集合のイテレータ
     ///
     /// # Returns
     /// 最短距離 `dist` と、復元用配列 `prev` を含む `BfsResult`。
@@ -141,22 +149,20 @@ pub mod bfs {
         order
     }
 
-    /// 始点集合から `target` に到達可能かを判定する
+    /// 始点集合から各頂点への到達可能性を判定する
     ///
     /// # Arguments
     /// * `nv` - 頂点数
     /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返すクロージャー
     /// * `init` - 始点となる頂点集合のイテレータ
-    /// * `target` - 目的の頂点
     ///
     /// # Returns
-    /// 到達可能であれば `true`、そうでなければ `false`
+    /// 各頂点への到達可能性を格納した `Vec<bool>`
     pub fn bfs_reachable<F, It>(
         nv: usize,
         mut adj: F,
         init: impl IntoIterator<Item = usize>,
-        target: usize,
-    ) -> bool
+    ) -> Vec<bool>
     where
         F: FnMut(usize) -> It,
         It: IntoIterator<Item = usize>,
@@ -165,9 +171,6 @@ pub mod bfs {
         let mut q = VecDeque::new();
 
         for s in init {
-            if s == target {
-                return true;
-            }
             if !visited[s] {
                 visited[s] = true;
                 q.push_back(s);
@@ -176,16 +179,13 @@ pub mod bfs {
 
         while let Some(u) = q.pop_front() {
             for v in adj(u) {
-                if v == target {
-                    return true;
-                }
                 if !visited[v] {
                     visited[v] = true;
                     q.push_back(v);
                 }
             }
         }
-        false
+        visited
     }
 }
 
@@ -204,6 +204,10 @@ pub mod bfs_ix {
     }
 
     impl<I: Ix> BfsIxResult<I> {
+        /// 頂点 `t` への最短経路を復元する（始点 -> ... -> t）
+        ///
+        /// # Returns
+        /// 始点から `t` までの頂点列。`t` に到達不可能な場合は `None`。
         pub fn restore(&self, t: I) -> Option<Vec<I>> {
             self.dist[t]?;
             let mut path: Vec<_> =
@@ -214,6 +218,14 @@ pub mod bfs_ix {
     }
 
     /// Bounds を用いた任意の型 I に対する BFS
+    ///
+    /// # Arguments
+    /// * `bounds` - 頂点のインデックス範囲
+    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返すクロージャー
+    /// * `init` - 始点となる頂点集合のイテレータ
+    ///
+    /// # Returns
+    /// 始点集合 `init` からの最短距離を格納した `IxVec<I, Option<i64>>`。
     pub fn bfs_arbitrary<I, F, It>(
         bounds: Bounds<I>,
         mut adj: F,
@@ -235,6 +247,14 @@ pub mod bfs_ix {
     }
 
     /// Bounds を用いた任意の型 I に対する BFS (経路復元付き)
+    ///
+    /// # Arguments
+    /// * `bounds` - 頂点のインデックス範囲
+    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返すクロージャー
+    /// * `init` - 始点となる頂点集合のイテレータ
+    ///
+    /// # Returns
+    /// 最短距離 `dist` と、復元用配列 `prev` を含む `BfsIxResult`。
     pub fn bfs_with_restore_arbitrary<I, F, It>(
         bounds: Bounds<I>,
         mut adj: F,
@@ -267,6 +287,14 @@ pub mod bfs_ix {
     }
 
     /// Bounds を用いた任意の型 I に対する BFS 訪問順序
+    ///
+    /// # Arguments
+    /// * `bounds` - 頂点のインデックス範囲
+    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返すクロージャー
+    /// * `init` - 始点となる頂点集合のイテレータ
+    ///
+    /// # Returns
+    /// 到達可能な頂点を訪問順に格納した `Vec<I>`
     pub fn bfs_order_arbitrary<I, F, It>(
         bounds: Bounds<I>,
         mut adj: F,
@@ -291,12 +319,19 @@ pub mod bfs_ix {
     }
 
     /// Bounds を用いた任意の型 I に対する到達可能性判定
+    ///
+    /// # Arguments
+    /// * `bounds` - 頂点のインデックス範囲
+    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返すクロージャー
+    /// * `init` - 始点となる頂点集合のイテレータ
+    ///
+    /// # Returns
+    /// 各頂点への到達可能性を格納した `IxVec<I, bool>`
     pub fn bfs_reachable_arbitrary<I, F, It>(
         bounds: Bounds<I>,
         mut adj: F,
         init: impl IntoIterator<Item = I>,
-        target: I,
-    ) -> bool
+    ) -> IxVec<I, bool>
     where
         I: Ix,
         F: FnMut(I) -> It,
@@ -308,17 +343,15 @@ pub mod bfs_ix {
             adj(u).into_iter().map(move |v| bounds.to_index(v))
         };
         let init_usize = init.into_iter().map(|s| bounds.to_index(s));
-        let target_usize = bounds.to_index(target);
-        bfs_reachable(nv, &mut adj_usize, init_usize, target_usize)
+        let res_vec = bfs_reachable(nv, &mut adj_usize, init_usize);
+        IxVec::from_vec(bounds, res_vec)
     }
 }
 
-pub use bfs::*;
-pub use bfs_ix::*;
-
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::bfs::*;
+    use super::bfs_ix::*;
     use crate::data_structure::ix::Bounds;
 
     #[test]
@@ -414,11 +447,14 @@ mod tests {
     fn test_bfs_reachable() {
         // 0 -> 1 -> 2   3 -> 4
         let adj = [vec![1], vec![2], vec![], vec![4], vec![]];
-        assert!(bfs_reachable(5, |u| adj[u].iter().copied(), [0], 2));
-        assert!(!bfs_reachable(5, |u| adj[u].iter().copied(), [0], 3));
-        assert!(bfs_reachable(5, |u| adj[u].iter().copied(), [3], 4));
-        // start is target
-        assert!(bfs_reachable(5, |u| adj[u].iter().copied(), [0], 0));
+        let reachable_from_0 = bfs_reachable(5, |u| adj[u].iter().copied(), [0]);
+        assert_eq!(reachable_from_0, vec![true, true, true, false, false]);
+
+        let reachable_from_3 = bfs_reachable(5, |u| adj[u].iter().copied(), [3]);
+        assert_eq!(reachable_from_3, vec![false, false, false, true, true]);
+
+        // start is target (0 is reachable from [0])
+        assert!(bfs_reachable(5, |u| adj[u].iter().copied(), [0])[0]);
     }
 
     #[test]
@@ -439,18 +475,10 @@ mod tests {
         let bounds = Bounds::new(0, 2);
         // 0 -> 1
         let adj = [vec![1], vec![], vec![]];
-        assert!(bfs_reachable_arbitrary(
-            bounds,
-            |u| adj[u].iter().copied(),
-            [0],
-            1
-        ));
-        assert!(!bfs_reachable_arbitrary(
-            bounds,
-            |u| adj[u].iter().copied(),
-            [0],
-            2
-        ));
+        let reachable = bfs_reachable_arbitrary(bounds, |u| adj[u].iter().copied(), [0]);
+        assert!(reachable[0]);
+        assert!(reachable[1]);
+        assert!(!reachable[2]);
     }
 
     fn solve_bellman_ford(nv: usize, adj: &[Vec<usize>], starts: &[usize]) -> Vec<Option<i64>> {
@@ -560,11 +588,11 @@ mod tests {
             }
 
             // Test bfs_reachable
+            let reachable_map =
+                bfs_reachable(nv, |u| adj[u].iter().copied(), starts.iter().copied());
             for i in 0..nv {
-                let reachable =
-                    bfs_reachable(nv, |u| adj[u].iter().copied(), starts.iter().copied(), i);
                 assert_eq!(
-                    reachable,
+                    reachable_map[i],
                     res_dist[i].is_some(),
                     "bfs_reachable mismatch for {}",
                     i

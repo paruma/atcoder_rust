@@ -24,8 +24,8 @@ pub mod lowlink {
         ///
         /// # Arguments
         /// * `nv` - 頂点数
-        /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返すクロージャー
-        pub fn new<F, It>(nv: usize, mut adj: F) -> Self
+        /// * `adj_fn` - 頂点を受け取り、隣接する頂点のイテレータを返すクロージャー
+        pub fn new<F, It>(nv: usize, mut adj_fn: F) -> Self
         where
             F: FnMut(usize) -> It,
             It: IntoIterator<Item = usize>,
@@ -36,27 +36,30 @@ pub mod lowlink {
             let mut articulation_points = Vec::new();
             let mut k = 0;
 
-            // adj を何度も呼ぶので、事前にグラフを構築したほうが効率的かもしれないが、
+            // adj_fn を何度も呼ぶので、事前にグラフを構築したほうが効率的かもしれないが、
             // ここでは汎用性を重視してクロージャを受け取る形を維持する。
             // ただし、再帰呼び出しの中でクロージャを呼ぶのは難しいため、
             // 内部で隣接リストを作成する。
-            let mut g = vec![vec![]; nv];
-            for i in 0..nv {
-                for v in adj(i) {
-                    if v != i {
-                        // 自己ループは無視 (橋や関節点の定義上、影響しないことが多いが、文脈による。
-                        // ここでは単純グラフを想定)
-                        g[i].push(v);
+            let adj = {
+                let mut adj = vec![vec![]; nv];
+                for i in 0..nv {
+                    for v in adj_fn(i) {
+                        if v != i {
+                            // 自己ループは無視 (橋や関節点の定義上、影響しないことが多いが、文脈による。
+                            // ここでは単純グラフを想定)
+                            adj[i].push(v);
+                        }
                     }
                 }
-            }
+                adj
+            };
 
             for i in 0..nv {
                 if ord[i] == usize::MAX {
                     Self::dfs(
                         i,
                         usize::MAX,
-                        &g,
+                        &adj,
                         &mut k,
                         &mut ord,
                         &mut low,
@@ -78,11 +81,22 @@ pub mod lowlink {
             }
         }
 
+        /// DFS を行い、ord, low, bridges, articulation_points を計算する
+        ///
+        /// # Arguments
+        /// * `u` - 現在の頂点
+        /// * `p` - 親頂点
+        /// * `adj` - 隣接リスト
+        /// * `k` - 訪問順序のカウンター
+        /// * `ord` - 各頂点の訪問順序
+        /// * `low` - 各頂点の lowlink 値
+        /// * `bridges` - 橋のリスト
+        /// * `articulation_points` - 関節点のリスト
         #[allow(clippy::too_many_arguments)]
         fn dfs(
             u: usize,
             p: usize,
-            g: &[Vec<usize>],
+            adj: &[Vec<usize>],
             k: &mut usize,
             ord: &mut Vec<usize>,
             low: &mut Vec<usize>,
@@ -96,7 +110,7 @@ pub mod lowlink {
             let mut is_articulation = false;
             let mut child_count = 0;
 
-            for &v in &g[u] {
+            for &v in &adj[u] {
                 if v == p {
                     continue;
                 }
@@ -104,7 +118,7 @@ pub mod lowlink {
                     low[u] = low[u].min(ord[v]);
                 } else {
                     child_count += 1;
-                    Self::dfs(v, u, g, k, ord, low, bridges, articulation_points);
+                    Self::dfs(v, u, adj, k, ord, low, bridges, articulation_points);
                     low[u] = low[u].min(low[v]);
                     if p != usize::MAX && low[v] >= ord[u] {
                         is_articulation = true;
@@ -138,13 +152,24 @@ pub mod lowlink_ix {
     /// LowLink の結果 (Ix版)
     #[derive(Clone, Debug)]
     pub struct LowLinkIxResult<I: Ix> {
+        /// 各頂点の訪問順序 (0-indexed)
         pub ord: IxVec<I, usize>,
+        /// 各頂点から DFS 木の辺と後退辺を最大 1 回通って到達できる頂点の最小 ord
         pub low: IxVec<I, usize>,
+        /// 橋 (u, v) のリスト。
         pub bridges: Vec<(I, I)>,
+        /// 関節点のリスト。
         pub articulation_points: Vec<I>,
     }
 
     /// Bounds を用いた任意の型 I に対する LowLink
+    ///
+    /// # Arguments
+    /// * `bounds` - 頂点のインデックス範囲
+    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返すクロージャー
+    ///
+    /// # Returns
+    /// LowLink の結果を格納した `LowLinkIxResult<I>`。
     pub fn lowlink_arbitrary<I, F, It>(bounds: Bounds<I>, mut adj: F) -> LowLinkIxResult<I>
     where
         I: Ix,
@@ -176,12 +201,10 @@ pub mod lowlink_ix {
     }
 }
 
-pub use lowlink::*;
-pub use lowlink_ix::*;
-
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::lowlink::*;
+    use super::lowlink_ix::*;
     use crate::data_structure::ix::Bounds;
 
     #[test]
@@ -190,7 +213,7 @@ mod tests {
         // |   |
         // 3 - 4
         //
-        // 5 (isolated)
+        // 5 (独立)
         let adj = [
             vec![1, 3],    // 0
             vec![0, 2, 4], // 1
@@ -202,31 +225,31 @@ mod tests {
 
         let res = LowLink::new(6, |u| adj[u].iter().copied());
 
-        // Bridges: (1, 2) is the only bridge
+        // 橋: (1, 2) が唯一の橋
         assert_eq!(res.bridges, vec![(1, 2)]);
 
-        // Articulation points: 1 is the only articulation point (connecting {2} to others)
-        // Wait, removing 1 disconnects 2.
-        // 0-3-4 is a cycle. 0-1-4-3-0 is a cycle.
-        // {0, 1, 3, 4} is biconnected if we ignore 2.
-        // Removing 1 leaves 2 isolated. So 1 is articulation.
-        // Removing others doesn't increase connected components count (5 is already isolated).
+        // 関節点: 1 が唯一の関節点（2 を他の頂点から切り離す）
+        // 1 を取り除くと 2 が孤立する。
+        // 0-3-4-1-0 はサイクルを形成しており、2 を除けば {0, 1, 3, 4} は二重連結。
+        // 1 を取り除くと 2 が孤立するため、1 は関節点となる。
+        // 他の頂点を取り除いても（5 は元々孤立しているため）連結成分の数は増えない。
         assert_eq!(res.articulation_points, vec![1]);
     }
 
     #[test]
     fn test_lowlink_arbitrary() {
-        let bounds = Bounds::new((0, 0), (1, 2)); // 2x3 grid
+        let bounds = Bounds::new((0, 0), (1, 2)); // 2x3 グリッド
         // (0,0)-(0,1)-(0,2)
         //   |     |
-        // (1,0)-(1,1)  (1,2) <- isolated from (1,1) but connected to (0,2)? let's make a specific graph.
+        // (1,0)-(1,1)  (1,2) <- (1,1)から孤立しているが、(0,2)に接続されている？
+        // ここでは特定のグラフを構築する。
 
-        // Graph:
+        // グラフ構造:
         // (0,0) - (0,1) - (0,2)
         //           |
         //         (1,1)
         //
-        // (1,0) and (1,2) are isolated for simplicity, or just not used in edges.
+        // 簡略化のため (1,0) と (1,2) は孤立点とする。
 
         let adj = |u: (usize, usize)| -> Vec<(usize, usize)> {
             match u {
@@ -240,9 +263,9 @@ mod tests {
 
         let res = lowlink_arbitrary(bounds, adj);
 
-        // Bridges: all edges are bridges because it's a tree.
-        // Edges: ((0,0), (0,1)), ((0,1), (0,2)), ((0,1), (1,1))
-        // The output of bridges is sorted by index.
+        // 橋: 木構造なので、すべての辺が橋となる。
+        // 辺: ((0,0), (0,1)), ((0,1), (0,2)), ((0,1), (1,1))
+        // 橋の出力はインデックス順にソートされる。
         // (0,0) -> 0
         // (0,1) -> 1
         // (0,2) -> 2
@@ -250,16 +273,17 @@ mod tests {
         // (1,1) -> 4
         // (1,2) -> 5
 
-        // Bridges indices: (0,1), (1,2), (1,4)
-        // Coords: ((0,0),(0,1)), ((0,1),(0,2)), ((0,1),(1,1))
+        // 橋のインデックス: (0,1), (1,2), (1,4)
+        // 座標: ((0,0),(0,1)), ((0,1),(0,2)), ((0,1),(1,1))
 
-        // Note: internal sort is by index. The output conversion maintains order?
-        // IxVec map doesn't, but bridges is a Vec.
-        // In `lowlink_arbitrary`, we map indices back to coords.
-        // Since indices are sorted (u < v, and pairs sorted), the coords might not be sorted "visually" but will correspond to sorted indices.
+        // 注意: 内部的なソートはインデックス順。座標変換後も順序は維持されるか？
+        // IxVec の map は維持しないが、bridges は Vec である。
+        // `lowlink_arbitrary` では、インデックスを座標に戻している。
+        // インデックスがソートされている（u < v かつペア間でソート）ため、
+        // 座標は「見た目的」にはソートされていないかもしれないが、ソートされたインデックスに対応する。
 
         let mut bridges = res.bridges;
-        // Normalize for comparison (sort pairs, then sort vector)
+        // 比較のために正規化（ペア内をソートし、その後ベクトル全体をソート）
         bridges.iter_mut().for_each(|(u, v)| {
             if u > v {
                 std::mem::swap(u, v);
@@ -270,7 +294,7 @@ mod tests {
         let expected = vec![((0, 0), (0, 1)), ((0, 1), (0, 2)), ((0, 1), (1, 1))];
         assert_eq!(bridges, expected);
 
-        // Articulation points: (0,1) is the center.
+        // 関節点: (0,1) が中心。
         assert_eq!(res.articulation_points, vec![(0, 1)]);
     }
 

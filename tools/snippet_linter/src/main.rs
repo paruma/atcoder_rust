@@ -1,5 +1,5 @@
 //! cargo-snippet 用の Linter
-//! 
+//!
 //! #[snippet] 属性がついたモジュール内で `use crate::...` を使っていないかチェックします。
 //! snippet 展開後は `crate` が存在しない（提出ファイルが crate になる）ため、
 //! 相対パス（super:: や自身への参照）を使う必要があります。
@@ -52,8 +52,9 @@ impl SnippetLinter {
 impl<'ast> Visit<'ast> for SnippetLinter {
     fn visit_item_mod(&mut self, i: &'ast ItemMod) {
         let has_snippet = i.attrs.iter().any(|attr| attr.path().is_ident("snippet"));
-        let is_test_mod = i.ident == "tests" || i.ident == "test" || i.ident.to_string().starts_with("test_");
-        
+        let is_test_mod =
+            i.ident == "tests" || i.ident == "test" || i.ident.to_string().starts_with("test_");
+
         let has_cfg_test = i.attrs.iter().any(|attr| {
             if attr.path().is_ident("cfg") {
                 // Parse cfg(...) content
@@ -64,7 +65,11 @@ impl<'ast> Visit<'ast> for SnippetLinter {
                 // cfg(test) often appears as a single path in the attribute parser logic depending on how it's invoked,
                 // but strictly it might be `Meta::List` containing `test`.
                 // Let's rely on token stream string matching for simplicity and robustness against parser versions.
-                let tokens = attr.meta.require_list().map(|l| l.tokens.clone()).unwrap_or_default();
+                let tokens = attr
+                    .meta
+                    .require_list()
+                    .map(|l| l.tokens.clone())
+                    .unwrap_or_default();
                 tokens.into_iter().any(|t| {
                     if let TokenTree::Ident(ident) = t {
                         ident == "test"

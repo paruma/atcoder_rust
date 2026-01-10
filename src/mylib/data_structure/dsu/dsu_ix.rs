@@ -15,6 +15,10 @@ pub mod dsu_ix {
     }
 
     impl<I: Ix> DsuIx<I> {
+        /// 指定された範囲の要素を管理する DSU を作成する
+        ///
+        /// # Arguments
+        /// * `bounds` - 要素のインデックス範囲
         pub fn new(bounds: Bounds<I>) -> Self {
             let n = bounds.range_size();
             Self {
@@ -23,6 +27,14 @@ pub mod dsu_ix {
             }
         }
 
+        /// 要素 `a` と `b` が属する集合を統合する
+        ///
+        /// # Arguments
+        /// * `a` - 要素1
+        /// * `b` - 要素2
+        ///
+        /// # Returns
+        /// 新たに統合された場合、(新しいリーダー, 吸収されたリーダー) のペアを返す。既に同じ集合に属していた場合は `None`。
         pub fn merge(&mut self, a: I, b: I) -> Option<(I, I)> {
             let a_idx = self.bounds.to_index(a);
             let b_idx = self.bounds.to_index(b);
@@ -30,27 +42,32 @@ pub mod dsu_ix {
             res.map(|(l, m)| (self.bounds.from_index(l), self.bounds.from_index(m)))
         }
 
+        /// 要素 `a` と `b` が同じ集合に属しているか判定する
         pub fn same(&mut self, a: I, b: I) -> bool {
             let a_idx = self.bounds.to_index(a);
             let b_idx = self.bounds.to_index(b);
             self.dsu.same(a_idx, b_idx)
         }
 
+        /// 要素 `a` が属する集合の代表元（リーダー）を返す
         pub fn leader(&mut self, a: I) -> I {
             let a_idx = self.bounds.to_index(a);
             let l_idx = self.dsu.leader(a_idx);
             self.bounds.from_index(l_idx)
         }
 
+        /// 要素 `a` が属する集合の要素数を返す
         pub fn size(&mut self, a: I) -> usize {
             let a_idx = self.bounds.to_index(a);
             self.dsu.size(a_idx)
         }
 
+        /// 集合の総数を返す
         pub fn count_group(&self) -> usize {
             self.dsu.count_group()
         }
 
+        /// すべての集合を、それぞれの要素のリストとして返す
         pub fn groups(&mut self) -> Vec<Vec<I>> {
             self.dsu
                 .groups()
@@ -66,11 +83,9 @@ pub mod dsu_ix {
     }
 }
 
-pub use dsu_ix::*;
-
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::dsu_ix::*;
     use crate::data_structure::ix::Bounds;
 
     #[test]

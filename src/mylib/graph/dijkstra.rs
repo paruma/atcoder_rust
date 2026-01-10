@@ -16,6 +16,9 @@ pub mod dijkstra {
 
     impl DijkstraResult {
         /// 頂点 `t` への最短経路を復元する（始点 -> ... -> t）
+        ///
+        /// # Returns
+        /// 始点から `t` までの頂点列。`t` に到達不可能な場合は `None`。
         pub fn restore(&self, t: usize) -> Option<Vec<usize>> {
             self.dist[t]?;
             let mut path: Vec<_> =
@@ -69,6 +72,11 @@ pub mod dijkstra {
 
     /// 経路復元可能なダイクストラ法
     ///
+    /// # Arguments
+    /// * `nv` - 頂点数
+    /// * `adj` - 頂点を受け取り、隣接する頂点とそのコストのペアのイテレータを返すクロージャー
+    /// * `init` - 始点となる頂点集合のイテレータ
+    ///
     /// # Returns
     /// 最短距離 `dist` と、復元用配列 `prev` を含む `DijkstraResult`。
     pub fn dijkstra_with_restore<F, It>(
@@ -120,6 +128,10 @@ pub mod dijkstra_ix {
     }
 
     impl<I: Ix> DijkstraIxResult<I> {
+        /// 頂点 `t` への最短経路を復元する（始点 -> ... -> t）
+        ///
+        /// # Returns
+        /// 始点から `t` までの頂点列。`t` に到達不可能な場合は `None`。
         pub fn restore(&self, t: I) -> Option<Vec<I>> {
             self.dist[t]?;
             let mut path: Vec<_> =
@@ -130,6 +142,14 @@ pub mod dijkstra_ix {
     }
 
     /// Bounds を用いた任意の型 I に対するダイクストラ法
+    ///
+    /// # Arguments
+    /// * `bounds` - 頂点のインデックス範囲
+    /// * `adj` - 頂点を受け取り、隣接する頂点とそのコストのペアのイテレータを返すクロージャー
+    /// * `init` - 始点となる頂点集合のイテレータ
+    ///
+    /// # Returns
+    /// 始点集合 `init` からの最短距離を格納した `IxVec<I, Option<i64>>`。
     pub fn dijkstra_arbitrary<I, F, It>(
         bounds: Bounds<I>,
         mut adj: F,
@@ -153,6 +173,14 @@ pub mod dijkstra_ix {
     }
 
     /// Bounds を用いた任意の型 I に対するダイクストラ法 (経路復元付き)
+    ///
+    /// # Arguments
+    /// * `bounds` - 頂点のインデックス範囲
+    /// * `adj` - 頂点を受け取り、隣接する頂点とそのコストのペアのイテレータを返すクロージャー
+    /// * `init` - 始点となる頂点集合のイテレータ
+    ///
+    /// # Returns
+    /// 最短距離 `dist` と、復元用配列 `prev` を含む `DijkstraIxResult`。
     pub fn dijkstra_with_restore_arbitrary<I, F, It>(
         bounds: Bounds<I>,
         mut adj: F,
@@ -186,12 +214,10 @@ pub mod dijkstra_ix {
     }
 }
 
-pub use dijkstra::*;
-pub use dijkstra_ix::*;
-
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::dijkstra::*;
+    use super::dijkstra_ix::*;
     use crate::data_structure::ix::Bounds;
 
     #[test]
