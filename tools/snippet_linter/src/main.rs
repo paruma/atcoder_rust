@@ -132,12 +132,14 @@ fn main() -> Result<()> {
     let mut linter = SnippetLinter::new();
     let mut has_error = false;
 
-    for entry in WalkDir::new(&args.dir).into_iter().filter_map(|e| e.ok()) {
+    for entry in WalkDir::new(&args.dir)
+        .into_iter()
+        .filter_map(|e| e.ok())
+        .filter(|e| e.path().extension().is_some_and(|ext| ext == "rs"))
+    {
         let path = entry.path();
-        if path.extension().is_some_and(|ext| ext == "rs") {
-            if let Err(e) = linter.check_file(path) {
-                eprintln!("Failed to parse {}: {}", path.display(), e);
-            }
+        if let Err(e) = linter.check_file(path) {
+            eprintln!("Failed to parse {}: {}", path.display(), e);
         }
     }
 
