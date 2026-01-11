@@ -37,6 +37,20 @@ pub mod min_max_monoid {
 
     impl_bounded!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize);
 
+    impl<T: BoundedAbove> BoundedBelow for std::cmp::Reverse<T> {
+        #[inline]
+        fn min_value() -> Self {
+            std::cmp::Reverse(T::max_value())
+        }
+    }
+
+    impl<T: BoundedBelow> BoundedAbove for std::cmp::Reverse<T> {
+        #[inline]
+        fn max_value() -> Self {
+            std::cmp::Reverse(T::min_value())
+        }
+    }
+
     macro_rules! impl_bounded_tuples {
         ($head:ident) => {};
         ($head:ident, $($tail:ident),*) => {
@@ -106,6 +120,7 @@ pub mod min_max_monoid {
 mod tests {
     use super::min_max_monoid::*;
     use ac_library::Monoid;
+    use std::cmp::Reverse;
 
     #[test]
     fn test_tuple_min_monoid() {
@@ -150,5 +165,33 @@ mod tests {
         type M = TupleMin<i64>;
         assert_eq!(M::identity(), i64::MAX);
         assert_eq!(M::binary_operation(&10, &20), 10);
+    }
+
+    #[test]
+    fn test_reverse_monoid() {
+        type M = TupleMin<Reverse<i64>>;
+        let identity = M::identity();
+        assert_eq!(identity, Reverse(i64::MIN));
+
+        let a = Reverse(10);
+        let b = Reverse(20);
+        let c = Reverse(5);
+
+        assert_eq!(M::binary_operation(&a, &b), Reverse(20));
+        assert_eq!(M::binary_operation(&a, &c), Reverse(10));
+    }
+
+    #[test]
+    fn test_tuple_with_reverse() {
+        type M = TupleMin<(i64, Reverse<i64>)>;
+        let identity = M::identity();
+        assert_eq!(identity, (i64::MAX, Reverse(i64::MIN)));
+
+        let a = (10, Reverse(100));
+        let b = (10, Reverse(200));
+        let c = (5, Reverse(50));
+
+        assert_eq!(M::binary_operation(&a, &b), (10, Reverse(200)));
+        assert_eq!(M::binary_operation(&a, &c), (5, Reverse(50)));
     }
 }
