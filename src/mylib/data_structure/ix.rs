@@ -1,52 +1,5 @@
 use cargo_snippet::snippet;
 
-/// C-like enum に対して `Ix` を実装するマクロです。
-/// `range` メソッド内で `unsafe` な変換を行っているため、
-/// 安全性のために対象 enum には `#[repr(usize)]` を付与することを推奨します。
-#[macro_export]
-macro_rules! impl_ix_for_enum {
-    ($t:ty) => {
-        impl Ix for $t {
-            fn range((l, r): (Self, Self)) -> impl Iterator<Item = Self> {
-                (l as usize..=r as usize).map(|i| unsafe {
-                    let ptr = &i as *const usize;
-                    ptr.cast::<Self>().read()
-                })
-            }
-
-            fn range_size((l, r): (Self, Self)) -> usize {
-                if l > r {
-                    0
-                } else {
-                    (r as usize) - (l as usize) + 1
-                }
-            }
-
-            fn to_index((l, r): (Self, Self), i: Self) -> usize {
-                if !Self::in_range((l, r), i) {
-                    panic!("index out of bounds");
-                }
-                (i as usize) - (l as usize)
-            }
-
-            fn from_index((l, r): (Self, Self), index: usize) -> Self {
-                if index >= Self::range_size((l, r)) {
-                    panic!("index out of range");
-                }
-                let val = l as usize + index;
-                unsafe {
-                    let ptr = &val as *const usize;
-                    ptr.cast::<Self>().read()
-                }
-            }
-
-            fn in_range((l, r): (Self, Self), i: Self) -> bool {
-                l <= i && i <= r
-            }
-        }
-    };
-}
-
 #[snippet(prefix = "use ix::*;")]
 #[allow(clippy::module_inception)]
 pub mod ix {
@@ -656,32 +609,7 @@ mod tests {
         assert_eq!(empty.range_size(), 0);
     }
 
-    // --- 3. Macros (Enum) ---
-
-    #[test]
-    fn test_ix_enum() {
-        #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
-        enum Color {
-            Red,
-            Green,
-            Blue,
-        }
-
-        impl_ix_for_enum!(Color);
-
-        let bounds: Bounds<Color> = Bounds::new(Color::Red, Color::Blue);
-        assert_eq!(bounds.range_size(), 3);
-        assert_eq!(bounds.to_index(Color::Red), 0);
-        assert_eq!(bounds.to_index(Color::Green), 1);
-        assert_eq!(bounds.to_index(Color::Blue), 2);
-
-        let range: Vec<_> = bounds.range().collect();
-        assert_eq!(range, vec![Color::Red, Color::Green, Color::Blue]);
-
-        assert_eq!(bounds.from_index(1), Color::Green);
-    }
-
-    // --- 4. Structures (IxVec, Bounds) ---
+    // --- 3. Structures (IxVec, Bounds) ---
 
     #[test]
     fn test_ix_vec() {
@@ -781,7 +709,7 @@ mod tests {
         assert_eq!(b5.from_index(3), (2, 2));
     }
 
-    // --- 5. Panic Tests (Error paths) ---
+    // --- 4. Panic Tests (Error paths) ---
 
     #[test]
     #[should_panic]
