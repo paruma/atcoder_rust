@@ -180,6 +180,26 @@ pub mod two_sequence_range_affine_range_sum_of_quadratic {
             self.apply_range_affine(range, 1.into(), 0.into(), c, d)
         }
 
+        /// 指定された区間 `range` に対して、`xs[i] ← xs[i] + b` の加算を適用します。
+        pub fn apply_range_add_x(&mut self, range: impl RangeBounds<usize>, b: T) {
+            self.apply_range_affine_x(range, 1.into(), b)
+        }
+
+        /// 指定された区間 `range` に対して、`xs[i] ← x` の更新を適用します。
+        pub fn apply_range_update_x(&mut self, range: impl RangeBounds<usize>, x: T) {
+            self.apply_range_affine_x(range, 0.into(), x)
+        }
+
+        /// 指定された区間 `range` に対して、`ys[i] ← ys[i] + d` の加算を適用します。
+        pub fn apply_range_add_y(&mut self, range: impl RangeBounds<usize>, d: T) {
+            self.apply_range_affine_y(range, 1.into(), d)
+        }
+
+        /// 指定された区間 `range` に対して、`ys[i] ← y` の更新を適用します。
+        pub fn apply_range_update_y(&mut self, range: impl RangeBounds<usize>, y: T) {
+            self.apply_range_affine_y(range, 0.into(), y)
+        }
+
         /// 指定された区間 `range` の `sum(xs[i] * ys[i])` を計算して返します。
         pub fn range_sum_xy(&mut self, range: impl RangeBounds<usize>) -> T {
             self.segtree.prod(range).sum_xy
@@ -311,14 +331,30 @@ mod test {
         assert_eq!(segtree.range_sum_y2(..), 441.into());
         assert_eq!(segtree.range_sum_xy(..), 125.into());
 
+        // apply_range_add_x
+        segtree.apply_range_add_x(0..1, 10.into()); // x[0]: 3 -> 13
+        assert_eq!(segtree.get(0), (13.into(), 4.into()));
+
+        // apply_range_update_x
+        segtree.apply_range_update_x(1..2, 100.into()); // x[1]: 5 -> 100
+        assert_eq!(segtree.get(1), (100.into(), 13.into()));
+
+        // apply_range_add_y
+        segtree.apply_range_add_y(2..3, 10.into()); // y[2]: 16 -> 26
+        assert_eq!(segtree.get(2), (3.into(), 26.into()));
+
+        // apply_range_update_y
+        segtree.apply_range_update_y(0..1, 50.into()); // y[0]: 4 -> 50
+        assert_eq!(segtree.get(0), (13.into(), 50.into()));
+
         // Check get and to_vec
-        assert_eq!(segtree.get(0), (3.into(), 4.into()));
-        assert_eq!(segtree.get(1), (5.into(), 13.into()));
-        assert_eq!(segtree.get(2), (3.into(), 16.into()));
+        assert_eq!(segtree.get(0), (13.into(), 50.into()));
+        assert_eq!(segtree.get(1), (100.into(), 13.into()));
+        assert_eq!(segtree.get(2), (3.into(), 26.into()));
 
         let (xs_vec, ys_vec) = segtree.to_vec();
-        assert_eq!(xs_vec, vec![Mint::new(3), Mint::new(5), Mint::new(3)]);
-        assert_eq!(ys_vec, vec![Mint::new(4), Mint::new(13), Mint::new(16)]);
+        assert_eq!(xs_vec, vec![Mint::new(13), Mint::new(100), Mint::new(3)]);
+        assert_eq!(ys_vec, vec![Mint::new(50), Mint::new(13), Mint::new(26)]);
     }
 
     #[ignore]
@@ -336,7 +372,7 @@ mod test {
                 TwoSequenceRangeAffineRangeSumOfQuadraticSegtree::<i64>::new(&naive_xs, &naive_ys);
 
             for _ in 0..50 {
-                let op_type = rng.random_range(0..12);
+                let op_type = rng.random_range(0..16);
 
                 match op_type {
                     0 => {
@@ -476,6 +512,46 @@ mod test {
                             l,
                             r
                         );
+                    }
+                    12 => {
+                        // apply_range_add_x
+                        let l = rng.random_range(0..=n);
+                        let r = rng.random_range(l..=n);
+                        let b = rng.random_range(-50..=50);
+                        for i in l..r {
+                            naive_xs[i] += b;
+                        }
+                        segtree.apply_range_add_x(l..r, b);
+                    }
+                    13 => {
+                        // apply_range_update_x
+                        let l = rng.random_range(0..=n);
+                        let r = rng.random_range(l..=n);
+                        let x = rng.random_range(-100..=100);
+                        for i in l..r {
+                            naive_xs[i] = x;
+                        }
+                        segtree.apply_range_update_x(l..r, x);
+                    }
+                    14 => {
+                        // apply_range_add_y
+                        let l = rng.random_range(0..=n);
+                        let r = rng.random_range(l..=n);
+                        let d = rng.random_range(-50..=50);
+                        for i in l..r {
+                            naive_ys[i] += d;
+                        }
+                        segtree.apply_range_add_y(l..r, d);
+                    }
+                    15 => {
+                        // apply_range_update_y
+                        let l = rng.random_range(0..=n);
+                        let r = rng.random_range(l..=n);
+                        let y = rng.random_range(-100..=100);
+                        for i in l..r {
+                            naive_ys[i] = y;
+                        }
+                        segtree.apply_range_update_y(l..r, y);
                     }
                     _ => unreachable!(),
                 }
