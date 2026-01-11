@@ -23,7 +23,7 @@ pub mod range_max_segtree {
     impl<T> RangeMaxSegtree<T>
     where
         TupleMax<T>: Monoid<S = T>,
-        T: Copy,
+        T: Copy + Ord,
     {
         /// 配列からセグメント木を構築する
         pub fn new(xs: &[T]) -> Self {
@@ -75,6 +75,12 @@ pub mod range_max_segtree {
             self.segtree.min_left(r, f)
         }
 
+        /// p 番目の要素を max(current, x) に更新する
+        pub fn chmax(&mut self, p: usize, x: T) {
+            let current = self.get(p);
+            self.set(p, std::cmp::max(current, x));
+        }
+
         /// 現在の状態を Vec として返す
         pub fn to_vec(&self) -> Vec<T> {
             (0..self.len).map(|i| self.get(i)).collect_vec()
@@ -97,6 +103,11 @@ mod tests {
         assert_eq!(seg.all_max(), 5);
         assert_eq!(seg.get(5), 0);
         assert_eq!(seg.to_vec(), vec![3, 1, 4, 1, 5, 0, 2]);
+
+        seg.chmax(0, 5);
+        assert_eq!(seg.get(0), 5);
+        seg.chmax(0, 1);
+        assert_eq!(seg.get(0), 5);
     }
 
     #[test]

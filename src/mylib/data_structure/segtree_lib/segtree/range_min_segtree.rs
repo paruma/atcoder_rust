@@ -23,7 +23,7 @@ pub mod range_min_segtree {
     impl<T> RangeMinSegtree<T>
     where
         TupleMin<T>: Monoid<S = T>,
-        T: Copy,
+        T: Copy + Ord,
     {
         /// 配列からセグメント木を構築する
         pub fn new(xs: &[T]) -> Self {
@@ -75,6 +75,12 @@ pub mod range_min_segtree {
             self.segtree.min_left(r, f)
         }
 
+        /// p 番目の要素を min(current, x) に更新する
+        pub fn chmin(&mut self, p: usize, x: T) {
+            let current = self.get(p);
+            self.set(p, std::cmp::min(current, x));
+        }
+
         /// 現在の状態を Vec として返す
         pub fn to_vec(&self) -> Vec<T> {
             (0..self.len).map(|i| self.get(i)).collect_vec()
@@ -97,6 +103,11 @@ mod tests {
         assert_eq!(seg.range_min(0..3), 3);
         assert_eq!(seg.get(1), 10);
         assert_eq!(seg.to_vec(), vec![3, 10, 4, 1, 5, 9, 2]);
+
+        seg.chmin(0, 1);
+        assert_eq!(seg.get(0), 1);
+        seg.chmin(0, 5);
+        assert_eq!(seg.get(0), 1);
     }
 
     #[test]
