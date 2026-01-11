@@ -136,6 +136,28 @@ pub mod range_update_range_prod {
             self.segtree.apply_range(range, Some(x))
         }
 
+        /// 左端 `l` を固定し、区間 `[l, r)` での総積が述語 `g` を満たすような最大の `r` を返します。
+        ///
+        /// # 計算量
+        /// - $O(\log N)$
+        pub fn max_right<G>(&mut self, l: usize, g: G) -> usize
+        where
+            G: Fn(T) -> bool,
+        {
+            self.segtree.max_right(l, |x| g(x.prod))
+        }
+
+        /// 右端 `r` を固定し、区間 `[l, r)` での総積が述語 `g` を満たすような最小の `l` を返します。
+        ///
+        /// # 計算量
+        /// - $O(\log N)$
+        pub fn min_left<G>(&mut self, r: usize, g: G) -> usize
+        where
+            G: Fn(T) -> bool,
+        {
+            self.segtree.min_left(r, |x| g(x.prod))
+        }
+
         pub fn to_vec(&mut self) -> Vec<T> {
             (0..self.len).map(|i| self.get(i)).collect_vec()
         }
@@ -289,6 +311,14 @@ pub mod test_range_update_range_prod {
             vec![Mint::new(10), Mint::new(10), Mint::new(10)]
         );
         assert_eq!(segtree.range_prod(0..2), Mint::new(100));
+    }
+
+    #[test]
+    fn test_max_right_min_left() {
+        let xs = vec![2, 2, 2, 2, 2];
+        let mut segtree = RangeUpdateRangeProdSegtree::<i64>::new(&xs);
+        assert_eq!(segtree.max_right(0, |p| p <= 8), 3);
+        assert_eq!(segtree.min_left(5, |p| p <= 4), 3);
     }
 
     #[ignore]

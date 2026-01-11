@@ -114,6 +114,28 @@ pub mod range_add_range_sum {
             self.segtree.apply_range(range, x)
         }
 
+        /// 左端 `l` を固定し、区間 `[l, r)` での総和が述語 `g` を満たすような最大の `r` を返します。
+        ///
+        /// # 計算量
+        /// - $O(\log N)$
+        pub fn max_right<G>(&mut self, l: usize, g: G) -> usize
+        where
+            G: Fn(T) -> bool,
+        {
+            self.segtree.max_right(l, |x| g(x.sum))
+        }
+
+        /// 右端 `r` を固定し、区間 `[l, r)` での総和が述語 `g` を満たすような最小の `l` を返します。
+        ///
+        /// # 計算量
+        /// - $O(\log N)$
+        pub fn min_left<G>(&mut self, r: usize, g: G) -> usize
+        where
+            G: Fn(T) -> bool,
+        {
+            self.segtree.min_left(r, |x| g(x.sum))
+        }
+
         pub fn to_vec(&mut self) -> Vec<T> {
             (0..self.len).map(|i| self.get(i)).collect_vec()
         }
@@ -203,6 +225,27 @@ pub mod test_range_add_range_sum {
             segtree.to_vec(),
             vec![Mint::new(2), Mint::new(3), Mint::new(4)]
         );
+    }
+
+    #[test]
+    fn test_max_right_min_left() {
+        // [1, 1, 1, 1, 1]
+        let xs = vec![1, 1, 1, 1, 1];
+        let mut segtree = RangeAddRangeSumSegtree::<i64>::new(&xs);
+
+        // max_right: 左端 0 から、和が 3 以下である最大の右端
+        // sum(0..1)=1, sum(0..2)=2, sum(0..3)=3, sum(0..4)=4 (NG)
+        // -> 右端は 3
+        assert_eq!(segtree.max_right(0, |s| s <= 3), 3);
+        assert_eq!(segtree.max_right(0, |s| s <= 0), 0);
+        assert_eq!(segtree.max_right(0, |s| s < 10), 5);
+
+        // min_left: 右端 5 から、和が 3 以下である最小の左端
+        // sum(4..5)=1, sum(3..5)=2, sum(2..5)=3, sum(1..5)=4 (NG)
+        // -> 左端は 2
+        assert_eq!(segtree.min_left(5, |s| s <= 3), 2);
+        assert_eq!(segtree.min_left(5, |s| s <= 0), 5);
+        assert_eq!(segtree.min_left(5, |s| s < 10), 0);
     }
 
     #[ignore]

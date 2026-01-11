@@ -1,7 +1,10 @@
 use cargo_snippet::snippet;
 
 #[snippet]
-pub fn segtree_to_vec<M: ac_library::Monoid>(seg: &ac_library::Segtree<M>, len: usize) -> Vec<M::S> {
+pub fn segtree_to_vec<M: ac_library::Monoid>(
+    seg: &ac_library::Segtree<M>,
+    len: usize,
+) -> Vec<M::S> {
     (0..len).map(|i| seg.get(i)).collect()
 }
 
@@ -39,8 +42,8 @@ pub mod monoid_template {
 
 #[cfg(test)]
 mod test_segtree_to_vec {
-    use ac_library::{Additive, Segtree};
     use super::segtree_to_vec;
+    use ac_library::{Additive, Segtree};
 
     #[test]
     fn test_segtree_to_vec() {
@@ -51,8 +54,8 @@ mod test_segtree_to_vec {
 
 #[cfg(test)]
 mod test_monoid_template {
-    use ac_library::Monoid;
     use super::monoid_template::*;
+    use ac_library::Monoid;
 
     #[test]
     fn test_map_monoid_template() {

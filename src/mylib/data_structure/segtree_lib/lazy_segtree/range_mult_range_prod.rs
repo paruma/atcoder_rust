@@ -133,6 +133,28 @@ pub mod range_mult_range_prod {
             self.segtree.apply_range(range, x)
         }
 
+        /// 左端 `l` を固定し、区間 `[l, r)` での総積が述語 `g` を満たすような最大の `r` を返します。
+        ///
+        /// # 計算量
+        /// - $O(\log N)$
+        pub fn max_right<G>(&mut self, l: usize, g: G) -> usize
+        where
+            G: Fn(T) -> bool,
+        {
+            self.segtree.max_right(l, |x| g(x.prod))
+        }
+
+        /// 右端 `r` を固定し、区間 `[l, r)` での総積が述語 `g` を満たすような最小の `l` を返します。
+        ///
+        /// # 計算量
+        /// - $O(\log N)$
+        pub fn min_left<G>(&mut self, r: usize, g: G) -> usize
+        where
+            G: Fn(T) -> bool,
+        {
+            self.segtree.min_left(r, |x| g(x.prod))
+        }
+
         pub fn to_vec(&mut self) -> Vec<T> {
             (0..self.len).map(|i| self.get(i)).collect_vec()
         }
@@ -286,6 +308,16 @@ pub mod test_range_mult_range_prod {
             vec![Mint::new(10), Mint::new(20), Mint::new(30)]
         );
         assert_eq!(segtree.range_prod(0..2), Mint::new(200)); // 10 * 20
+    }
+
+    #[test]
+    fn test_max_right_min_left() {
+        let xs = vec![2, 2, 2, 2, 2];
+        let mut segtree = RangeMultRangeProdSegtree::<i64>::new(&xs);
+        // max_right: [0, r) で積が 8 以下の最大の r (2*2*2=8)
+        assert_eq!(segtree.max_right(0, |p| p <= 8), 3);
+        // min_left: [l, 5) で積が 4 以下の最小の l (2*2=4)
+        assert_eq!(segtree.min_left(5, |p| p <= 4), 3);
     }
 
     #[ignore]

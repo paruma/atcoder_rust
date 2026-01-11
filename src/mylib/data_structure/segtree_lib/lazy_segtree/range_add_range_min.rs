@@ -129,6 +129,28 @@ pub mod range_add_range_min {
             self.segtree.apply_range(range, AddAction::new(x))
         }
 
+        /// 左端 `l` を固定し、区間 `[l, r)` での最小値が述語 `g` を満たすような最大の `r` を返します。
+        ///
+        /// # 計算量
+        /// - $O(\log N)$
+        pub fn max_right<G>(&mut self, l: usize, g: G) -> usize
+        where
+            G: Fn(T) -> bool,
+        {
+            self.segtree.max_right(l, g)
+        }
+
+        /// 右端 `r` を固定し、区間 `[l, r)` での最小値が述語 `g` を満たすような最小の `l` を返します。
+        ///
+        /// # 計算量
+        /// - $O(\log N)$
+        pub fn min_left<G>(&mut self, r: usize, g: G) -> usize
+        where
+            G: Fn(T) -> bool,
+        {
+            self.segtree.min_left(r, g)
+        }
+
         pub fn to_vec(&mut self) -> Vec<T> {
             (0..self.len).map(|i| self.get(i)).collect_vec()
         }
@@ -180,6 +202,19 @@ pub mod test_range_add_range_min {
         assert_eq!(segtree.all_min(), 10);
         segtree.apply_range_add(0..5, -5);
         assert_eq!(segtree.all_min(), 5);
+    }
+
+    #[test]
+    fn test_max_right_min_left() {
+        let xs = vec![5, 4, 3, 2, 1];
+        let mut segtree = RangeAddRangeMinSegtree::<i64>::new(&xs);
+        // max_right: [0, r) で min が 3 以上の最大の r
+        assert_eq!(segtree.max_right(0, |m| m >= 3), 3);
+        // min_left: [l, 5) で min が 3 以上の最小の l (identity i64::MAX >= 3 は true)
+        // [2, 1] は 3 以上ではないので、l=5, 4, 3... と見ていって止まる
+        assert_eq!(segtree.min_left(5, |m| m >= 3), 5);
+        // [0..3] min=3 (true) なので、右端 3 から左へなら 0 までいける
+        assert_eq!(segtree.min_left(3, |m| m >= 3), 0);
     }
 
     #[test]

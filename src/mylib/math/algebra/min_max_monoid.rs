@@ -35,7 +35,9 @@ pub mod min_max_monoid {
         };
     }
 
-    impl_bounded!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize);
+    impl_bounded!(
+        i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize
+    );
 
     impl<T: BoundedAbove> BoundedBelow for std::cmp::Reverse<T> {
         #[inline]

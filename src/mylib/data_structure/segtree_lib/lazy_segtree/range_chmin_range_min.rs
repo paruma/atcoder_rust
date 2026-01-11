@@ -73,6 +73,28 @@ pub mod range_chmin_range_min {
             self.segtree.apply_range(range, x)
         }
 
+        /// 左端 `l` を固定し、区間 `[l, r)` での最小値が述語 `g` を満たすような最大の `r` を返します。
+        ///
+        /// # 計算量
+        /// - $O(\log N)$
+        pub fn max_right<G>(&mut self, l: usize, g: G) -> usize
+        where
+            G: Fn(i64) -> bool,
+        {
+            self.segtree.max_right(l, g)
+        }
+
+        /// 右端 `r` を固定し、区間 `[l, r)` での最小値が述語 `g` を満たすような最小の `l` を返します。
+        ///
+        /// # 計算量
+        /// - $O(\log N)$
+        pub fn min_left<G>(&mut self, r: usize, g: G) -> usize
+        where
+            G: Fn(i64) -> bool,
+        {
+            self.segtree.min_left(r, g)
+        }
+
         pub fn to_vec(&mut self) -> Vec<i64> {
             (0..self.len).map(|i| self.get(i)).collect_vec()
         }
@@ -138,6 +160,15 @@ pub mod test_range_chmin_range_min {
         assert_eq!(segtree.to_vec(), vec![10, 20, 25, 25, 25]);
         segtree.apply_range_chmin(0..3, 5);
         assert_eq!(segtree.to_vec(), vec![5, 5, 5, 25, 25]);
+    }
+
+    #[test]
+    fn test_max_right_min_left() {
+        let xs = vec![5, 4, 3, 2, 1];
+        let mut segtree = RangeChminRangeMinSegtree::new(&xs);
+        assert_eq!(segtree.max_right(0, |m| m >= 3), 3);
+        assert_eq!(segtree.min_left(5, |m| m >= 3), 5);
+        assert_eq!(segtree.min_left(3, |m| m >= 3), 0);
     }
 
     #[test]

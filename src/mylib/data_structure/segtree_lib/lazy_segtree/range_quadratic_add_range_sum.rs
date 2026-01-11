@@ -170,6 +170,28 @@ pub mod range_quadratic_add_range_sum {
             self.segtree.apply_range(range, quad);
         }
 
+        /// 左端 `l` を固定し、区間 `[l, r)` での総和が述語 `g` を満たすような最大の `r` を返します。
+        ///
+        /// # 計算量
+        /// - $O(\log N)$
+        pub fn max_right<G>(&mut self, l: usize, g: G) -> usize
+        where
+            G: Fn(T) -> bool,
+        {
+            self.segtree.max_right(l, |x| g(x.sum))
+        }
+
+        /// 右端 `r` を固定し、区間 `[l, r)` での総和が述語 `g` を満たすような最小の `l` を返します。
+        ///
+        /// # 計算量
+        /// - $O(\log N)$
+        pub fn min_left<G>(&mut self, r: usize, g: G) -> usize
+        where
+            G: Fn(T) -> bool,
+        {
+            self.segtree.min_left(r, |x| g(x.sum))
+        }
+
         pub fn to_vec(&mut self) -> Vec<T> {
             (0..self.len).map(|i| self.get(i)).collect_vec()
         }
@@ -292,6 +314,14 @@ pub mod test_range_quadratic_add_range_sum {
         // i=3: 13 + 10 + (-2)*(3-1) + 1*(3-1)^2 = 13 + 10 - 4 + 4 = 23
         segtree.apply_range_quadratic_add(1..4, 10, -2, 1);
         assert_eq!(segtree.to_vec(), vec![1, 13, 16, 23, 21]);
+    }
+
+    #[test]
+    fn test_max_right_min_left() {
+        let xs = vec![1, 1, 1, 1, 1];
+        let mut segtree = RangeQuadraticAddRangeSumSegtree::<i64>::new(&xs);
+        assert_eq!(segtree.max_right(0, |s| s <= 3), 3);
+        assert_eq!(segtree.min_left(5, |s| s <= 3), 2);
     }
 
     #[ignore]
