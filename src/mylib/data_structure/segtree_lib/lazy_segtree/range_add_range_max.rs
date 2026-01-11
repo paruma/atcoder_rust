@@ -211,7 +211,7 @@ pub mod test_range_add_range_max {
         // max_right: [0, r) で max が 3 以下の最大の r
         assert_eq!(segtree.max_right(0, |m| m <= 3), 3);
         // min_left: [l, 5) で max が 3 以下の最小の l (identity i64::MIN <= 3 は true)
-        // [4, 5] は 3 以下ではないので、l=5, 4, 3... と見ていって l=5, 4 で止まる？ 
+        // [4, 5] は 3 以下ではないので、l=5, 4, 3... と見ていって l=5, 4 で止まる？
         // 実際には [4, 5] の max は 5 なので g(5) <= 3 は false。
         // 右端 5 から左へ: [4..5] max=5 (false), なので 5。
         assert_eq!(segtree.min_left(5, |m| m <= 3), 5);

@@ -12,6 +12,14 @@ pub mod rolling_hash {
         rng.random_range(2..Mint::modulus() as i64)
     }
 
+    /// 数列 `xs` 全体のハッシュ値を計算します。
+    pub fn single_rolling_hash(xs: &[i64], base: i64) -> u64 {
+        let base = Mint::new(base);
+        xs.iter()
+            .fold(Mint::new(0), |acc, &x| acc * base + Mint::new(x))
+            .val()
+    }
+
     #[derive(Clone, Debug)]
     pub struct RollingHash {
         hash_list: Vec<Mint>, // hash_list[i] = xs[0..i] のハッシュ値
@@ -147,7 +155,12 @@ pub mod monoid_rolling_hash {
     }
 }
 
-/// 2次元ローリングハッシュ
+/// 2次元ローリングハッシュ。
+///
+/// 2次元グリッド $X$ の各要素 $X_{i,j}$ に対し、2つの基数 $B_0, B_1$ を用いてハッシュ値を以下のように定義します：
+/// $H(X) = \sum_{i=0}^{H-1} \sum_{j=0}^{W-1} X_{i,j} B_0^{H-1-i} B_1^{W-1-j} \pmod M$
+///
+/// 構築に $O(HW)$、任意の矩形領域のハッシュ値取得を $O(1)$ で行います。
 #[snippet(prefix = "use rolling_hash_2d::*;", include = "modint_u64")]
 pub mod rolling_hash_2d {
 
@@ -157,6 +170,20 @@ pub mod rolling_hash_2d {
         use rand::{Rng, SeedableRng, rngs::SmallRng};
         let mut rng = SmallRng::from_os_rng();
         rng.random_range(2..Mint::modulus() as i64)
+    }
+
+    /// 2次元数列 `xss` 全体のハッシュ値を計算します。
+    pub fn single_rolling_hash(xss: &[Vec<i64>], base0: i64, base1: i64) -> u64 {
+        let b0 = Mint::new(base0);
+        let b1 = Mint::new(base1);
+        xss.iter()
+            .fold(Mint::new(0), |acc_y, row| {
+                let row_hash = row
+                    .iter()
+                    .fold(Mint::new(0), |acc_x, &x| acc_x * b1 + Mint::new(x));
+                acc_y * b0 + row_hash
+            })
+            .val()
     }
 
     #[derive(Clone, Debug)]
@@ -250,6 +277,13 @@ mod tests_rolling_hash {
     }
 
     #[test]
+    fn test_single_rolling_hash() {
+        let xs = vec![1, 2, 3];
+        let base = 100;
+        assert_eq!(single_rolling_hash(&xs, base), 10203);
+    }
+
+    #[test]
     fn test_rolling_hash_empty() {
         let hash = RollingHash::new(&[], 100);
 
@@ -329,6 +363,12 @@ mod tests_rolling_hash_2d {
         let base1 = generate_random_base();
 
         let rh = RollingHash2D::new(&grid, base0, base1);
+
+        // single_rolling_hash の結果が全体範囲のハッシュと一致することを確認
+        assert_eq!(
+            single_rolling_hash(&grid, base0, base1),
+            rh.hash(0, 4, 0, 4)
+        );
 
         // (0,0) から 2x3 の領域
         let hash1 = rh.hash(0, 2, 0, 3);
