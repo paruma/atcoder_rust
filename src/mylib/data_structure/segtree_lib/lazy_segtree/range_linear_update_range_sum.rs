@@ -163,7 +163,7 @@ pub mod range_linear_update_range_sum {
         /// 左端 `l` を固定し、区間 `[l, r)` での総和が述語 `g` を満たすような最大の `r` を返します。
         ///
         /// # 計算量
-        /// - $O(\log N)$
+        /// O(log N)
         pub fn max_right<G>(&mut self, l: usize, g: G) -> usize
         where
             G: Fn(T) -> bool,
@@ -174,7 +174,7 @@ pub mod range_linear_update_range_sum {
         /// 右端 `r` を固定し、区間 `[l, r)` での総和が述語 `g` を満たすような最小の `l` を返します。
         ///
         /// # 計算量
-        /// - $O(\log N)$
+        /// O(log N)
         pub fn min_left<G>(&mut self, r: usize, g: G) -> usize
         where
             G: Fn(T) -> bool,

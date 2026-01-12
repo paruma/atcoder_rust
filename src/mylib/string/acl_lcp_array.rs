@@ -4,6 +4,7 @@ use cargo_snippet::snippet;
 #[allow(clippy::module_inception)]
 pub mod acl_lcp_array {
     use ac_library::{Min, Segtree, lcp_array_arbitrary, suffix_array_arbitrary};
+    use std::cmp::Ordering;
 
     /// 文字列内の部分文字列の LCP および辞書順比較を効率的に処理する。
     pub struct SubstringLcpQuery {
@@ -14,7 +15,9 @@ pub mod acl_lcp_array {
 
     impl SubstringLcpQuery {
         /// 部分文字列の LCP 計算や辞書順比較を行うためのデータ構造を構築する。
-        /// 計算量: O(N log N)
+        ///
+        /// # 計算量
+        /// O(N log N)
         pub fn new<T: Ord + Clone>(s: &[T]) -> Self {
             let n = s.len();
             assert!(n >= 1, "文字列の長さは 1 以上である必要があります。");
@@ -31,6 +34,9 @@ pub mod acl_lcp_array {
         }
 
         /// s[i..] と s[j..] の LCP を返す
+        ///
+        /// # 計算量
+        /// O(log N)
         pub fn lcp_suffix(&self, i: usize, j: usize) -> usize {
             assert!(i <= self.n && j <= self.n);
             if i == self.n || j == self.n {
@@ -46,6 +52,9 @@ pub mod acl_lcp_array {
         }
 
         /// s[begin1..end1] と s[begin2..end2] の LCP を返す
+        ///
+        /// # 計算量
+        /// O(log N)
         pub fn lcp_substring(
             &self,
             begin1: usize,
@@ -58,24 +67,27 @@ pub mod acl_lcp_array {
         }
 
         /// s[begin1..end1] と s[begin2..end2] の辞書順比較を行う
+        ///
+        /// # 計算量
+        /// O(log N)
         pub fn compare_substring(
             &self,
             begin1: usize,
             end1: usize,
             begin2: usize,
             end2: usize,
-        ) -> std::cmp::Ordering {
+        ) -> Ordering {
             let len1 = end1 - begin1;
             let len2 = end2 - begin2;
             let l = self.lcp_substring(begin1, end1, begin2, end2);
             if l == len1 && l == len2 {
-                return std::cmp::Ordering::Equal;
+                return Ordering::Equal;
             }
             if l == len1 {
-                return std::cmp::Ordering::Less;
+                return Ordering::Less;
             }
             if l == len2 {
-                return std::cmp::Ordering::Greater;
+                return Ordering::Greater;
             }
             self.rank[begin1 + l].cmp(&self.rank[begin2 + l])
         }
