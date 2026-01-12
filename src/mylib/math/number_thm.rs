@@ -3,6 +3,9 @@ use cargo_snippet::snippet;
 use std::collections::HashMap;
 
 #[snippet]
+/// n の正の約数を列挙する。
+///
+/// # 計算量
 /// O(sqrt(n))
 pub fn divisors(n: i64) -> Vec<i64> {
     use num::Integer;
@@ -23,6 +26,7 @@ pub fn divisors(n: i64) -> Vec<i64> {
 }
 
 #[snippet]
+/// n が素数かどうか判定する
 ///
 /// # 計算量
 /// O(sqrt(n))
@@ -42,6 +46,7 @@ pub fn is_prime(n: i64) -> bool {
 }
 
 #[snippet]
+/// n を素因数分解する。key を素数、value をその素数の指数とした HashMap を返す。
 ///
 /// # 計算量
 /// O(sqrt(n))
@@ -70,6 +75,7 @@ pub fn prime_factorize(n: i64) -> HashMap<i64, i64> {
 }
 
 #[snippet(include = "prime_factorize")]
+/// 0 から n - 1 までの数で n と互いに素とになる個数を求める(オイラーのトーシェント関数)
 ///
 /// # 計算量
 /// O(sqrt(n))
@@ -123,6 +129,7 @@ pub mod eratosthenes_sieve {
             }
         }
 
+        /// n が素数かどうか判定する
         ///
         /// # 計算量
         /// O(1)
@@ -130,6 +137,7 @@ pub mod eratosthenes_sieve {
             self.is_prime_list[n]
         }
 
+        /// n を素因数分解する。key を素数、value をその素数の指数とした HashMap を返す。
         ///
         /// # 計算量
         /// O(log n)
@@ -149,6 +157,7 @@ pub mod eratosthenes_sieve {
             cnt_table
         }
 
+        /// n の正の約数を列挙する
         ///
         /// # 計算量
         /// O(nの約数の個数)

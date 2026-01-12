@@ -2,7 +2,9 @@ use cargo_snippet::snippet;
 #[allow(clippy::module_inception)]
 #[snippet(prefix = "use symmetric_group::*;")]
 pub mod symmetric_group {
-    /// 置換を巡回置換の積で表す
+    /// 置換を巡回置換の積で表したときの巡回置換のリストを返す。
+    ///
+    /// 例: `make_cycles(&[1, 0, 3, 2]) == vec![vec![0, 1], vec![2, 3]]`
     ///
     /// # 計算量
     /// O(N)

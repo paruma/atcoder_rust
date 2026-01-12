@@ -1,6 +1,9 @@
 use cargo_snippet::snippet;
 #[snippet(prefix = "use mod_combinatorics::*;")]
 pub mod i64_combinatorics {
+    /// 組み合わせ nCk を計算する。
+    ///
+    /// 計算量: O(k)
     pub fn comb(n: i64, k: i64) -> i64 {
         if n < 0 || k < 0 || n < k {
             return 0;
@@ -9,6 +12,9 @@ pub mod i64_combinatorics {
         (1..=k).fold(1, |acc, i| acc * (n - i + 1) / i)
     }
 
+    /// 順列 nPk を計算する。
+    ///
+    /// 計算量: O(k)
     pub fn perm(n: i64, k: i64) -> i64 {
         if n < 0 || k < 0 || n < k {
             return 0;
@@ -16,6 +22,9 @@ pub mod i64_combinatorics {
         (n - k + 1..=n).product::<i64>()
     }
 
+    /// 階乗 n! を計算する。
+    ///
+    /// 計算量: O(n)
     pub fn factorial(n: i64) -> i64 {
         if n < 0 {
             return 0;
@@ -34,6 +43,9 @@ pub mod mod_combinatorics {
     }
 
     impl<Mint: ModIntBase> Comb<Mint> {
+        /// 階乗とその逆元を `max_val` まで前計算する。
+        ///
+        /// 計算量: O(max_val)
         pub fn new(max_val: usize) -> Self {
             let mut inv = vec![Mint::new(0); max_val + 1];
             let mut fac = vec![Mint::new(0); max_val + 1];
