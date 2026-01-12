@@ -155,13 +155,13 @@ pub mod monoid_rolling_hash {
     }
 }
 
+#[snippet(prefix = "use rolling_hash_2d::*;", include = "modint_u64")]
 /// 2次元ローリングハッシュ。
 ///
 /// 2次元グリッド $X$ の各要素 $X_{i,j}$ に対し、2つの基数 $B_0, B_1$ を用いてハッシュ値を以下のように定義します：
 /// $H(X) = \sum_{i=0}^{H-1} \sum_{j=0}^{W-1} X_{i,j} B_0^{H-1-i} B_1^{W-1-j} \pmod M$
 ///
 /// 構築に $O(HW)$、任意の矩形領域のハッシュ値取得を $O(1)$ で行います。
-#[snippet(prefix = "use rolling_hash_2d::*;", include = "modint_u64")]
 pub mod rolling_hash_2d {
 
     type Mint = super::ModInt2305843009213693951;

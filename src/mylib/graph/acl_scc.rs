@@ -29,10 +29,11 @@ pub mod acl_scc {
 
         /// SCC を実行し、結果を保持する `CondensationGraph` を返す
         ///
-        /// 計算量: O(V + E)
-        ///
         /// # Returns
         /// SCC の結果を含む `CondensationGraph`
+        ///
+        /// # 計算量
+        /// O(V + E)
         pub fn scc(self) -> CondensationGraph {
             let mut scc_graph = ac_library::SccGraph::new(self.nv);
             for &(u, v) in &self.edges {
@@ -75,6 +76,9 @@ pub mod acl_scc {
         ///
         /// # Returns
         /// 戻り値を `v_to_g` としたとき、`v_to_g[v]` は頂点 `v` が属するグループのインデックス
+        ///
+        /// # 計算量
+        /// O(V)
         pub fn vertex_to_group(&self) -> Vec<usize> {
             let mut v_to_g = vec![0; self.original_nv];
             for (i, group) in self.groups.iter().enumerate() {
@@ -89,6 +93,9 @@ pub mod acl_scc {
         ///
         /// # Returns
         /// 縮約後の頂点 (グループID) 間の辺のリスト
+        ///
+        /// # 計算量
+        /// O(V + E log E)
         pub fn condensation_edges(&self) -> Vec<(usize, usize)> {
             let v_to_g = self.vertex_to_group();
             let mut edges = vec![];
@@ -108,6 +115,9 @@ pub mod acl_scc {
         ///
         /// # Returns
         /// 縮約後の頂点 (グループID) をインデックスとする隣接リスト
+        ///
+        /// # 計算量
+        /// O(V + E log E)
         pub fn condensation_adj(&self) -> Vec<Vec<usize>> {
             let mut adj = vec![vec![]; self.group_count()];
             for (u_g, v_group) in self.condensation_edges() {

@@ -2,13 +2,17 @@ use cargo_snippet::snippet;
 
 use crate::data_structure::queue::mod_queue::Queue;
 
+#[snippet(include = "mod_queue")]
 /// 木の直径を求める(直径の長さと直径を構成する頂点のリストを返す)
 ///
-/// edges: 辺の情報 (頂点, 頂点, コスト) のリスト
+/// # Arguments
+/// * `edges` - 辺の情報 (頂点, 頂点, コスト) のリスト
+///
+/// # Returns
+/// `(直径の長さ, 直径を構成する頂点のリスト)`
 ///
 /// # 計算量
-/// O(n) (n が頂点の数のとき)
-#[snippet(include = "mod_queue")]
+/// O(V) (V は頂点数)
 pub fn tree_diameter(edges: &[(usize, usize, i64)]) -> (i64, Vec<usize>) {
     let nv = edges.len() + 1;
     let adj = edges
@@ -65,6 +69,16 @@ pub fn tree_diameter(edges: &[(usize, usize, i64)]) -> (i64, Vec<usize>) {
 }
 
 #[snippet(include = "tree_diameter")]
+/// 重みなし木の直径を求める(直径の長さと直径を構成する頂点のリストを返す)
+///
+/// # Arguments
+/// * `edges` - 辺の情報 (頂点, 頂点) のリスト
+///
+/// # Returns
+/// `(直径の長さ, 直径を構成する頂点のリスト)`
+///
+/// # 計算量
+/// O(V) (V は頂点数)
 pub fn tree_diameter_no_weight(edges: &[(usize, usize)]) -> (i64, Vec<usize>) {
     let edges: Vec<(usize, usize, i64)> = edges.iter().copied().map(|(u, v)| (u, v, 1)).collect();
 

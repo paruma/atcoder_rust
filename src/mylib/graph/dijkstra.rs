@@ -7,10 +7,12 @@ pub mod dijkstra {
     use std::cmp::Reverse;
     use std::collections::BinaryHeap;
 
-    /// ダイクストラ法の結果（距離と復元情報）
+    /// ダイクストラ法の実行結果（最短距離と経路復元情報）を保持する構造体です。
     #[derive(Clone, Debug)]
     pub struct DijkstraResult {
+        /// 各頂点への最短距離です。到達不可能な場合は `None` となります。
         pub dist: Vec<Option<i64>>,
+        /// 経路復元用の親頂点インデックスです。
         pub prev: Vec<Option<usize>>,
     }
 
@@ -19,6 +21,9 @@ pub mod dijkstra {
         ///
         /// # Returns
         /// 始点から `t` までの頂点列。`t` に到達不可能な場合は `None`。
+        ///
+        /// # 計算量
+        /// O(経路の長さ)
         pub fn restore(&self, t: usize) -> Option<Vec<usize>> {
             self.dist[t]?;
             let mut path: Vec<_> =
@@ -28,7 +33,7 @@ pub mod dijkstra {
         }
     }
 
-    /// 標準的なダイクストラ法
+    /// 非負コストの辺のみで構成されるグラフに対して、ダイクストラ法を用いて最短距離を求めます。
     ///
     /// # Arguments
     /// * `nv` - 頂点数
@@ -37,6 +42,9 @@ pub mod dijkstra {
     ///
     /// # Returns
     /// 始点集合 `init` からの最短距離を格納した `Vec<Option<i64>>`。到達不可能な頂点は `None`。
+    ///
+    /// # 計算量
+    /// O(V + E log V)
     pub fn dijkstra<F, It>(
         nv: usize,
         mut adj: F,
@@ -70,7 +78,7 @@ pub mod dijkstra {
         dist
     }
 
-    /// 経路復元可能なダイクストラ法
+    /// 経路復元が可能なダイクストラ法を実行します。
     ///
     /// # Arguments
     /// * `nv` - 頂点数
@@ -79,6 +87,9 @@ pub mod dijkstra {
     ///
     /// # Returns
     /// 最短距離 `dist` と、復元用配列 `prev` を含む `DijkstraResult`。
+    ///
+    /// # 計算量
+    /// O(V + E log V)
     pub fn dijkstra_with_restore<F, It>(
         nv: usize,
         mut adj: F,
@@ -123,7 +134,9 @@ pub mod dijkstra_ix {
     /// ダイクストラ法の結果（Ix版）
     #[derive(Clone, Debug)]
     pub struct DijkstraIxResult<I: Ix> {
+        /// 各頂点への最短距離です。
         pub dist: IxVec<I, Option<i64>>,
+        /// 経路復元用の親頂点情報です。
         pub prev: IxVec<I, Option<I>>,
     }
 
@@ -132,6 +145,9 @@ pub mod dijkstra_ix {
         ///
         /// # Returns
         /// 始点から `t` までの頂点列。`t` に到達不可能な場合は `None`。
+        ///
+        /// # 計算量
+        /// O(経路の長さ)
         pub fn restore(&self, t: I) -> Option<Vec<I>> {
             self.dist[t]?;
             let mut path: Vec<_> =
@@ -150,6 +166,9 @@ pub mod dijkstra_ix {
     ///
     /// # Returns
     /// 始点集合 `init` からの最短距離を格納した `IxVec<I, Option<i64>>`。
+    ///
+    /// # 計算量
+    /// O(V + E log V)
     pub fn dijkstra_arbitrary<I, F, It>(
         bounds: Bounds<I>,
         mut adj: F,
@@ -181,6 +200,9 @@ pub mod dijkstra_ix {
     ///
     /// # Returns
     /// 最短距離 `dist` と、復元用配列 `prev` を含む `DijkstraIxResult`。
+    ///
+    /// # 計算量
+    /// O(V + E log V)
     pub fn dijkstra_with_restore_arbitrary<I, F, It>(
         bounds: Bounds<I>,
         mut adj: F,

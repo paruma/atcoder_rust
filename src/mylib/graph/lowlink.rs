@@ -6,7 +6,8 @@ use cargo_snippet::snippet;
 pub mod lowlink {
     /// LowLink (無向グラフの橋、関節点の検出)
     ///
-    /// 計算量: O(V + E)
+    /// # 計算量
+    /// O(V + E)
     #[derive(Clone, Debug)]
     pub struct LowLink {
         /// 各頂点の訪問順序 (0-indexed)
@@ -26,6 +27,9 @@ pub mod lowlink {
         /// * `nv` - 頂点数
         /// * `adj_fn` - 頂点を受け取り、隣接する頂点のイテレータを返すクロージャー。
         ///   **無向グラフ**として隣接頂点を返す必要があります。
+        ///
+        /// # 計算量
+        /// O(V + E)
         pub fn new<F, It>(nv: usize, mut adj_fn: F) -> Self
         where
             F: FnMut(usize) -> It,
@@ -172,6 +176,9 @@ pub mod lowlink_ix {
     ///
     /// # Returns
     /// LowLink の結果を格納した `LowLinkIxResult<I>`。
+    ///
+    /// # 計算量
+    /// O(V + E)
     pub fn lowlink_arbitrary<I, F, It>(bounds: Bounds<I>, mut adj: F) -> LowLinkIxResult<I>
     where
         I: Ix,

@@ -1,5 +1,6 @@
 use cargo_snippet::snippet;
 
+#[snippet]
 /// 実数領域における三分探索を行い、単峰な関数（下に凸など）の最小値を与える引数 `x` を返す。
 ///
 /// 200回の反復を行うことで、元の区間幅の (2/3)^200 倍（約 6.0 * 10^-36 程度）の精度で値を求める。
@@ -14,7 +15,6 @@ use cargo_snippet::snippet;
 ///
 /// ## Return
 /// 最小値を与える `x` の近似値を返す。
-#[snippet]
 pub fn ternary_search<T, F>(mut l: f64, mut r: f64, mut f: F) -> f64
 where
     T: PartialOrd,
@@ -34,6 +34,7 @@ where
     (l + r) / 2.0
 }
 
+#[snippet]
 /// 整数領域における三分探索を行い、単峰な関数（下に凸など）の最小値を与える引数 `x` を返す。
 ///
 /// ## 単峰性の前提
@@ -46,7 +47,6 @@ where
 ///
 /// ## Return
 /// 最小値を与える `x` を返す。
-#[snippet]
 pub fn ternary_search_i64<T, F>(mut l: i64, mut r: i64, mut f: F) -> i64
 where
     T: PartialOrd,

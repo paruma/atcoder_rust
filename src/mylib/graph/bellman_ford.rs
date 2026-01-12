@@ -49,6 +49,11 @@ pub mod bellman_ford {
             Self { from, to, cost }
         }
     }
+    /// ベルマンフォード法を用いて、指定した始点から全頂点への最短距離を求めます。
+    /// 負閉路の影響を受ける頂点を適切に判定します。
+    ///
+    /// # 計算量
+    /// O(V * E)
     pub fn bellman_ford(edges: &[Edge], n_vertex: usize, start: usize) -> Vec<Solution> {
         let mut dist = vec![INF; n_vertex];
         dist[start] = fin(0);

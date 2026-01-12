@@ -44,6 +44,16 @@ pub mod reroot {
             })
         }
 
+        /// 全方位木DPを実行し、各頂点を根としたときの値を求めます。
+        ///
+        /// # Arguments
+        /// * `adj` - 木の隣接リスト
+        ///
+        /// # Returns
+        /// 各頂点を根としたときの計算結果の `Vec`
+        ///
+        /// # 計算量
+        /// O(V) (V は頂点数)
         fn reroot(&self, adj: &[Vec<usize>]) -> Vec<<Self::M as Monoid>::S> {
             let nv = adj.len();
             // dp[v][i]: 頂点v から生える i番目の有向辺の先にある部分木に関する値

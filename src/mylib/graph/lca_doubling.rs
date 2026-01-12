@@ -11,6 +11,14 @@ pub mod lca_doubling {
     }
 
     impl Lca {
+        /// ダブリングを用いて LCA (Lowest Common Ancestor) を構築する。
+        ///
+        /// # Arguments
+        /// * `adj` - 隣接リスト
+        /// * `root` - 根の頂点番号
+        ///
+        /// # 計算量
+        /// O(V log V) (V は頂点数)
         pub fn new(adj: &[Vec<usize>], root: usize) -> Self {
             let nv = adj.len();
             let mut dist = vec![-1; nv];
@@ -48,7 +56,7 @@ pub mod lca_doubling {
         /// u と v の LCA を求める
         ///
         /// # 計算量
-        /// O(log(頂点の数))
+        /// O(log V)
         pub fn lca(&self, u: usize, v: usize) -> usize {
             let mut u = u;
             let mut v = v;
@@ -82,17 +90,18 @@ pub mod lca_doubling {
             self.ancestor[0][u]
         }
 
+        /// 頂点 u と v の距離を求めます。
         ///
         /// # 計算量
-        /// O(log(頂点の数))
+        /// O(log V)
         pub fn dist(&self, u: usize, v: usize) -> i64 {
             self.dist[u] + self.dist[v] - 2 * self.dist[self.lca(u, v)]
         }
 
-        /// パス u-v 上に点 a があるかどうか
+        /// パス u-v 上に点 a があるかどうかを判定します。
         ///
         /// # 計算量
-        /// O(log(頂点の数))
+        /// O(log V)
         pub fn is_path_on(&self, u: usize, v: usize, a: usize) -> bool {
             self.dist(u, a) + self.dist(a, v) == self.dist(u, v)
         }
@@ -100,7 +109,7 @@ pub mod lca_doubling {
         /// u の k個上の祖先を求める
         ///
         /// # 計算量
-        /// O(log(k))
+        /// O(log V)
         pub fn get_ancestor(&self, u: usize, k: usize) -> Option<usize> {
             if self.dist[u] < k as i64 {
                 return None;
@@ -117,7 +126,7 @@ pub mod lca_doubling {
         /// u-v パスの k番目の頂点を取得する (u が 0番目)
         ///
         /// # 計算量
-        /// O(log(頂点の数))
+        /// O(log V)
         pub fn get_kth_on_path(&self, u: usize, v: usize, k: usize) -> Option<usize> {
             let l = self.lca(u, v);
             let dist_u_l = self.dist[u] - self.dist[l];

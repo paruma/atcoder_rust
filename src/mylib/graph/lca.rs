@@ -27,6 +27,14 @@ pub mod lca {
     }
 
     impl Lca {
+        /// LCA (Lowest Common Ancestor) を構築する。
+        ///
+        /// # Arguments
+        /// * `adj` - 隣接リスト
+        /// * `root` - 根の頂点番号
+        ///
+        /// # 計算量
+        /// O(V) (V は頂点数)
         pub fn new(adj: &[Vec<usize>], root: usize) -> Self {
             let nv = adj.len();
 
@@ -95,7 +103,7 @@ pub mod lca {
         /// u と v の LCA を求める
         ///
         /// # 計算量
-        /// O(log(頂点の数))
+        /// O(log V)
         pub fn lca(&self, u: usize, v: usize) -> usize {
             let (time_min, time_max) = {
                 use std::cmp::{max, min};
@@ -107,17 +115,18 @@ pub mod lca {
             self.euler_tour_dist.prod(time_min..=time_max).1
         }
 
+        /// 頂点 u と v の距離を求めます。
         ///
         /// # 計算量
-        /// O(log(頂点の数))
+        /// O(log V)
         pub fn dist(&self, u: usize, v: usize) -> i64 {
             self.dist[u] + self.dist[v] - 2 * self.dist[self.lca(u, v)]
         }
 
-        /// パス u-v 上に点 a があるかどうか
+        /// パス u-v 上に点 a があるかどうかを判定します。
         ///
         /// # 計算量
-        /// O(log(頂点の数))
+        /// O(log V)
         pub fn is_path_on(&self, u: usize, v: usize, a: usize) -> bool {
             self.dist(u, a) + self.dist(a, v) == self.dist(u, v)
         }

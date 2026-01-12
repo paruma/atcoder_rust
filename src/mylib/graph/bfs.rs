@@ -17,6 +17,9 @@ pub mod bfs {
         ///
         /// # Returns
         /// 始点から `t` までの頂点列。`t` に到達不可能な場合は `None`。
+        ///
+        /// # 計算量
+        /// O(経路の長さ)
         pub fn restore(&self, t: usize) -> Option<Vec<usize>> {
             self.dist[t]?;
             let mut path: Vec<_> =
@@ -35,6 +38,9 @@ pub mod bfs {
     ///
     /// # Returns
     /// 始点集合 `init` からの最短距離を格納した `Vec<Option<i64>>`。到達不可能な頂点は `None`。
+    ///
+    /// # 計算量
+    /// O(V + E)
     pub fn bfs<F, It>(
         nv: usize,
         mut adj: F,
@@ -73,6 +79,9 @@ pub mod bfs {
     ///
     /// # Returns
     /// 最短距離 `dist` と、復元用配列 `prev` を含む `BfsResult`。
+    ///
+    /// # 計算量
+    /// O(V + E)
     pub fn bfs_with_restore<F, It>(
         nv: usize,
         mut adj: F,
@@ -116,6 +125,9 @@ pub mod bfs {
     ///
     /// # Returns
     /// 到達可能な頂点を訪問順に格納した `Vec<usize>`
+    ///
+    /// # 計算量
+    /// O(V + E)
     pub fn bfs_order<F, It>(
         nv: usize,
         mut adj: F,
@@ -158,6 +170,9 @@ pub mod bfs {
     ///
     /// # Returns
     /// 各頂点への到達可能性を格納した `Vec<bool>`
+    ///
+    /// # 計算量
+    /// O(V + E)
     pub fn bfs_reachable<F, It>(
         nv: usize,
         mut adj: F,
@@ -208,6 +223,9 @@ pub mod bfs_ix {
         ///
         /// # Returns
         /// 始点から `t` までの頂点列。`t` に到達不可能な場合は `None`。
+        ///
+        /// # 計算量
+        /// O(経路の長さ)
         pub fn restore(&self, t: I) -> Option<Vec<I>> {
             self.dist[t]?;
             let mut path: Vec<_> =
@@ -226,6 +244,9 @@ pub mod bfs_ix {
     ///
     /// # Returns
     /// 始点集合 `init` からの最短距離を格納した `IxVec<I, Option<i64>>`。
+    ///
+    /// # 計算量
+    /// O(V + E)
     pub fn bfs_arbitrary<I, F, It>(
         bounds: Bounds<I>,
         mut adj: F,
@@ -255,6 +276,9 @@ pub mod bfs_ix {
     ///
     /// # Returns
     /// 最短距離 `dist` と、復元用配列 `prev` を含む `BfsIxResult`。
+    ///
+    /// # 計算量
+    /// O(V + E)
     pub fn bfs_with_restore_arbitrary<I, F, It>(
         bounds: Bounds<I>,
         mut adj: F,
@@ -295,6 +319,9 @@ pub mod bfs_ix {
     ///
     /// # Returns
     /// 到達可能な頂点を訪問順に格納した `Vec<I>`
+    ///
+    /// # 計算量
+    /// O(V + E)
     pub fn bfs_order_arbitrary<I, F, It>(
         bounds: Bounds<I>,
         mut adj: F,
@@ -327,6 +354,9 @@ pub mod bfs_ix {
     ///
     /// # Returns
     /// 各頂点への到達可能性を格納した `IxVec<I, bool>`
+    ///
+    /// # 計算量
+    /// O(V + E)
     pub fn bfs_reachable_arbitrary<I, F, It>(
         bounds: Bounds<I>,
         mut adj: F,

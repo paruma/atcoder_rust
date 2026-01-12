@@ -3,6 +3,10 @@ use cargo_snippet::snippet;
 use super::super::data_structure::queue::mod_queue::Queue;
 
 #[snippet]
+/// 有向グラフの辺集合から隣接リストを作成します。
+///
+/// # 計算量
+/// O(V + E)
 pub fn make_adj_from_directed(n_vertex: usize, edges: &[(usize, usize)]) -> Vec<Vec<usize>> {
     let mut adj = vec![vec![]; n_vertex];
 
@@ -14,6 +18,10 @@ pub fn make_adj_from_directed(n_vertex: usize, edges: &[(usize, usize)]) -> Vec<
 }
 
 #[snippet]
+/// 無向グラフの辺集合から隣接リストを作成します。
+///
+/// # 計算量
+/// O(V + E)
 pub fn make_adj_from_undirected(n_vertex: usize, edges: &[(usize, usize)]) -> Vec<Vec<usize>> {
     let mut adj = vec![vec![]; n_vertex];
 
@@ -26,6 +34,10 @@ pub fn make_adj_from_undirected(n_vertex: usize, edges: &[(usize, usize)]) -> Ve
 }
 
 #[snippet]
+/// 重み付き有向グラフの辺集合から隣接リストを作成します。
+///
+/// # 計算量
+/// O(V + E)
 pub fn make_adj_from_weighted_directed<T>(
     n_vertex: usize,
     edges: &[(usize, usize, T)],
@@ -43,6 +55,10 @@ where
 }
 
 #[snippet]
+/// 重み付き無向グラフの辺集合から隣接リストを作成します。
+///
+/// # 計算量
+/// O(V + E)
 pub fn make_adj_from_weighted_undirected<T>(
     n_vertex: usize,
     edges: &[(usize, usize, T)],
@@ -61,7 +77,10 @@ where
 }
 
 #[snippet]
-/// 根付き木が隣接リストと根で与えられたとき、各頂点の親頂点を返す
+/// 根付き木の隣接リスト `adj` と根 `root` から、各頂点の親頂点を求めます。
+///
+/// # 計算量
+/// O(V + E)
 pub fn make_tree_parent(adj: &[Vec<usize>], root: usize) -> Vec<Option<usize>> {
     let n = adj.len();
     let mut parent = vec![None; n];
@@ -85,7 +104,10 @@ pub fn make_tree_parent(adj: &[Vec<usize>], root: usize) -> Vec<Option<usize>> {
 }
 
 #[snippet]
-/// 根付き木が隣接リストと根で与えられたとき、各頂点の子頂点を返す
+/// 根付き木の隣接リスト `adj` と根 `root` から、各頂点の子頂点リストを求めます。
+///
+/// # 計算量
+/// O(V + E)
 pub fn make_tree_children(adj: &[Vec<usize>], root: usize) -> Vec<Vec<usize>> {
     let n = adj.len();
     let mut children = vec![vec![]; n];
@@ -109,6 +131,10 @@ pub fn make_tree_children(adj: &[Vec<usize>], root: usize) -> Vec<Vec<usize>> {
 }
 
 #[snippet(include = "mod_queue")]
+/// 幅優先探索 (BFS) を行い、頂点の訪問順序を返します。
+///
+/// # 計算量
+/// O(V + E)
 pub fn bfs_order(adj: &[Vec<usize>], init: usize) -> Vec<usize> {
     let nv = adj.len();
     let mut order = vec![];
@@ -130,6 +156,10 @@ pub fn bfs_order(adj: &[Vec<usize>], init: usize) -> Vec<usize> {
 }
 
 #[snippet(include = "mod_stack")]
+/// 深さ優先探索 (DFS) を行い、行きがけ順 (pre-order) での頂点順序を返します。
+///
+/// # 計算量
+/// O(V + E)
 pub fn dfs_pre_order(adj: &[Vec<usize>], init: usize) -> Vec<usize> {
     fn dfs(
         adj: &[Vec<usize>],
@@ -156,6 +186,10 @@ pub fn dfs_pre_order(adj: &[Vec<usize>], init: usize) -> Vec<usize> {
 }
 
 #[snippet(include = "mod_stack")]
+/// 深さ優先探索 (DFS) を行い、帰りがけ順 (post-order) での頂点順序を返します。
+///
+/// # 計算量
+/// O(V + E)
 pub fn dfs_post_order(adj: &[Vec<usize>], init: usize) -> Vec<usize> {
     fn dfs(
         adj: &[Vec<usize>],
@@ -182,8 +216,11 @@ pub fn dfs_post_order(adj: &[Vec<usize>], init: usize) -> Vec<usize> {
     post_order
 }
 
-/// init から各点への距離を求める
 #[snippet(include = "mod_queue")]
+/// 指定した始点から各頂点への最短距離（枝数）を求めます。
+///
+/// # 計算量
+/// O(V + E)
 pub fn calc_dist(adj: &[Vec<usize>], init: usize) -> Vec<usize> {
     let nv = adj.len();
     let mut visited = vec![false; nv];
@@ -206,6 +243,10 @@ pub fn calc_dist(adj: &[Vec<usize>], init: usize) -> Vec<usize> {
 
 #[snippet(include = "mod_queue")]
 #[allow(clippy::collapsible_else_if)]
+/// グラフが二部グラフであるかを判定します。
+///
+/// # 計算量
+/// O(V + E)
 pub fn is_bipartite_graph(adj: &[Vec<usize>]) -> bool {
     // 無向グラフに使うことを想定している。
     let n_vertex = adj.len();
@@ -239,6 +280,10 @@ pub fn is_bipartite_graph(adj: &[Vec<usize>]) -> bool {
 }
 
 #[snippet]
+/// Union-Find を用いて、グラフが二部グラフであるかを判定します。
+///
+/// # 計算量
+/// O(E α(V))
 pub fn is_bipartite_graph_by_uf(n_vertex: usize, edges: &[(usize, usize)]) -> bool {
     use petgraph::unionfind::UnionFind;
     let mut uf = UnionFind::new(2 * n_vertex);
@@ -250,6 +295,10 @@ pub fn is_bipartite_graph_by_uf(n_vertex: usize, edges: &[(usize, usize)]) -> bo
 }
 
 #[snippet]
+/// 無向グラフに閉路が含まれるかを判定します。
+///
+/// # 計算量
+/// O(E α(V))
 pub fn has_cycle_undirected(n_vertex: usize, edges: &[(usize, usize)]) -> bool {
     use petgraph::unionfind::UnionFind;
     let mut uf = UnionFind::new(n_vertex);
@@ -262,6 +311,10 @@ pub fn has_cycle_undirected(n_vertex: usize, edges: &[(usize, usize)]) -> bool {
     false
 }
 
+/// 有向グラフに閉路が含まれるかを DFS を用いて判定します。
+///
+/// # 計算量
+/// O(V + E)
 pub fn has_cycle_directed(adj: &[Vec<usize>]) -> bool {
     // DFS を使って有向グラフの閉路判定をする
     fn dfs(

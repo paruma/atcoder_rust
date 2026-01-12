@@ -28,6 +28,9 @@ pub mod functional_graph {
         ///
         /// # Arguments
         /// * `next` - 各頂点の遷移先 (0..nv-1)
+        ///
+        /// # 計算量
+        /// O(V)
         pub fn new(next: &[usize]) -> Self {
             let nv = next.len();
             let mut in_degree = vec![0; nv];
@@ -157,7 +160,8 @@ pub mod functional_graph {
 
         /// 頂点 u から v への最短距離を返す。到達不能なら None。
         ///
-        /// 計算量: O(1)
+        /// # 計算量
+        /// O(1)
         pub fn distance(&self, u: usize, v: usize) -> Option<usize> {
             if self.comp_id[u] != self.comp_id[v] {
                 return None;
@@ -189,7 +193,8 @@ pub mod functional_graph {
 
         /// 頂点 u から v に到達可能か判定する
         ///
-        /// 計算量: O(1)
+        /// # 計算量
+        /// O(1)
         pub fn is_reachable(&self, u: usize, v: usize) -> bool {
             self.distance(u, v).is_some()
         }

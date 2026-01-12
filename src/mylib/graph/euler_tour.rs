@@ -18,6 +18,13 @@ pub mod euler_tour {
     }
 
     impl EulerTour {
+        /// オイラーツアーを構築する。
+        ///
+        /// # Arguments
+        /// * `tree_parent` - 各頂点の親頂点のインデックス。根の場合は自身のインデックスを指定する。
+        ///
+        /// # 計算量
+        /// O(V)
         pub fn new(tree_parent: &[usize]) -> Self {
             let nv = tree_parent.len();
 

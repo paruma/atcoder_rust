@@ -1,5 +1,6 @@
 use cargo_snippet::snippet;
 
+#[snippet]
 /// 二分探索をする。
 ///
 /// ```text
@@ -27,7 +28,6 @@ use cargo_snippet::snippet;
 /// * ok < ng の場合: I = { i in ok..ng | p(i) == true } としたとき
 ///     * I が空でなければ、max I を返す。
 ///     * I が空ならば、ok を返す。
-#[snippet]
 pub fn bin_search<F>(mut ok: i64, mut ng: i64, mut p: F) -> i64
 where
     F: FnMut(i64) -> bool,
@@ -48,6 +48,7 @@ where
     ok
 }
 
+#[snippet(include = "bin_search")]
 /// 指定された要素以上の値が現れる最初の位置を返す。
 ///
 /// # 計算量
@@ -63,12 +64,12 @@ where
 /// ただし、`I` が空の場合は `xs.len()` を返す。
 ///
 /// 戻り値は、区間 `0..=xs.len()` の間で返る。
-#[snippet(include = "bin_search")]
 pub fn lower_bound<T: PartialOrd>(xs: &[T], key: T) -> usize {
     let pred = |i: i64| xs[i as usize] >= key;
     bin_search(xs.len() as i64, -1_i64, pred) as usize
 }
 
+#[snippet(include = "bin_search")]
 /// 指定された要素より大きい値が現れる最初の位置を返す。
 ///
 /// # 計算量
@@ -84,12 +85,12 @@ pub fn lower_bound<T: PartialOrd>(xs: &[T], key: T) -> usize {
 /// ただし、`I` が空の場合は `xs.len()` を返す。
 ///
 /// 戻り値は、区間 `0..=xs.len()` の間で返る。
-#[snippet(include = "bin_search")]
 pub fn upper_bound<T: PartialOrd>(xs: &[T], key: T) -> usize {
     let pred = |i: i64| xs[i as usize] > key;
     bin_search(xs.len() as i64, -1_i64, pred) as usize
 }
 
+#[snippet(include = "bin_search")]
 /// 指定された要素以下の値が現れる最初の位置を返す。
 ///
 /// # 計算量
@@ -105,12 +106,12 @@ pub fn upper_bound<T: PartialOrd>(xs: &[T], key: T) -> usize {
 /// ただし、`I` が空の場合は `xs.len()` を返す。
 ///
 /// 戻り値は、区間 `0..=xs.len()` の間で返る。
-#[snippet(include = "bin_search")]
 pub fn lower_bound_dec<T: PartialOrd>(xs: &[T], key: T) -> usize {
     let pred = |i: i64| xs[i as usize] <= key;
     bin_search(xs.len() as i64, -1_i64, pred) as usize
 }
 
+#[snippet(include = "bin_search")]
 /// 指定された要素より小さい値が現れる最初の位置を返す。
 ///
 /// # 計算量
@@ -126,12 +127,12 @@ pub fn lower_bound_dec<T: PartialOrd>(xs: &[T], key: T) -> usize {
 /// ただし、`I` が空の場合は `xs.len()` を返す。
 ///
 /// 戻り値は、区間 `0..=xs.len()` の間で返る。
-#[snippet(include = "bin_search")]
 pub fn upper_bound_dec<T: PartialOrd>(xs: &[T], key: T) -> usize {
     let pred = |i: i64| xs[i as usize] < key;
     bin_search(xs.len() as i64, -1_i64, pred) as usize
 }
 
+#[snippet]
 /// 実数領域における二分探索を行い、判定関数 `p` の結果が切り替わる境界値を返す。
 ///
 /// 100回の反復を行うことで、元の区間幅の 2^-100 倍の精度で境界値を求める。
@@ -146,7 +147,6 @@ pub fn upper_bound_dec<T: PartialOrd>(xs: &[T], key: T) -> usize {
 ///
 /// ## Return
 /// 判定関数 `p` の結果が切り替わる境界値を返す。
-#[snippet]
 pub fn bin_search_f64<F>(mut ok: f64, mut ng: f64, mut p: F) -> f64
 where
     F: FnMut(f64) -> bool,

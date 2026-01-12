@@ -15,11 +15,14 @@ pub mod lca_path_aggregate {
     where
         M::S: Clone,
     {
-        /// `adj`: 隣接リスト表現の木。`adj[u]` は `(v, w)` のリスト。`v` は隣接ノード、`w` は辺 `u-v` の重み。
-        /// `root`: 木の根
+        /// パス上の値をマージ可能な LCA 構造体を構築する。
+        ///
+        /// # Arguments
+        /// * `adj` - 隣接リスト表現の木。`adj[u]` は `(v, w)` のリスト。`v` は隣接ノード、`w` は辺 `u-v` の重み。
+        /// * `root` - 木の根
         ///
         /// # 計算量
-        /// O(N log N) (N は頂点の数)
+        /// O(V log V) (V は頂点数)
         pub fn new(adj: &[Vec<(usize, M::S)>], root: usize) -> Self {
             let nv = adj.len();
             let mut dist = vec![-1; nv];
@@ -72,6 +75,9 @@ pub mod lca_path_aggregate {
         }
 
         /// u と v の LCA を求める
+        ///
+        /// # 計算量
+        /// O(log V)
         pub fn lca(&self, u: usize, v: usize) -> usize {
             let mut u = u;
             let mut v = v;
@@ -102,6 +108,9 @@ pub mod lca_path_aggregate {
         /// u から v へのパス上の辺の重みの総和（モノイド積）を求める
         ///
         /// このクエリはモノイドの可換性を要求します。
+        ///
+        /// # 計算量
+        /// O(log V)
         pub fn path_aggregate(&self, u: usize, v: usize) -> M::S {
             let lca = self.lca(u, v);
             let agg_u = self.query_path_up(u, self.dist[u] - self.dist[lca]);
@@ -123,6 +132,9 @@ pub mod lca_path_aggregate {
         }
 
         /// u と v の距離 (辺の数)
+        ///
+        /// # 計算量
+        /// O(log V)
         pub fn dist(&self, u: usize, v: usize) -> i64 {
             let lca = self.lca(u, v);
             self.dist[u] + self.dist[v] - 2 * self.dist[lca]

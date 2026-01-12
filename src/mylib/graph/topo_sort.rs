@@ -3,6 +3,16 @@ use cargo_snippet::snippet;
 use crate::data_structure::queue::mod_queue::Queue;
 
 #[snippet(include = "mod_queue")]
+/// トポロジカルソートを行います。
+///
+/// # Arguments
+/// * `adj` - 隣接リスト
+///
+/// # Returns
+/// トポロジカルソートされた頂点のリスト。サイクルが含まれる場合、リストの長さは `adj.len()` 未満になります。
+///
+/// # 計算量
+/// O(V + E) (V は頂点数, E は辺数)
 pub fn topo_sort(adj: &[Vec<usize>]) -> Vec<usize> {
     let n_vertex = adj.len();
     let mut in_deg = vec![0; n_vertex];
@@ -34,6 +44,10 @@ pub fn topo_sort(adj: &[Vec<usize>]) -> Vec<usize> {
 }
 
 #[snippet(include = "topo_sort")]
+/// トポロジカルソートを用いて、有向グラフに閉路が含まれるかを判定します。
+///
+/// # 計算量
+/// O(V + E)
 pub fn has_cycle_directed_by_topo_sort(adj: &[Vec<usize>]) -> bool {
     let topo_sorted = topo_sort(adj); // 戻り値にループの部分は入ってこない。
     topo_sorted.len() != adj.len()

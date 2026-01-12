@@ -121,8 +121,12 @@ pub mod cycle_detection {
     /// * `nv`: 頂点の数 `nv`
     /// * `edges`: 辺のリスト。辺は始点と終点のペアで与えられる
     ///
+    /// # Returns
+    /// サイクルが見つかった場合は `Some` でサイクル上の頂点のインデックス（辺のインデックス）のリストを返し、見つからなかった場合は `None` を返す。
+    /// 返されるリストはサイクルの辺のインデックスである。
+    ///
     /// # 計算量
-    /// O(E+V) (V は頂点の数, E は辺の数)
+    /// O(V + E) (V は頂点の数, E は辺の数)
     pub fn cycle_detection(nv: usize, edges: &[(usize, usize)]) -> Option<Vec<usize>> {
         CycleDetectionSolver::new(nv, edges).solve()
     }
