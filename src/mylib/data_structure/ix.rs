@@ -406,6 +406,33 @@ pub mod ix {
         pub fn iter_with_index(&self) -> impl Iterator<Item = (I, &T)> {
             self.bounds.range().zip(self.data.iter())
         }
+
+        /// 指定されたインデックスの要素への参照を返します。
+        /// インデックスが範囲外の場合は `None` を返します。
+        pub fn get(&self, index: I) -> Option<&T> {
+            if self.bounds.in_range(index) {
+                let i = self.bounds.to_index(index);
+                Some(&self.data[i])
+            } else {
+                None
+            }
+        }
+
+        /// 指定されたインデックスの要素へのミュータブル参照を返します。
+        /// インデックスが範囲外の場合は `None` を返します。
+        pub fn get_mut(&mut self, index: I) -> Option<&mut T> {
+            if self.bounds.in_range(index) {
+                let i = self.bounds.to_index(index);
+                Some(&mut self.data[i])
+            } else {
+                None
+            }
+        }
+
+        /// 指定されたインデックスが有効な範囲内にあるかを返します。
+        pub fn contains_index(&self, index: I) -> bool {
+            self.bounds.in_range(index)
+        }
     }
 
     impl<I: Ix, T> Index<I> for IxVec<I, T> {
@@ -657,6 +684,36 @@ mod tests {
             IxVec::from_vec(bounds_pair, vec![0, 1, 2, 3]);
         assert_eq!(v_from_vec[(1, 1)], 0);
         assert_eq!(v_from_vec.bounds().min, (1, 1));
+    }
+
+    #[test]
+    fn test_ix_vec_get() {
+        let bounds: Bounds<usize> = Bounds::new(2, 5);
+        let mut v: IxVec<usize, i32> = IxVec::from_fn(bounds, |i| i as i32 * 10);
+
+        // get
+        assert_eq!(v.get(2), Some(&20));
+        assert_eq!(v.get(5), Some(&50));
+        assert_eq!(v.get(1), None);
+        assert_eq!(v.get(6), None);
+
+        // get_mut
+        if let Some(val) = v.get_mut(3) {
+            *val = 300;
+        }
+        assert_eq!(v[3], 300);
+        assert_eq!(v.get_mut(1), None);
+    }
+
+    #[test]
+    fn test_ix_vec_contains_index() {
+        let bounds: Bounds<usize> = Bounds::new(2, 5);
+        let v: IxVec<usize, i32> = IxVec::new(bounds, 0);
+
+        assert!(v.contains_index(2));
+        assert!(v.contains_index(5));
+        assert!(!v.contains_index(1));
+        assert!(!v.contains_index(6));
     }
 
     #[test]
