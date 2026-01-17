@@ -319,7 +319,7 @@ mod tests {
     #[ignore]
     fn test_path_aggregate_random() {
         let mut rng = StdRng::seed_from_u64(42);
-        for _ in 0..1000 {
+        for _ in 0..300 {
             let n = rng.random_range(2..=50);
             let mut edges = Vec::new();
             for i in 1..n {

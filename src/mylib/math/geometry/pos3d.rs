@@ -218,6 +218,7 @@ pub mod pos3d {
         Pos3d { x: 0, y: 0, z: -1 },
     ];
 
+    #[rustfmt::skip]
     pub const DIR26_LIST: [Pos3d; 26] = [
         Pos3d { x: 1, y: 0, z: 0 },
         Pos3d { x: -1, y: 0, z: 0 },
@@ -244,11 +245,7 @@ pub mod pos3d {
         Pos3d { x: -1, y: 1, z: 1 },
         Pos3d { x: -1, y: 1, z: -1 },
         Pos3d { x: -1, y: -1, z: 1 },
-        Pos3d {
-            x: -1,
-            y: -1,
-            z: -1,
-        },
+        Pos3d { x: -1, y: -1, z: -1 },
     ];
 }
 

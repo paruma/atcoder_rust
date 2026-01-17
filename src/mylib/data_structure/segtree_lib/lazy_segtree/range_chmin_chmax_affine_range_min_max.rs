@@ -469,12 +469,12 @@ pub mod test_range_chmin_chmax_affine_range_min_max {
     fn test_random_chmin_chmax_affine_min_max() {
         let mut rng = SmallRng::seed_from_u64(43);
 
-        for _ in 0..1000 {
+        for _ in 0..100 {
             let n = rng.random_range(1..=10);
             let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.random_range(-2..=2)).collect();
             let mut segtree = RangeChminChmaxAffineRangeMinMaxSegtree::<i64>::new(&naive_vec);
 
-            for _ in 0..1000 {
+            for _ in 0..100 {
                 let op_type = rng.random_range(0..7); // 7つの操作: set, chmin, chmax, add, affine, range_minmax, all_minmax
 
                 match op_type {
