@@ -64,10 +64,7 @@ pub mod acl_scc {
             &self.groups
         }
 
-        /// グループ数 (縮約グラフの頂点数) を返す
-        ///
-        /// # Returns
-        /// 強連結成分の個数
+        /// 強連結成分の個数 (縮約グラフの頂点数) を返す
         pub fn group_count(&self) -> usize {
             self.groups.len()
         }

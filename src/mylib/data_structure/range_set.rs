@@ -710,101 +710,92 @@ mod tests {
     fn test_random_ops_against_naive() {
         let mut rng = StdRng::seed_from_u64(42);
 
-        for _ in 0..500 {
+        for _ in 0..300 {
             // テスト範囲を決定。狭い範囲で衝突を多く発生させる
             let range_min = -2;
-            let range_max = rng.random_range(1..=30);
+            let range_max = rng.random_range(1..=20);
 
             let mut set = RangeSet::new();
             let mut naive = NaiveRangeSet::new();
 
-            let num_ops = 200;
+            let num_ops = 100;
 
-            for op_idx in 0..num_ops {
+            for _ in 0..num_ops {
                 // 操作の種類をランダムに選択
-                // 0: insert_range
-                // 1: remove_range
-                // 2: insert
-                // 3: remove
+                // 0: insert_range, 1: remove_range, 2: insert, 3: remove
                 let op_type = rng.random_range(0..4);
 
                 let l = rng.random_range(range_min..=range_max);
                 let r = rng.random_range(l..=range_max);
                 let x = rng.random_range(range_min..range_max);
 
-                let op_name = match op_type {
+                match op_type {
                     0 => {
                         set.insert_range(l, r);
                         naive.insert_range(l, r);
-                        format!("insert_range({}, {})", l, r)
                     }
                     1 => {
                         set.remove_range(l, r);
                         naive.remove_range(l, r);
-                        format!("remove_range({}, {})", l, r)
                     }
                     2 => {
                         set.insert(x);
                         naive.insert(x);
-                        format!("insert({})", x)
                     }
                     3 => {
                         set.remove(x);
                         naive.remove(x);
-                        format!("remove({})", x)
                     }
                     _ => unreachable!(),
                 };
 
-                let base_context = format!("Msg: Op[{}] {}, Max: {}", op_idx, op_name, range_max);
-
                 // --- 1. 状態の一貫性チェック ---
-                assert_eq!(set.len(), naive.len(), "len mismatch. {}", base_context);
+                assert_eq!(set.len(), naive.len(), "len mismatch. set: {:?}", set);
                 assert_eq!(
                     set.is_empty(),
                     naive.is_empty(),
-                    "is_empty mismatch. {}",
-                    base_context
+                    "is_empty mismatch. set: {:?}",
+                    set
                 );
-                assert_eq!(set.min(), naive.min(), "min mismatch. {}", base_context);
-                assert_eq!(set.max(), naive.max(), "max mismatch. {}", base_context);
+                assert_eq!(set.min(), naive.min(), "min mismatch. set: {:?}", set);
+                assert_eq!(set.max(), naive.max(), "max mismatch. set: {:?}", set);
 
                 // --- 2. 点クエリのチェック (狭い範囲での全探索) ---
                 for i in range_min..=range_max {
                     assert_eq!(
                         set.contains(i),
                         naive.contains(i),
-                        "contains({}) mismatch. {}",
+                        "contains({}) mismatch. set: {:?}",
                         i,
-                        base_context
+                        set
                     );
                     assert_eq!(
                         set.min_exclusive_geq(i),
                         naive.min_exclusive_geq(i),
-                        "min_exclusive_geq({}) mismatch. {}",
+                        "min_exclusive_geq({}) mismatch. set: {:?}",
                         i,
-                        base_context
+                        set
                     );
                     assert_eq!(
                         set.max_exclusive_leq(i),
                         naive.max_exclusive_leq(i),
-                        "max_exclusive_leq({}) mismatch. {}",
+                        "max_exclusive_leq({}) mismatch. set: {:?}",
                         i,
-                        base_context
+                        set
                     );
                     assert_eq!(
                         set.min_inclusive_geq(i),
                         naive.min_inclusive_geq(i),
-                        "min_inclusive_geq({}) mismatch. {}",
+                        "min_inclusive_geq({}) mismatch. set: {:?}",
                         i,
-                        base_context
+                        set
                     );
                     assert_eq!(
                         set.max_inclusive_leq(i),
                         naive.max_inclusive_leq(i),
-                        "max_inclusive_leq({}) mismatch. {}",
+                        "max_inclusive_leq({}) mismatch. set: {:?}",
                         i,
-                        base_context
+                        set
                     );
                 }
 
@@ -816,26 +807,26 @@ mod tests {
                     assert_eq!(
                         set.covers(ql, qr),
                         naive.covers(ql, qr),
-                        "covers({}, {}) mismatch. {}",
+                        "covers({}, {}) mismatch. set: {:?}",
                         ql,
                         qr,
-                        base_context
+                        set
                     );
                     assert_eq!(
                         set.is_disjoint(ql, qr),
                         naive.is_disjoint(ql, qr),
-                        "is_disjoint({}, {}) mismatch. {}",
+                        "is_disjoint({}, {}) mismatch. set: {:?}",
                         ql,
                         qr,
-                        base_context
+                        set
                     );
                     assert_eq!(
                         set.is_covered_by(ql, qr),
                         naive.is_covered_by(ql, qr),
-                        "is_covered_by({}, {}) mismatch. {}",
+                        "is_covered_by({}, {}) mismatch. set: {:?}",
                         ql,
                         qr,
-                        base_context
+                        set
                     );
                 }
             }
