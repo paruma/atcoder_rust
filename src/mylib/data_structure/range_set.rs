@@ -16,6 +16,7 @@ pub mod range_set {
     /// - 全区間の長さの合計 (`len`)
     /// - x 以上で集合に含まれない最小値 (`min_exclusive_geq`、いわゆる mex)
     /// - x 以下で集合に含まれない最大値 (`max_exclusive_leq`)
+    /// - など
     #[derive(Debug, Clone, PartialEq, Eq)]
     pub struct RangeSet {
         map: BTreeMap<i64, i64>, // key: l, value: r で半開区間 [l, r) を管理
@@ -191,8 +192,6 @@ pub mod range_set {
         }
 
         /// 指定した区間 `[l, r)` と集合が共通部分を持たない（重ならない）かを返す。
-        /// `true`: 重ならない (disjoint)
-        /// `false`: 重なる
         ///
         /// # 計算量
         /// O(log N)
@@ -692,7 +691,7 @@ mod tests {
 
         // Not covered
         assert!(!set.is_covered_by(3, 10)); // Cut left (min is 2)
-        assert!(!set.is_covered_by(2, 9)); // Cut right (max is 9, range ends at 9 i.e. max element 8) -> wait. 
+        assert!(!set.is_covered_by(2, 9)); // Cut right (max is 9, range ends at 9 i.e. max element 8) -> wait.
         // max() returns 9 (from [8, 10)). range [2, 9) includes 8 but not 9.
         // Elements are {2, 3, 4, 8, 9}.
         // [2, 9) contains {2, 3, 4, 5, 6, 7, 8}.
@@ -712,119 +711,147 @@ mod tests {
         let mut rng = StdRng::seed_from_u64(42);
 
         for _ in 0..500 {
-            let len = rng.random_range(1..=30);
+            // テスト範囲を決定。狭い範囲で衝突を多く発生させる
+            let range_min = -2;
+            let range_max = rng.random_range(1..=30);
+
             let mut set = RangeSet::new();
             let mut naive = NaiveRangeSet::new();
 
             let num_ops = 200;
 
             for op_idx in 0..num_ops {
-                let l = rng.random_range(0..=len as i64);
-                let r = rng.random_range(l..=len as i64);
-                let x = rng.random_range(0..len as i64);
+                // 操作の種類をランダムに選択
+                // 0: insert_range
+                // 1: remove_range
+                // 2: insert
+                // 3: remove
+                let op_type = rng.random_range(0..4);
 
-                let op_type = rng.random_range(0..4); // 0: insert_range, 1: remove_range, 2: insert, 3: delete
+                let l = rng.random_range(range_min..=range_max);
+                let r = rng.random_range(l..=range_max);
+                let x = rng.random_range(range_min..range_max);
 
-                let (op_name, l_op, r_op) = if op_type == 0 {
-                    set.insert_range(l, r);
-                    naive.insert_range(l, r);
-                    ("insert_range", l, r)
-                } else if op_type == 1 {
-                    set.remove_range(l, r);
-                    naive.remove_range(l, r);
-                    ("remove_range", l, r)
-                } else if op_type == 2 {
-                    set.insert(x);
-                    naive.insert(x);
-                    ("insert_point", x, x + 1)
-                } else {
-                    set.remove(x);
-                    naive.remove(x);
-                    ("remove_point", x, x + 1)
+                let op_name = match op_type {
+                    0 => {
+                        set.insert_range(l, r);
+                        naive.insert_range(l, r);
+                        format!("insert_range({}, {})", l, r)
+                    }
+                    1 => {
+                        set.remove_range(l, r);
+                        naive.remove_range(l, r);
+                        format!("remove_range({}, {})", l, r)
+                    }
+                    2 => {
+                        set.insert(x);
+                        naive.insert(x);
+                        format!("insert({})", x)
+                    }
+                    3 => {
+                        set.remove(x);
+                        naive.remove(x);
+                        format!("remove({})", x)
+                    }
+                    _ => unreachable!(),
                 };
 
-                // Assertion
-                let base_context = format!(
-                    "Operation[{}]: {}({}, {}), LEN: {}",
-                    op_idx, op_name, l_op, r_op, len
-                );
+                let base_context = format!("Msg: Op[{}] {}, Max: {}", op_idx, op_name, range_max);
 
-                assert_eq!(
-                    set.len(),
-                    naive.len(),
-                    "Failed len check: {}\nset: {:?}\nnaive: {:?}",
-                    base_context,
-                    set,
-                    naive
-                );
-
+                // --- 1. 状態の一貫性チェック ---
+                assert_eq!(set.len(), naive.len(), "len mismatch. {}", base_context);
                 assert_eq!(
                     set.is_empty(),
                     naive.is_empty(),
-                    "Failed is_empty check: {}\nset: {:?}\nnaive: {:?}",
-                    base_context,
-                    set,
-                    naive
+                    "is_empty mismatch. {}",
+                    base_context
                 );
+                assert_eq!(set.min(), naive.min(), "min mismatch. {}", base_context);
+                assert_eq!(set.max(), naive.max(), "max mismatch. {}", base_context);
 
-                for i in -2..=len as i64 + 2 {
+                // --- 2. 点クエリのチェック (狭い範囲での全探索) ---
+                for i in range_min..=range_max {
                     assert_eq!(
                         set.contains(i),
                         naive.contains(i),
-                        "Failed contains({}) check: {}\nset: {:?}\nnaive: {:?}",
+                        "contains({}) mismatch. {}",
                         i,
-                        base_context,
-                        set,
-                        naive
+                        base_context
                     );
                     assert_eq!(
                         set.min_exclusive_geq(i),
                         naive.min_exclusive_geq(i),
-                        "Failed min_exclusive_geq({}) check: {}\nset: {:?}\nnaive: {:?}",
+                        "min_exclusive_geq({}) mismatch. {}",
                         i,
-                        base_context,
-                        set,
-                        naive
+                        base_context
                     );
                     assert_eq!(
                         set.max_exclusive_leq(i),
                         naive.max_exclusive_leq(i),
-                        "Failed max_exclusive_leq({}) check: {}\nset: {:?}\nnaive: {:?}",
+                        "max_exclusive_leq({}) mismatch. {}",
                         i,
-                        base_context,
-                        set,
-                        naive
+                        base_context
+                    );
+                    assert_eq!(
+                        set.min_inclusive_geq(i),
+                        naive.min_inclusive_geq(i),
+                        "min_inclusive_geq({}) mismatch. {}",
+                        i,
+                        base_context
+                    );
+                    assert_eq!(
+                        set.max_inclusive_leq(i),
+                        naive.max_inclusive_leq(i),
+                        "max_inclusive_leq({}) mismatch. {}",
+                        i,
+                        base_context
                     );
                 }
 
-                for _ in 0..10 {
-                    let l_cover = rng.random_range(-2..=len as i64 + 2);
-                    let r_cover = rng.random_range(l_cover..=len as i64 + 2);
+                // --- 3. 区間クエリのチェック (ランダムサンプリング) ---
+                for _ in 0..5 {
+                    let ql = rng.random_range(range_min..=range_max);
+                    let qr = rng.random_range(ql..=range_max);
+
                     assert_eq!(
-                        set.covers(l_cover, r_cover),
-                        naive.covers(l_cover, r_cover),
-                        "Failed covers({}, {}) check: {}\nset: {:?}\nnaive: {:?}",
-                        l_cover,
-                        r_cover,
-                        base_context,
-                        set,
-                        naive
+                        set.covers(ql, qr),
+                        naive.covers(ql, qr),
+                        "covers({}, {}) mismatch. {}",
+                        ql,
+                        qr,
+                        base_context
+                    );
+                    assert_eq!(
+                        set.is_disjoint(ql, qr),
+                        naive.is_disjoint(ql, qr),
+                        "is_disjoint({}, {}) mismatch. {}",
+                        ql,
+                        qr,
+                        base_context
+                    );
+                    assert_eq!(
+                        set.is_covered_by(ql, qr),
+                        naive.is_covered_by(ql, qr),
+                        "is_covered_by({}, {}) mismatch. {}",
+                        ql,
+                        qr,
+                        base_context
                     );
                 }
             }
         }
     }
 
-    /// `Vec<bool>` を使った RangeSet のナイーブな実装 (テスト用)
+    /// `BTreeSet` を使った RangeSet のナイーブな実装 (テスト用)
     #[derive(Debug)]
     struct NaiveRangeSet {
-        set: std::collections::HashSet<i64>,
+        set: std::collections::BTreeSet<i64>,
     }
 
     impl NaiveRangeSet {
         fn new() -> Self {
             Self {
-                set: std::collections::HashSet::new(),
+                set: std::collections::BTreeSet::new(),
             }
         }
 
@@ -865,6 +892,22 @@ mod tests {
             self.set.is_empty()
         }
 
+        fn min(&self) -> Option<i64> {
+            self.set.iter().min().copied()
+        }
+
+        fn max(&self) -> Option<i64> {
+            self.set.iter().max().copied()
+        }
+
+        fn is_disjoint(&self, l: i64, r: i64) -> bool {
+            (l..r).all(|i| !self.set.contains(&i))
+        }
+
+        fn is_covered_by(&self, l: i64, r: i64) -> bool {
+            self.set.iter().all(|x| (l..r).contains(x))
+        }
+
         fn min_exclusive_geq(&self, x: i64) -> i64 {
             (x..).find(|&i| !self.set.contains(&i)).unwrap()
         }
@@ -874,6 +917,14 @@ mod tests {
                 .rev()
                 .find(|&i| !self.set.contains(&i))
                 .unwrap()
+        }
+
+        fn min_inclusive_geq(&self, x: i64) -> Option<i64> {
+            self.set.range(x..).min().copied()
+        }
+
+        fn max_inclusive_leq(&self, x: i64) -> Option<i64> {
+            self.set.range(..=x).max().copied()
         }
     }
 }
