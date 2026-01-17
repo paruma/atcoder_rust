@@ -30,7 +30,7 @@ pub mod lca {
         /// LCA (Lowest Common Ancestor) を構築する。
         ///
         /// # Arguments
-        /// * `adj` - 隣接リスト
+        /// * `adj` - 木の隣接リスト (無向グラフまたは、親から子への有向グラフ)
         /// * `root` - 根の頂点番号
         ///
         /// # 計算量

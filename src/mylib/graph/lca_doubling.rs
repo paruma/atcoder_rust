@@ -14,7 +14,7 @@ pub mod lca_doubling {
         /// ダブリングを用いて LCA (Lowest Common Ancestor) を構築する。
         ///
         /// # Arguments
-        /// * `adj` - 隣接リスト
+        /// * `adj` - 木の隣接リスト (無向グラフ、または親から子への有向グラフ)
         /// * `root` - 根の頂点番号
         ///
         /// # 計算量
