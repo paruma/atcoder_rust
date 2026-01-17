@@ -244,7 +244,11 @@ pub mod pos3d {
         Pos3d { x: -1, y: 1, z: 1 },
         Pos3d { x: -1, y: 1, z: -1 },
         Pos3d { x: -1, y: -1, z: 1 },
-        Pos3d { x: -1, y: -1, z: -1 },
+        Pos3d {
+            x: -1,
+            y: -1,
+            z: -1,
+        },
     ];
 }
 
@@ -266,11 +270,7 @@ pub mod vec_vec_vec_at {
         }
 
         pub fn height(&self) -> usize {
-            if self.is_empty() {
-                0
-            } else {
-                self[0].len()
-            }
+            if self.is_empty() { 0 } else { self[0].len() }
         }
 
         pub fn depth(&self) -> usize {
@@ -369,7 +369,12 @@ pub mod pos3d_ix {
         }
 
         fn in_range((min, max): (Self, Self), i: Self) -> bool {
-            min.x <= i.x && i.x <= max.x && min.y <= i.y && i.y <= max.y && min.z <= i.z && i.z <= max.z
+            min.x <= i.x
+                && i.x <= max.x
+                && min.y <= i.y
+                && i.y <= max.y
+                && min.z <= i.z
+                && i.z <= max.z
         }
     }
 }
@@ -484,7 +489,11 @@ mod tests_pos3d {
 
     #[test]
     fn test_sum() {
-        let ps = [Pos3d::new(1, 2, 3), Pos3d::new(4, 5, 6), Pos3d::new(7, 8, 9)];
+        let ps = [
+            Pos3d::new(1, 2, 3),
+            Pos3d::new(4, 5, 6),
+            Pos3d::new(7, 8, 9),
+        ];
         assert_eq!(ps.iter().copied().sum::<Pos3d>(), Pos3d::new(12, 15, 18));
         assert_eq!(ps.iter().sum::<Pos3d>(), Pos3d::new(12, 15, 18));
 

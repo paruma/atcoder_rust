@@ -172,6 +172,76 @@ pub mod range_set {
             self.total_length
         }
 
+        /// 集合に含まれる最小値を返す。
+        /// 集合が空の場合は `None` を返す。
+        ///
+        /// # 計算量
+        /// O(1)
+        pub fn min(&self) -> Option<i64> {
+            self.map.keys().next().copied()
+        }
+
+        /// 集合に含まれる最大値を返す。
+        /// 集合が空の場合は `None` を返す。
+        ///
+        /// # 計算量
+        /// O(1)
+        pub fn max(&self) -> Option<i64> {
+            self.map.iter().next_back().map(|(_, &r)| r - 1)
+        }
+
+        /// 指定した区間 `[l, r)` と集合が共通部分を持たない（重ならない）かを返す。
+        /// `true`: 重ならない (disjoint)
+        /// `false`: 重なる
+        ///
+        /// # 計算量
+        /// O(log N)
+        pub fn is_disjoint(&self, l: i64, r: i64) -> bool {
+            if l >= r {
+                return true;
+            }
+            // l_i < r を満たす最後の区間 [l_i, r_i) を取得
+            // この区間が [l, r) と重ならなければ、これより左にある区間も重ならない
+            if let Some((_, &r_i)) = self.map.range(..r).next_back() {
+                // [l_i, r_i) と [l, r) が重なる条件は l < r_i
+                // (l_i < r は range(..r) により保証されているため)
+                // よって、重ならない条件は r_i <= l
+                r_i <= l
+            } else {
+                // l_i < r を満たす区間がない -> すべての区間は r 以上 -> [l, r) とは重ならない
+                true
+            }
+        }
+
+        /// 集合全体が指定した区間 `[l, r)` に完全に含まれているかを返す。
+        ///
+        /// # 計算量
+        /// O(1)
+        pub fn is_covered_by(&self, l: i64, r: i64) -> bool {
+            if self.is_empty() {
+                return true;
+            }
+            if l >= r {
+                return false;
+            }
+
+            // 最小値が l 以上か
+            if let Some(min_val) = self.min() {
+                if min_val < l {
+                    return false;
+                }
+            }
+
+            // 最大値が r 未満か (最大値 < r  <=> 最大値 <= r - 1)
+            if let Some(max_val) = self.max() {
+                if max_val >= r {
+                    return false;
+                }
+            }
+
+            true
+        }
+
         /// x 以上で self に入っていない値の最小値を返す (いわゆる mex)
         ///
         /// # 計算量
@@ -194,6 +264,32 @@ pub mod range_set {
             } else {
                 x
             }
+        }
+
+        /// x 以上で集合に含まれる最小の値を返す。
+        /// 集合に含まれる値が存在しない場合は None を返す。
+        ///
+        /// # 計算量
+        /// O(log N)
+        pub fn min_inclusive_geq(&self, x: i64) -> Option<i64> {
+            if self.contains(x) {
+                return Some(x);
+            }
+            // x より右にある最初の区間の開始点を探す
+            self.map.range(x..).next().map(|(&l, _)| l)
+        }
+
+        /// x 以下で集合に含まれる最大の値を返す。
+        /// 集合に含まれる値が存在しない場合は None を返す。
+        ///
+        /// # 計算量
+        /// O(log N)
+        pub fn max_inclusive_leq(&self, x: i64) -> Option<i64> {
+            if self.contains(x) {
+                return Some(x);
+            }
+            // x より左にある最初の区間の終了点 - 1 を探す
+            self.map.range(..x).last().map(|(_, &r)| r - 1)
         }
 
         /// `x` が含まれる区間 `[l, r)` を検索し、`Some((l, r))` で返す。
@@ -496,6 +592,118 @@ mod tests {
         assert_eq!(set_neg.max_exclusive_leq(-1), -3);
         assert_eq!(set_neg.max_exclusive_leq(-2), -3);
         assert_eq!(set_neg.max_exclusive_leq(-3), -3);
+    }
+
+    #[test]
+    fn test_inclusive_search() {
+        let mut set = RangeSet::new();
+        set.insert_range(1, 4); // [1, 4) -> {1, 2, 3}
+        set.insert_range(6, 8); // [6, 8) -> {6, 7}
+
+        // min_inclusive_geq
+        assert_eq!(set.min_inclusive_geq(0), Some(1));
+        assert_eq!(set.min_inclusive_geq(1), Some(1));
+        assert_eq!(set.min_inclusive_geq(2), Some(2));
+        assert_eq!(set.min_inclusive_geq(3), Some(3));
+        assert_eq!(set.min_inclusive_geq(4), Some(6)); // 4, 5 はない
+        assert_eq!(set.min_inclusive_geq(5), Some(6));
+        assert_eq!(set.min_inclusive_geq(6), Some(6));
+        assert_eq!(set.min_inclusive_geq(7), Some(7));
+        assert_eq!(set.min_inclusive_geq(8), None);
+
+        // max_inclusive_leq
+        assert_eq!(set.max_inclusive_leq(9), Some(7));
+        assert_eq!(set.max_inclusive_leq(8), Some(7));
+        assert_eq!(set.max_inclusive_leq(7), Some(7));
+        assert_eq!(set.max_inclusive_leq(6), Some(6));
+        assert_eq!(set.max_inclusive_leq(5), Some(3)); // 5, 4 はない
+        assert_eq!(set.max_inclusive_leq(4), Some(3));
+        assert_eq!(set.max_inclusive_leq(3), Some(3));
+        assert_eq!(set.max_inclusive_leq(2), Some(2));
+        assert_eq!(set.max_inclusive_leq(1), Some(1));
+        assert_eq!(set.max_inclusive_leq(0), None);
+
+        // Empty set
+        let empty = RangeSet::new();
+        assert_eq!(empty.min_inclusive_geq(0), None);
+        assert_eq!(empty.max_inclusive_leq(0), None);
+    }
+
+    #[test]
+    fn test_min_max() {
+        let mut set = RangeSet::new();
+        assert_eq!(set.min(), None);
+        assert_eq!(set.max(), None);
+
+        set.insert_range(5, 10);
+        assert_eq!(set.min(), Some(5));
+        assert_eq!(set.max(), Some(9));
+
+        set.insert_range(0, 3);
+        assert_eq!(set.min(), Some(0));
+        assert_eq!(set.max(), Some(9));
+
+        set.insert_range(12, 15);
+        assert_eq!(set.min(), Some(0));
+        assert_eq!(set.max(), Some(14));
+
+        set.remove_range(0, 3);
+        assert_eq!(set.min(), Some(5));
+        assert_eq!(set.max(), Some(14));
+    }
+
+    #[test]
+    fn test_is_disjoint() {
+        let mut set = RangeSet::new();
+        set.insert_range(0, 5); // [0, 5)
+        set.insert_range(10, 15); // [10, 15)
+
+        // Disjoint ranges
+        assert!(set.is_disjoint(5, 10)); // Between intervals
+        assert!(set.is_disjoint(-5, 0)); // Before all
+        assert!(set.is_disjoint(15, 20)); // After all
+        assert!(set.is_disjoint(6, 9)); // Subset of gap
+
+        // Overlapping ranges
+        assert!(!set.is_disjoint(0, 5)); // Exact match
+        assert!(!set.is_disjoint(4, 6)); // Overlap boundary
+        assert!(!set.is_disjoint(-1, 1)); // Overlap start
+        assert!(!set.is_disjoint(0, 1)); // Subset
+        assert!(!set.is_disjoint(10, 15));
+        assert!(!set.is_disjoint(14, 16));
+        assert!(!set.is_disjoint(0, 15)); // Covers multiple
+
+        // Edge cases
+        assert!(set.is_disjoint(0, 0)); // Empty range is always disjoint
+        assert!(set.is_disjoint(2, 2));
+    }
+
+    #[test]
+    fn test_is_covered_by() {
+        let mut set = RangeSet::new();
+        set.insert_range(2, 5); // [2, 5)
+        set.insert_range(8, 10); // [8, 10)
+
+        // Covered
+        assert!(set.is_covered_by(2, 10)); // Exact bounds (min=2, max=9 < 10)
+        assert!(set.is_covered_by(0, 12)); // Larger bounds
+        assert!(set.is_covered_by(2, 15));
+        assert!(set.is_covered_by(-5, 10));
+
+        // Not covered
+        assert!(!set.is_covered_by(3, 10)); // Cut left (min is 2)
+        assert!(!set.is_covered_by(2, 9)); // Cut right (max is 9, range ends at 9 i.e. max element 8) -> wait. 
+        // max() returns 9 (from [8, 10)). range [2, 9) includes 8 but not 9.
+        // Elements are {2, 3, 4, 8, 9}.
+        // [2, 9) contains {2, 3, 4, 5, 6, 7, 8}.
+        // 9 is in set but not in [2, 9). So false. Correct.
+
+        assert!(!set.is_covered_by(5, 8)); // Gap only
+
+        // Empty set
+        let empty_set = RangeSet::new();
+        assert!(empty_set.is_covered_by(0, 10));
+        assert!(empty_set.is_covered_by(0, 0)); // Empty set is covered by empty range
     }
 
     #[test]

@@ -30,7 +30,6 @@ pub mod dsu_core {
         ///   - `merged` は統合されて消える側の旧代表元
         /// - `None`:
         ///   - `a` と `b` がすでに同じ集合に属していた場合
-        ///
         pub fn merge(&mut self, a: usize, b: usize) -> Option<(usize, usize)> {
             assert!(a < self.n);
             assert!(b < self.n);

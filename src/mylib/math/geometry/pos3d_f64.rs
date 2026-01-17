@@ -232,11 +232,17 @@ mod tests_pos3d_f64 {
             Pos3dF64::new(3.0, 4.0, 5.0),
             Pos3dF64::new(5.0, 6.0, 7.0),
         ];
-        assert_eq!(ps.iter().copied().sum::<Pos3dF64>(), Pos3dF64::new(9.0, 12.0, 15.0));
+        assert_eq!(
+            ps.iter().copied().sum::<Pos3dF64>(),
+            Pos3dF64::new(9.0, 12.0, 15.0)
+        );
         assert_eq!(ps.iter().sum::<Pos3dF64>(), Pos3dF64::new(9.0, 12.0, 15.0));
 
         let empty: [Pos3dF64; 0] = [];
-        assert_eq!(empty.iter().copied().sum::<Pos3dF64>(), Pos3dF64::new(0.0, 0.0, 0.0));
+        assert_eq!(
+            empty.iter().copied().sum::<Pos3dF64>(),
+            Pos3dF64::new(0.0, 0.0, 0.0)
+        );
         assert_eq!(empty.iter().sum::<Pos3dF64>(), Pos3dF64::new(0.0, 0.0, 0.0));
     }
 

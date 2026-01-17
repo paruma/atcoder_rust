@@ -27,14 +27,14 @@ pub mod dsu_ix {
             }
         }
 
-        /// 要素 `a` と `b` が属する集合を統合する
+        /// 2 つの要素 `a` と `b` が属する集合を統合する
         ///
-        /// # Arguments
-        /// * `a` - 要素1
-        /// * `b` - 要素2
-        ///
-        /// # Returns
-        /// 新たに統合された場合、(新しいリーダー, 吸収されたリーダー) のペアを返す。既に同じ集合に属していた場合は `None`。
+        /// # 戻り値
+        /// - `Some((leader, merged))`:
+        ///   - `leader` は統合後の集合の代表元（リーダー）
+        ///   - `merged` は統合されて消える側の旧代表元
+        /// - `None`:
+        ///   - `a` と `b` がすでに同じ集合に属していた場合
         pub fn merge(&mut self, a: I, b: I) -> Option<(I, I)> {
             let a_idx = self.bounds.to_index(a);
             let b_idx = self.bounds.to_index(b);
