@@ -1,3 +1,4 @@
+// インタラクティブ問題
 trait IInteractive {
     fn ask(&mut self, a: i64, b: i64, c: i64, d: i64) -> Option<i64>;
 }
