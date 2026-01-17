@@ -1,25 +1,27 @@
-// 二分探索1回の解法
-// 値で二分探索する代わりに添字で二分探索をする
+// コンテスト中の解法
+// 二分探索を2回するため、計算量に log が2つついて TL ギリギリ
 fn main() {
     input! {
         n: usize,
         q: usize,
         mut a_s: [i64; n],
     }
-    a_s.push(i64::MIN / 10); // MIN そのものだとオーバーフローする
+
     a_s.sort();
 
-    // 解法は解説とほとんど同じ
     for _ in 0..q {
         input! {
             x: i64,
             y: i64,
         }
-        let i = a_s.lower_bound(&x);
-        let j = bin_search(a_s.len() as i64, -1, |j| {
-            a_s[j as usize] - x + 1 - (j - (i as i64) + 1) >= y
+        // x..=cand で a_s に含まれている数を cnt とする。
+        // x..=cand で a_s に含まれていない数は cand - x + 1 - cnt である。
+        // cand - x + 1 - cnt >= y となる最小の cand を求める
+        let ans = bin_search(10_000_000_000, x - 1, |cand| {
+            // a_s.lower_bound(&x) as i64 の部分は二分探索の外に出せる (973ms → 776ms になる)
+            let cnt = a_s.upper_bound(&cand) as i64 - a_s.lower_bound(&x) as i64;
+            cand - x + 1 - cnt >= y
         });
-        let ans = y + x - 1 + j - (i as i64);
         println!("{}", ans);
     }
 }
