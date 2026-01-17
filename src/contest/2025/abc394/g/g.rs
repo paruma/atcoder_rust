@@ -110,7 +110,7 @@ impl Problem {
                         if uf.same(q.src.pos, q.dst.pos) {
                             ok_ng_list[i].0 = mid; // ok = mid;
                         } else {
-                            ok_ng_list[i].1 = mid; // ok = mid;
+                            ok_ng_list[i].1 = mid; // ng = mid;
                         }
                     }
 
@@ -306,7 +306,7 @@ mod tests {
 
 // ====== import ======
 #[allow(unused_imports)]
-use itertools::{chain, iproduct, izip, Itertools};
+use itertools::{Itertools, chain, iproduct, izip};
 use proconio::source::Readable;
 #[allow(unused_imports)]
 use proconio::{
@@ -611,11 +611,7 @@ pub mod vec_vec_at {
     #[ext(ExtVecVec)]
     impl<T> Vec<Vec<T>> {
         pub fn width(&self) -> usize {
-            if self.is_empty() {
-                0
-            } else {
-                self[0].len()
-            }
+            if self.is_empty() { 0 } else { self[0].len() }
         }
         pub fn height(&self) -> usize {
             self.len()
@@ -628,7 +624,13 @@ pub mod vec_vec_at {
         type Output = T;
         fn index(&self, index: Pos) -> &Self::Output {
             if cfg!(debug_assertions) && !self.is_within(index) {
-                panic ! ("index out of bounds: the size (w, h) is ({}, {}) but the index (x, y) is ({}, {})" , self . width () , self . height () , index . x , index . y );
+                panic!(
+                    "index out of bounds: the size (w, h) is ({}, {}) but the index (x, y) is ({}, {})",
+                    self.width(),
+                    self.height(),
+                    index.x,
+                    index.y
+                );
             }
             &self[index.y as usize][index.x as usize]
         }
@@ -636,7 +638,13 @@ pub mod vec_vec_at {
     impl<T> IndexMut<Pos> for Vec<Vec<T>> {
         fn index_mut(&mut self, index: Pos) -> &mut Self::Output {
             if cfg!(debug_assertions) && !self.is_within(index) {
-                panic ! ("index out of bounds: the size (w, h) is ({}, {}) but the index (x, y) is ({}, {})" , self . width () , self . height () , index . x , index . y );
+                panic!(
+                    "index out of bounds: the size (w, h) is ({}, {}) but the index (x, y) is ({}, {})",
+                    self.width(),
+                    self.height(),
+                    index.x,
+                    index.y
+                );
             }
             &mut self[index.y as usize][index.x as usize]
         }

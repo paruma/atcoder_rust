@@ -15,7 +15,7 @@ pub mod lca_path_aggregate {
     where
         M::S: Clone,
     {
-        /// パス上の値をマージ可能な LCA 構造体を構築する。
+        /// パス上の辺重みのモノイド積が計算可能な LCA 構造体を構築する。
         ///
         /// # Arguments
         /// * `adj` - 隣接リスト表現の木。`adj[u]` は `(v, w)` のリスト。`v` は隣接ノード、`w` は辺 `u-v` の重み。
