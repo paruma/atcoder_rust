@@ -1,11 +1,13 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        p: i64,
+        q: i64,
+        x: i64,
+        y: i64,
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let ans: bool = (p..p + 100).contains(&x) && (q..q + 100).contains(&y);
+    print_yesno(ans);
 }
 
 #[cfg(test)]

@@ -2,10 +2,25 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        m: usize,
+        xs: Chars,
+        ys: Chars,
+        q: usize
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    for _ in 0..q {
+        input! {
+            w: Chars
+        }
+        let is_taka = w.iter().copied().all(|c| xs.contains(&c));
+        let is_ao = w.iter().copied().all(|c| ys.contains(&c));
+        let msg = match (is_taka, is_ao) {
+            (true, true) => "Unknown",
+            (true, false) => "Takahashi ",
+            (false, true) => "Aoki ",
+            (false, false) => panic!(),
+        };
+        println!("{}", msg);
+    }
 }
 
 #[cfg(test)]

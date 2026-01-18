@@ -1,11 +1,159 @@
-// #[fastout]
+use ac_library::LazySegtree;
+use map_monoid_template::*;
+#[allow(unused_variables)]
+#[allow(clippy::module_inception)]
+pub mod map_monoid_template {
+    use ac_library::lazysegtree::MapMonoid;
+    use ac_library::segtree::Monoid;
+    use std::convert::Infallible;
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub struct RangeXxx {
+        pub len: usize,
+        pub cnty1: usize,
+        pub max_x: i64, // y=1 のときの x のmax
+    }
+    impl RangeXxx {
+        pub fn unit(x: i64, y: i64) -> Self {
+            let len = 1;
+            let cnty1 = (y == 1) as usize;
+            let max_x = if y == 0 { 0 } else { x };
+            Self {
+                len: 1,
+                cnty1,
+                max_x,
+            }
+        }
+    }
+    pub struct RangeXxxMonoid(Infallible);
+    impl Monoid for RangeXxxMonoid {
+        type S = RangeXxx;
+        fn identity() -> Self::S {
+            RangeXxx {
+                len: 0,
+                cnty1: 0,
+                max_x: i64::MIN / 10,
+            }
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            RangeXxx {
+                len: a.len + b.len,
+                cnty1: a.cnty1 + b.cnty1,
+                max_x: i64::max(a.max_x, b.max_x),
+            }
+        }
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub struct Action {
+        pub a: i64,
+        pub b: i64,
+        pub y_flip: i64,
+    }
+    pub struct RangeYyyRangeXxx(Infallible);
+    impl MapMonoid for RangeYyyRangeXxx {
+        type M = RangeXxxMonoid;
+        type F = Action;
+        fn identity_map() -> Self::F {
+            Action {
+                a: 1,
+                b: 0,
+                y_flip: 0,
+            }
+        }
+        fn mapping(
+            f: &Self::F,
+            x: &<Self::M as ac_library::Monoid>::S,
+        ) -> <Self::M as ac_library::Monoid>::S {
+            if f.y_flip == 1 {
+                RangeXxx {
+                    len: x.len,
+                    cnty1: x.len - x.cnty1,
+                    max_x: 0,
+                }
+            } else {
+                if x.cnty1 == 0 {
+                    RangeXxx {
+                        len: x.len,
+                        cnty1: x.cnty1,
+                        max_x: i64::MIN / 10,
+                    }
+                } else {
+                    RangeXxx {
+                        len: x.len,
+                        cnty1: x.cnty1,
+                        max_x: f.b + f.a * x.max_x,
+                    }
+                }
+            }
+        }
+        fn composition(f1: &Self::F, f2: &Self::F) -> Self::F {
+            if f1.y_flip == 1 {
+                Self::F {
+                    a: f1.a,
+                    b: f1.b,
+                    y_flip: (f1.y_flip + f2.y_flip) % 2,
+                }
+            } else {
+                Self::F {
+                    a: f1.a * f2.a,
+                    b: f1.a * f2.b + f1.b,
+                    y_flip: (f1.y_flip + f2.y_flip) % 2,
+                }
+            }
+        }
+    }
+}
+
+#[fastout]
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        q: usize,
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    // 1: 表, 0: 裏
+    let mut seg = LazySegtree::<RangeYyyRangeXxx>::from(vec![RangeXxx::unit(0, 1); n]);
+
+    for _ in 0..q {
+        input! {
+            t: usize,
+        }
+
+        if t == 1 {
+            input! {
+                l: Usize1,
+                r: Usize1,
+                x: i64,
+            }
+            seg.apply_range(
+                l..=r,
+                Action {
+                    a: 1,
+                    b: x,
+                    y_flip: 0,
+                },
+            );
+        } else if t == 2 {
+            input! {
+                l: Usize1,
+                r: Usize1,
+            }
+            seg.apply_range(
+                l..=r,
+                Action {
+                    a: 0,
+                    b: 0,
+                    y_flip: 1,
+                },
+            );
+        } else {
+            input! {
+                l: Usize1,
+                r: Usize1,
+            }
+            let ans = seg.prod(l..=r).max_x.max(0);
+            println!("{}", ans);
+        }
+    }
 }
 
 #[cfg(test)]

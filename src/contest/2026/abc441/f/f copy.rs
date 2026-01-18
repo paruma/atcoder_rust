@@ -5,75 +5,68 @@ fn main() {
         m: usize, // 金額の上限
         pvs: [(usize, i64); n],
     }
-
-    let mut dp1 = vec![[NEG_INF; 2]; m + 1];
-
+    let mut dp1 = vec![vec![[NEG_INF; 2]; m + 1]; n + 1];
     for p in 0..=m {
-        dp1[p][0] = fin(0);
-        dp1[p][1] = fin(0);
+        dp1[0][p][0] = fin(0);
+        dp1[0][p][1] = fin(0);
     }
-    for i in 0..n {
-        let dp1_prev = dp1.clone();
-        let (pi, vi) = pvs[i];
+
+    for (i, (item_p, item_v)) in pvs.iter().copied().enumerate() {
         for p in 0..=m {
             // 現在のアイテムを選択する/しない
-            let choose = if p < pi {
+            let choose = if p < item_p {
                 NEG_INF
             } else {
-                std::cmp::max(dp1_prev[p - pi][0], dp1_prev[p - pi][1]) + fin(vi)
+                std::cmp::max(dp1[i][p - item_p][0], dp1[i][p - item_p][1]) + fin(item_v)
             };
-            let no_choose = std::cmp::max(dp1_prev[p][0], dp1_prev[p][1]);
+            let no_choose = std::cmp::max(dp1[i][p][0], dp1[i][p][1]);
 
-            dp1[p][0] = no_choose;
-            dp1[p][1] = choose;
+            dp1[i + 1][p][0] = no_choose;
+            dp1[i + 1][p][1] = choose;
         }
     }
 
-    let max_dp = dp1[m][0].max(dp1[m][1]);
+    let mut dp2 = vec![vec![[NEG_INF; 2]; m + 1]; n + 1];
+    for p in 0..=m {
+        dp2[0][p][0] = fin(0);
+        dp2[0][p][1] = fin(0);
+    }
 
-    let mut dp1 = vec![[NEG_INF; 2]; m + 1];
-    let mut dp2 = vec![[NEG_INF; 2]; m + 1];
+    for (i, (item_p, item_v)) in pvs.iter().copied().rev().enumerate() {
+        for p in 0..=m {
+            // 現在のアイテムを選択する/しない
+            let choose = if p < item_p {
+                NEG_INF
+            } else {
+                std::cmp::max(dp2[i][p - item_p][0], dp2[i][p - item_p][1]) + fin(item_v)
+            };
+            let no_choose = std::cmp::max(dp2[i][p][0], dp2[i][p][1]);
+
+            dp2[i + 1][p][0] = no_choose;
+            dp2[i + 1][p][1] = choose;
+        }
+    }
+    let max_dp = dp1[n][m][0].max(dp1[n][m][1]);
     let mut ans: Vec<char> = vec![];
 
-    for p in 0..=m {
-        dp1[p][0] = fin(0);
-        dp1[p][1] = fin(0);
-        dp2[p][0] = fin(0);
-        dp2[p][1] = fin(0);
-    }
     for i in 0..n {
-        let dp1_prev = dp1.clone();
-        let dp2_prev = dp2.clone();
-        let j = n - i - 1;
-        let (pi, vi) = pvs[i];
-        let (pj, vj) = pvs[j];
-        for p in 0..=m {
-            // 現在のアイテムを選択する/しない
-            let choose = if p < pi {
-                NEG_INF
-            } else {
-                std::cmp::max(dp1_prev[p - pi][0], dp1_prev[p - pi][1]) + fin(vi)
-            };
-            let no_choose = std::cmp::max(dp1_prev[p][0], dp1_prev[p][1]);
-
-            dp1[p][0] = no_choose;
-            dp1[p][1] = choose;
-        }
-
+        // 含まない
+        let dir1 = &dp1[i + 1];
+        let dir2 = &dp2[n - i - 1];
         let val1 = (0..=m)
             .map(|p| {
-                // dp1 から p
-                // dp2 から m - p
-                dp1[p][0] + std::cmp::max(dp2[m - p][0], dp2[m - p][1])
+                // dir1 から p
+                // dir2 から m - p
+                dir1[p][0] + std::cmp::max(dir2[m - p][0], dir2[m - p][1])
             })
             .max()
             .unwrap();
         // 含む
         let val2 = (0..=m)
             .map(|p| {
-                // dp1 から p
-                // dp2 から m - p
-                dp1[p][1] + std::cmp::max(dp2[m - p][0], dp2[m - p][1])
+                // dir1 から p
+                // dir2 から m - p
+                dir1[p][1] + std::cmp::max(dir2[m - p][0], dir2[m - p][1])
             })
             .max()
             .unwrap();
@@ -86,19 +79,6 @@ fn main() {
             'C'
         };
         ans.push(ch);
-
-        for p in 0..=m {
-            // 現在のアイテムを選択する/しない
-            let choose = if p < pj {
-                NEG_INF
-            } else {
-                std::cmp::max(dp2_prev[p - pj][0], dp2_prev[p - pj][1]) + fin(vj)
-            };
-            let no_choose = std::cmp::max(dp2_prev[p][0], dp2_prev[p][1]);
-
-            dp2[p][0] = no_choose;
-            dp2[p][1] = choose;
-        }
     }
 
     print_chars(&ans);

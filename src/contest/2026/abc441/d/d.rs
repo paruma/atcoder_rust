@@ -1,11 +1,54 @@
-// #[fastout]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Edge {
+    from: Usize1,
+    to: Usize1,
+    cost: i64,
+}
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        nv: usize,
+        ne: usize,
+        l: usize,
+        min: i64,
+        max: i64,
+        es: [Edge; ne],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let adj = es.iter().copied().fold(vec![vec![]; nv], |mut acc, e| {
+        acc[e.from].push(e);
+        acc
+    });
+
+    let mut ok_list = vec![false; nv];
+
+    for pat in std::iter::repeat_n(0..4_usize, l).multi_cartesian_product() {
+        let mut ng = false;
+        let mut cur = 0;
+        let mut sum = 0;
+        for t in 0..l {
+            let next_e_idx = pat[t];
+            if let Some(&e) = adj[cur].get(next_e_idx) {
+                cur = e.to;
+                sum += e.cost;
+            } else {
+                ng = true;
+                break;
+            }
+        }
+
+        if !ng && (min..=max).contains(&sum) {
+            ok_list[cur] = true;
+        }
+    }
+
+    let ans = ok_list
+        .iter()
+        .copied()
+        .enumerate()
+        .filter(|(i, ok)| *ok)
+        .map(|(i, _)| i + 1)
+        .collect_vec();
+    print_vec_1line(&ans);
 }
 
 #[cfg(test)]

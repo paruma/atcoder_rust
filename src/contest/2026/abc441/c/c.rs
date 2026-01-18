@@ -2,10 +2,41 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        k: usize,
+        x: i64,
+        mut a_s: [i64; n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    a_s.sort();
+    a_s.reverse();
+
+    // dbg!(&a_s);
+
+    let ans: Option<usize> = (|| {
+        let cnt_water = n - k;
+        // dbg!(cnt_water);
+
+        let mut sum = 0;
+        let mut cnt = cnt_water;
+        for i in cnt_water..n {
+            sum += a_s[i];
+            cnt += 1;
+            if sum >= x {
+                // dbg!(cnt);
+                return Some(cnt);
+            }
+        }
+        if sum >= x {
+            return Some(cnt);
+        }
+        None
+    })();
+
+    if let Some(ans) = ans {
+        println!("{}", ans);
+    } else {
+        println!("-1");
+    }
 }
 
 #[cfg(test)]
