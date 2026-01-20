@@ -1,10 +1,44 @@
-// multi_cartesian_product を使った解法
+// DFS を使った解法
 #[derive_readable]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct Edge {
     from: Usize1,
     to: Usize1,
     cost: i64,
+}
+
+fn dfs(
+    adj: &[Vec<Edge>],
+    l: usize,
+    cost_min: i64,
+    cost_max: i64,
+    ok_list: &mut [bool],
+    cur_v: usize,
+    cur_cost: i64,
+    cur_cnt_edge: usize,
+) {
+    if cur_cnt_edge == l {
+        if (cost_min..=cost_max).contains(&cur_cost) {
+            ok_list[cur_v] = true;
+        }
+        return;
+    }
+
+    for &e in &adj[cur_v] {
+        let next_v = e.to;
+        let next_cost = cur_cost + e.cost;
+        let next_cnt_edge = cur_cnt_edge + 1;
+        dfs(
+            adj,
+            l,
+            cost_min,
+            cost_max,
+            ok_list,
+            next_v,
+            next_cost,
+            next_cnt_edge,
+        );
+    }
 }
 fn main() {
     input! {
@@ -22,37 +56,7 @@ fn main() {
 
     let mut ok_list = vec![false; nv];
 
-    for pat in std::iter::repeat_n(0..4_usize, l).multi_cartesian_product() {
-        std::iter::successors(Some((0, 0, 0)), |&(v, cost_sum, time)| {
-            let next_e_idx = pat[time];
-            if let Some(&e) = adj[v].get(next_e_idx) {
-                let next_v = e.to;
-                let next_cost_sum = cost_sum + e.cost;
-                let next_time = time + 1;
-                Some((next_v, next_cost_sum, next_time))
-            } else {
-                None
-            }
-        });
-
-        let mut ng = false;
-        let mut cur = 0;
-        let mut sum = 0;
-        for t in 0..l {
-            let next_e_idx = pat[t];
-            if let Some(&e) = adj[cur].get(next_e_idx) {
-                cur = e.to;
-                sum += e.cost;
-            } else {
-                ng = true;
-                break;
-            }
-        }
-
-        if !ng && (min..=max).contains(&sum) {
-            ok_list[cur] = true;
-        }
-    }
+    dfs(&adj, l, min, max, &mut ok_list, 0, 0, 0);
 
     let ans = ok_list
         .iter()
