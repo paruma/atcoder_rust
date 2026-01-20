@@ -16,7 +16,7 @@ pub mod map_monoid_template {
         pub fn unit(x: i64, y: i64) -> Self {
             let len = 1;
             let cnty1 = (y == 1) as usize;
-            let max_x = if y == 0 { 0 } else { x };
+            let max_x = if y == 0 { i64::MIN / 10 } else { x };
             Self {
                 len: 1,
                 cnty1,
@@ -35,6 +35,8 @@ pub mod map_monoid_template {
             }
         }
         fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            let a_max_x = if a.cnty1 == 0 { i64::MIN / 10 } else { a.max_x };
+            let b_max_x = if b.cnty1 == 0 { i64::MIN / 10 } else { b.max_x };
             RangeXxx {
                 len: a.len + b.len,
                 cnty1: a.cnty1 + b.cnty1,
@@ -67,7 +69,7 @@ pub mod map_monoid_template {
                 RangeXxx {
                     len: x.len,
                     cnty1: x.len - x.cnty1,
-                    max_x: 0,
+                    max_x: if x.len == x.cnty1 { i64::MIN / 10 } else { f.b },
                 }
             } else {
                 if x.cnty1 == 0 {
@@ -86,20 +88,21 @@ pub mod map_monoid_template {
             }
         }
         fn composition(f1: &Self::F, f2: &Self::F) -> Self::F {
-            if f1.y_flip == 1 {
-                Self::F {
-                    a: f1.a,
-                    b: f1.b,
-                    y_flip: (f1.y_flip + f2.y_flip) % 2,
-                }
-            } else {
-                Self::F {
-                    a: f1.a * f2.a,
-                    b: f1.a * f2.b + f1.b,
-                    y_flip: (f1.y_flip + f2.y_flip) % 2,
-                }
+            Self::F {
+                a: f1.a * f2.a,
+                b: f1.a * f2.b + f1.b,
+                y_flip: (f1.y_flip + f2.y_flip) % 2,
             }
         }
+    }
+}
+
+define_queries! {
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    enum Query: usize {
+        1 => Add { l: Usize1, r: Usize1, x: i64 },
+        2 => Flip { l: Usize1, r: Usize1 },
+        3 => Max { l: Usize1, r: Usize1 },
     }
 }
 
@@ -108,50 +111,37 @@ fn main() {
     input! {
         n: usize,
         q: usize,
+        qs: [Query; q],
     }
 
     // 1: 表, 0: 裏
     let mut seg = LazySegtree::<RangeYyyRangeXxx>::from(vec![RangeXxx::unit(0, 1); n]);
-
-    for _ in 0..q {
-        input! {
-            t: usize,
-        }
-
-        if t == 1 {
-            input! {
-                l: Usize1,
-                r: Usize1,
-                x: i64,
+    for &q in &qs {
+        match q {
+            Query::Add { l, r, x } => {
+                seg.apply_range(
+                    l..=r,
+                    Action {
+                        a: 1,
+                        b: x,
+                        y_flip: 0,
+                    },
+                );
             }
-            seg.apply_range(
-                l..=r,
-                Action {
-                    a: 1,
-                    b: x,
-                    y_flip: 0,
-                },
-            );
-        } else if t == 2 {
-            input! {
-                l: Usize1,
-                r: Usize1,
+            Query::Flip { l, r } => {
+                seg.apply_range(
+                    l..=r,
+                    Action {
+                        a: 0,
+                        b: 0,
+                        y_flip: 1,
+                    },
+                );
             }
-            seg.apply_range(
-                l..=r,
-                Action {
-                    a: 0,
-                    b: 0,
-                    y_flip: 1,
-                },
-            );
-        } else {
-            input! {
-                l: Usize1,
-                r: Usize1,
+            Query::Max { l, r } => {
+                let ans = seg.prod(l..=r).max_x.max(0);
+                println!("{}", ans);
             }
-            let ans = seg.prod(l..=r).max_x.max(0);
-            println!("{}", ans);
         }
     }
 }
@@ -282,3 +272,22 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+#[macro_use]
+pub mod define_queries {
+    /// クエリ形式の入力を proconio::input! で読み込める enum を定義するマクロ。
+    /// 出典： https://zenn.dev/magurofly/articles/6ee845bd5e385e
+    /// # 利用例
+    /// ```
+    /// use mylib::define_queries;
+    /// use proconio::marker::Usize1;
+    /// define_queries! {
+    ///     #[derive(Debug, PartialEq)]
+    ///     enum Query: usize {
+    ///         1 => Add { a: i64, b: i64 },
+    ///         2 => Show { k: Usize1 },
+    ///     }
+    /// }
+    /// ```
+    #[macro_export]
+    macro_rules ! define_queries {($ ($ (# [$ attr : meta ] ) * enum $ enum_name : ident : $ sig : ty {$ ($ pattern : pat => $ variant : ident $ ({$ ($ name : ident : $ marker : ty $ (, ) ? ) ,* } ) ? $ (, ) ? ) ,* } ) * ) => {$ ($ (# [$ attr ] ) * enum $ enum_name {$ ($ variant $ ({$ ($ name : <$ marker as proconio :: source :: Readable >:: Output ) ,* } ) ? ) ,* } impl proconio :: source :: Readable for $ enum_name {type Output = Self ; fn read < R : std :: io :: BufRead , S : proconio :: source :: Source < R >> (source : & mut S ) -> Self {#! [allow (unreachable_patterns ) ] match <$ sig as proconio :: source :: Readable >:: read (source ) {$ ($ pattern => $ enum_name ::$ variant $ ({$ ($ name : <$ marker as proconio :: source :: Readable >:: read (source ) ) ,* } ) ? ) ,* , _ => unreachable ! () } } } ) * } }
+}
