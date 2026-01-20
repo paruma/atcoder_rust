@@ -117,5 +117,20 @@
 			"",
 		],
 		"description": "multi test case"
+	},
+	"define_queries": {
+		"scope": "rust",
+		"prefix": "define_queries",
+		"body": [
+			"define_queries! {",
+			"    #[derive(Clone, Copy, Debug, PartialEq, Eq)]",
+			"    enum Query: usize {",
+			"        1 => Add {  },",
+			"        2 => Delete {  },",
+			"        3 => Output {  },",
+			"    }",
+			"}"
+		],
+		"description": "define_queries! snippet"
 	}
 }
