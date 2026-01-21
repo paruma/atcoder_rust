@@ -23,17 +23,22 @@ fn main() {
     let mut ok_list = vec![false; nv];
 
     for pat in std::iter::repeat_n(0..4_usize, l).multi_cartesian_product() {
-        let walk_result = pat.iter().try_fold((0, 0), |(v, cost), &next_e_idx| {
-            if let Some(&e) = adj[v].get(next_e_idx) {
-                Some((e.to, cost + e.cost))
+        let mut ng = false;
+        let mut cur = 0;
+        let mut sum = 0;
+        for t in 0..l {
+            let next_e_idx = pat[t];
+            if let Some(&e) = adj[cur].get(next_e_idx) {
+                cur = e.to;
+                sum += e.cost;
             } else {
-                None
+                ng = true;
+                break;
             }
-        });
-        if let Some((terminal, cost)) = walk_result {
-            if (min..=max).contains(&cost) {
-                ok_list[terminal] = true;
-            }
+        }
+
+        if !ng && (min..=max).contains(&sum) {
+            ok_list[cur] = true;
         }
     }
 
