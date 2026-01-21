@@ -20,7 +20,7 @@ fn main() {
         acc
     });
 
-    let mut ok_list = vec![false; nv];
+    let mut reachable_list = vec![false; nv];
 
     for pat in std::iter::repeat_n(0..4_usize, l).multi_cartesian_product() {
         let walk_result = pat.iter().try_fold((0, 0), |(v, cost), &next_e_idx| {
@@ -32,12 +32,13 @@ fn main() {
         });
         if let Some((terminal, cost)) = walk_result {
             if (min..=max).contains(&cost) {
-                ok_list[terminal] = true;
+                reachable_list[terminal] = true;
             }
         }
     }
 
-    let ans = ok_list
+    // positions 使うのもあり
+    let ans = reachable_list
         .iter()
         .copied()
         .enumerate()
