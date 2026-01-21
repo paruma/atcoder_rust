@@ -8,12 +8,12 @@ pub mod map_monoid_template {
     use ac_library::segtree::Monoid;
     use std::convert::Infallible;
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-    pub struct RangeMaxHeadCnt {
+    pub struct RangeXxx {
         pub len: usize,
         pub cnt_head: usize, // 表の数
         pub max_x: NegExtInt,
     }
-    impl RangeMaxHeadCnt {
+    impl RangeXxx {
         pub fn unit(x: i64, is_head: bool) -> Self {
             Self {
                 len: 1,
@@ -22,18 +22,18 @@ pub mod map_monoid_template {
             }
         }
     }
-    pub struct RangeMaxHeadCntMonoid(Infallible);
-    impl Monoid for RangeMaxHeadCntMonoid {
-        type S = RangeMaxHeadCnt;
+    pub struct RangeXxxMonoid(Infallible);
+    impl Monoid for RangeXxxMonoid {
+        type S = RangeXxx;
         fn identity() -> Self::S {
-            RangeMaxHeadCnt {
+            RangeXxx {
                 len: 0,
                 cnt_head: 0,
                 max_x: NEG_INF,
             }
         }
         fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
-            RangeMaxHeadCnt {
+            RangeXxx {
                 len: a.len + b.len,
                 cnt_head: a.cnt_head + b.cnt_head,
                 max_x: NegExtInt::max(a.max_x, b.max_x),
@@ -41,45 +41,53 @@ pub mod map_monoid_template {
         }
     }
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-    pub struct FlipAddAction {
+    pub struct Action {
         pub add: i64,
-        pub cnt_flip: i64,
+        pub reset: bool,
+        pub flip: bool,
     }
-    pub struct RangeFlipAddRangeMax(Infallible);
-    impl MapMonoid for RangeFlipAddRangeMax {
-        type M = RangeMaxHeadCntMonoid;
-        type F = FlipAddAction;
+    pub struct RangeYyyRangeXxx(Infallible);
+    impl MapMonoid for RangeYyyRangeXxx {
+        type M = RangeXxxMonoid;
+        type F = Action;
         fn identity_map() -> Self::F {
-            FlipAddAction {
+            Action {
                 add: 0,
-                cnt_flip: 0,
+                reset: false,
+                flip: false,
             }
         }
         fn mapping(
             f: &Self::F,
             x: &<Self::M as ac_library::Monoid>::S,
         ) -> <Self::M as ac_library::Monoid>::S {
-            let next_cnt_head = if f.cnt_flip % 2 == 0 {
-                x.cnt_head
+            if f.flip {
+                RangeXxx {
+                    len: x.len,
+                    cnt_head: x.len - x.cnt_head,
+                    max_x: if x.len == x.cnt_head {
+                        NEG_INF
+                    } else {
+                        fin(f.add)
+                    },
+                }
             } else {
-                x.len - x.cnt_head
-            };
-            RangeMaxHeadCnt {
-                len: x.len,
-                cnt_head: next_cnt_head,
-                max_x: if next_cnt_head == 0 {
-                    NEG_INF
-                } else {
-                    // 1回以上 flip していたら、今までの値はリセットされている
-                    fin(f.add) + if f.cnt_flip > 0 { fin(0) } else { x.max_x }
-                },
+                RangeXxx {
+                    len: x.len,
+                    cnt_head: x.cnt_head,
+                    max_x: if x.cnt_head == 0 {
+                        NEG_INF
+                    } else {
+                        fin(f.add) + if f.reset { fin(0) } else { x.max_x }
+                    },
+                }
             }
         }
         fn composition(f1: &Self::F, f2: &Self::F) -> Self::F {
             Self::F {
-                // flip 前の add action はなかったことになる
-                add: f1.add + if f1.cnt_flip > 0 { 0 } else { f2.add },
-                cnt_flip: f1.cnt_flip + f2.cnt_flip,
+                add: f1.add + if f1.reset { 0 } else { f2.add },
+                reset: f1.reset || f2.reset,
+                flip: f1.flip ^ f2.flip,
             }
         }
     }
@@ -103,25 +111,26 @@ fn main() {
     }
 
     // 1: 表, 0: 裏
-    let mut seg =
-        LazySegtree::<RangeFlipAddRangeMax>::from(vec![RangeMaxHeadCnt::unit(0, true); n]);
+    let mut seg = LazySegtree::<RangeYyyRangeXxx>::from(vec![RangeXxx::unit(0, true); n]);
     for &q in &qs {
         match q {
             Query::Add { l, r, x } => {
                 seg.apply_range(
                     l..=r,
-                    FlipAddAction {
+                    Action {
                         add: x,
-                        cnt_flip: 0,
+                        reset: false,
+                        flip: false,
                     },
                 );
             }
             Query::Flip { l, r } => {
                 seg.apply_range(
                     l..=r,
-                    FlipAddAction {
+                    Action {
                         add: 0,
-                        cnt_flip: 1,
+                        reset: true,
+                        flip: true,
                     },
                 );
             }

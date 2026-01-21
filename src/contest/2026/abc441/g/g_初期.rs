@@ -3,83 +3,95 @@ use map_monoid_template::*;
 #[allow(unused_variables)]
 #[allow(clippy::module_inception)]
 pub mod map_monoid_template {
-    use super::mod_neg_ext_int::*;
     use ac_library::lazysegtree::MapMonoid;
     use ac_library::segtree::Monoid;
     use std::convert::Infallible;
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-    pub struct RangeMaxHeadCnt {
+    pub struct RangeXxx {
         pub len: usize,
-        pub cnt_head: usize, // 表の数
-        pub max_x: NegExtInt,
+        pub cnty1: usize,
+        pub max_x: i64, // y=1 のときの x のmax
     }
-    impl RangeMaxHeadCnt {
-        pub fn unit(x: i64, is_head: bool) -> Self {
+    impl RangeXxx {
+        pub fn unit(x: i64, y: i64) -> Self {
+            let len = 1;
+            let cnty1 = (y == 1) as usize;
+            let max_x = if y == 0 { i64::MIN / 10 } else { x };
             Self {
                 len: 1,
-                cnt_head: if is_head { 1 } else { 0 },
-                max_x: if is_head { fin(x) } else { NEG_INF },
+                cnty1,
+                max_x,
             }
         }
     }
-    pub struct RangeMaxHeadCntMonoid(Infallible);
-    impl Monoid for RangeMaxHeadCntMonoid {
-        type S = RangeMaxHeadCnt;
+    pub struct RangeXxxMonoid(Infallible);
+    impl Monoid for RangeXxxMonoid {
+        type S = RangeXxx;
         fn identity() -> Self::S {
-            RangeMaxHeadCnt {
+            RangeXxx {
                 len: 0,
-                cnt_head: 0,
-                max_x: NEG_INF,
+                cnty1: 0,
+                max_x: i64::MIN / 10,
             }
         }
         fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
-            RangeMaxHeadCnt {
+            let a_max_x = if a.cnty1 == 0 { i64::MIN / 10 } else { a.max_x };
+            let b_max_x = if b.cnty1 == 0 { i64::MIN / 10 } else { b.max_x };
+            RangeXxx {
                 len: a.len + b.len,
-                cnt_head: a.cnt_head + b.cnt_head,
-                max_x: NegExtInt::max(a.max_x, b.max_x),
+                cnty1: a.cnty1 + b.cnty1,
+                max_x: i64::max(a.max_x, b.max_x),
             }
         }
     }
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-    pub struct FlipAddAction {
-        pub add: i64,
-        pub cnt_flip: i64,
+    pub struct Action {
+        pub a: i64,
+        pub b: i64,
+        pub y_flip: i64,
     }
-    pub struct RangeFlipAddRangeMax(Infallible);
-    impl MapMonoid for RangeFlipAddRangeMax {
-        type M = RangeMaxHeadCntMonoid;
-        type F = FlipAddAction;
+    pub struct RangeYyyRangeXxx(Infallible);
+    impl MapMonoid for RangeYyyRangeXxx {
+        type M = RangeXxxMonoid;
+        type F = Action;
         fn identity_map() -> Self::F {
-            FlipAddAction {
-                add: 0,
-                cnt_flip: 0,
+            Action {
+                a: 1,
+                b: 0,
+                y_flip: 0,
             }
         }
         fn mapping(
             f: &Self::F,
             x: &<Self::M as ac_library::Monoid>::S,
         ) -> <Self::M as ac_library::Monoid>::S {
-            let next_cnt_head = if f.cnt_flip % 2 == 0 {
-                x.cnt_head
+            if f.y_flip == 1 {
+                RangeXxx {
+                    len: x.len,
+                    cnty1: x.len - x.cnty1,
+                    max_x: if x.len == x.cnty1 { i64::MIN / 10 } else { f.b },
+                }
             } else {
-                x.len - x.cnt_head
-            };
-            RangeMaxHeadCnt {
-                len: x.len,
-                cnt_head: next_cnt_head,
-                max_x: if next_cnt_head == 0 {
-                    NEG_INF
+                if x.cnty1 == 0 {
+                    RangeXxx {
+                        len: x.len,
+                        cnty1: x.cnty1,
+                        max_x: i64::MIN / 10,
+                    }
                 } else {
-                    // 1回以上 flip していたら、今までの値はリセットされている
-                    fin(f.add) + if f.cnt_flip > 0 { fin(0) } else { x.max_x }
-                },
+                    RangeXxx {
+                        len: x.len,
+                        cnty1: x.cnty1,
+                        max_x: f.b + f.a * x.max_x,
+                    }
+                }
             }
         }
         fn composition(f1: &Self::F, f2: &Self::F) -> Self::F {
             Self::F {
-                // flip 前の add action はなかったことになる
-                add: f1.add + if f1.cnt_flip > 0 { 0 } else { f2.add },
-                cnt_flip: f1.cnt_flip + f2.cnt_flip,
+                a: f1.a * f2.a,
+                b: f1.a * f2.b + f1.b,
+                y_flip: (f1.y_flip + f2.y_flip) % 2,
             }
         }
     }
@@ -103,30 +115,31 @@ fn main() {
     }
 
     // 1: 表, 0: 裏
-    let mut seg =
-        LazySegtree::<RangeFlipAddRangeMax>::from(vec![RangeMaxHeadCnt::unit(0, true); n]);
+    let mut seg = LazySegtree::<RangeYyyRangeXxx>::from(vec![RangeXxx::unit(0, 1); n]);
     for &q in &qs {
         match q {
             Query::Add { l, r, x } => {
                 seg.apply_range(
                     l..=r,
-                    FlipAddAction {
-                        add: x,
-                        cnt_flip: 0,
+                    Action {
+                        a: 1,
+                        b: x,
+                        y_flip: 0,
                     },
                 );
             }
             Query::Flip { l, r } => {
                 seg.apply_range(
                     l..=r,
-                    FlipAddAction {
-                        add: 0,
-                        cnt_flip: 1,
+                    Action {
+                        a: 0,
+                        b: 0,
+                        y_flip: 1,
                     },
                 );
             }
             Query::Max { l, r } => {
-                let ans = seg.prod(l..=r).max_x.get_fin_or(0);
+                let ans = seg.prod(l..=r).max_x.max(0);
                 println!("{}", ans);
             }
         }
@@ -277,160 +290,4 @@ pub mod define_queries {
     /// ```
     #[macro_export]
     macro_rules ! define_queries {($ ($ (# [$ attr : meta ] ) * enum $ enum_name : ident : $ sig : ty {$ ($ pattern : pat => $ variant : ident $ ({$ ($ name : ident : $ marker : ty $ (, ) ? ) ,* } ) ? $ (, ) ? ) ,* } ) * ) => {$ ($ (# [$ attr ] ) * enum $ enum_name {$ ($ variant $ ({$ ($ name : <$ marker as proconio :: source :: Readable >:: Output ) ,* } ) ? ) ,* } impl proconio :: source :: Readable for $ enum_name {type Output = Self ; fn read < R : std :: io :: BufRead , S : proconio :: source :: Source < R >> (source : & mut S ) -> Self {#! [allow (unreachable_patterns ) ] match <$ sig as proconio :: source :: Readable >:: read (source ) {$ ($ pattern => $ enum_name ::$ variant $ ({$ ($ name : <$ marker as proconio :: source :: Readable >:: read (source ) ) ,* } ) ? ) ,* , _ => unreachable ! () } } } ) * } }
-}
-use mod_neg_ext_int::*;
-pub mod mod_neg_ext_int {
-    use ac_library::Monoid;
-    use std::{
-        cmp::Ordering,
-        convert::Infallible,
-        fmt,
-        ops::{Add, AddAssign, Sub, SubAssign},
-    };
-    pub const NEG_INF: NegExtInt = NegExtInt::NEG_INF;
-    pub fn fin(x: i64) -> NegExtInt {
-        NegExtInt::fin(x)
-    }
-    #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-    pub struct NegExtInt(i64);
-    impl NegExtInt {
-        pub const NEG_INF: Self = Self(i64::MIN);
-        pub fn fin(x: i64) -> Self {
-            Self(x)
-        }
-        pub fn get_fin(self) -> i64 {
-            if self.is_fin() {
-                self.0
-            } else {
-                panic!("called `NegExtInt::get_fin()` on a negative infinity")
-            }
-        }
-        pub fn get_fin_or(self, default: i64) -> i64 {
-            if self.is_fin() { self.0 } else { default }
-        }
-        #[inline]
-        pub fn is_fin(self) -> bool {
-            self.0 != i64::MIN
-        }
-        pub fn is_neg_inf(self) -> bool {
-            self.0 == i64::MIN
-        }
-        pub fn to_option(self) -> Option<i64> {
-            if self.is_fin() { Some(self.0) } else { None }
-        }
-        pub fn from_option(opt: Option<i64>) -> NegExtInt {
-            match opt {
-                Some(a) => Self(a),
-                None => Self::NEG_INF,
-            }
-        }
-        pub fn times(self, t: i64) -> Self {
-            match t.cmp(&0) {
-                Ordering::Less => panic!("t must be non-negative."),
-                Ordering::Equal => Self(0),
-                Ordering::Greater => {
-                    if self.is_fin() {
-                        Self(self.0 * t)
-                    } else {
-                        Self::NEG_INF
-                    }
-                }
-            }
-        }
-    }
-    impl Add for NegExtInt {
-        type Output = NegExtInt;
-        fn add(self, rhs: Self) -> Self::Output {
-            if self.is_neg_inf() || rhs.is_neg_inf() {
-                Self::NEG_INF
-            } else {
-                Self::fin(self.0 + rhs.0)
-            }
-        }
-    }
-    impl AddAssign for NegExtInt {
-        fn add_assign(&mut self, rhs: Self) {
-            *self = *self + rhs;
-        }
-    }
-    impl Add<i64> for NegExtInt {
-        type Output = NegExtInt;
-        fn add(self, rhs: i64) -> Self::Output {
-            if self.is_neg_inf() {
-                Self::NEG_INF
-            } else {
-                Self::fin(self.0 + rhs)
-            }
-        }
-    }
-    impl AddAssign<i64> for NegExtInt {
-        fn add_assign(&mut self, rhs: i64) {
-            *self = *self + rhs;
-        }
-    }
-    impl Sub<i64> for NegExtInt {
-        type Output = NegExtInt;
-        fn sub(self, rhs: i64) -> Self::Output {
-            if self.is_neg_inf() {
-                Self::NEG_INF
-            } else {
-                Self::fin(self.0 - rhs)
-            }
-        }
-    }
-    impl SubAssign<i64> for NegExtInt {
-        fn sub_assign(&mut self, rhs: i64) {
-            *self = *self - rhs;
-        }
-    }
-    impl std::iter::Sum for NegExtInt {
-        fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
-            let mut s = 0;
-            for x in iter {
-                if x.is_neg_inf() {
-                    return Self::NEG_INF;
-                }
-                s += x.0;
-            }
-            Self::fin(s)
-        }
-    }
-    impl fmt::Display for NegExtInt {
-        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-            if self.is_neg_inf() {
-                write!(f, "-∞")
-            } else {
-                write!(f, "{}", self.0)
-            }
-        }
-    }
-    impl fmt::Debug for NegExtInt {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            if self.is_neg_inf() {
-                write!(f, "-∞")
-            } else {
-                write!(f, "{}", self.0)
-            }
-        }
-    }
-    pub struct NegExtIntAdditive(Infallible);
-    impl Monoid for NegExtIntAdditive {
-        type S = NegExtInt;
-        fn identity() -> Self::S {
-            NegExtInt::fin(0)
-        }
-        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
-            *a + *b
-        }
-    }
-    pub struct NegExtIntMax(Infallible);
-    impl Monoid for NegExtIntMax {
-        type S = NegExtInt;
-        fn identity() -> Self::S {
-            NegExtInt::NEG_INF
-        }
-        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
-            *a.max(b)
-        }
-    }
 }
