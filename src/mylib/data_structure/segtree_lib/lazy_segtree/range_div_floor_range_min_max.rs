@@ -18,9 +18,14 @@ pub mod range_div_floor_range_min_max {
         pub fn new(min: i64, max: i64) -> Self {
             Self { min, max }
         }
+
+        pub fn unit(x: i64) -> Self {
+            Self { min: x, max: x }
+        }
     }
 
-    impl Monoid for RangeMinMax {
+    pub struct RangeMinMaxMonoid(Infallible);
+    impl Monoid for RangeMinMaxMonoid {
         type S = RangeMinMax;
         fn identity() -> RangeMinMax {
             RangeMinMax {
@@ -38,7 +43,7 @@ pub mod range_div_floor_range_min_max {
 
     pub struct RangeDivFloorRangeMinMax(Infallible);
     impl MapMonoid for RangeDivFloorRangeMinMax {
-        type M = RangeMinMax;
+        type M = RangeMinMaxMonoid;
         type F = i64; // 正の値のみを想定
 
         fn identity_map() -> i64 {
@@ -49,19 +54,19 @@ pub mod range_div_floor_range_min_max {
         }
 
         fn mapping(f: &i64, x: &RangeMinMax) -> RangeMinMax {
-            let min_val = if x.min == i64::MAX {
+            let min_v = if x.min == i64::MAX {
                 i64::MAX
             } else {
                 x.min.div_euclid(*f)
             };
-            let max_val = if x.max == i64::MIN {
+            let max_v = if x.max == i64::MIN {
                 i64::MIN
             } else {
                 x.max.div_euclid(*f)
             };
             RangeMinMax {
-                min: min_val,
-                max: max_val,
+                min: min_v,
+                max: max_v,
             }
         }
     }
@@ -83,8 +88,7 @@ pub mod range_div_floor_range_min_max {
     impl RangeDivFloorRangeMinMaxSegtree {
         pub fn new(xs: &[i64]) -> RangeDivFloorRangeMinMaxSegtree {
             let len = xs.len();
-            let initial_data: Vec<RangeMinMax> =
-                xs.iter().map(|&x| RangeMinMax { min: x, max: x }).collect();
+            let initial_data: Vec<RangeMinMax> = xs.iter().map(|&x| RangeMinMax::unit(x)).collect();
             RangeDivFloorRangeMinMaxSegtree {
                 segtree: LazySegtree::from(initial_data),
                 len,
@@ -92,24 +96,33 @@ pub mod range_div_floor_range_min_max {
         }
 
         pub fn set(&mut self, p: usize, x: i64) {
-            self.segtree.set(p, RangeMinMax { min: x, max: x });
+            self.segtree.set(p, RangeMinMax::unit(x));
         }
 
         pub fn get(&mut self, p: usize) -> i64 {
             self.segtree.get(p).min
         }
 
-        pub fn range_min_max<R>(&mut self, range: R) -> (i64, i64)
+        pub fn range_min<R>(&mut self, range: R) -> i64
         where
             R: RangeBounds<usize>,
         {
-            let res = self.segtree.prod(range);
-            (res.min, res.max)
+            self.segtree.prod(range).min
         }
 
-        pub fn all_min_max(&self) -> (i64, i64) {
-            let res = self.segtree.all_prod();
-            (res.min, res.max)
+        pub fn range_max<R>(&mut self, range: R) -> i64
+        where
+            R: RangeBounds<usize>,
+        {
+            self.segtree.prod(range).max
+        }
+
+        pub fn all_min(&self) -> i64 {
+            self.segtree.all_prod().min
+        }
+
+        pub fn all_max(&self) -> i64 {
+            self.segtree.all_prod().max
         }
 
         /// A[p] <- A[p] / x  を計算する
@@ -166,8 +179,10 @@ mod test_range_div_floor_range_min_max {
     fn test_range_min_max() {
         let xs = vec![10, 50, 30, 40, 20];
         let mut segtree = RangeDivFloorRangeMinMaxSegtree::new(&xs);
-        assert_eq!(segtree.range_min_max(1..4), (30, 50));
-        assert_eq!(segtree.range_min_max(2..5), (20, 40));
+        assert_eq!(segtree.range_min(1..4), 30);
+        assert_eq!(segtree.range_max(1..4), 50);
+        assert_eq!(segtree.range_min(2..5), 20);
+        assert_eq!(segtree.range_max(2..5), 40);
     }
 
     #[test]
@@ -187,7 +202,8 @@ mod test_range_div_floor_range_min_max {
         segtree.apply_range_div_floor(1..4, 2);
         // [10, 10, 15, 20, 50]
         assert_eq!(segtree.to_vec(), vec![10, 10, 15, 20, 50]);
-        assert_eq!(segtree.range_min_max(1..4), (10, 20));
+        assert_eq!(segtree.range_min(1..4), 10);
+        assert_eq!(segtree.range_max(1..4), 20);
 
         segtree.apply_range_div_floor(0..5, 5);
         // [2, 2, 3, 4, 10]
@@ -201,11 +217,29 @@ mod test_range_div_floor_range_min_max {
         let mut segtree = RangeDivFloorRangeMinMaxSegtree::new(&xs);
         segtree.apply_range_div_floor(0..5, 2);
         assert_eq!(segtree.to_vec(), vec![-5, -3, 0, 2, 5]);
-        assert_eq!(segtree.range_min_max(0..5), (-5, 5));
+        assert_eq!(segtree.range_min(0..5), -5);
+        assert_eq!(segtree.range_max(0..5), 5);
 
         // -3 / 2 = -2 (floor)
         segtree.apply_range_div_floor(0..5, 2);
         assert_eq!(segtree.to_vec(), vec![-3, -2, 0, 1, 2]);
+    }
+
+    #[test]
+    fn test_composition_overflow() {
+        let xs = vec![100, 200];
+        let mut segtree = RangeDivFloorRangeMinMaxSegtree::new(&xs);
+
+        // 10^12 * 10^12 will overflow i64.
+        // With saturating_mul, it becomes i64::MAX.
+        let large_val = 1_000_000_000_000i64; // 10^12
+
+        // Apply large_val twice. Composition will be large_val * large_val -> saturates to i64::MAX
+        segtree.apply_range_div_floor(0..2, large_val);
+        segtree.apply_range_div_floor(0..2, large_val);
+
+        // 100 / i64::MAX = 0
+        assert_eq!(segtree.to_vec(), vec![0, 0]);
     }
 
     #[test]
@@ -248,7 +282,12 @@ mod test_range_div_floor_range_min_max {
                         if l == r {
                             continue;
                         }
-                        let x = rng.random_range(1..=10);
+                        // 稀に巨大な数を使ってオーバーフロー(合成の飽和)を誘発させる
+                        let x = if rng.random_bool(0.1) {
+                            rng.random_range(1..=1_000_000_000_000_000_000)
+                        } else {
+                            rng.random_range(1..=10)
+                        };
 
                         for i in l..r {
                             naive_vec[i] = naive_vec[i].div_euclid(x);
@@ -268,13 +307,15 @@ mod test_range_div_floor_range_min_max {
                             naive_vec[l..r].iter().copied().max().unwrap_or(i64::MIN);
                         let expected_min =
                             naive_vec[l..r].iter().copied().min().unwrap_or(i64::MAX);
-                        assert_eq!(segtree.range_min_max(l..r), (expected_min, expected_max));
+                        assert_eq!(segtree.range_min(l..r), expected_min);
+                        assert_eq!(segtree.range_max(l..r), expected_max);
                     }
                     4 => {
-                        // all_min_max()
+                        // all_minmax()
                         let expected_max = naive_vec.iter().copied().max().unwrap_or(i64::MIN);
                         let expected_min = naive_vec.iter().copied().min().unwrap_or(i64::MAX);
-                        assert_eq!(segtree.all_min_max(), (expected_min, expected_max));
+                        assert_eq!(segtree.all_min(), expected_min);
+                        assert_eq!(segtree.all_max(), expected_max);
                     }
                     _ => unreachable!(),
                 }

@@ -10,28 +10,41 @@ pub mod range_chmin_chmax_add_range_min_max {
     use std::ops::{Add, Mul, RangeBounds};
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-    pub struct MinMaxResult<T> {
-        pub min_val: T,
-        pub max_val: T,
+    pub struct RangeMinMax<T> {
+        pub min: T,
+        pub max: T,
+    }
+
+    impl<T> RangeMinMax<T> {
+        pub fn new(min: T, max: T) -> Self {
+            Self { min, max }
+        }
+
+        pub fn unit(x: T) -> Self
+        where
+            T: Copy,
+        {
+            Self { min: x, max: x }
+        }
     }
 
     // Range min/max query monoid
-    pub struct RangeMinMax<T>(Infallible, PhantomData<fn() -> T>);
-    impl<T> Monoid for RangeMinMax<T>
+    pub struct RangeMinMaxMonoid<T>(Infallible, PhantomData<fn() -> T>);
+    impl<T> Monoid for RangeMinMaxMonoid<T>
     where
         T: Copy + Ord + Bounded,
     {
-        type S = MinMaxResult<T>;
+        type S = RangeMinMax<T>;
         fn identity() -> Self::S {
-            MinMaxResult {
-                min_val: T::max_value(),
-                max_val: T::min_value(),
+            RangeMinMax {
+                min: T::max_value(),
+                max: T::min_value(),
             }
         }
         fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
-            MinMaxResult {
-                min_val: a.min_val.min(b.min_val),
-                max_val: a.max_val.max(b.max_val),
+            RangeMinMax {
+                min: a.min.min(b.min),
+                max: a.max.max(b.max),
             }
         }
     }
@@ -86,7 +99,7 @@ pub mod range_chmin_chmax_add_range_min_max {
     where
         T: Copy + Ord + From<i64> + Bounded + Add<Output = T> + Mul<Output = T>,
     {
-        type M = RangeMinMax<T>;
+        type M = RangeMinMaxMonoid<T>;
         type F = ChminChmaxAddAction<T>;
 
         fn identity_map() -> Self::F {
@@ -124,15 +137,15 @@ pub mod range_chmin_chmax_add_range_min_max {
         }
 
         fn mapping(f: &Self::F, x: &<Self::M as Monoid>::S) -> <Self::M as Monoid>::S {
-            let MinMaxResult { min_val, max_val } = *x;
-            if min_val > max_val {
+            let RangeMinMax { min, max } = *x;
+            if min > max {
                 return *x;
             }
-            let new_min = (min_val + f.add_val).clamp(f.chmax_val, f.chmin_val);
-            let new_max = (max_val + f.add_val).clamp(f.chmax_val, f.chmin_val);
-            MinMaxResult {
-                min_val: new_min,
-                max_val: new_max,
+            let new_min = (min + f.add_val).clamp(f.chmax_val, f.chmin_val);
+            let new_max = (max + f.add_val).clamp(f.chmax_val, f.chmin_val);
+            RangeMinMax {
+                min: new_min,
+                max: new_max,
             }
         }
     }
@@ -165,13 +178,7 @@ pub mod range_chmin_chmax_add_range_min_max {
     {
         pub fn new(xs: &[T]) -> Self {
             let len = xs.len();
-            let vec = xs
-                .iter()
-                .map(|&x| MinMaxResult {
-                    min_val: x,
-                    max_val: x,
-                })
-                .collect::<Vec<_>>();
+            let vec = xs.iter().map(|&x| RangeMinMax::unit(x)).collect::<Vec<_>>();
             Self {
                 segtree: LazySegtree::from(vec),
                 len,
@@ -179,20 +186,14 @@ pub mod range_chmin_chmax_add_range_min_max {
         }
 
         pub fn set(&mut self, p: usize, x: T) {
-            self.segtree.set(
-                p,
-                MinMaxResult {
-                    min_val: x,
-                    max_val: x,
-                },
-            );
+            self.segtree.set(p, RangeMinMax::unit(x));
         }
 
         pub fn get(&mut self, p: usize) -> T {
-            self.segtree.get(p).min_val
+            self.segtree.get(p).min
         }
 
-        pub fn range_minmax<R>(&mut self, range: R) -> MinMaxResult<T>
+        pub fn range_minmax<R>(&mut self, range: R) -> RangeMinMax<T>
         where
             R: RangeBounds<usize>,
         {
@@ -203,26 +204,26 @@ pub mod range_chmin_chmax_add_range_min_max {
         where
             R: RangeBounds<usize>,
         {
-            self.segtree.prod(range).min_val
+            self.segtree.prod(range).min
         }
 
         pub fn range_max<R>(&mut self, range: R) -> T
         where
             R: RangeBounds<usize>,
         {
-            self.segtree.prod(range).max_val
+            self.segtree.prod(range).max
         }
 
-        pub fn all_minmax(&self) -> MinMaxResult<T> {
+        pub fn all_minmax(&self) -> RangeMinMax<T> {
             self.segtree.all_prod()
         }
 
         pub fn all_min(&self) -> T {
-            self.segtree.all_prod().min_val
+            self.segtree.all_prod().min
         }
 
         pub fn all_max(&self) -> T {
-            self.segtree.all_prod().max_val
+            self.segtree.all_prod().max
         }
 
         pub fn apply_range_chmin<R>(&mut self, range: R, x: T)
@@ -266,7 +267,7 @@ pub mod range_chmin_chmax_add_range_min_max {
 #[cfg(test)]
 pub mod test_range_chmin_chmax_add_range_min_max {
     use super::range_chmin_chmax_add_range_min_max::{
-        MinMaxResult, RangeChminChmaxAddRangeMinMaxSegtree,
+        RangeChminChmaxAddRangeMinMaxSegtree, RangeMinMax,
     };
 
     #[test]
@@ -282,13 +283,7 @@ pub mod test_range_chmin_chmax_add_range_min_max {
     fn test_range_min_max() {
         let xs = vec![10, 20, 30, 40, 50];
         let mut segtree = RangeChminChmaxAddRangeMinMaxSegtree::<i64>::new(&xs);
-        assert_eq!(
-            segtree.range_minmax(1..4),
-            MinMaxResult {
-                min_val: 20,
-                max_val: 40
-            }
-        );
+        assert_eq!(segtree.range_minmax(1..4), RangeMinMax { min: 20, max: 40 });
         assert_eq!(segtree.range_min(1..4), 20);
         assert_eq!(segtree.range_max(1..4), 40);
     }
@@ -297,13 +292,7 @@ pub mod test_range_chmin_chmax_add_range_min_max {
     fn test_all_minmax() {
         let xs = vec![10, 20, 30, 40, 50];
         let mut segtree = RangeChminChmaxAddRangeMinMaxSegtree::<i64>::new(&xs);
-        assert_eq!(
-            segtree.all_minmax(),
-            MinMaxResult {
-                min_val: 10,
-                max_val: 50
-            }
-        );
+        assert_eq!(segtree.all_minmax(), RangeMinMax { min: 10, max: 50 });
         assert_eq!(segtree.all_min(), 10);
         assert_eq!(segtree.all_max(), 50);
 

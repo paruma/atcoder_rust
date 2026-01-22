@@ -24,28 +24,41 @@ pub mod range_chmin_chmax_affine_range_min_max {
     }
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-    pub struct MinMaxResult<T> {
-        pub min_val: T,
-        pub max_val: T,
+    pub struct RangeMinMax<T> {
+        pub min: T,
+        pub max: T,
+    }
+
+    impl<T> RangeMinMax<T> {
+        pub fn new(min: T, max: T) -> Self {
+            Self { min, max }
+        }
+
+        pub fn unit(x: T) -> Self
+        where
+            T: Copy,
+        {
+            Self { min: x, max: x }
+        }
     }
 
     // 範囲最小値/最大値クエリのモノイド
-    pub struct RangeMinMax<T>(Infallible, PhantomData<fn() -> T>);
-    impl<T> Monoid for RangeMinMax<T>
+    pub struct RangeMinMaxMonoid<T>(Infallible, PhantomData<fn() -> T>);
+    impl<T> Monoid for RangeMinMaxMonoid<T>
     where
         T: Copy + Ord + Bounded,
     {
-        type S = MinMaxResult<T>;
+        type S = RangeMinMax<T>;
         fn identity() -> Self::S {
-            MinMaxResult {
-                min_val: T::max_value(),
-                max_val: T::min_value(),
+            RangeMinMax {
+                min: T::max_value(),
+                max: T::min_value(),
             }
         }
         fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
-            MinMaxResult {
-                min_val: a.min_val.min(b.min_val),
-                max_val: a.max_val.max(b.max_val),
+            RangeMinMax {
+                min: a.min.min(b.min),
+                max: a.max.max(b.max),
             }
         }
     }
@@ -115,7 +128,7 @@ pub mod range_chmin_chmax_affine_range_min_max {
     where
         T: Copy + Ord + From<i64> + Bounded + Add<Output = T> + Mul<Output = T> + std::fmt::Debug,
     {
-        type M = RangeMinMax<T>;
+        type M = RangeMinMaxMonoid<T>;
         type F = ChminChmaxAffineAction<T>;
 
         fn identity_map() -> Self::F {
@@ -171,21 +184,15 @@ pub mod range_chmin_chmax_affine_range_min_max {
         }
 
         fn mapping(f: &Self::F, x: &<Self::M as Monoid>::S) -> <Self::M as Monoid>::S {
-            let MinMaxResult { min_val, max_val } = *x;
-            if min_val > max_val {
+            let RangeMinMax { min, max } = *x;
+            if min > max {
                 return *x;
             }
 
             let (mut transformed_min, mut transformed_max) = if f.mul_val >= T::from(0) {
-                (
-                    min_val * f.mul_val + f.add_val,
-                    max_val * f.mul_val + f.add_val,
-                )
+                (min * f.mul_val + f.add_val, max * f.mul_val + f.add_val)
             } else {
-                (
-                    max_val * f.mul_val + f.add_val,
-                    min_val * f.mul_val + f.add_val,
-                )
+                (max * f.mul_val + f.add_val, min * f.mul_val + f.add_val)
             };
 
             // fのchmin/chmax制約を適用
@@ -198,9 +205,9 @@ pub mod range_chmin_chmax_affine_range_min_max {
                 transformed_max = transformed_max.max(f.chmax_val);
             }
 
-            MinMaxResult {
-                min_val: transformed_min,
-                max_val: transformed_max,
+            RangeMinMax {
+                min: transformed_min,
+                max: transformed_max,
             }
         }
     }
@@ -219,13 +226,7 @@ pub mod range_chmin_chmax_affine_range_min_max {
     {
         pub fn new(xs: &[T]) -> Self {
             let len = xs.len();
-            let vec = xs
-                .iter()
-                .map(|&x| MinMaxResult {
-                    min_val: x,
-                    max_val: x,
-                })
-                .collect::<Vec<_>>();
+            let vec = xs.iter().map(|&x| RangeMinMax::unit(x)).collect::<Vec<_>>();
             Self {
                 segtree: LazySegtree::from(vec),
                 len,
@@ -233,20 +234,14 @@ pub mod range_chmin_chmax_affine_range_min_max {
         }
 
         pub fn set(&mut self, p: usize, x: T) {
-            self.segtree.set(
-                p,
-                MinMaxResult {
-                    min_val: x,
-                    max_val: x,
-                },
-            );
+            self.segtree.set(p, RangeMinMax::unit(x));
         }
 
         pub fn get(&mut self, p: usize) -> T {
-            self.segtree.get(p).min_val
+            self.segtree.get(p).min
         }
 
-        pub fn range_minmax<R>(&mut self, range: R) -> MinMaxResult<T>
+        pub fn range_minmax<R>(&mut self, range: R) -> RangeMinMax<T>
         where
             R: RangeBounds<usize>,
         {
@@ -257,26 +252,26 @@ pub mod range_chmin_chmax_affine_range_min_max {
         where
             R: RangeBounds<usize>,
         {
-            self.segtree.prod(range).min_val
+            self.segtree.prod(range).min
         }
 
         pub fn range_max<R>(&mut self, range: R) -> T
         where
             R: RangeBounds<usize>,
         {
-            self.segtree.prod(range).max_val
+            self.segtree.prod(range).max
         }
 
-        pub fn all_minmax(&self) -> MinMaxResult<T> {
+        pub fn all_minmax(&self) -> RangeMinMax<T> {
             self.segtree.all_prod()
         }
 
         pub fn all_min(&self) -> T {
-            self.segtree.all_prod().min_val
+            self.segtree.all_prod().min
         }
 
         pub fn all_max(&self) -> T {
-            self.segtree.all_prod().max_val
+            self.segtree.all_prod().max
         }
 
         pub fn apply_range_chmin<R>(&mut self, range: R, x: T)
@@ -328,7 +323,7 @@ pub mod range_chmin_chmax_affine_range_min_max {
 #[cfg(test)]
 pub mod test_range_chmin_chmax_affine_range_min_max {
     use super::range_chmin_chmax_affine_range_min_max::{
-        MinMaxResult, RangeChminChmaxAffineRangeMinMaxSegtree,
+        RangeChminChmaxAffineRangeMinMaxSegtree, RangeMinMax,
     };
     use rand::{Rng, SeedableRng, rngs::SmallRng};
 
@@ -345,13 +340,7 @@ pub mod test_range_chmin_chmax_affine_range_min_max {
     fn test_range_min_max() {
         let xs = vec![10, 20, 30, 40, 50];
         let mut segtree = RangeChminChmaxAffineRangeMinMaxSegtree::<i64>::new(&xs);
-        assert_eq!(
-            segtree.range_minmax(1..4),
-            MinMaxResult {
-                min_val: 20,
-                max_val: 40
-            }
-        );
+        assert_eq!(segtree.range_minmax(1..4), RangeMinMax { min: 20, max: 40 });
         assert_eq!(segtree.range_min(1..4), 20);
         assert_eq!(segtree.range_max(1..4), 40);
     }
@@ -536,20 +525,12 @@ pub mod test_range_chmin_chmax_affine_range_min_max {
                             let expected_min = naive_vec[l..r].iter().copied().min().unwrap();
                             let expected_max = naive_vec[l..r].iter().copied().max().unwrap();
                             let result = segtree.range_minmax(l..r);
-                            assert_eq!(
-                                result.min_val, expected_min,
-                                "range_min({}..{}) failed",
-                                l, r
-                            );
-                            assert_eq!(
-                                result.max_val, expected_max,
-                                "range_max({}..{}) failed",
-                                l, r
-                            );
+                            assert_eq!(result.min, expected_min, "range_min({}..{}) failed", l, r);
+                            assert_eq!(result.max, expected_max, "range_max({}..{}) failed", l, r);
                         } else {
                             let result = segtree.range_minmax(l..r);
-                            assert_eq!(result.min_val, i64::MAX);
-                            assert_eq!(result.max_val, i64::MIN);
+                            assert_eq!(result.min, i64::MAX);
+                            assert_eq!(result.max, i64::MIN);
                         }
                     }
                     6 => {
@@ -557,8 +538,8 @@ pub mod test_range_chmin_chmax_affine_range_min_max {
                         let expected_min = naive_vec.iter().copied().min().unwrap_or(i64::MAX);
                         let expected_max = naive_vec.iter().copied().max().unwrap_or(i64::MIN);
                         let result = segtree.all_minmax();
-                        assert_eq!(result.min_val, expected_min, "all_min() failed");
-                        assert_eq!(result.max_val, expected_max, "all_max() failed");
+                        assert_eq!(result.min, expected_min, "all_min() failed");
+                        assert_eq!(result.max, expected_max, "all_max() failed");
                     }
                     _ => unreachable!(),
                 }

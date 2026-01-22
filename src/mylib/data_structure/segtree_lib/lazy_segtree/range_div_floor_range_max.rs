@@ -242,7 +242,12 @@ mod test_range_div_floor_range_max {
                             continue;
                         }
                         // x は 1 以上にする (0除算回避)
-                        let x = rng.random_range(1..=10);
+                        // 稀に巨大な数を使ってオーバーフロー(合成の飽和)を誘発させる
+                        let x = if rng.random_bool(0.1) {
+                            rng.random_range(1..=1_000_000_000_000_000_000)
+                        } else {
+                            rng.random_range(1..=10)
+                        };
 
                         for i in l..r {
                             naive_vec[i] = naive_vec[i].div_euclid(x);

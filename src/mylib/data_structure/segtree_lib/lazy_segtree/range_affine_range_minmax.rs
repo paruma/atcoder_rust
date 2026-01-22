@@ -3,10 +3,9 @@ use cargo_snippet::snippet;
 #[allow(clippy::module_inception)]
 #[snippet(prefix = "use range_affine_range_minmax::*;")]
 pub mod range_affine_range_minmax {
-    use std::{cmp::Ordering, convert::Infallible, ops::RangeBounds};
-
     use ac_library::{LazySegtree, MapMonoid, Monoid};
     use itertools::Itertools;
+    use std::{cmp::Ordering, convert::Infallible, ops::RangeBounds};
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeMinMax {
@@ -14,15 +13,21 @@ pub mod range_affine_range_minmax {
         pub max: i64,
         pub len: i64,
     }
+
     impl RangeMinMax {
-        pub fn unit(x: i64) -> RangeMinMax {
-            RangeMinMax {
+        pub fn new(min: i64, max: i64, len: i64) -> Self {
+            Self { min, max, len }
+        }
+
+        pub fn unit(x: i64) -> Self {
+            Self {
                 min: x,
                 max: x,
                 len: 1,
             }
         }
     }
+
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct Affine {
         pub slope: i64,
@@ -53,21 +58,19 @@ pub mod range_affine_range_minmax {
         fn identity() -> RangeMinMax {
             RangeMinMax {
                 // INF, -INF は len == 0のときだけ使う。
-                min: INF,
-                max: -INF,
+                min: i64::MAX,
+                max: i64::MIN,
                 len: 0,
             }
         }
         fn binary_operation(a: &RangeMinMax, b: &RangeMinMax) -> RangeMinMax {
             RangeMinMax {
-                min: Ord::min(a.min, b.min),
-                max: Ord::max(a.max, b.max),
+                min: i64::min(a.min, b.min),
+                max: i64::max(a.max, b.max),
                 len: a.len + b.len,
             }
         }
     }
-
-    const INF: i64 = i64::MAX;
 
     pub struct RangeAffineRangeMinMax(Infallible);
     impl MapMonoid for RangeAffineRangeMinMax {
@@ -119,10 +122,10 @@ pub mod range_affine_range_minmax {
 
     impl RangeAffineRangeMinMaxSegtree {
         pub fn new(xs: &[i64]) -> RangeAffineRangeMinMaxSegtree {
-            let xs = xs.iter().copied().map(RangeMinMax::unit).collect_vec();
-            let len = xs.len();
+            let initial_data = xs.iter().copied().map(RangeMinMax::unit).collect_vec();
+            let len = initial_data.len();
             RangeAffineRangeMinMaxSegtree {
-                segtree: LazySegtree::from(xs),
+                segtree: LazySegtree::from(initial_data),
                 len,
             }
         }
@@ -200,20 +203,17 @@ pub mod range_affine_range_minmax {
 
 #[cfg(test)]
 mod test_range_affine_range_minmax {
+    use super::range_affine_range_minmax::*;
     use ac_library::{LazySegtree, MapMonoid, Monoid};
     use itertools::Itertools;
-
-    use crate::data_structure::segtree_lib::lazy_segtree::lazy_segtree_to_vec;
-
-    use super::range_affine_range_minmax::*;
 
     type DataM = RangeMinMaxMonoid;
     type ActionM = RangeAffineRangeMinMax;
 
     #[test]
     fn test_minmax_len_monoid() {
-        let x1 = RangeMinMax::unit(5.into());
-        let x2 = RangeMinMax::unit(9.into());
+        let x1 = RangeMinMax::unit(5);
+        let x2 = RangeMinMax::unit(9);
 
         assert_eq!(
             DataM::binary_operation(&x1, &x2),
@@ -230,7 +230,7 @@ mod test_range_affine_range_minmax {
 
     #[test]
     fn test_affine_constant_func() {
-        let f = Affine::constant_func(5.into());
+        let f = Affine::constant_func(5);
 
         // 例えば [1, 2] に対する区間和とその長さ
         let x1 = RangeMinMax {
@@ -244,8 +244,8 @@ mod test_range_affine_range_minmax {
             // [1, 2] を [5, 5] に変換したときの区間和とその長さ
             ActionM::mapping(&f, &x1),
             RangeMinMax {
-                min: 5.into(),
-                max: 5.into(),
+                min: 5,
+                max: 5,
                 len: 2
             }
         );
@@ -258,7 +258,7 @@ mod test_range_affine_range_minmax {
 
     #[test]
     fn test_affine_addition_func() {
-        let f = Affine::addition_func(5.into());
+        let f = Affine::addition_func(5);
 
         // 例えば [1, 2] に対する区間和とその長さ
         let x1 = RangeMinMax {
@@ -408,12 +408,8 @@ mod test_range_affine_range_minmax {
         };
 
         let axiom_of_keeping_unit = |f: Affine| {
-            // これは必須ではない？
             // f(e) = e
-            assert_eq!(
-                ActionM::mapping(&f, &ActionM::mapping(&f, &DataM::identity())),
-                DataM::identity()
-            );
+            assert_eq!(ActionM::mapping(&f, &DataM::identity()), DataM::identity());
         };
 
         let axiom_of_keeping_prod = |f: Affine, x1: RangeMinMax, x2: RangeMinMax| {
@@ -520,11 +516,7 @@ mod test_range_affine_range_minmax {
         assert_eq!(all_prod.min, 2);
         assert_eq!(all_prod.max, 25);
 
-        let segtree_as_vec = lazy_segtree_to_vec(&mut segtree, 10)
-            .iter()
-            .copied()
-            .map(|m| m.max)
-            .collect_vec();
+        let segtree_as_vec = (0..10).map(|i| segtree.get(i).max).collect_vec();
         assert_eq!(segtree_as_vec, vec![3, 4, 2, 5, 5, 5, 6, 7, 23, 25]);
     }
 
@@ -637,7 +629,7 @@ mod test_range_affine_range_minmax {
                         let r = rng.random_range(l..=n);
 
                         let expected_max =
-                            naive_vec[l..r].iter().copied().max().unwrap_or(-i64::MAX);
+                            naive_vec[l..r].iter().copied().max().unwrap_or(i64::MIN);
                         assert_eq!(
                             segtree.range_max(l..r),
                             expected_max,
@@ -652,7 +644,7 @@ mod test_range_affine_range_minmax {
 
             // Final check
             let final_expected_min = naive_vec.iter().copied().min().unwrap_or(i64::MAX);
-            let final_expected_max = naive_vec.iter().copied().max().unwrap_or(-i64::MAX);
+            let final_expected_max = naive_vec.iter().copied().max().unwrap_or(i64::MIN);
             assert_eq!(
                 segtree.all_min(),
                 final_expected_min,
