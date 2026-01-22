@@ -13,6 +13,7 @@ pub mod cycle_detection {
         idx: usize,
     }
 
+    #[derive(Clone, Debug)]
     struct CycleDetectionSolver {
         nv: usize,
         adj: Vec<Vec<EdgeIndex>>,
@@ -137,6 +138,7 @@ mod tests {
     // https://judge.yosupo.jp/problem/cycle_detection のサンプルを使ったテスト
     use itertools::Itertools;
 
+    #[derive(Debug, Clone)]
     struct TestCase {
         nv: usize,
         edges: Vec<(usize, usize)>,

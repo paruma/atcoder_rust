@@ -55,6 +55,7 @@ pub mod potentialized_union_find {
         nodes: Vec<Node>,
         cnt_groups: usize,
     }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub enum UnionResult {
         Consistent { updated: bool },
         Inconsistent,

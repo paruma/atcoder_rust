@@ -11,6 +11,7 @@ pub mod euler_tour {
     }
 
     // 辺ベースのオイラーツアー
+    #[derive(Clone, Debug)]
     pub struct EulerTour {
         pub tour: Vec<InOut>,
         pub in_time: Vec<usize>,  // in_time[v]: 頂点 v に初めて入る時刻

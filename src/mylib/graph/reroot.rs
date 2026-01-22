@@ -8,6 +8,7 @@ pub mod reroot {
     use ac_library::Max;
 
     #[allow(dead_code)]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct DistMaxReroot();
     impl Reroot for DistMaxReroot {
         type M = Max<u64>;
@@ -153,6 +154,7 @@ pub mod reroot {
     }
 
     fn dfs_post_order(adj: &[Vec<usize>], init: usize) -> Vec<usize> {
+        #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
         enum State {
             Pre(usize),
             Post(usize),
@@ -188,6 +190,7 @@ pub mod reroot {
     use cum_monoid::*;
     pub mod cum_monoid {
         use ac_library::Monoid;
+        #[derive(Clone, Debug)]
         pub struct CumMonoid<M>
         where
             M: Monoid,

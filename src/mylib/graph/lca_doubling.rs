@@ -5,6 +5,7 @@ use cargo_snippet::snippet;
 pub mod lca_doubling {
     use std::mem::swap;
 
+    #[derive(Clone, Debug)]
     pub struct Lca {
         dist: Vec<i64>,            // dist[v]: ルートから v までの距離
         ancestor: Vec<Vec<usize>>, // ancestor[i][v]: v の 2^i 先の祖先

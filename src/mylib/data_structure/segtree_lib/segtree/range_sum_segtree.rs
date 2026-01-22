@@ -12,6 +12,7 @@ pub mod range_sum_segtree {
 
     /// 汎用的な加算モノイド。
     /// `std::ops::Add` と `std::iter::Sum` を実装している型に対応。
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct GeneralAdditive<T>(Infallible, PhantomData<fn() -> T>);
 
     impl<T> Monoid for GeneralAdditive<T>
@@ -31,6 +32,7 @@ pub mod range_sum_segtree {
 
     /// ACL の Segtree を使用した区間和セグメント木。
     /// 数値型 T に対して点更新・区間和取得を行う。
+    #[derive(Clone)]
     pub struct RangeSumSegtree<T>
     where
         T: Sum + Add<Output = T> + Copy,

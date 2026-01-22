@@ -52,6 +52,7 @@ pub mod range_affine_range_minmax {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeMinMaxMonoid(Infallible);
     impl Monoid for RangeMinMaxMonoid {
         type S = RangeMinMax;
@@ -72,6 +73,7 @@ pub mod range_affine_range_minmax {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeAffineRangeMinMax(Infallible);
     impl MapMonoid for RangeAffineRangeMinMax {
         type M = RangeMinMaxMonoid;
@@ -115,6 +117,7 @@ pub mod range_affine_range_minmax {
         }
     }
 
+    #[derive(Clone)]
     pub struct RangeAffineRangeMinMaxSegtree {
         segtree: LazySegtree<RangeAffineRangeMinMax>,
         len: usize,

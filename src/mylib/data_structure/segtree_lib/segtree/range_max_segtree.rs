@@ -11,6 +11,7 @@ pub mod range_max_segtree {
 
     /// ACL の Segtree を使用した区間最大セグメント木。
     /// 数値型 T に対して点更新・区間最大取得を行う。
+    #[derive(Clone)]
     pub struct RangeMaxSegtree<T>
     where
         TupleMax<T>: Monoid<S = T>,

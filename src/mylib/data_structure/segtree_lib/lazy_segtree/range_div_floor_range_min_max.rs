@@ -24,6 +24,7 @@ pub mod range_div_floor_range_min_max {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeMinMaxMonoid(Infallible);
     impl Monoid for RangeMinMaxMonoid {
         type S = RangeMinMax;
@@ -41,6 +42,7 @@ pub mod range_div_floor_range_min_max {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeDivFloorRangeMinMax(Infallible);
     impl MapMonoid for RangeDivFloorRangeMinMax {
         type M = RangeMinMaxMonoid;
@@ -80,6 +82,7 @@ pub mod range_div_floor_range_min_max {
     /// # 制約
     /// - 更新に使う値 `x` （割る数）は正の整数である必要があります。
     /// - セグメント木に乗せるデータは正負どちらでも問題ありません。
+    #[derive(Clone)]
     pub struct RangeDivFloorRangeMinMaxSegtree {
         segtree: LazySegtree<RangeDivFloorRangeMinMax>,
         len: usize,

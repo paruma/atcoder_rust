@@ -25,6 +25,7 @@ pub mod range_div_ceil_range_min_max {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeMinMaxMonoid(Infallible);
     impl Monoid for RangeMinMaxMonoid {
         type S = RangeMinMax;
@@ -42,6 +43,7 @@ pub mod range_div_ceil_range_min_max {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeDivCeilRangeMinMax(Infallible);
     impl MapMonoid for RangeDivCeilRangeMinMax {
         type M = RangeMinMaxMonoid;
@@ -81,6 +83,7 @@ pub mod range_div_ceil_range_min_max {
     /// # 制約
     /// - 更新に使う値 `x` （割る数）は正の整数である必要があります。
     /// - セグメント木に乗せるデータは正負どちらでも問題ありません。
+    #[derive(Clone)]
     pub struct RangeDivCeilRangeMinMaxSegtree {
         segtree: LazySegtree<RangeDivCeilRangeMinMax>,
         len: usize,

@@ -37,6 +37,7 @@ pub mod i64_combinatorics {
 pub mod mod_combinatorics {
     use ac_library::modint::ModIntBase;
 
+    #[derive(Clone, Debug)]
     pub struct Comb<Mint: ModIntBase> {
         fac: Vec<Mint>,
         invfac: Vec<Mint>,

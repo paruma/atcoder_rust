@@ -198,6 +198,7 @@ pub mod pos3d {
 
     use proconio::source::{Readable, Source};
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub enum PosXYZ {}
     impl Readable for PosXYZ {
         type Output = Pos3d;

@@ -6,6 +6,7 @@ pub mod lca_path_aggregate {
     use ac_library::Monoid;
     use std::mem::swap;
 
+    #[derive(Clone, Debug)]
     pub struct LcaPathAggregate<M: Monoid> {
         dist: Vec<i64>,                 // dist[v]: ルートから v までの距離 (深さ)
         ancestor: Vec<Vec<usize>>,      // ancestor[i][v]: v の 2^i 先の祖先

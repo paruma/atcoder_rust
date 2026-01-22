@@ -150,6 +150,7 @@ pub mod monoid_gcd_lcm {
     use ac_library::Monoid;
     use num_integer::Integer;
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct Gcd<S>(Infallible, PhantomData<fn() -> S>);
     impl<S> Monoid for Gcd<S>
     where
@@ -164,6 +165,7 @@ pub mod monoid_gcd_lcm {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct Lcm<S>(Infallible, PhantomData<fn() -> S>);
     impl<S> Monoid for Lcm<S>
     where
@@ -185,6 +187,7 @@ pub mod general_additive_monoid {
 
     use ac_library::Monoid;
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct GeneralAdditive<T>(Infallible, PhantomData<fn() -> T>);
     impl<T: Sum + Add<Output = T> + Copy> Monoid for GeneralAdditive<T> {
         type S = T;
@@ -203,6 +206,7 @@ pub mod general_multiplicative_monoid {
 
     use ac_library::Monoid;
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct GeneralMultiplicative<T>(Infallible, PhantomData<fn() -> T>);
     impl<T: Product + Mul<Output = T> + Copy> Monoid for GeneralMultiplicative<T> {
         type S = T;
@@ -263,6 +267,7 @@ pub mod monoid_affine {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct AffineComposition<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> Monoid for AffineComposition<T>
     where

@@ -11,7 +11,7 @@ pub mod bitset {
     use itertools::Itertools;
 
     /// `usize` をビットフラグとして用い、要素数 64 までの集合を管理する構造体です。
-    #[derive(Clone, Copy, PartialEq, Eq)]
+    #[derive(Clone, Copy, PartialEq, Eq, Hash)]
     pub struct BitSet {
         bit: usize,
     }

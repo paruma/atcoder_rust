@@ -86,6 +86,7 @@ pub mod min_max_monoid {
     impl_bounded_tuples!(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12);
 
     /// 辞書式順序で最小の要素を管理するモノイド (単位元は最大値)
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct TupleMin<T>(Infallible, PhantomData<fn() -> T>);
 
     impl<T> Monoid for TupleMin<T>
@@ -102,6 +103,7 @@ pub mod min_max_monoid {
     }
 
     /// 辞書式順序で最大の要素を管理するモノイド (単位元は最小値)
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct TupleMax<T>(Infallible, PhantomData<fn() -> T>);
 
     impl<T> Monoid for TupleMax<T>

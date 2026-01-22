@@ -3,6 +3,7 @@ use cargo_snippet::snippet;
 #[allow(clippy::module_inception)]
 #[snippet(prefix = "use doubling::*;")]
 pub mod doubling {
+    #[derive(Clone, Debug)]
     pub struct Doubling {
         n: usize,
         log: usize,
@@ -64,6 +65,7 @@ pub mod doubling {
 #[allow(clippy::module_inception)]
 #[snippet(prefix = "use doubling_with_sum::*;")]
 pub mod doubling_with_sum {
+    #[derive(Clone, Debug)]
     pub struct DoublingWithSum {
         n: usize,
         log: usize,
@@ -136,6 +138,7 @@ pub mod doubling_with_sum {
 pub mod doubling_with_monoid {
     use ac_library::Monoid;
 
+    #[derive(Clone, Debug)]
     pub struct DoublingWithMonoid<M: Monoid> {
         n: usize,
         log: usize,
@@ -334,6 +337,7 @@ mod test {
     use super::doubling_with_monoid::DoublingWithMonoid;
     use ac_library::{Additive, Monoid};
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     struct StringConcat;
     impl Monoid for StringConcat {
         type S = String;

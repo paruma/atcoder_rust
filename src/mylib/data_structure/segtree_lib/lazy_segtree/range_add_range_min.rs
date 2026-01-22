@@ -10,6 +10,7 @@ pub mod range_add_range_min {
     use std::ops::{Add, RangeBounds};
 
     // Range minimum query monoid
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeMin<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> Monoid for RangeMin<T>
     where
@@ -39,6 +40,7 @@ pub mod range_add_range_min {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeAddRangeMin<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> MapMonoid for RangeAddRangeMin<T>
     where
@@ -83,6 +85,7 @@ pub mod range_add_range_min {
         }
     }
 
+    #[derive(Clone)]
     pub struct RangeAddRangeMinSegtree<T>
     where
         T: Copy + Ord + From<i64> + Bounded + Add<Output = T>,

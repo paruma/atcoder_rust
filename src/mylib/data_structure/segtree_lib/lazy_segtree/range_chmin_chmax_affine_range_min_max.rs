@@ -43,6 +43,7 @@ pub mod range_chmin_chmax_affine_range_min_max {
     }
 
     // 範囲最小値/最大値クエリのモノイド
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeMinMaxMonoid<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> Monoid for RangeMinMaxMonoid<T>
     where
@@ -123,6 +124,7 @@ pub mod range_chmin_chmax_affine_range_min_max {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeChminChmaxAffineRangeMinMax<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> MapMonoid for RangeChminChmaxAffineRangeMinMax<T>
     where
@@ -212,6 +214,7 @@ pub mod range_chmin_chmax_affine_range_min_max {
         }
     }
 
+    #[derive(Clone)]
     pub struct RangeChminChmaxAffineRangeMinMaxSegtree<T>
     where
         T: Copy + Ord + From<i64> + Bounded + Add<Output = T> + Mul<Output = T> + std::fmt::Debug,

@@ -20,6 +20,7 @@ pub mod range_update_range_xor {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct ValueLenXor<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> Monoid for ValueLenXor<T>
     where
@@ -40,6 +41,7 @@ pub mod range_update_range_xor {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeUpdateRangeXor<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> MapMonoid for RangeUpdateRangeXor<T>
     where
@@ -66,6 +68,7 @@ pub mod range_update_range_xor {
         }
     }
 
+    #[derive(Clone)]
     pub struct RangeUpdateRangeXorSegtree<T>
     where
         T: Copy + BitXor<Output = T> + From<u8>,

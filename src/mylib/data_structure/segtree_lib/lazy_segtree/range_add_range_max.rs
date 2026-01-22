@@ -10,6 +10,7 @@ pub mod range_add_range_max {
     use std::ops::{Add, RangeBounds};
 
     // Range maximum query monoid
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeMax<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> Monoid for RangeMax<T>
     where
@@ -39,6 +40,7 @@ pub mod range_add_range_max {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeAddRangeMax<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> MapMonoid for RangeAddRangeMax<T>
     where
@@ -83,6 +85,7 @@ pub mod range_add_range_max {
         }
     }
 
+    #[derive(Clone)]
     pub struct RangeAddRangeMaxSegtree<T>
     where
         T: Copy + Ord + From<i64> + Bounded + Add<Output = T>,

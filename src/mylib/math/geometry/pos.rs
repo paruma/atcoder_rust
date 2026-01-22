@@ -192,6 +192,7 @@ pub mod pos {
 
     use proconio::source::{Readable, Source};
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub enum PosXY {}
     impl Readable for PosXY {
         type Output = Pos;
@@ -202,6 +203,7 @@ pub mod pos {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub enum PosYX {}
     impl Readable for PosYX {
         type Output = Pos;
@@ -213,6 +215,7 @@ pub mod pos {
     }
 
     /// 1-indexed で与えられた座標(YX)
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub enum PosYX1 {}
     impl Readable for PosYX1 {
         type Output = Pos;

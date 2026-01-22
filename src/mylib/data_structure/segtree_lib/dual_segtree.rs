@@ -133,6 +133,7 @@ pub mod dual_segtree {
         }
     }
 
+    #[derive(Clone)]
     pub struct DualSegtree<F>
     where
         F: MapMonoid,
@@ -201,6 +202,7 @@ pub mod range_affine_dual_segtree {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct AffineMonoid<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> MapMonoid for AffineMonoid<T>
     where
@@ -231,6 +233,7 @@ pub mod range_add_dual_segtree {
     use super::dual_segtree::*;
     use std::convert::Infallible;
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct AddMonoid(Infallible);
     impl MapMonoid for AddMonoid {
         type F = i64;

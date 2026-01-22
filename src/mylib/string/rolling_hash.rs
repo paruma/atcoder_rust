@@ -143,6 +143,7 @@ pub mod monoid_rolling_hash {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RollingHashConcat(Infallible);
     impl Monoid for RollingHashConcat {
         type S = RollingHash;

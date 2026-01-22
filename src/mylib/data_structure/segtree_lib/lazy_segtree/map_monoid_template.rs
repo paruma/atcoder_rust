@@ -19,6 +19,7 @@ pub mod map_monoid_template {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeXxxMonoid(Infallible);
     impl Monoid for RangeXxxMonoid {
         type S = RangeXxx;
@@ -32,6 +33,7 @@ pub mod map_monoid_template {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeYyyRangeXxx(Infallible);
     impl MapMonoid for RangeYyyRangeXxx {
         type M = RangeXxxMonoid;

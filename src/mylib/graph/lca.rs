@@ -7,6 +7,7 @@ pub mod lca {
 
     use ac_library::{Monoid, Segtree};
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct MinI64Usize(Infallible);
     impl Monoid for MinI64Usize {
         type S = (i64, usize);
@@ -18,6 +19,7 @@ pub mod lca {
         }
     }
 
+    #[derive(Clone)]
     pub struct Lca {
         dist: Vec<i64>,                        // dist[v]: ルートから v までの距離
         euler_tour_dist: Segtree<MinI64Usize>, // 根からの距離を euler tour の順に並べたもの

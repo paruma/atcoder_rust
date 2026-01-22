@@ -6,6 +6,7 @@ pub mod segtree_2d {
     use ac_library::Monoid;
     use std::ops::{Bound, Range, RangeBounds};
 
+    #[derive(Clone)]
     pub struct Segtree2D<M: Monoid> {
         h_orig: usize, // 元のグリッドの高さ
         w_orig: usize, // 元のグリッドの幅
@@ -374,6 +375,7 @@ mod tests {
     }
 
     // 文字列連結による非可換モノイドのテスト
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     struct StringMonoid;
     impl Monoid for StringMonoid {
         type S = String;

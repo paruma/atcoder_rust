@@ -10,6 +10,7 @@ pub mod range_chmax_range_max {
     use std::convert::Infallible;
     use std::ops::RangeBounds;
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeChmaxRangeMax(Infallible);
     impl MapMonoid for RangeChmaxRangeMax {
         type M = Max<i64>;

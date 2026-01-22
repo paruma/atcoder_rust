@@ -31,6 +31,7 @@ pub mod range_quadratic_add_range_sum {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct ValueLenSum<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> Monoid for ValueLenSum<T>
     where
@@ -63,6 +64,7 @@ pub mod range_quadratic_add_range_sum {
         coef2: T,
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeQuadraticAddRangeSum<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> MapMonoid for RangeQuadraticAddRangeSum<T>
     where
@@ -101,6 +103,7 @@ pub mod range_quadratic_add_range_sum {
         }
     }
 
+    #[derive(Clone)]
     pub struct RangeQuadraticAddRangeSumSegtree<T>
     where
         T: Copy + Add<Output = T> + Mul<Output = T> + Div<Output = T> + Sub<Output = T> + From<i64>,

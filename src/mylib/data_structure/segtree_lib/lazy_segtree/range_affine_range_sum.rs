@@ -47,6 +47,7 @@ pub mod range_affine_range_sum {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct ValueLenSum<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> Monoid for ValueLenSum<T>
     where
@@ -67,6 +68,7 @@ pub mod range_affine_range_sum {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeAffineRangeSum<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> MapMonoid for RangeAffineRangeSum<T>
     where
@@ -96,6 +98,7 @@ pub mod range_affine_range_sum {
         }
     }
 
+    #[derive(Clone)]
     pub struct RangeAffineRangeSumSegtree<T>
     where
         T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,

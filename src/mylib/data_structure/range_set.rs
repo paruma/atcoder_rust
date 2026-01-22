@@ -17,7 +17,7 @@ pub mod range_set {
     /// - x 以上で集合に含まれない最小値 (`min_exclusive_geq`、いわゆる mex)
     /// - x 以下で集合に含まれない最大値 (`max_exclusive_leq`)
     /// - など
-    #[derive(Debug, Clone, PartialEq, Eq)]
+    #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub struct RangeSet {
         map: BTreeMap<i64, i64>, // key: l, value: r で半開区間 [l, r) を管理
         total_length: i64,
@@ -834,7 +834,7 @@ mod tests {
     }
 
     /// `BTreeSet` を使った RangeSet のナイーブな実装 (テスト用)
-    #[derive(Debug)]
+    #[derive(Debug, Clone)]
     struct NaiveRangeSet {
         set: std::collections::BTreeSet<i64>,
     }

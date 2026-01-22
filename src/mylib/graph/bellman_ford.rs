@@ -246,6 +246,7 @@ pub mod bellman_ford {
                 }
             }
         }
+        #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
         pub struct ExtIntAdditive(Infallible);
         impl Monoid for ExtIntAdditive {
             type S = ExtInt;
@@ -256,6 +257,7 @@ pub mod bellman_ford {
                 *a + *b
             }
         }
+        #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
         pub struct ExtIntMin(Infallible);
         impl Monoid for ExtIntMin {
             type S = ExtInt;

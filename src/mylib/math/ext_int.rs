@@ -141,6 +141,7 @@ pub mod mod_ext_int {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct ExtIntAdditive(Infallible);
     impl Monoid for ExtIntAdditive {
         type S = ExtInt;
@@ -151,6 +152,7 @@ pub mod mod_ext_int {
             *a + *b
         }
     }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct ExtIntMin(Infallible);
     impl Monoid for ExtIntMin {
         type S = ExtInt;

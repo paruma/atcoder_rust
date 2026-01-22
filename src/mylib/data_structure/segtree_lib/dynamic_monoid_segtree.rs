@@ -177,6 +177,7 @@ pub mod dynamic_monoid_segtree {
         }
     }
 
+    #[derive(Clone)]
     pub struct DynamicMonoidSegtree<M>
     where
         M: DynamicMonoid,
@@ -197,6 +198,7 @@ mod tests_dynamic_monoid_segtree {
     use std::ops::Bound::{Excluded, Included};
     use std::ops::RangeBounds;
 
+    #[derive(Clone, Debug)]
     struct VecAddMonoid {
         len: usize,
     }

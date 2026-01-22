@@ -33,6 +33,7 @@ pub mod two_sequence_range_affine_range_sum {
     }
 
     // TwoSequenceData の Monoid 定義
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct TwoSequenceDataMonoid<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> Monoid for TwoSequenceDataMonoid<T>
     where
@@ -67,6 +68,7 @@ pub mod two_sequence_range_affine_range_sum {
     }
 
     // TwoSequenceAffine を使う MapMonoid 定義
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct TwoSequenceRangeAffineRangeSum<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> MapMonoid for TwoSequenceRangeAffineRangeSum<T>
     where
@@ -108,6 +110,7 @@ pub mod two_sequence_range_affine_range_sum {
     }
 
     // LazySegtree をラップする構造体
+    #[derive(Clone)]
     pub struct TwoSequenceRangeAffineRangeSumSegtree<T>
     where
         T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,

@@ -11,6 +11,7 @@ pub mod range_min_segtree {
 
     /// ACL の Segtree を使用した区間最小セグメント木。
     /// 数値型 T に対して点更新・区間最小取得を行う。
+    #[derive(Clone)]
     pub struct RangeMinSegtree<T>
     where
         TupleMin<T>: Monoid<S = T>,

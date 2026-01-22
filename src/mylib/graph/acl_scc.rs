@@ -4,6 +4,7 @@ use cargo_snippet::snippet;
 #[snippet(prefix = "use acl_scc::*;")]
 pub mod acl_scc {
     /// 強連結成分分解 (SCC) を行い、縮約グラフ (DAG) を構築するための構造体
+    #[derive(Clone, Debug)]
     pub struct SccGraphWrapper {
         nv: usize,
         edges: Vec<(usize, usize)>,

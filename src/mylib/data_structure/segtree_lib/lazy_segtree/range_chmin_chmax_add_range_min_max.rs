@@ -29,6 +29,7 @@ pub mod range_chmin_chmax_add_range_min_max {
     }
 
     // Range min/max query monoid
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeMinMaxMonoid<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> Monoid for RangeMinMaxMonoid<T>
     where
@@ -94,6 +95,7 @@ pub mod range_chmin_chmax_add_range_min_max {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeChminChmaxAddRangeMinMax<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> MapMonoid for RangeChminChmaxAddRangeMinMax<T>
     where
@@ -164,6 +166,7 @@ pub mod range_chmin_chmax_add_range_min_max {
         }
     }
 
+    #[derive(Clone)]
     pub struct RangeChminChmaxAddRangeMinMaxSegtree<T>
     where
         T: Copy + Ord + From<i64> + Bounded + Add<Output = T> + Mul<Output = T>,

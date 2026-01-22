@@ -20,6 +20,7 @@ pub mod range_update_range_sum {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct ValueLenSum<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> Monoid for ValueLenSum<T>
     where
@@ -40,6 +41,7 @@ pub mod range_update_range_sum {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeUpdateRangeSum<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> MapMonoid for RangeUpdateRangeSum<T>
     where
@@ -66,6 +68,7 @@ pub mod range_update_range_sum {
         }
     }
 
+    #[derive(Clone)]
     pub struct RangeUpdateRangeSumSegtree<T>
     where
         T: Copy + Add<Output = T> + Mul<Output = T> + From<i64>,

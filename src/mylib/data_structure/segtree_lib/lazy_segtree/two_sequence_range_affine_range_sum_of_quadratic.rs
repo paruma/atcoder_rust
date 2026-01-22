@@ -37,6 +37,7 @@ pub mod two_sequence_range_affine_range_sum_of_quadratic {
     }
 
     // Monoid 定義
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct TwoSequenceQuadraticDataMonoid<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> Monoid for TwoSequenceQuadraticDataMonoid<T>
     where
@@ -75,6 +76,7 @@ pub mod two_sequence_range_affine_range_sum_of_quadratic {
     }
 
     // MapMonoid 定義
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct TwoSequenceRangeAffineRangeSumOfQuadratic<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> MapMonoid for TwoSequenceRangeAffineRangeSumOfQuadratic<T>
     where
@@ -130,6 +132,7 @@ pub mod two_sequence_range_affine_range_sum_of_quadratic {
     }
 
     // LazySegtree をラップする構造体
+    #[derive(Clone)]
     pub struct TwoSequenceRangeAffineRangeSumOfQuadraticSegtree<T>
     where
         T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,

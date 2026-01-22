@@ -7,6 +7,7 @@ pub mod range_div_floor_range_max {
     use itertools::Itertools;
     use std::convert::Infallible;
     use std::ops::RangeBounds;
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeMax(Infallible);
     impl Monoid for RangeMax {
         type S = i64;
@@ -18,6 +19,7 @@ pub mod range_div_floor_range_max {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeDivFloorRangeMax(Infallible);
     impl MapMonoid for RangeDivFloorRangeMax {
         type M = RangeMax;
@@ -48,6 +50,7 @@ pub mod range_div_floor_range_max {
     /// # 制約
     /// - 更新に使う値 `x` （割る数）は正の整数である必要があります。
     /// - セグメント木に乗せるデータは正負どちらでも問題ありません。
+    #[derive(Clone)]
     pub struct RangeDivFloorRangeMaxSegtree {
         segtree: LazySegtree<RangeDivFloorRangeMax>,
         len: usize,

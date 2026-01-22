@@ -138,6 +138,7 @@ pub mod mod_neg_ext_int {
             }
         }
     }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct NegExtIntAdditive(Infallible);
     impl Monoid for NegExtIntAdditive {
         type S = NegExtInt;
@@ -148,6 +149,7 @@ pub mod mod_neg_ext_int {
             *a + *b
         }
     }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct NegExtIntMax(Infallible);
     impl Monoid for NegExtIntMax {
         type S = NegExtInt;

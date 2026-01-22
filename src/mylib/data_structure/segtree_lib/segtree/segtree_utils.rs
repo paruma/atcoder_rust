@@ -26,6 +26,7 @@ pub mod monoid_template {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeXxxMonoid(Infallible);
     impl Monoid for RangeXxxMonoid {
         type S = RangeXxx;

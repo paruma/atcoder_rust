@@ -96,6 +96,7 @@ pub fn euler_phi(n: i64) -> i64 {
 pub mod eratosthenes_sieve {
     use std::collections::HashMap;
 
+    #[derive(Clone, Debug)]
     pub struct EratosthenesSieve {
         is_prime_list: Vec<bool>,
         min_factor_list: Vec<Option<usize>>,
@@ -204,6 +205,7 @@ mod tests {
 
     #[test]
     fn test_is_prime() {
+        #[derive(Debug, Clone)]
         struct TestCase {
             n: i64,
             expected_is_prime: bool,
@@ -235,6 +237,7 @@ mod tests {
 
     #[test]
     fn test_prime_factorize() {
+        #[derive(Debug, Clone)]
         struct TestCase {
             n: i64,
             expected: HashMap<i64, i64>,
@@ -266,6 +269,7 @@ mod tests {
 
     #[test]
     fn test_euler_ph() {
+        #[derive(Debug, Clone)]
         struct TestCase {
             n: i64,
             expected: i64,

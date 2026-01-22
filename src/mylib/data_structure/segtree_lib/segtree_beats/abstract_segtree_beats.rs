@@ -314,6 +314,7 @@ pub mod abstract_segtree_beats {
         }
     }
 
+    #[derive(Clone)]
     pub struct SegtreeBeats<F>
     where
         F: MapMonoidBeats,
@@ -394,6 +395,7 @@ mod tests {
         size: i64,
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     struct AddSum;
     impl MonoidBeats for AddSum {
         type S = S;
@@ -411,6 +413,7 @@ mod tests {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     struct MapAddSum;
     impl MapMonoidBeats for MapAddSum {
         type M = AddSum;

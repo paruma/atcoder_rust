@@ -51,6 +51,7 @@ pub mod range_chmax_range_sum {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeSumMonoid(Infallible);
     impl MonoidBeats for RangeSumMonoid {
         type S = Option<RangeSum>;
@@ -97,6 +98,7 @@ pub mod range_chmax_range_sum {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeChmaxRangeSum(Infallible);
 
     impl MapMonoidBeats for RangeChmaxRangeSum {
@@ -141,6 +143,7 @@ pub mod range_chmax_range_sum {
         }
     }
 
+    #[derive(Clone)]
     pub struct RangeChmaxRangeSumSegtree {
         segtree: SegtreeBeats<RangeChmaxRangeSum>,
         len: usize,

@@ -9,6 +9,7 @@ pub mod grid_template {
     use super::Pos;
 
     #[snippet(name = "Grid", prefix = "use std::ops::{Index, IndexMut};")]
+    #[derive(Clone, Debug)]
     pub struct Grid {
         pub grid: Vec<Vec<char>>,
         pub h: usize,

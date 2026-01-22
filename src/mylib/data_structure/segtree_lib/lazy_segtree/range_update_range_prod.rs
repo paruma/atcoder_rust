@@ -37,6 +37,7 @@ pub mod range_update_range_prod {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct ValueLenProd<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> Monoid for ValueLenProd<T>
     where
@@ -57,6 +58,7 @@ pub mod range_update_range_prod {
         }
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeUpdateRangeProd<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> MapMonoid for RangeUpdateRangeProd<T>
     where
@@ -85,6 +87,7 @@ pub mod range_update_range_prod {
 
     /// 計算量が O((log N)^2) な点に注意。
     /// (作用で累乗計算をしている関係で log が1つ多い)
+    #[derive(Clone)]
     pub struct RangeUpdateRangeProdSegtree<T>
     where
         T: Copy + Mul<Output = T> + From<i64>,

@@ -11,6 +11,7 @@ pub mod range_chmin_range_min {
     use std::convert::Infallible;
     use std::ops::RangeBounds;
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeChminRangeMin(Infallible);
     impl MapMonoid for RangeChminRangeMin {
         type M = Min<i64>;
@@ -29,6 +30,7 @@ pub mod range_chmin_range_min {
         }
     }
 
+    #[derive(Clone)]
     pub struct RangeChminRangeMinSegtree {
         segtree: LazySegtree<RangeChminRangeMin>,
         len: usize,

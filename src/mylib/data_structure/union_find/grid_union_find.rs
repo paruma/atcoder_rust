@@ -11,6 +11,7 @@ pub mod grid_union_find {
     use super::{Pos, UnionFind};
 
     #[snippet(name = "GridUnionFind")]
+    #[derive(Clone, Debug)]
     pub struct GridUnionFind {
         pub uf: UnionFind,
         pub h: usize,

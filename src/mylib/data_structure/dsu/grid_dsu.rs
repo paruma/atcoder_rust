@@ -8,6 +8,7 @@ pub mod grid_dsu {
     use super::{DsuCore, Pos};
     use itertools::Itertools;
 
+    #[derive(Clone, Debug)]
     pub struct GridDsu {
         dsu: DsuCore,
         w: usize,
