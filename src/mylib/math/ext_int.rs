@@ -16,7 +16,7 @@ pub mod mod_ext_int {
         ExtInt::fin(x)
     }
 
-    #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+    #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     pub struct ExtInt(i64);
     impl ExtInt {
         pub const INF: Self = Self(i64::MAX);

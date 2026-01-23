@@ -15,7 +15,7 @@ pub mod mod_neg_ext_int {
         NegExtInt::fin(x)
     }
 
-    #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+    #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     pub struct NegExtInt(i64);
     impl NegExtInt {
         pub const NEG_INF: Self = Self(i64::MIN);

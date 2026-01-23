@@ -1,7 +1,7 @@
 use cargo_snippet::snippet;
 
-use crate::math::algebra::ab_group::ab_group::AbGroup;
 use crate::data_structure::ix::Ix;
+use crate::math::algebra::ab_group::ab_group::AbGroup;
 
 #[snippet(prefix = "use pos::*;")]
 #[allow(clippy::module_inception)]
@@ -353,8 +353,8 @@ pub mod pos_ix {
 
 #[snippet(prefix = "use pos_ab_group::*;")]
 pub mod pos_ab_group {
-    use super::pos::Pos;
     use super::AbGroup;
+    use super::pos::Pos;
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct PosAbGroup;

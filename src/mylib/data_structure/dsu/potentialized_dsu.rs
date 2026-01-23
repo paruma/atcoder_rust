@@ -202,8 +202,8 @@ pub mod potentialized_dsu {
 
 #[cfg(test)]
 mod tests_potentialized_dsu {
-    use crate::math::algebra::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
     use super::potentialized_dsu::*;
+    use crate::math::algebra::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
     use itertools::Itertools;
 
     fn sorted(xss: Vec<Vec<usize>>) -> Vec<Vec<usize>> {
