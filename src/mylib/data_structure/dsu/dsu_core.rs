@@ -4,12 +4,47 @@ use cargo_snippet::snippet;
 #[snippet(prefix = "use dsu_core::*;")]
 /// ac_library::Dsu の merge のみ実装を変えたもの
 pub mod dsu_core {
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    /// DSU 内の各要素の状態（親のインデックスまたは集合のサイズ）を保持する構造体。
+    ///
+    /// メモリ効率（32ビット整数 1 つ分）を維持したまま、以下の 2 つの状態を表現します。
+    ///
+    /// 1. **Root (根)**:
+    ///    - 値が負の場合、その要素は集合の代表元（リーダー）です。
+    ///    - 値の絶対値 `|v|` は、その集合に属する要素の数（サイズ）を表します。
+    ///    - 例: `-1` はサイズ 1 の集合の根、`-5` はサイズ 5 の集合の根。
+    ///
+    /// 2. **Child (子)**:
+    ///    - 値が 0 以上の場合、その要素は他の要素を親に持っています。
+    ///    - 値 `v` は、親要素のインデックスを表します。
+    struct Node(i32);
+
+    impl Node {
+        fn root(size: usize) -> Self {
+            Self(-(size as i32))
+        }
+
+        fn child(parent: usize) -> Self {
+            Self(parent as i32)
+        }
+
+        fn is_root(&self) -> bool {
+            self.0 < 0
+        }
+
+        fn parent(&self) -> usize {
+            self.0 as usize
+        }
+
+        fn size(&self) -> usize {
+            (-self.0) as usize
+        }
+    }
+
     #[derive(Clone, Debug)]
     pub struct DsuCore {
         n: usize,
-        // root node: -1 * component size
-        // otherwise: parent
-        parent_or_size: Vec<i32>,
+        nodes: Vec<Node>,
         cnt_groups: usize,
     }
 
@@ -17,7 +52,7 @@ pub mod dsu_core {
         pub fn new(size: usize) -> Self {
             Self {
                 n: size,
-                parent_or_size: vec![-1; size],
+                nodes: vec![Node::root(1); size],
                 cnt_groups: size,
             }
         }
@@ -37,11 +72,15 @@ pub mod dsu_core {
             if x == y {
                 return None;
             }
-            if -self.parent_or_size[x] < -self.parent_or_size[y] {
+            // x のサイズ >= y のサイズ になるように swap する
+            if self.nodes[x].size() < self.nodes[y].size() {
                 std::mem::swap(&mut x, &mut y);
             }
-            self.parent_or_size[x] += self.parent_or_size[y];
-            self.parent_or_size[y] = x as i32;
+            let size_x = self.nodes[x].size();
+            let size_y = self.nodes[y].size();
+
+            self.nodes[x] = Node::root(size_x + size_y);
+            self.nodes[y] = Node::child(x);
             self.cnt_groups -= 1;
             Some((x, y))
         }
@@ -54,17 +93,19 @@ pub mod dsu_core {
 
         pub fn leader(&mut self, a: usize) -> usize {
             assert!(a < self.n);
-            if self.parent_or_size[a] < 0 {
+            if self.nodes[a].is_root() {
                 return a;
             }
-            self.parent_or_size[a] = self.leader(self.parent_or_size[a] as usize) as i32;
-            self.parent_or_size[a] as usize
+            let parent = self.nodes[a].parent();
+            let new_parent = self.leader(parent);
+            self.nodes[a] = Node::child(new_parent);
+            new_parent
         }
 
         pub fn size(&mut self, a: usize) -> usize {
             assert!(a < self.n);
             let x = self.leader(a);
-            -self.parent_or_size[x] as usize
+            self.nodes[x].size()
         }
 
         pub fn count_group(&self) -> usize {

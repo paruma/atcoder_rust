@@ -3,6 +3,43 @@ use cargo_snippet::snippet;
 #[allow(clippy::module_inception)]
 #[snippet("rollback_dsu")]
 pub mod rollback_dsu {
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    /// DSU 内の各要素の状態（親のインデックスまたは集合のサイズ）を保持する構造体。
+    ///
+    /// メモリ効率（32ビット整数 1 つ分）を維持したまま、以下の 2 つの状態を表現します。
+    ///
+    /// 1. **Root (根)**:
+    ///    - 値が負の場合、その要素は集合の代表元（リーダー）です。
+    ///    - 値の絶対値 `|v|` は、その集合に属する要素の数（サイズ）を表します。
+    ///    - 例: `-1` はサイズ 1 の集合の根、`-5` はサイズ 5 の集合の根。
+    ///
+    /// 2. **Child (子)**:
+    ///    - 値が 0 以上の場合、その要素は他の要素を親に持っています。
+    ///    - 値 `v` は、親要素のインデックスを表します。
+    struct Node(i32);
+
+    impl Node {
+        fn root(size: usize) -> Self {
+            Self(-(size as i32))
+        }
+
+        fn child(parent: usize) -> Self {
+            Self(parent as i32)
+        }
+
+        fn is_root(&self) -> bool {
+            self.0 < 0
+        }
+
+        fn parent(&self) -> usize {
+            self.0 as usize
+        }
+
+        fn size(&self) -> usize {
+            (-self.0) as usize
+        }
+    }
+
     /// ロールバック可能なUnion-Find。
     ///
     /// 経路圧縮を行わないため、各操作の計算量は O(log N) となる。
@@ -10,8 +47,8 @@ pub mod rollback_dsu {
     #[derive(Clone, Debug)]
     pub struct RollbackDsu {
         n: usize,
-        parent_or_size: Vec<i32>,
-        history: Vec<(usize, i32)>,
+        nodes: Vec<Node>,
+        history: Vec<(usize, Node)>,
     }
 
     impl RollbackDsu {
@@ -19,15 +56,15 @@ pub mod rollback_dsu {
         pub fn new(size: usize) -> Self {
             Self {
                 n: size,
-                parent_or_size: vec![-1; size],
+                nodes: vec![Node::root(1); size],
                 history: Vec::new(),
             }
         }
 
         /// `a`が属するグループのリーダーを返す。経路圧縮は行わない。
         pub fn leader(&self, mut a: usize) -> usize {
-            while self.parent_or_size[a] >= 0 {
-                a = self.parent_or_size[a] as usize;
+            while !self.nodes[a].is_root() {
+                a = self.nodes[a].parent();
             }
             a
         }
@@ -40,7 +77,7 @@ pub mod rollback_dsu {
         /// `a`が属するグループのサイズを返す。
         pub fn size(&self, a: usize) -> usize {
             let leader = self.leader(a);
-            -self.parent_or_size[leader] as usize
+            self.nodes[leader].size()
         }
 
         /// 2 つの要素 `a` と `b` が属する集合を統合する
@@ -58,17 +95,19 @@ pub mod rollback_dsu {
             }
 
             // Union by Size
-            if -self.parent_or_size[leader_a] < -self.parent_or_size[leader_b] {
+            if self.nodes[leader_a].size() < self.nodes[leader_b].size() {
                 std::mem::swap(&mut leader_a, &mut leader_b);
             }
 
             // 変更履歴を記録
-            self.history.push((leader_a, self.parent_or_size[leader_a]));
-            self.history.push((leader_b, self.parent_or_size[leader_b]));
+            self.history.push((leader_a, self.nodes[leader_a]));
+            self.history.push((leader_b, self.nodes[leader_b]));
 
             // マージ
-            self.parent_or_size[leader_a] += self.parent_or_size[leader_b];
-            self.parent_or_size[leader_b] = leader_a as i32;
+            let size_a = self.nodes[leader_a].size();
+            let size_b = self.nodes[leader_b].size();
+            self.nodes[leader_a] = Node::root(size_a + size_b);
+            self.nodes[leader_b] = Node::child(leader_a);
 
             Some((leader_a, leader_b))
         }
@@ -84,7 +123,7 @@ pub mod rollback_dsu {
         pub fn rollback(&mut self, snapshot: usize) {
             while self.history.len() > snapshot {
                 let (index, value) = self.history.pop().unwrap();
-                self.parent_or_size[index] = value;
+                self.nodes[index] = value;
             }
         }
 

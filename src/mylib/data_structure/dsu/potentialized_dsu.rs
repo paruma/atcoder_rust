@@ -16,15 +16,50 @@ pub mod potentialized_dsu {
         Contradiction,
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    /// DSU 内の各要素の状態（親のインデックスまたは集合のサイズ）を保持する構造体。
+    ///
+    /// メモリ効率（32ビット整数 1 つ分）を維持したまま、以下の 2 つの状態を表現します。
+    ///
+    /// 1. **Root (根)**:
+    ///    - 値が負の場合、その要素は集合の代表元（リーダー）です。
+    ///    - 値の絶対値 `|v|` は、その集合に属する要素の数（サイズ）を表します。
+    ///    - 例: `-1` はサイズ 1 の集合の根、`-5` はサイズ 5 の集合の根。
+    ///
+    /// 2. **Child (子)**:
+    ///    - 値が 0 以上の場合、その要素は他の要素を親に持っています。
+    ///    - 値 `v` は、親要素のインデックスを表します。
+    struct Node(i32);
+
+    impl Node {
+        fn root(size: usize) -> Self {
+            Self(-(size as i32))
+        }
+
+        fn child(parent: usize) -> Self {
+            Self(parent as i32)
+        }
+
+        fn is_root(&self) -> bool {
+            self.0 < 0
+        }
+
+        fn parent(&self) -> usize {
+            self.0 as usize
+        }
+
+        fn size(&self) -> usize {
+            (-self.0) as usize
+        }
+    }
+
     #[derive(Clone, Debug)]
     pub struct PotentializedDsuArbitrary<G: AbGroup>
     where
         G::S: PartialEq,
     {
         n: usize,
-        // root node: -1 * component size
-        // otherwise: parent
-        parent_or_size: Vec<i32>,
+        nodes: Vec<Node>,
         // 親 のポテンシャル - 自分のポテンシャル
         p_diff: Vec<G::S>,
         cnt_groups: usize,
@@ -39,7 +74,7 @@ pub mod potentialized_dsu {
         pub fn new(size: usize) -> Self {
             Self {
                 n: size,
-                parent_or_size: vec![-1; size],
+                nodes: vec![Node::root(1); size],
                 p_diff: vec![G::zero(); size],
                 cnt_groups: size,
             }
@@ -61,13 +96,16 @@ pub mod potentialized_dsu {
                 return result;
             }
             // ldst のサイズが大きくなるように必要に応じて swap
-            if -self.parent_or_size[ldst] < -self.parent_or_size[lsrc] {
+            if self.nodes[ldst].size() < self.nodes[lsrc].size() {
                 std::mem::swap(&mut lsrc, &mut ldst);
                 std::mem::swap(&mut psrc, &mut pdst);
                 diff = G::neg(&diff);
             }
-            self.parent_or_size[ldst] += self.parent_or_size[lsrc];
-            self.parent_or_size[lsrc] = ldst as i32;
+            let size_lsrc = self.nodes[lsrc].size();
+            let size_ldst = self.nodes[ldst].size();
+
+            self.nodes[ldst] = Node::root(size_lsrc + size_ldst);
+            self.nodes[lsrc] = Node::child(ldst);
             self.cnt_groups -= 1;
 
             //          ldiff
@@ -112,12 +150,12 @@ pub mod potentialized_dsu {
         fn leader_potential(&mut self, a: usize) -> (usize, G::S) {
             assert!(a < self.n);
             // a 自身が leader
-            if self.parent_or_size[a] < 0 {
+            if self.nodes[a].is_root() {
                 return (a, G::zero());
             }
-            let parent = self.parent_or_size[a] as usize;
+            let parent = self.nodes[a].parent();
             let (leader, parent_potential) = self.leader_potential(parent);
-            self.parent_or_size[a] = leader as i32;
+            self.nodes[a] = Node::child(leader);
 
             //           p_diff[a]          parent_potential
             // 自分(a) -----------> parent ----------------> leader
@@ -133,7 +171,7 @@ pub mod potentialized_dsu {
         pub fn size(&mut self, a: usize) -> usize {
             assert!(a < self.n);
             let x = self.leader(a);
-            -self.parent_or_size[x] as usize
+            self.nodes[x].size()
         }
 
         pub fn count_group(&self) -> usize {
