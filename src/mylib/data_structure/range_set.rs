@@ -834,7 +834,6 @@ mod tests {
     }
 
     /// `BTreeSet` を使った RangeSet のナイーブな実装 (テスト用)
-    #[derive(Debug, Clone)]
     struct NaiveRangeSet {
         set: std::collections::BTreeSet<i64>,
     }

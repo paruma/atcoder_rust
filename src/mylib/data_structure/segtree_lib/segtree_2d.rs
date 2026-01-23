@@ -375,7 +375,6 @@ mod tests {
     }
 
     // 文字列連結による非可換モノイドのテスト
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     struct StringMonoid;
     impl Monoid for StringMonoid {
         type S = String;

@@ -337,7 +337,6 @@ mod test {
     use super::doubling_with_monoid::DoublingWithMonoid;
     use ac_library::{Additive, Monoid};
 
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     struct StringConcat;
     impl Monoid for StringConcat {
         type S = String;
