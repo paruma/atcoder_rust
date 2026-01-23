@@ -132,6 +132,17 @@ mod tests {
     }
 
     #[test]
+    fn test_additive_ab_group_mint() {
+        use ac_library::ModInt998244353 as Mint;
+        let rng = rand::rng();
+        test_ab_group_properties::<AdditiveAbGroup<Mint>, _, _>(
+            "AdditiveAbGroup<Mint>",
+            rng,
+            |rng| Mint::new(rng.random_range(0..998244353)),
+        );
+    }
+
+    #[test]
     fn test_xor_ab_group() {
         let rng = rand::rng();
         test_ab_group_properties::<XorAbGroup, _, _>("XorAbGroup", rng, |rng| {

@@ -305,4 +305,144 @@ mod tests_dsu_core {
         uf.merge(4, 0);
         assert_eq!(uf.size(4), 5);
     }
+
+    struct NaiveDsuCore {
+        groups: Vec<std::collections::BTreeSet<usize>>,
+    }
+
+    impl NaiveDsuCore {
+        fn new(n: usize) -> Self {
+            Self {
+                groups: (0..n)
+                    .map(|i| {
+                        let mut set = std::collections::BTreeSet::new();
+                        set.insert(i);
+                        set
+                    })
+                    .collect(),
+            }
+        }
+
+        fn merge(&mut self, a: usize, b: usize) {
+            let i = self.groups.iter().position(|g| g.contains(&a)).unwrap();
+            let j = self.groups.iter().position(|g| g.contains(&b)).unwrap();
+            if i != j {
+                let g_j = self.groups.remove(j);
+                let i = self.groups.iter().position(|g| g.contains(&a)).unwrap();
+                self.groups[i].extend(g_j);
+            }
+        }
+
+        fn same(&self, a: usize, b: usize) -> bool {
+            self.groups.iter().any(|g| g.contains(&a) && g.contains(&b))
+        }
+
+        fn size(&self, a: usize) -> usize {
+            self.groups.iter().find(|g| g.contains(&a)).unwrap().len()
+        }
+
+        fn count_group(&self) -> usize {
+            self.groups.len()
+        }
+
+        fn groups(&self) -> Vec<Vec<usize>> {
+            let mut res: Vec<Vec<usize>> = self
+                .groups
+                .iter()
+                .map(|g| g.iter().copied().collect())
+                .collect();
+            res.sort();
+            res
+        }
+    }
+
+    #[test]
+    #[ignore]
+    fn test_random() {
+        use rand::prelude::*;
+        let mut rng = StdRng::seed_from_u64(42);
+
+        for _ in 0..200 {
+            let n = rng.random_range(1..=30);
+            let mut dsu = super::dsu_core::DsuCore::new(n);
+            let mut naive = NaiveDsuCore::new(n);
+
+            for i in 0..200 {
+                let op = rng.random_range(0..5);
+                match op {
+                    0 => {
+                        // merge
+                        let a = rng.random_range(0..n);
+                        let b = rng.random_range(0..n);
+                        let old_leader_a = dsu.leader(a);
+                        let old_leader_b = dsu.leader(b);
+                        let res = dsu.merge(a, b);
+                        naive.merge(a, b);
+                        if let Some((leader, merged)) = res {
+                            assert!(
+                                (leader == old_leader_a && merged == old_leader_b)
+                                    || (leader == old_leader_b && merged == old_leader_a),
+                                "merge result mismatch at step {}: n={}, a={}, b={}",
+                                i,
+                                n,
+                                a,
+                                b
+                            );
+                            assert_eq!(dsu.leader(leader), leader);
+                            assert_eq!(dsu.leader(merged), leader);
+                        } else {
+                            assert_eq!(old_leader_a, old_leader_b);
+                        }
+                    }
+                    1 => {
+                        // same
+                        let a = rng.random_range(0..n);
+                        let b = rng.random_range(0..n);
+                        assert_eq!(
+                            dsu.same(a, b),
+                            naive.same(a, b),
+                            "same mismatch at step {}: n={}, a={}, b={}",
+                            i,
+                            n,
+                            a,
+                            b
+                        );
+                    }
+                    2 => {
+                        // size
+                        let a = rng.random_range(0..n);
+                        assert_eq!(
+                            dsu.size(a),
+                            naive.size(a),
+                            "size mismatch at step {}: n={}, a={}",
+                            i,
+                            n,
+                            a
+                        );
+                    }
+                    3 => {
+                        // count_group
+                        assert_eq!(
+                            dsu.count_group(),
+                            naive.count_group(),
+                            "count_group mismatch at step {}: n={}",
+                            i,
+                            n
+                        );
+                    }
+                    4 => {
+                        // groups
+                        assert_eq!(
+                            sorted(dsu.groups()),
+                            naive.groups(),
+                            "groups mismatch at step {}: n={}",
+                            i,
+                            n
+                        );
+                    }
+                    _ => unreachable!(),
+                }
+            }
+        }
+    }
 }

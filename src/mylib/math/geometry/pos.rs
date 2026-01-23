@@ -1,5 +1,6 @@
 use cargo_snippet::snippet;
 
+use crate::math::algebra::ab_group::ab_group::AbGroup;
 use crate::data_structure::ix::Ix;
 
 #[snippet(prefix = "use pos::*;")]
@@ -350,6 +351,31 @@ pub mod pos_ix {
     }
 }
 
+#[snippet(prefix = "use pos_ab_group::*;")]
+pub mod pos_ab_group {
+    use super::pos::Pos;
+    use super::AbGroup;
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub struct PosAbGroup;
+
+    impl AbGroup for PosAbGroup {
+        type S = Pos;
+        fn zero() -> Self::S {
+            Pos::new(0, 0)
+        }
+        fn add(a: &Self::S, b: &Self::S) -> Self::S {
+            *a + *b
+        }
+        fn neg(a: &Self::S) -> Self::S {
+            -(*a)
+        }
+        fn sub(a: &Self::S, b: &Self::S) -> Self::S {
+            *a - *b
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests_pos {
 
@@ -360,6 +386,18 @@ mod tests_pos {
     use proconio::source::once::OnceSource;
 
     use super::pos::*;
+    use super::pos_ab_group::*;
+    use crate::math::algebra::ab_group::ab_group::AbGroup;
+
+    #[test]
+    fn test_pos_ab_group() {
+        let p1 = Pos::new(1, 2);
+        let p2 = Pos::new(3, 4);
+        assert_eq!(PosAbGroup::zero(), Pos::new(0, 0));
+        assert_eq!(PosAbGroup::add(&p1, &p2), Pos::new(4, 6));
+        assert_eq!(PosAbGroup::neg(&p1), Pos::new(-1, -2));
+        assert_eq!(PosAbGroup::sub(&p1, &p2), Pos::new(-2, -2));
+    }
 
     #[test]
     fn test_read() {

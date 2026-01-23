@@ -245,4 +245,156 @@ mod tests {
         dsu.merge(1, 3);
         assert_eq!(sorted_groups(dsu.groups()), vec![vec![0, 1, 2, 3], vec![4]]);
     }
+
+    struct NaiveRollbackDsu {
+        history: Vec<Vec<std::collections::BTreeSet<usize>>>,
+    }
+
+    impl NaiveRollbackDsu {
+        fn new(n: usize) -> Self {
+            Self {
+                history: vec![
+                    (0..n)
+                        .map(|i| {
+                            let mut set = std::collections::BTreeSet::new();
+                            set.insert(i);
+                            set
+                        })
+                        .collect(),
+                ],
+            }
+        }
+
+        fn current(&self) -> &Vec<std::collections::BTreeSet<usize>> {
+            self.history.last().unwrap()
+        }
+
+        fn merge(&mut self, a: usize, b: usize) -> bool {
+            let mut groups = self.current().clone();
+            let i = groups.iter().position(|g| g.contains(&a)).unwrap();
+            let j = groups.iter().position(|g| g.contains(&b)).unwrap();
+            if i != j {
+                let g_j = groups.remove(j);
+                let i = groups.iter().position(|g| g.contains(&a)).unwrap();
+                groups[i].extend(g_j);
+                self.history.push(groups);
+                true
+            } else {
+                false
+            }
+        }
+
+        fn same(&self, a: usize, b: usize) -> bool {
+            self.current()
+                .iter()
+                .any(|g| g.contains(&a) && g.contains(&b))
+        }
+
+        fn size(&self, a: usize) -> usize {
+            self.current()
+                .iter()
+                .find(|g| g.contains(&a))
+                .unwrap()
+                .len()
+        }
+
+        fn groups(&self) -> Vec<Vec<usize>> {
+            let mut res: Vec<Vec<usize>> = self
+                .current()
+                .iter()
+                .map(|g| g.iter().copied().collect())
+                .collect();
+            res.sort();
+            res
+        }
+
+        fn snapshot(&self) -> usize {
+            (self.history.len() - 1) * 2
+        }
+
+        fn rollback(&mut self, snapshot: usize) {
+            let history_index = snapshot / 2;
+            self.history.truncate(history_index + 1);
+        }
+    }
+
+    #[test]
+    #[ignore]
+    fn test_random_rollback() {
+        use rand::prelude::*;
+        let mut rng = StdRng::seed_from_u64(42);
+
+        for _ in 0..200 {
+            let n = rng.random_range(1..=30);
+            let mut dsu = RollbackDsu::new(n);
+            let mut naive = NaiveRollbackDsu::new(n);
+            let mut snapshots = vec![0];
+
+            for i in 0..200 {
+                let op = rng.random_range(0..6);
+                match op {
+                    0 => {
+                        // merge
+                        let a = rng.random_range(0..n);
+                        let b = rng.random_range(0..n);
+                        let old_leader_a = dsu.leader(a);
+                        let old_leader_b = dsu.leader(b);
+                        let res = dsu.merge(a, b);
+                        let naive_res = naive.merge(a, b);
+                        if let Some((leader, merged)) = res {
+                            assert!(naive_res);
+                            assert!(
+                                (leader == old_leader_a && merged == old_leader_b)
+                                    || (leader == old_leader_b && merged == old_leader_a),
+                                "merge result mismatch at step {}: n={}, a={}, b={}",
+                                i,
+                                n,
+                                a,
+                                b
+                            );
+                        } else {
+                            assert!(!naive_res);
+                        }
+                    }
+                    1 => {
+                        // same
+                        let a = rng.random_range(0..n);
+                        let b = rng.random_range(0..n);
+                        assert_eq!(dsu.same(a, b), naive.same(a, b));
+                    }
+                    2 => {
+                        // size
+                        let a = rng.random_range(0..n);
+                        assert_eq!(dsu.size(a), naive.size(a));
+                    }
+                    3 => {
+                        // groups
+                        let mut dg = dsu.groups();
+                        for g in &mut dg {
+                            g.sort();
+                        }
+                        dg.sort();
+                        assert_eq!(dg, naive.groups());
+                    }
+                    4 => {
+                        // snapshot
+                        let s = dsu.snapshot();
+                        assert_eq!(s, naive.snapshot());
+                        snapshots.push(s);
+                    }
+                    5 => {
+                        // rollback
+                        if !snapshots.is_empty() {
+                            let idx = rng.random_range(0..snapshots.len());
+                            let s = snapshots[idx];
+                            dsu.rollback(s);
+                            naive.rollback(s);
+                            snapshots.truncate(idx + 1);
+                        }
+                    }
+                    _ => unreachable!(),
+                }
+            }
+        }
+    }
 }

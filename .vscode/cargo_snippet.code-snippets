@@ -12452,6 +12452,34 @@
       "}"
     ]
   },
+  "pos_ab_group": {
+    "scope": "rust",
+    "prefix": "pos_ab_group",
+    "body": [
+      "use pos_ab_group::*;",
+      "pub mod pos_ab_group {",
+      "    use super::pos::Pos;",
+      "    use super::AbGroup;",
+      "    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]",
+      "    pub struct PosAbGroup;",
+      "    impl AbGroup for PosAbGroup {",
+      "        type S = Pos;",
+      "        fn zero() -> Self::S {",
+      "            Pos::new(0, 0)",
+      "        }",
+      "        fn add(a: &Self::S, b: &Self::S) -> Self::S {",
+      "            *a + *b",
+      "        }",
+      "        fn neg(a: &Self::S) -> Self::S {",
+      "            -(*a)",
+      "        }",
+      "        fn sub(a: &Self::S, b: &Self::S) -> Self::S {",
+      "            *a - *b",
+      "        }",
+      "    }",
+      "}"
+    ]
+  },
   "pos_f64": {
     "scope": "rust",
     "prefix": "pos_f64",

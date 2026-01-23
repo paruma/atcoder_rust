@@ -202,8 +202,7 @@ pub mod potentialized_dsu {
 
 #[cfg(test)]
 mod tests_potentialized_dsu {
-    use crate::math::algebra::ab_group::ab_group::AdditiveAbGroup;
-
+    use crate::math::algebra::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
     use super::potentialized_dsu::*;
     use itertools::Itertools;
 
@@ -398,5 +397,141 @@ mod tests_potentialized_dsu {
 
         uf.merge(4, 0, 50);
         assert_eq!(uf.size(4), 5);
+    }
+
+    struct NaivePotentializedDsu<G: AbGroup> {
+        groups: Vec<std::collections::BTreeMap<usize, G::S>>,
+    }
+
+    impl<G: AbGroup> NaivePotentializedDsu<G>
+    where
+        G::S: Clone + PartialEq + std::fmt::Debug,
+    {
+        fn new(n: usize) -> Self {
+            let mut groups = Vec::new();
+            for i in 0..n {
+                let mut map = std::collections::BTreeMap::new();
+                map.insert(i, G::zero());
+                groups.push(map);
+            }
+            Self { groups }
+        }
+
+        fn find_group(&self, a: usize) -> usize {
+            self.groups.iter().position(|g| g.contains_key(&a)).unwrap()
+        }
+
+        fn merge(&mut self, src: usize, dst: usize, diff: G::S) -> MergeResult {
+            let i = self.find_group(src);
+            let j = self.find_group(dst);
+            if i == j {
+                let g = &self.groups[i];
+                let ps = g.get(&src).unwrap();
+                let pd = g.get(&dst).unwrap();
+                if G::sub(pd, ps) == diff {
+                    MergeResult::Unchanged
+                } else {
+                    MergeResult::Contradiction
+                }
+            } else {
+                let ps_old = self.groups[i].get(&src).unwrap().clone();
+                let pd_old = self.groups[j].get(&dst).unwrap().clone();
+                let offset = G::sub(&G::add(&ps_old, &diff), &pd_old);
+
+                let mut g_j = self.groups.remove(j);
+                let i = self.find_group(src);
+                for v in g_j.values_mut() {
+                    *v = G::add(v, &offset);
+                }
+
+                self.groups[i].extend(g_j);
+                MergeResult::Merged {
+                    leader: 0,
+                    merged: 0,
+                }
+            }
+        }
+
+        fn diff(&self, src: usize, dst: usize) -> Option<G::S> {
+            let i = self.find_group(src);
+            let j = self.find_group(dst);
+            if i == j {
+                let g = &self.groups[i];
+                Some(G::sub(g.get(&dst).unwrap(), g.get(&src).unwrap()))
+            } else {
+                None
+            }
+        }
+    }
+
+    #[test]
+    #[ignore]
+    fn test_random_potentialized() {
+        use rand::prelude::*;
+        let mut rng = StdRng::seed_from_u64(42);
+        type Add = AdditiveAbGroup<i64>;
+
+        for _ in 0..200 {
+            let n = rng.random_range(1..=30);
+            let mut dsu = PotentializedDsuArbitrary::<Add>::new(n);
+            let mut naive = NaivePotentializedDsu::<Add>::new(n);
+
+            for _ in 0..200 {
+                let op = rng.random_range(0..6);
+                match op {
+                    0 => {
+                        // merge
+                        let src = rng.random_range(0..n);
+                        let dst = rng.random_range(0..n);
+                        let diff = rng.random_range(-100..100);
+                        let res = dsu.merge(src, dst, diff);
+                        let naive_res = naive.merge(src, dst, diff);
+                        match (res, naive_res) {
+                            (MergeResult::Merged { .. }, MergeResult::Merged { .. }) => {}
+                            (MergeResult::Unchanged, MergeResult::Unchanged) => {}
+                            (MergeResult::Contradiction, MergeResult::Contradiction) => {}
+                            _ => panic!("merge result mismatch: {:?} vs {:?}", res, naive_res),
+                        }
+                    }
+                    1 => {
+                        // same
+                        let a = rng.random_range(0..n);
+                        let b = rng.random_range(0..n);
+                        assert_eq!(dsu.same(a, b), naive.diff(a, b).is_some());
+                    }
+                    2 => {
+                        // diff
+                        let a = rng.random_range(0..n);
+                        let b = rng.random_range(0..n);
+                        assert_eq!(dsu.diff(a, b), naive.diff(a, b));
+                    }
+                    3 => {
+                        // size
+                        let a = rng.random_range(0..n);
+                        assert_eq!(dsu.size(a), naive.groups[naive.find_group(a)].len());
+                    }
+                    4 => {
+                        // count_group
+                        assert_eq!(dsu.count_group(), naive.groups.len());
+                    }
+                    5 => {
+                        // groups
+                        let dg = sorted(dsu.groups());
+                        let mut ng = naive
+                            .groups
+                            .iter()
+                            .map(|g| g.keys().copied().collect_vec())
+                            .map(|mut v| {
+                                v.sort();
+                                v
+                            })
+                            .collect_vec();
+                        ng.sort();
+                        assert_eq!(dg, ng);
+                    }
+                    _ => unreachable!(),
+                }
+            }
+        }
     }
 }
