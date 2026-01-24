@@ -1,4 +1,4 @@
-FROM us-docker.pkg.dev/gemini-code-dev/gemini-cli/sandbox:0.25.0
+FROM us-docker.pkg.dev/gemini-code-dev/gemini-cli/sandbox:0.25.2
 
 
 # root でパッケージをインストール（Rust の依存や curl など）
@@ -13,10 +13,14 @@ RUN apt-get update && apt-get install -y \
 # node ユーザーに切り替え
 USER node
 
-# 環境変数（Rust/Cargo のパス）
+# uv のインストール
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# 環境変数（Rust/Cargo/uv のパスとキャッシュ）
 ENV CARGO_HOME=/home/node/.cargo
 ENV RUSTUP_HOME=/home/node/.rustup
-ENV PATH="${CARGO_HOME}/bin:${PATH}"
+ENV UV_CACHE_DIR=/home/node/.cache/uv
+ENV PATH="/home/node/.local/bin:${CARGO_HOME}/bin:${PATH}"
 
 # rustup を node ユーザーのホームにインストール
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.90.0 \
