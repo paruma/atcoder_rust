@@ -19,6 +19,9 @@ pub mod dual_fenwick_tree_2d {
     /// i64 の加算群を用いた標準的な 2次元双対 Fenwick Tree のエイリアス。
     pub type DualFenwickTree2DI64 = DualFenwickTree2DArbitrary<AdditiveAbGroup<i64>>;
 
+    /// 任意の数値型 T の加算群を用いた 2次元双対 Fenwick Tree のエイリアス。
+    pub type DualFenwickTree2D<T> = DualFenwickTree2DArbitrary<AdditiveAbGroup<T>>;
+
     impl<G: AbGroup> DualFenwickTree2DArbitrary<G> {
         /// H × W の 2次元双対 Fenwick Tree を作成します。
         /// 要素はすべて `G::zero()` で初期化されます。

@@ -29,6 +29,9 @@ pub mod rect_add_rect_sum_fenwick_tree {
     pub type RectAddRectSumFenwickTreeI64 =
         RectAddRectSumFenwickTreeArbitrary<AdditiveAbGroup<i64>>;
 
+    /// 任意の数値型 T の加算群を用いた 2次元矩形加算・矩形和 Fenwick Tree のエイリアス。
+    pub type RectAddRectSumFenwickTree<T> = RectAddRectSumFenwickTreeArbitrary<AdditiveAbGroup<T>>;
+
     impl<G: AbGroup> RectAddRectSumFenwickTreeArbitrary<G>
     where
         G::S: Copy + std::ops::Mul<Output = G::S> + From<i64>,

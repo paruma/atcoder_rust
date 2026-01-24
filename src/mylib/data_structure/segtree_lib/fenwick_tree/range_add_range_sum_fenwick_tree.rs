@@ -23,6 +23,10 @@ pub mod range_add_range_sum_fenwick_tree {
     pub type RangeAddRangeSumFenwickTreeI64 =
         RangeAddRangeSumFenwickTreeArbitrary<AdditiveAbGroup<i64>>;
 
+    /// 任意の数値型 T の加算群を用いた Range Add Range Sum Fenwick Tree のエイリアス。
+    pub type RangeAddRangeSumFenwickTree<T> =
+        RangeAddRangeSumFenwickTreeArbitrary<AdditiveAbGroup<T>>;
+
     impl<G: AbGroup> RangeAddRangeSumFenwickTreeArbitrary<G>
     where
         G::S: Copy + std::ops::Mul<Output = G::S> + From<i64>,

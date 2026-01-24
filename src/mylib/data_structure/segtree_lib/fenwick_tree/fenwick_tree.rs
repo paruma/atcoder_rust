@@ -20,6 +20,9 @@ pub mod fenwick_tree {
     /// i64 の加算群を用いた標準的な Fenwick Tree のエイリアス。
     pub type FenwickTreeI64 = FenwickTreeArbitrary<AdditiveAbGroup<i64>>;
 
+    /// 任意の数値型 T の加算群を用いた Fenwick Tree のエイリアス。
+    pub type FenwickTree<T> = FenwickTreeArbitrary<AdditiveAbGroup<T>>;
+
     impl<G: AbGroup> FenwickTreeArbitrary<G> {
         /// サイズ `n` の Fenwick Tree を作成します。
         /// 要素はすべて `G::zero()` で初期化されます。
@@ -421,6 +424,19 @@ mod tests {
         type G = AdditiveAbGroup<i64>;
         let mut ft_empty = FenwickTreeArbitrary::<G>::new(0);
         ft_empty.set(0, 1);
+    }
+
+    #[test]
+    fn test_xor_fenwick_tree() {
+        use crate::math::algebra::ab_group::ab_group::XorAbGroup;
+        let initial_vec: Vec<u64> = vec![1, 2, 4, 8, 16];
+        let mut ft = FenwickTreeArbitrary::<XorAbGroup>::from_slice(&initial_vec);
+
+        // 1 ^ 2 ^ 4 = 7
+        assert_eq!(ft.range_sum(0..3), 7);
+        ft.add(1, 10); // initial_vec[1] becomes 2 ^ 10 = 8
+        // 1 ^ 8 ^ 4 = 13
+        assert_eq!(ft.range_sum(0..3), 13);
     }
 
     #[test]

@@ -21,6 +21,9 @@ pub mod fenwick_tree_2d {
     /// i64 の加算群を用いた標準的な 2次元 Fenwick Tree のエイリアス。
     pub type FenwickTree2DI64 = FenwickTree2DArbitrary<AdditiveAbGroup<i64>>;
 
+    /// 任意の数値型 T の加算群を用いた 2次元 Fenwick Tree のエイリアス。
+    pub type FenwickTree2D<T> = FenwickTree2DArbitrary<AdditiveAbGroup<T>>;
+
     impl<G: AbGroup> FenwickTree2DArbitrary<G> {
         /// H × W の 2次元 Fenwick Tree を作成します。
         /// 要素はすべて `G::zero()` で初期化されます。
