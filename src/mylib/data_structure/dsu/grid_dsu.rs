@@ -62,6 +62,14 @@ pub mod grid_dsu {
 mod tests {
     use super::grid_dsu::GridDsu;
     use crate::math::geometry::pos::pos::Pos;
+    use itertools::Itertools;
+
+    fn sorted(xss: Vec<Vec<Pos>>) -> Vec<Vec<Pos>> {
+        xss.iter()
+            .map(|xs| xs.iter().copied().sorted().collect_vec())
+            .sorted()
+            .collect_vec()
+    }
 
     #[test]
     fn test_new() {
@@ -124,6 +132,6 @@ mod tests {
         gdsu.merge(p10, p11);
 
         let groups = gdsu.groups();
-        assert_eq!(groups.len(), 2);
+        assert_eq!(sorted(groups), sorted(vec![vec![p00, p01], vec![p10, p11]]));
     }
 }

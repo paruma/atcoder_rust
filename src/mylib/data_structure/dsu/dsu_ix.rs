@@ -106,7 +106,14 @@ mod tests {
         assert_eq!(dsu.count_group(), 3); // {(0,0),(0,1)}, {(1,0)}, {(1,1)}
 
         // groups
-        let groups = dsu.groups();
-        assert_eq!(groups.len(), 3);
+        let mut groups = dsu.groups();
+        for group in &mut groups {
+            group.sort_by(|a, b| a.partial_cmp(b).unwrap());
+        }
+        groups.sort_by(|a, b| a.partial_cmp(b).unwrap());
+        assert_eq!(
+            groups,
+            vec![vec![(0, 0), (0, 1)], vec![(1, 0)], vec![(1, 1)]]
+        );
     }
 }
