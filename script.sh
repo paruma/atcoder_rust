@@ -8,6 +8,8 @@
 PYTHONSTARTUP="$(git rev-parse --show-toplevel)/calc.py"
 export PYTHONSTARTUP
 
+export RUST_BACKTRACE=1
+
 # カレントディレクトリ名からタスク名を取得します。
 #
 # 前提: カレントディレクトリがタスク名のディレクトリであること。
@@ -107,11 +109,21 @@ _oj_test_common() {
     fi
 
     local bin_path=$1
-    if [ -n "$2" ]; then
-        oj test -c "$bin_path" --ignore-spaces-and-newline "$2"
-    else
-        oj test -c "$bin_path" --ignore-spaces-and-newline
+    local extra_arg=$2
+
+    # ANSI エスケープシーケンス (黄色)
+    local yellow=$(printf '\033[33m')
+    local reset=$(printf '\033[0m')
+
+    # oj test コマンドを構築。script -c に渡す。
+    local cmd="oj test -c '$bin_path' --ignore-spaces-and-newline"
+    if [ -n "$extra_arg" ]; then
+        cmd="$cmd '$extra_arg'"
     fi
+
+    # script コマンドを使って TTY をシミュレートし、パイプ時も oj の色を維持する。
+    # sed で ./a.rs:3:12 のようなソースコードの場所を黄色にハイライトする。
+    script -q -e -c "$cmd" /dev/null | sed -u "s|\(\./${task}\.rs:[0-9]\{1,\}:[0-9]\{1,\}\)|${yellow}\1${reset}|g"
 
     _on_after_test
 }
