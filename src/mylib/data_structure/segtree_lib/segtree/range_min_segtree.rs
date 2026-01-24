@@ -2,7 +2,7 @@ use crate::math::algebra::min_max_monoid::min_max_monoid::TupleMin;
 use cargo_snippet::snippet;
 
 #[allow(clippy::module_inception)]
-#[snippet(prefix = "use range_min_segtree::*;")]
+#[snippet(prefix = "use range_min_segtree::*;", include = "min_max_monoid")]
 pub mod range_min_segtree {
     use super::TupleMin;
     use ac_library::{Monoid, Segtree};
