@@ -1,12 +1,8 @@
 pub mod acl_string;
-pub mod bfs;
-pub mod dfs_graph;
-pub mod dfs_multi_loop;
 pub mod dp;
+pub mod graph;
 pub mod integer;
-pub mod kruskal;
 pub mod next_permutation;
 pub mod random;
 pub mod shakutori;
-pub mod shortest_path;
 pub mod twelvefold_way_enumerate;
