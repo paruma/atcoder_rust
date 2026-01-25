@@ -156,7 +156,7 @@ pub mod range_quadratic_add_range_sum {
 
         /// range が l..r であるとする。
         /// `i` in `l..r` に対して、`self[i] += coef0 + coef1 * (i - l) + coef2 * (i - l)^2` を計算する
-        pub fn apply_range_quadratic_add<R>(&mut self, range: R, coef0: T, coef1: T, coef2: T)
+        pub fn range_quadratic_add<R>(&mut self, range: R, coef0: T, coef1: T, coef2: T)
         where
             R: RangeBounds<usize>,
         {
@@ -256,14 +256,14 @@ pub mod test_range_quadratic_add_range_sum {
     }
 
     #[test]
-    fn test_apply_range_linear_add_normal() {
+    fn test_range_linear_add_normal() {
         let xs = vec![0, 0, 0, 0, 0];
         let mut segtree = RangeQuadraticAddRangeSumSegtree::<i64>::from_slice(&xs);
         // Apply init=10, diff=2 to range 1..4 (indices 1, 2, 3)
         // i=1: 10 + 2 * (1 - 1) = 10
         // i=2: 10 + 2 * (2 - 1) = 12
         // i=3: 10 + 2 * (3 - 1) = 14
-        segtree.apply_range_quadratic_add(1..4, 10, 2, 0);
+        segtree.range_quadratic_add(1..4, 10, 2, 0);
         assert_eq!(segtree.to_vec(), vec![0, 10, 12, 14, 0]);
 
         // Apply init=1, diff=1 to range 0..5 (indices 0, 1, 2, 3, 4)
@@ -272,17 +272,17 @@ pub mod test_range_quadratic_add_range_sum {
         // i=2: 1 + 1 * (2 - 0) = 3
         // i=3: 1 + 1 * (3 - 0) = 4
         // i=4: 1 + 1 * (4 - 0) = 5
-        segtree.apply_range_quadratic_add(0..5, 1, 1, 0);
+        segtree.range_quadratic_add(0..5, 1, 1, 0);
         assert_eq!(segtree.to_vec(), vec![1, 12, 15, 18, 5]);
     }
 
     #[test]
-    fn test_apply_range_add_with_const_add() {
+    fn test_range_add_with_const_add() {
         let xs = vec![10, 20, 30, 40, 50];
         let mut segtree = RangeQuadraticAddRangeSumSegtree::<i64>::from_slice(&xs);
-        segtree.apply_range_quadratic_add(1..4, 5, 0, 0);
+        segtree.range_quadratic_add(1..4, 5, 0, 0);
         assert_eq!(segtree.to_vec(), vec![10, 25, 35, 45, 50]);
-        segtree.apply_range_quadratic_add(0..3, -10, 0, 0);
+        segtree.range_quadratic_add(0..3, -10, 0, 0);
         assert_eq!(segtree.to_vec(), vec![0, 15, 25, 45, 50]);
     }
 
@@ -291,7 +291,7 @@ pub mod test_range_quadratic_add_range_sum {
         let xs = vec![0, 1, 2, 3, 4, 5];
         let mut segtree = RangeQuadraticAddRangeSumSegtree::<i64>::from_slice(&xs);
         assert_eq!(segtree.to_vec(), vec![0, 1, 2, 3, 4, 5]);
-        segtree.apply_range_quadratic_add(1..4, 10, 0, 0);
+        segtree.range_quadratic_add(1..4, 10, 0, 0);
         assert_eq!(segtree.to_vec(), vec![0, 11, 12, 13, 4, 5]);
     }
 
@@ -299,7 +299,7 @@ pub mod test_range_quadratic_add_range_sum {
     fn test_modint() {
         let xs = vec![Mint::new(1), Mint::new(2), Mint::new(3)];
         let mut segtree = RangeQuadraticAddRangeSumSegtree::<Mint>::from_slice(&xs);
-        segtree.apply_range_quadratic_add(0..3, Mint::new(1), Mint::new(0), Mint::new(0));
+        segtree.range_quadratic_add(0..3, Mint::new(1), Mint::new(0), Mint::new(0));
         assert_eq!(
             segtree.to_vec(),
             vec![Mint::new(2), Mint::new(3), Mint::new(4)]
@@ -307,7 +307,7 @@ pub mod test_range_quadratic_add_range_sum {
     }
 
     #[test]
-    fn test_apply_range_quadratic_add() {
+    fn test_range_quadratic_add() {
         let xs = vec![0, 0, 0, 0, 0];
         let mut segtree = RangeQuadraticAddRangeSumSegtree::<i64>::from_slice(&xs);
         // Apply coef0=1, coef1=1, coef2=1 to range 0..5
@@ -316,7 +316,7 @@ pub mod test_range_quadratic_add_range_sum {
         // i=2: 0 + 1 + 1*2 + 1*2^2 = 7
         // i=3: 0 + 1 + 1*3 + 1*3^2 = 13
         // i=4: 0 + 1 + 1*4 + 1*4^2 = 21
-        segtree.apply_range_quadratic_add(0..5, 1, 1, 1);
+        segtree.range_quadratic_add(0..5, 1, 1, 1);
         assert_eq!(segtree.to_vec(), vec![1, 3, 7, 13, 21]);
 
         // Apply coef0=10, coef1=-2, coef2=1 to range 1..4 (indices 1, 2, 3)
@@ -324,7 +324,7 @@ pub mod test_range_quadratic_add_range_sum {
         // i=1: 3 + 10 + (-2)*(1-1) + 1*(1-1)^2 = 13
         // i=2: 7 + 10 + (-2)*(2-1) + 1*(2-1)^2 = 7 + 10 - 2 + 1 = 16
         // i=3: 13 + 10 + (-2)*(3-1) + 1*(3-1)^2 = 13 + 10 - 4 + 4 = 23
-        segtree.apply_range_quadratic_add(1..4, 10, -2, 1);
+        segtree.range_quadratic_add(1..4, 10, -2, 1);
         assert_eq!(segtree.to_vec(), vec![1, 13, 16, 23, 21]);
     }
 
@@ -361,7 +361,7 @@ pub mod test_range_quadratic_add_range_sum {
                         segtree.set(p, x);
                     }
                     1 => {
-                        // apply_range_quadratic_add(range, coef0, coef1, coef2)
+                        // range_quadratic_add(range, coef0, coef1, coef2)
                         let l = rng.random_range(0..=n);
                         let r = rng.random_range(l..=n);
 
@@ -373,7 +373,7 @@ pub mod test_range_quadratic_add_range_sum {
                             let diff_idx = i as i64 - l as i64;
                             naive_vec[i] += coef0 + coef1 * diff_idx + coef2 * diff_idx * diff_idx;
                         }
-                        segtree.apply_range_quadratic_add(l..r, coef0, coef1, coef2);
+                        segtree.range_quadratic_add(l..r, coef0, coef1, coef2);
                     }
                     2 => {
                         // get(p)

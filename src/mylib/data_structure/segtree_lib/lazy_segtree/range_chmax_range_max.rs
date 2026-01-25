@@ -67,11 +67,11 @@ pub mod range_chmax_range_max {
             self.segtree.all_prod()
         }
 
-        pub fn apply_chmax(&mut self, p: usize, x: i64) {
+        pub fn chmax(&mut self, p: usize, x: i64) {
             self.segtree.apply(p, x)
         }
 
-        pub fn apply_range_chmax<R>(&mut self, range: R, x: i64)
+        pub fn range_chmax<R>(&mut self, range: R, x: i64)
         where
             R: RangeBounds<usize>,
         {
@@ -152,22 +152,22 @@ pub mod test_range_chmax_range_max {
     }
 
     #[test]
-    fn test_apply_chmax() {
+    fn test_chmax() {
         let xs = vec![10, 20, 30, 40, 50];
         let mut segtree = RangeChmaxRangeMaxSegtree::from_slice(&xs);
-        segtree.apply_chmax(1, 25);
+        segtree.chmax(1, 25);
         assert_eq!(segtree.to_vec(), vec![10, 25, 30, 40, 50]);
-        segtree.apply_chmax(1, 15); // No change
+        segtree.chmax(1, 15); // No change
         assert_eq!(segtree.to_vec(), vec![10, 25, 30, 40, 50]);
     }
 
     #[test]
-    fn test_apply_range_chmax() {
+    fn test_range_chmax() {
         let xs = vec![10, 20, 30, 40, 50];
         let mut segtree = RangeChmaxRangeMaxSegtree::from_slice(&xs);
-        segtree.apply_range_chmax(0..3, 35);
+        segtree.range_chmax(0..3, 35);
         assert_eq!(segtree.to_vec(), vec![35, 35, 35, 40, 50]);
-        segtree.apply_range_chmax(2..5, 60);
+        segtree.range_chmax(2..5, 60);
         assert_eq!(segtree.to_vec(), vec![35, 35, 60, 60, 60]);
     }
 
@@ -185,9 +185,9 @@ pub mod test_range_chmax_range_max {
         let xs = vec![0, 1, 2, 3, 4, 5];
         let mut segtree = RangeChmaxRangeMaxSegtree::from_slice(&xs);
         assert_eq!(segtree.to_vec(), vec![0, 1, 2, 3, 4, 5]);
-        segtree.apply_range_chmax(1..4, -1);
+        segtree.range_chmax(1..4, -1);
         assert_eq!(segtree.to_vec(), vec![0, 1, 2, 3, 4, 5]); // No change as -1 is smaller
-        segtree.apply_range_chmax(1..4, 100);
+        segtree.range_chmax(1..4, 100);
         assert_eq!(segtree.to_vec(), vec![0, 100, 100, 100, 4, 5]);
     }
 
@@ -216,14 +216,14 @@ pub mod test_range_chmax_range_max {
                         segtree.set(p, x);
                     }
                     1 => {
-                        // apply_chmax(p, x)
+                        // chmax(p, x)
                         let p = rng.random_range(0..n);
                         let x = rng.random_range(-50..=50);
                         naive_vec[p] = naive_vec[p].max(x);
-                        segtree.apply_chmax(p, x);
+                        segtree.chmax(p, x);
                     }
                     2 => {
-                        // apply_range_chmax(range, x)
+                        // range_chmax(range, x)
                         let l = rng.random_range(0..=n);
                         let r = rng.random_range(l..=n);
 
@@ -232,7 +232,7 @@ pub mod test_range_chmax_range_max {
                         for i in l..r {
                             naive_vec[i] = naive_vec[i].max(x);
                         }
-                        segtree.apply_range_chmax(l..r, x);
+                        segtree.range_chmax(l..r, x);
                     }
                     3 => {
                         // get(p)

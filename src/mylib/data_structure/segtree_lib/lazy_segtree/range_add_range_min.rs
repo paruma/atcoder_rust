@@ -130,7 +130,7 @@ pub mod range_add_range_min {
             self.segtree.all_prod()
         }
 
-        pub fn apply_range_add<R>(&mut self, range: R, x: T)
+        pub fn range_add<R>(&mut self, range: R, x: T)
         where
             R: RangeBounds<usize>,
         {
@@ -190,10 +190,10 @@ pub mod test_range_add_range_min {
     }
 
     #[test]
-    fn test_apply_range_add() {
+    fn test_range_add() {
         let xs = vec![10, 20, 30, 40, 50];
         let mut segtree = RangeAddRangeMinSegtree::<i64>::from_slice(&xs);
-        segtree.apply_range_add(1..4, 5);
+        segtree.range_add(1..4, 5);
         assert_eq!(segtree.to_vec(), vec![10, 25, 35, 45, 50]);
         assert_eq!(segtree.range_min(1..4), 25);
     }
@@ -203,7 +203,7 @@ pub mod test_range_add_range_min {
         let xs = vec![0, 1, 2, 3, 4, 5];
         let mut segtree = RangeAddRangeMinSegtree::<i64>::from_slice(&xs);
         assert_eq!(segtree.to_vec(), vec![0, 1, 2, 3, 4, 5]);
-        segtree.apply_range_add(1..4, 10);
+        segtree.range_add(1..4, 10);
         assert_eq!(segtree.to_vec(), vec![0, 11, 12, 13, 4, 5]);
     }
 
@@ -212,7 +212,7 @@ pub mod test_range_add_range_min {
         let xs = vec![10, 20, 30, 40, 50];
         let mut segtree = RangeAddRangeMinSegtree::<i64>::from_slice(&xs);
         assert_eq!(segtree.all_min(), 10);
-        segtree.apply_range_add(0..5, -5);
+        segtree.range_add(0..5, -5);
         assert_eq!(segtree.all_min(), 5);
     }
 
@@ -234,7 +234,7 @@ pub mod test_range_add_range_min {
         let xs: Vec<i64> = vec![];
         let mut segtree = RangeAddRangeMinSegtree::<i64>::from_slice(&xs);
         assert_eq!(segtree.all_min(), i64::MAX);
-        segtree.apply_range_add(0..0, 100);
+        segtree.range_add(0..0, 100);
         assert_eq!(segtree.all_min(), i64::MAX);
     }
 
@@ -263,7 +263,7 @@ pub mod test_range_add_range_min {
                         segtree.set(p, x);
                     }
                     1 => {
-                        // apply_range_add(range, x)
+                        // range_add(range, x)
                         let l = rng.random_range(0..=n);
                         let r = rng.random_range(l..=n);
 
@@ -272,7 +272,7 @@ pub mod test_range_add_range_min {
                         for i in l..r {
                             naive_vec[i] += x;
                         }
-                        segtree.apply_range_add(l..r, x);
+                        segtree.range_add(l..r, x);
                     }
                     2 => {
                         // get(p)

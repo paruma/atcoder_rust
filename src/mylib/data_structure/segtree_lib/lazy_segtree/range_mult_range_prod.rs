@@ -130,11 +130,11 @@ pub mod range_mult_range_prod {
             self.segtree.all_prod().prod
         }
 
-        pub fn apply_mult(&mut self, p: usize, x: T) {
+        pub fn mult(&mut self, p: usize, x: T) {
             self.segtree.apply(p, x)
         }
 
-        pub fn apply_range_mult<R>(&mut self, range: R, x: T)
+        pub fn range_mult<R>(&mut self, range: R, x: T)
         where
             R: RangeBounds<usize>,
         {
@@ -219,22 +219,22 @@ pub mod test_range_mult_range_prod {
     }
 
     #[test]
-    fn test_apply_mult() {
+    fn test_mult() {
         let xs = vec![1, 2, 3, 4, 5];
         let mut segtree = RangeMultRangeProdSegtree::<i64>::from_slice(&xs);
-        segtree.apply_mult(1, 5);
+        segtree.mult(1, 5);
         assert_eq!(segtree.to_vec(), vec![1, 10, 3, 4, 5]); // 2 * 5
-        segtree.apply_mult(1, 3);
+        segtree.mult(1, 3);
         assert_eq!(segtree.to_vec(), vec![1, 30, 3, 4, 5]); // 10 * 3
     }
 
     #[test]
-    fn test_apply_range_mult() {
+    fn test_range_mult() {
         let xs = vec![1, 2, 3, 4, 5];
         let mut segtree = RangeMultRangeProdSegtree::<i64>::from_slice(&xs);
-        segtree.apply_range_mult(1..4, 5);
+        segtree.range_mult(1..4, 5);
         assert_eq!(segtree.to_vec(), vec![1, 10, 15, 20, 5]); // 2*5, 3*5, 4*5
-        segtree.apply_range_mult(0..3, 2);
+        segtree.range_mult(0..3, 2);
         assert_eq!(segtree.to_vec(), vec![2, 20, 30, 20, 5]); // 1*2, 10*2, 15*2
     }
 
@@ -243,7 +243,7 @@ pub mod test_range_mult_range_prod {
         let xs = vec![0, 1, 2, 3, 4, 5];
         let mut segtree = RangeMultRangeProdSegtree::<i64>::from_slice(&xs);
         assert_eq!(segtree.to_vec(), vec![0, 1, 2, 3, 4, 5]);
-        segtree.apply_range_mult(1..4, 10);
+        segtree.range_mult(1..4, 10);
         assert_eq!(segtree.to_vec(), vec![0, 10, 20, 30, 4, 5]);
     }
 
@@ -265,7 +265,7 @@ pub mod test_range_mult_range_prod {
         assert_eq!(segtree.range_prod(2..5), Mint::new(0)); // 0 * 4 * 5
 
         // Multiply a non-zero range to include zero
-        segtree.apply_range_mult(0..2, Mint::new(0));
+        segtree.range_mult(0..2, Mint::new(0));
         assert_eq!(
             segtree.to_vec(),
             vec![
@@ -281,7 +281,7 @@ pub mod test_range_mult_range_prod {
         assert_eq!(segtree.range_prod(3..5), Mint::new(20));
 
         // Multiply a zero to a non-zero value
-        segtree.apply_mult(2, Mint::new(3));
+        segtree.mult(2, Mint::new(3));
         assert_eq!(
             segtree.to_vec(),
             vec![
@@ -296,7 +296,7 @@ pub mod test_range_mult_range_prod {
         assert_eq!(segtree.range_prod(2..5), Mint::new(0)); // 0 * 4 * 5
 
         // Multiply a range with zero to a non-zero value
-        segtree.apply_range_mult(0..2, Mint::new(1));
+        segtree.range_mult(0..2, Mint::new(1));
         assert_eq!(
             segtree.to_vec(),
             vec![
@@ -314,7 +314,7 @@ pub mod test_range_mult_range_prod {
     fn test_modint() {
         let xs = vec![Mint::new(1), Mint::new(2), Mint::new(3)];
         let mut segtree = RangeMultRangeProdSegtree::<Mint>::from_slice(&xs);
-        segtree.apply_range_mult(0..3, Mint::new(10));
+        segtree.range_mult(0..3, Mint::new(10));
         assert_eq!(
             segtree.to_vec(),
             vec![Mint::new(10), Mint::new(20), Mint::new(30)]
@@ -358,7 +358,7 @@ pub mod test_range_mult_range_prod {
                         segtree.set(p, x);
                     }
                     1 => {
-                        // apply_range_mult(range, x)
+                        // range_mult(range, x)
                         let l = rng.random_range(0..=n);
                         let r = rng.random_range(l..=n);
                         let x = Mint::new(rng.random_range(1..=100));
@@ -366,7 +366,7 @@ pub mod test_range_mult_range_prod {
                         for i in l..r {
                             naive_vec[i] *= x;
                         }
-                        segtree.apply_range_mult(l..r, x);
+                        segtree.range_mult(l..r, x);
                     }
                     2 => {
                         // get(p)
@@ -393,11 +393,11 @@ pub mod test_range_mult_range_prod {
                         assert_eq!(segtree.all_prod(), expected_prod, "all_prod() failed");
                     }
                     5 => {
-                        // apply_mult(p, x)
+                        // mult(p, x)
                         let p = rng.random_range(0..n);
                         let x = Mint::new(rng.random_range(1..=100));
                         naive_vec[p] *= x;
-                        segtree.apply_mult(p, x);
+                        segtree.mult(p, x);
                     }
                     _ => unreachable!(),
                 }

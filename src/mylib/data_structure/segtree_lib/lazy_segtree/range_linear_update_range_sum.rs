@@ -150,7 +150,7 @@ pub mod range_linear_update_range_sum {
 
         /// range が l..r であるとする。
         /// `i` in `l..r` に対して、`self[i] += init + diff * (i - l)` を計算する
-        pub fn apply_range_linear_update<R>(&mut self, range: R, init: T, diff: T)
+        pub fn range_linear_update<R>(&mut self, range: R, init: T, diff: T)
         where
             R: RangeBounds<usize>,
         {
@@ -246,14 +246,14 @@ pub mod test_range_linear_update_range_sum {
     }
 
     #[test]
-    fn test_apply_range_linear_update_with_diff() {
+    fn test_range_linear_update_with_diff() {
         let xs = vec![0, 0, 0, 0, 0];
         let mut segtree = RangeLinearUpdateRangeSumSegtree::<i64>::from_slice(&xs);
         // Apply init=10, diff=2 to range 1..4 (indices 1, 2, 3)
         // i=1: 10 + 2 * (1 - 1) = 10
         // i=2: 10 + 2 * (2 - 1) = 12
         // i=3: 10 + 2 * (3 - 1) = 14
-        segtree.apply_range_linear_update(1..4, 10, 2);
+        segtree.range_linear_update(1..4, 10, 2);
         assert_eq!(segtree.to_vec(), vec![0, 10, 12, 14, 0]);
 
         // Apply init=1, diff=1 to range 0..5 (indices 0, 1, 2, 3, 4)
@@ -262,17 +262,17 @@ pub mod test_range_linear_update_range_sum {
         // i=2: 1 + 1 * (2 - 0) = 3
         // i=3: 1 + 1 * (3 - 0) = 4
         // i=4: 1 + 1 * (4 - 0) = 5
-        segtree.apply_range_linear_update(0..5, 1, 1);
+        segtree.range_linear_update(0..5, 1, 1);
         assert_eq!(segtree.to_vec(), vec![1, 2, 3, 4, 5]);
     }
 
     #[test]
-    fn test_apply_range_update_with_zero_diff() {
+    fn test_range_update_with_zero_diff() {
         let xs = vec![10, 20, 30, 40, 50];
         let mut segtree = RangeLinearUpdateRangeSumSegtree::<i64>::from_slice(&xs);
-        segtree.apply_range_linear_update(1..4, 5, 0);
+        segtree.range_linear_update(1..4, 5, 0);
         assert_eq!(segtree.to_vec(), vec![10, 5, 5, 5, 50]);
-        segtree.apply_range_linear_update(0..3, -10, 0);
+        segtree.range_linear_update(0..3, -10, 0);
         assert_eq!(segtree.to_vec(), vec![-10, -10, -10, 5, 50]);
     }
 
@@ -281,7 +281,7 @@ pub mod test_range_linear_update_range_sum {
         let xs = vec![0, 1, 2, 3, 4, 5];
         let mut segtree = RangeLinearUpdateRangeSumSegtree::<i64>::from_slice(&xs);
         assert_eq!(segtree.to_vec(), vec![0, 1, 2, 3, 4, 5]);
-        segtree.apply_range_linear_update(1..4, 10, 0);
+        segtree.range_linear_update(1..4, 10, 0);
         assert_eq!(segtree.to_vec(), vec![0, 10, 10, 10, 4, 5]);
     }
 
@@ -289,7 +289,7 @@ pub mod test_range_linear_update_range_sum {
     fn test_modint() {
         let xs = vec![Mint::new(1), Mint::new(2), Mint::new(3)];
         let mut segtree = RangeLinearUpdateRangeSumSegtree::<Mint>::from_slice(&xs);
-        segtree.apply_range_linear_update(0..3, Mint::new(1), Mint::new(0));
+        segtree.range_linear_update(0..3, Mint::new(1), Mint::new(0));
         assert_eq!(
             segtree.to_vec(),
             vec![Mint::new(1), Mint::new(1), Mint::new(1)]
@@ -329,7 +329,7 @@ pub mod test_range_linear_update_range_sum {
                         segtree.set(p, x);
                     }
                     1 => {
-                        // apply_range_linear_update(range, init, diff)
+                        // range_linear_update(range, init, diff)
                         let l = rng.random_range(0..=n);
                         let r = rng.random_range(l..=n);
 
@@ -339,7 +339,7 @@ pub mod test_range_linear_update_range_sum {
                         for i in l..r {
                             naive_vec[i] = init + diff * (i as i64 - l as i64);
                         }
-                        segtree.apply_range_linear_update(l..r, init, diff);
+                        segtree.range_linear_update(l..r, init, diff);
                     }
                     2 => {
                         // get(p)

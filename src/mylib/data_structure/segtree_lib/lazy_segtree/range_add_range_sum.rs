@@ -111,11 +111,11 @@ pub mod range_add_range_sum {
             self.segtree.all_prod().sum
         }
 
-        pub fn apply_add(&mut self, p: usize, x: T) {
+        pub fn add(&mut self, p: usize, x: T) {
             self.segtree.apply(p, x)
         }
 
-        pub fn apply_range_add<R>(&mut self, range: R, x: T)
+        pub fn range_add<R>(&mut self, range: R, x: T)
         where
             R: RangeBounds<usize>,
         {
@@ -200,22 +200,22 @@ pub mod test_range_add_range_sum {
     }
 
     #[test]
-    fn test_apply_add() {
+    fn test_add() {
         let xs = vec![10, 20, 30, 40, 50];
         let mut segtree = RangeAddRangeSumSegtree::<i64>::from_slice(&xs);
-        segtree.apply_add(1, 5);
+        segtree.add(1, 5);
         assert_eq!(segtree.to_vec(), vec![10, 25, 30, 40, 50]);
-        segtree.apply_add(1, -10);
+        segtree.add(1, -10);
         assert_eq!(segtree.to_vec(), vec![10, 15, 30, 40, 50]);
     }
 
     #[test]
-    fn test_apply_range_add() {
+    fn test_range_add() {
         let xs = vec![10, 20, 30, 40, 50];
         let mut segtree = RangeAddRangeSumSegtree::<i64>::from_slice(&xs);
-        segtree.apply_range_add(1..4, 5);
+        segtree.range_add(1..4, 5);
         assert_eq!(segtree.to_vec(), vec![10, 25, 35, 45, 50]);
-        segtree.apply_range_add(0..3, -10);
+        segtree.range_add(0..3, -10);
         assert_eq!(segtree.to_vec(), vec![0, 15, 25, 45, 50]);
     }
 
@@ -224,7 +224,7 @@ pub mod test_range_add_range_sum {
         let xs = vec![0, 1, 2, 3, 4, 5];
         let mut segtree = RangeAddRangeSumSegtree::<i64>::from_slice(&xs);
         assert_eq!(segtree.to_vec(), vec![0, 1, 2, 3, 4, 5]);
-        segtree.apply_range_add(1..4, 10);
+        segtree.range_add(1..4, 10);
         assert_eq!(segtree.to_vec(), vec![0, 11, 12, 13, 4, 5]);
     }
 
@@ -232,7 +232,7 @@ pub mod test_range_add_range_sum {
     fn test_modint() {
         let xs = vec![Mint::new(1), Mint::new(2), Mint::new(3)];
         let mut segtree = RangeAddRangeSumSegtree::<Mint>::from_slice(&xs);
-        segtree.apply_range_add(0..3, Mint::new(1));
+        segtree.range_add(0..3, Mint::new(1));
         assert_eq!(
             segtree.to_vec(),
             vec![Mint::new(2), Mint::new(3), Mint::new(4)]
@@ -274,7 +274,7 @@ pub mod test_range_add_range_sum {
 
             for _ in 0..100 {
                 // 100 random operations per set
-                let op_type = rng.random_range(0..6); // 6 operations: set, apply_add, apply_range_add, get, range_sum, all_sum
+                let op_type = rng.random_range(0..6); // 6 operations: set, add, range_add, get, range_sum, all_sum
 
                 match op_type {
                     0 => {
@@ -285,14 +285,14 @@ pub mod test_range_add_range_sum {
                         segtree.set(p, x);
                     }
                     1 => {
-                        // apply_add(p, x)
+                        // add(p, x)
                         let p = rng.random_range(0..n);
                         let x = rng.random_range(-50..=50);
                         naive_vec[p] += x;
-                        segtree.apply_add(p, x);
+                        segtree.add(p, x);
                     }
                     2 => {
-                        // apply_range_add(range, x)
+                        // range_add(range, x)
                         let l = rng.random_range(0..=n);
                         let r = rng.random_range(l..=n);
 
@@ -301,7 +301,7 @@ pub mod test_range_add_range_sum {
                         for i in l..r {
                             naive_vec[i] += x;
                         }
-                        segtree.apply_range_add(l..r, x);
+                        segtree.range_add(l..r, x);
                     }
                     3 => {
                         // get(p)

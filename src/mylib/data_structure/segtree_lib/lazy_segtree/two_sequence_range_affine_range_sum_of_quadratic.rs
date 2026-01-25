@@ -166,46 +166,39 @@ pub mod two_sequence_range_affine_range_sum_of_quadratic {
         }
 
         /// 指定された区間 `range` に対して、`xs[i] ← a * xs[i] + b`, `ys[i] ← c * ys[i] + d` のアフィン変換を適用します。
-        pub fn apply_range_affine(
-            &mut self,
-            range: impl RangeBounds<usize>,
-            a: T,
-            b: T,
-            c: T,
-            d: T,
-        ) {
+        pub fn range_affine(&mut self, range: impl RangeBounds<usize>, a: T, b: T, c: T, d: T) {
             self.segtree
                 .apply_range(range, TwoSequenceAffine { a, b, c, d })
         }
 
         /// 指定された区間 `range` に対して、`xs[i] ← a * xs[i] + b` のアフィン変換を適用します。
-        pub fn apply_range_affine_x(&mut self, range: impl RangeBounds<usize>, a: T, b: T) {
-            self.apply_range_affine(range, a, b, 1.into(), 0.into())
+        pub fn range_affine_x(&mut self, range: impl RangeBounds<usize>, a: T, b: T) {
+            self.range_affine(range, a, b, 1.into(), 0.into())
         }
 
         /// 指定された区間 `range` に対して、`ys[i] ← c * ys[i] + d` のアフィン変換を適用します。
-        pub fn apply_range_affine_y(&mut self, range: impl RangeBounds<usize>, c: T, d: T) {
-            self.apply_range_affine(range, 1.into(), 0.into(), c, d)
+        pub fn range_affine_y(&mut self, range: impl RangeBounds<usize>, c: T, d: T) {
+            self.range_affine(range, 1.into(), 0.into(), c, d)
         }
 
         /// 指定された区間 `range` に対して、`xs[i] ← xs[i] + b` の加算を適用します。
-        pub fn apply_range_add_x(&mut self, range: impl RangeBounds<usize>, b: T) {
-            self.apply_range_affine_x(range, 1.into(), b)
+        pub fn range_add_x(&mut self, range: impl RangeBounds<usize>, b: T) {
+            self.range_affine_x(range, 1.into(), b)
         }
 
         /// 指定された区間 `range` に対して、`xs[i] ← x` の更新を適用します。
-        pub fn apply_range_update_x(&mut self, range: impl RangeBounds<usize>, x: T) {
-            self.apply_range_affine_x(range, 0.into(), x)
+        pub fn range_update_x(&mut self, range: impl RangeBounds<usize>, x: T) {
+            self.range_affine_x(range, 0.into(), x)
         }
 
         /// 指定された区間 `range` に対して、`ys[i] ← ys[i] + d` の加算を適用します。
-        pub fn apply_range_add_y(&mut self, range: impl RangeBounds<usize>, d: T) {
-            self.apply_range_affine_y(range, 1.into(), d)
+        pub fn range_add_y(&mut self, range: impl RangeBounds<usize>, d: T) {
+            self.range_affine_y(range, 1.into(), d)
         }
 
         /// 指定された区間 `range` に対して、`ys[i] ← y` の更新を適用します。
-        pub fn apply_range_update_y(&mut self, range: impl RangeBounds<usize>, y: T) {
-            self.apply_range_affine_y(range, 0.into(), y)
+        pub fn range_update_y(&mut self, range: impl RangeBounds<usize>, y: T) {
+            self.range_affine_y(range, 0.into(), y)
         }
 
         /// 指定された区間 `range` の `sum(xs[i] * ys[i])` を計算して返します。
@@ -304,7 +297,7 @@ mod test {
         // sum_x = 8, sum_y = 9
         // sum_x2 = 9+25=34, sum_y2 = 16+25=41
         // sum_xy = 12+25=37
-        segtree.apply_range_affine_x(0..2, 2.into(), 1.into());
+        segtree.range_affine_x(0..2, 2.into(), 1.into());
 
         // Check sums for 0..2
         assert_eq!(segtree.range_sum_x(0..2), 8.into());
@@ -330,7 +323,7 @@ mod test {
         // Current state: x: [3, 5, 3], y: [4, 5, 6]
         // y: [5, 6] -> [3*5-2, 3*6-2] = [13, 16]
         // New state: x: [3, 5, 3], y: [4, 13, 16]
-        segtree.apply_range_affine_y(1..3, 3.into(), (-2).into());
+        segtree.range_affine_y(1..3, 3.into(), (-2).into());
 
         // Check full sums
         // sum_x = 11
@@ -344,20 +337,20 @@ mod test {
         assert_eq!(segtree.range_sum_y2(..), 441.into());
         assert_eq!(segtree.range_sum_xy(..), 125.into());
 
-        // apply_range_add_x
-        segtree.apply_range_add_x(0..1, 10.into()); // x[0]: 3 -> 13
+        // range_add_x
+        segtree.range_add_x(0..1, 10.into()); // x[0]: 3 -> 13
         assert_eq!(segtree.get(0), (13.into(), 4.into()));
 
-        // apply_range_update_x
-        segtree.apply_range_update_x(1..2, 100.into()); // x[1]: 5 -> 100
+        // range_update_x
+        segtree.range_update_x(1..2, 100.into()); // x[1]: 5 -> 100
         assert_eq!(segtree.get(1), (100.into(), 13.into()));
 
-        // apply_range_add_y
-        segtree.apply_range_add_y(2..3, 10.into()); // y[2]: 16 -> 26
+        // range_add_y
+        segtree.range_add_y(2..3, 10.into()); // y[2]: 16 -> 26
         assert_eq!(segtree.get(2), (3.into(), 26.into()));
 
-        // apply_range_update_y
-        segtree.apply_range_update_y(0..1, 50.into()); // y[0]: 4 -> 50
+        // range_update_y
+        segtree.range_update_y(0..1, 50.into()); // y[0]: 4 -> 50
         assert_eq!(segtree.get(0), (13.into(), 50.into()));
 
         // Check get and to_vec
@@ -413,7 +406,7 @@ mod test {
                         segtree.set_y(p, y);
                     }
                     3 => {
-                        // apply_range_affine
+                        // range_affine
                         let l = rng.random_range(0..=n);
                         let r = rng.random_range(l..=n);
                         let a = rng.random_range(-2..=2);
@@ -424,10 +417,10 @@ mod test {
                             naive_xs[i] = naive_xs[i] * a + b;
                             naive_ys[i] = naive_ys[i] * c + d;
                         }
-                        segtree.apply_range_affine(l..r, a, b, c, d);
+                        segtree.range_affine(l..r, a, b, c, d);
                     }
                     4 => {
-                        // apply_range_affine_x
+                        // range_affine_x
                         let l = rng.random_range(0..=n);
                         let r = rng.random_range(l..=n);
                         let a = rng.random_range(-2..=2);
@@ -435,10 +428,10 @@ mod test {
                         for i in l..r {
                             naive_xs[i] = naive_xs[i] * a + b;
                         }
-                        segtree.apply_range_affine_x(l..r, a, b);
+                        segtree.range_affine_x(l..r, a, b);
                     }
                     5 => {
-                        // apply_range_affine_y
+                        // range_affine_y
                         let l = rng.random_range(0..=n);
                         let r = rng.random_range(l..=n);
                         let c = rng.random_range(-2..=2);
@@ -446,7 +439,7 @@ mod test {
                         for i in l..r {
                             naive_ys[i] = naive_ys[i] * c + d;
                         }
-                        segtree.apply_range_affine_y(l..r, c, d);
+                        segtree.range_affine_y(l..r, c, d);
                     }
                     6 => {
                         // get(p)
@@ -528,44 +521,44 @@ mod test {
                         );
                     }
                     12 => {
-                        // apply_range_add_x
+                        // range_add_x
                         let l = rng.random_range(0..=n);
                         let r = rng.random_range(l..=n);
                         let b = rng.random_range(-50..=50);
                         for i in l..r {
                             naive_xs[i] += b;
                         }
-                        segtree.apply_range_add_x(l..r, b);
+                        segtree.range_add_x(l..r, b);
                     }
                     13 => {
-                        // apply_range_update_x
+                        // range_update_x
                         let l = rng.random_range(0..=n);
                         let r = rng.random_range(l..=n);
                         let x = rng.random_range(-100..=100);
                         for i in l..r {
                             naive_xs[i] = x;
                         }
-                        segtree.apply_range_update_x(l..r, x);
+                        segtree.range_update_x(l..r, x);
                     }
                     14 => {
-                        // apply_range_add_y
+                        // range_add_y
                         let l = rng.random_range(0..=n);
                         let r = rng.random_range(l..=n);
                         let d = rng.random_range(-50..=50);
                         for i in l..r {
                             naive_ys[i] += d;
                         }
-                        segtree.apply_range_add_y(l..r, d);
+                        segtree.range_add_y(l..r, d);
                     }
                     15 => {
-                        // apply_range_update_y
+                        // range_update_y
                         let l = rng.random_range(0..=n);
                         let r = rng.random_range(l..=n);
                         let y = rng.random_range(-100..=100);
                         for i in l..r {
                             naive_ys[i] = y;
                         }
-                        segtree.apply_range_update_y(l..r, y);
+                        segtree.range_update_y(l..r, y);
                     }
                     _ => unreachable!(),
                 }

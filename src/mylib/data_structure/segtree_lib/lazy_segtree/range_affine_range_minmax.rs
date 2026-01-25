@@ -169,34 +169,34 @@ pub mod range_affine_range_minmax {
             self.segtree.all_prod().max
         }
 
-        pub fn apply_affine(&mut self, p: usize, slope: i64, intercept: i64) {
+        pub fn affine(&mut self, p: usize, slope: i64, intercept: i64) {
             self.segtree.apply(p, Affine { slope, intercept })
         }
 
-        pub fn apply_update(&mut self, p: usize, x: i64) {
+        pub fn update(&mut self, p: usize, x: i64) {
             // set と同じはず
             self.segtree.apply(p, Affine::constant_func(x))
         }
 
-        pub fn apply_add(&mut self, p: usize, x: i64) {
+        pub fn add(&mut self, p: usize, x: i64) {
             self.segtree.apply(p, Affine::addition_func(x))
         }
 
-        pub fn apply_range_affine<R>(&mut self, range: R, slope: i64, intercept: i64)
+        pub fn range_affine<R>(&mut self, range: R, slope: i64, intercept: i64)
         where
             R: RangeBounds<usize>,
         {
             self.segtree.apply_range(range, Affine { slope, intercept })
         }
 
-        pub fn apply_range_update<R>(&mut self, range: R, x: i64)
+        pub fn range_update<R>(&mut self, range: R, x: i64)
         where
             R: RangeBounds<usize>,
         {
             self.segtree.apply_range(range, Affine::constant_func(x))
         }
 
-        pub fn apply_range_add<R>(&mut self, range: R, x: i64)
+        pub fn range_add<R>(&mut self, range: R, x: i64)
         where
             R: RangeBounds<usize>,
         {
@@ -492,9 +492,9 @@ mod test_range_affine_range_minmax {
 
         let mut segtree = RangeAffineRangeMinMaxSegtree::from_slice(&xs);
 
-        segtree.apply_range_update(3..6, 5); // [0, 1, 2, 5, 5, 5, 6, 7, 8, 9]
-        segtree.apply_range_add(0..2, 3); // [3, 4, 2, 5, 5, 5, 6, 7, 8, 9]
-        segtree.apply_range_affine(8..10, 2, 7); // [3, 4, 2, 5, 5, 5, 6, 7, 23, 25]
+        segtree.range_update(3..6, 5); // [0, 1, 2, 5, 5, 5, 6, 7, 8, 9]
+        segtree.range_add(0..2, 3); // [3, 4, 2, 5, 5, 5, 6, 7, 8, 9]
+        segtree.range_affine(8..10, 2, 7); // [3, 4, 2, 5, 5, 5, 6, 7, 23, 25]
 
         assert_eq!(segtree.all_min(), 2);
         assert_eq!(segtree.all_max(), 25);
@@ -557,29 +557,29 @@ mod test_range_affine_range_minmax {
                         segtree.set(p, x);
                     }
                     1 => {
-                        // apply_affine(p, slope, intercept)
+                        // affine(p, slope, intercept)
                         let p = rng.random_range(0..n);
                         let slope = rng.random_range(-2..=2); // Keep slope small
                         let intercept = rng.random_range(-50..=50);
                         naive_vec[p] = naive_vec[p] * slope + intercept;
-                        segtree.apply_affine(p, slope, intercept);
+                        segtree.affine(p, slope, intercept);
                     }
                     2 => {
-                        // apply_update(p, x)
+                        // update(p, x)
                         let p = rng.random_range(0..n);
                         let x = rng.random_range(-100..=100);
                         naive_vec[p] = x;
-                        segtree.apply_update(p, x);
+                        segtree.update(p, x);
                     }
                     3 => {
-                        // apply_add(p, x)
+                        // add(p, x)
                         let p = rng.random_range(0..n);
                         let x = rng.random_range(-50..=50);
                         naive_vec[p] += x;
-                        segtree.apply_add(p, x);
+                        segtree.add(p, x);
                     }
                     4 => {
-                        // apply_range_affine(range, slope, intercept)
+                        // range_affine(range, slope, intercept)
                         let l = rng.random_range(0..=n);
                         let r = rng.random_range(l..=n);
 
@@ -589,10 +589,10 @@ mod test_range_affine_range_minmax {
                         for i in l..r {
                             naive_vec[i] = naive_vec[i] * slope + intercept;
                         }
-                        segtree.apply_range_affine(l..r, slope, intercept);
+                        segtree.range_affine(l..r, slope, intercept);
                     }
                     5 => {
-                        // apply_range_update(range, x)
+                        // range_update(range, x)
                         let l = rng.random_range(0..=n);
                         let r = rng.random_range(l..=n);
 
@@ -601,10 +601,10 @@ mod test_range_affine_range_minmax {
                         for i in l..r {
                             naive_vec[i] = x;
                         }
-                        segtree.apply_range_update(l..r, x);
+                        segtree.range_update(l..r, x);
                     }
                     6 => {
-                        // apply_range_add(range, x)
+                        // range_add(range, x)
                         let l = rng.random_range(0..=n);
                         let r = rng.random_range(l..=n);
 
@@ -613,7 +613,7 @@ mod test_range_affine_range_minmax {
                         for i in l..r {
                             naive_vec[i] += x;
                         }
-                        segtree.apply_range_add(l..r, x);
+                        segtree.range_add(l..r, x);
                     }
                     7 => {
                         // get(p)

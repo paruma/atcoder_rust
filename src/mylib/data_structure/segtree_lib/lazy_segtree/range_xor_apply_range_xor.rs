@@ -1,8 +1,8 @@
 use cargo_snippet::snippet;
 
 #[allow(clippy::module_inception)]
-#[snippet(prefix = "use range_xor_apply_range_xor::*;")]
-pub mod range_xor_apply_range_xor {
+#[snippet(prefix = "use range_xor_range_xor_apply::*;")]
+pub mod range_xor_range_xor_apply {
     use ac_library::{LazySegtree, MapMonoid, Monoid};
     use itertools::Itertools;
     use std::convert::Infallible;
@@ -122,11 +122,11 @@ pub mod range_xor_apply_range_xor {
             self.segtree.all_prod().xor
         }
 
-        pub fn apply_xor(&mut self, p: usize, x: T) {
+        pub fn xor_apply(&mut self, p: usize, x: T) {
             self.segtree.apply(p, Some(x))
         }
 
-        pub fn apply_range_xor<R>(&mut self, range: R, x: T)
+        pub fn range_xor_apply<R>(&mut self, range: R, x: T)
         where
             R: RangeBounds<usize>,
         {
@@ -145,9 +145,9 @@ pub mod range_xor_apply_range_xor {
 
 #[allow(clippy::identity_op)]
 #[cfg(test)]
-pub mod test_range_xor_apply_range_xor {
+pub mod test_range_xor_range_xor_apply {
 
-    use super::range_xor_apply_range_xor::RangeXorApplyRangeXorSegtree;
+    use super::range_xor_range_xor_apply::RangeXorApplyRangeXorSegtree;
 
     #[test]
     fn test_new_and_get() {
@@ -187,27 +187,27 @@ pub mod test_range_xor_apply_range_xor {
     }
 
     #[test]
-    fn test_apply_xor() {
+    fn test_xor_apply() {
         let xs = vec![10u64, 20, 30, 40, 50];
         let mut segtree = RangeXorApplyRangeXorSegtree::<u64>::from_slice(&xs);
-        segtree.apply_xor(1, 5);
+        segtree.xor_apply(1, 5);
         assert_eq!(segtree.to_vec(), vec![10, 20 ^ 5, 30, 40, 50]);
-        segtree.apply_xor(1, 15);
+        segtree.xor_apply(1, 15);
         assert_eq!(segtree.to_vec(), vec![10, (20 ^ 5) ^ 15, 30, 40, 50]);
     }
 
     #[test]
-    fn test_apply_range_xor() {
+    fn test_range_xor_apply() {
         let xs = vec![10u64, 20, 30, 40, 50];
         let mut segtree = RangeXorApplyRangeXorSegtree::<u64>::from_slice(&xs);
-        segtree.apply_range_xor(1..4, 5);
+        segtree.range_xor_apply(1..4, 5);
         assert_eq!(segtree.to_vec(), vec![10, 20 ^ 5, 30 ^ 5, 40 ^ 5, 50]);
-        segtree.apply_range_xor(1..4, 20);
+        segtree.range_xor_apply(1..4, 20);
         assert_eq!(
             segtree.to_vec(),
             vec![10, (20 ^ 5) ^ 20, (30 ^ 5) ^ 20, (40 ^ 5) ^ 20, 50]
         );
-        segtree.apply_range_xor(0..3, 100);
+        segtree.range_xor_apply(0..3, 100);
         assert_eq!(
             segtree.to_vec(),
             vec![
@@ -225,7 +225,7 @@ pub mod test_range_xor_apply_range_xor {
         let xs = vec![0u64, 1, 2, 3, 4, 5];
         let mut segtree = RangeXorApplyRangeXorSegtree::<u64>::from_slice(&xs);
         assert_eq!(segtree.to_vec(), vec![0, 1, 2, 3, 4, 5]);
-        segtree.apply_range_xor(1..4, 10);
+        segtree.range_xor_apply(1..4, 10);
         assert_eq!(segtree.to_vec(), vec![0, 1 ^ 10, 2 ^ 10, 3 ^ 10, 4, 5]);
     }
 
@@ -241,20 +241,20 @@ pub mod test_range_xor_apply_range_xor {
         assert_eq!(segtree.range_xor(2..5), 0 ^ 4 ^ 5);
 
         // Apply XOR to a range including zero
-        segtree.apply_range_xor(0..2, 10);
+        segtree.range_xor_apply(0..2, 10);
         assert_eq!(segtree.to_vec(), vec![1 ^ 10, 2 ^ 10, 0, 4, 5]);
         assert_eq!(segtree.all_xor(), (1 ^ 10) ^ (2 ^ 10) ^ 0 ^ 4 ^ 5);
         assert_eq!(segtree.range_xor(0..2), (1 ^ 10) ^ (2 ^ 10));
         assert_eq!(segtree.range_xor(3..5), 4 ^ 5);
 
         // Apply XOR to a single element
-        segtree.apply_xor(2, 3);
+        segtree.xor_apply(2, 3);
         assert_eq!(segtree.to_vec(), vec![1 ^ 10, 2 ^ 10, 0 ^ 3, 4, 5]);
         assert_eq!(segtree.all_xor(), (1 ^ 10) ^ (2 ^ 10) ^ (0 ^ 3) ^ 4 ^ 5);
         assert_eq!(segtree.range_xor(2..5), (0 ^ 3) ^ 4 ^ 5);
 
         // Apply XOR to a range with odd length
-        segtree.apply_range_xor(0..3, 1);
+        segtree.range_xor_apply(0..3, 1);
         assert_eq!(
             segtree.to_vec(),
             vec![(1 ^ 10) ^ 1, (2 ^ 10) ^ 1, (0 ^ 3) ^ 1, 4, 5]
@@ -289,7 +289,7 @@ pub mod test_range_xor_apply_range_xor {
                         segtree.set(p, x);
                     }
                     1 => {
-                        // apply_range_xor(range, x)
+                        // range_xor_apply(range, x)
                         let l = rng.random_range(0..=n);
                         let r = rng.random_range(l..=n);
 
@@ -298,7 +298,7 @@ pub mod test_range_xor_apply_range_xor {
                         for i in l..r {
                             naive_vec[i] ^= x;
                         }
-                        segtree.apply_range_xor(l..r, x);
+                        segtree.range_xor_apply(l..r, x);
                     }
                     2 => {
                         // get(p)
@@ -331,11 +331,11 @@ pub mod test_range_xor_apply_range_xor {
                         assert_eq!(segtree.all_xor(), expected_xor, "all_xor() failed");
                     }
                     5 => {
-                        // apply_xor(p, x)
+                        // xor_apply(p, x)
                         let p = rng.random_range(0..n);
                         let x = rng.random_range(0..=100);
                         naive_vec[p] ^= x;
-                        segtree.apply_xor(p, x);
+                        segtree.xor_apply(p, x);
                     }
                     _ => unreachable!(),
                 }

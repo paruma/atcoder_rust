@@ -135,12 +135,12 @@ pub mod range_div_ceil_range_min_max {
         }
 
         /// A[p] <- ceil(A[p] / x) を計算する
-        pub fn apply_div_ceil(&mut self, p: usize, x: i64) {
+        pub fn div_ceil(&mut self, p: usize, x: i64) {
             self.segtree.apply(p, x)
         }
 
         /// p in range に対して A[p] <- ceil(A[p] / x) を計算する
-        pub fn apply_range_div_ceil<R>(&mut self, range: R, x: i64)
+        pub fn range_div_ceil<R>(&mut self, range: R, x: i64)
         where
             R: RangeBounds<usize>,
         {
@@ -200,20 +200,20 @@ mod test_range_div_ceil_range_min_max {
     }
 
     #[test]
-    fn test_apply_div_ceil() {
+    fn test_div_ceil() {
         let xs = vec![10, 20, 30];
         let mut segtree = RangeDivCeilRangeMinMaxSegtree::from_slice(&xs);
-        segtree.apply_div_ceil(1, 2); // 20/2 = 10
+        segtree.div_ceil(1, 2); // 20/2 = 10
         assert_eq!(segtree.get(1), 10);
-        segtree.apply_div_ceil(2, 4); // 30/4 = 7.5 -> 8
+        segtree.div_ceil(2, 4); // 30/4 = 7.5 -> 8
         assert_eq!(segtree.get(2), 8);
     }
 
     #[test]
-    fn test_apply_range_div_ceil() {
+    fn test_range_div_ceil() {
         let xs = vec![10, 20, 30, 40, 50];
         let mut segtree = RangeDivCeilRangeMinMaxSegtree::from_slice(&xs);
-        segtree.apply_range_div_ceil(1..4, 3);
+        segtree.range_div_ceil(1..4, 3);
         // 20/3 = 6.66->7, 30/3 = 10, 40/3 = 13.33->14
         // [10, 7, 10, 14, 50]
         assert_eq!(segtree.to_vec(), vec![10, 7, 10, 14, 50]);
@@ -226,7 +226,7 @@ mod test_range_div_ceil_range_min_max {
         // -5 / 2 = -2.5 -> -2 (ceil)
         let xs = vec![-10, -5, 0, 5, 10];
         let mut segtree = RangeDivCeilRangeMinMaxSegtree::from_slice(&xs);
-        segtree.apply_range_div_ceil(0..5, 2);
+        segtree.range_div_ceil(0..5, 2);
         // -10/2=-5, -5/2=-2, 0/2=0, 5/2=3, 10/2=5
         assert_eq!(segtree.to_vec(), vec![-5, -2, 0, 3, 5]);
         assert_eq!(segtree.range_min(0..5), -5);
@@ -243,8 +243,8 @@ mod test_range_div_ceil_range_min_max {
         let large_val = 1_000_000_000_000i64; // 10^12
 
         // Apply large_val twice. Composition will be large_val * large_val -> saturates to i64::MAX
-        segtree.apply_range_div_ceil(0..2, large_val);
-        segtree.apply_range_div_ceil(0..2, large_val);
+        segtree.range_div_ceil(0..2, large_val);
+        segtree.range_div_ceil(0..2, large_val);
 
         // ceil(100 / i64::MAX) = 1
         assert_eq!(segtree.to_vec(), vec![1, 1]);
@@ -284,7 +284,7 @@ mod test_range_div_ceil_range_min_max {
                         segtree.set(p, x);
                     }
                     1 => {
-                        // apply_range_div_ceil(range, x)
+                        // range_div_ceil(range, x)
                         let l = rng.random_range(0..=n);
                         let r = rng.random_range(l..=n);
                         if l == r {
@@ -300,7 +300,7 @@ mod test_range_div_ceil_range_min_max {
                         for i in l..r {
                             naive_vec[i] = Integer::div_ceil(&naive_vec[i], &x);
                         }
-                        segtree.apply_range_div_ceil(l..r, x);
+                        segtree.range_div_ceil(l..r, x);
                     }
                     2 => {
                         // get(p)

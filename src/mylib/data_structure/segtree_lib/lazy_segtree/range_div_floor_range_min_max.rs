@@ -134,12 +134,12 @@ pub mod range_div_floor_range_min_max {
         }
 
         /// A[p] <- A[p] / x  を計算する
-        pub fn apply_div_floor(&mut self, p: usize, x: i64) {
+        pub fn div_floor(&mut self, p: usize, x: i64) {
             self.segtree.apply(p, x)
         }
 
         /// p in range に対して A[p] <- A[p] / x  を計算する
-        pub fn apply_range_div_floor<R>(&mut self, range: R, x: i64)
+        pub fn range_div_floor<R>(&mut self, range: R, x: i64)
         where
             R: RangeBounds<usize>,
         {
@@ -198,26 +198,26 @@ mod test_range_div_floor_range_min_max {
     }
 
     #[test]
-    fn test_apply_div_floor() {
+    fn test_div_floor() {
         let xs = vec![10, 20, 30];
         let mut segtree = RangeDivFloorRangeMinMaxSegtree::from_slice(&xs);
-        segtree.apply_div_floor(1, 2);
+        segtree.div_floor(1, 2);
         assert_eq!(segtree.get(1), 10);
-        segtree.apply_div_floor(2, 3);
+        segtree.div_floor(2, 3);
         assert_eq!(segtree.get(2), 10);
     }
 
     #[test]
-    fn test_apply_range_div_floor() {
+    fn test_range_div_floor() {
         let xs = vec![10, 20, 30, 40, 50];
         let mut segtree = RangeDivFloorRangeMinMaxSegtree::from_slice(&xs);
-        segtree.apply_range_div_floor(1..4, 2);
+        segtree.range_div_floor(1..4, 2);
         // [10, 10, 15, 20, 50]
         assert_eq!(segtree.to_vec(), vec![10, 10, 15, 20, 50]);
         assert_eq!(segtree.range_min(1..4), 10);
         assert_eq!(segtree.range_max(1..4), 20);
 
-        segtree.apply_range_div_floor(0..5, 5);
+        segtree.range_div_floor(0..5, 5);
         // [2, 2, 3, 4, 10]
         assert_eq!(segtree.to_vec(), vec![2, 2, 3, 4, 10]);
     }
@@ -227,13 +227,13 @@ mod test_range_div_floor_range_min_max {
         // -5 / 2 = -3 (floor)
         let xs = vec![-10, -5, 0, 5, 10];
         let mut segtree = RangeDivFloorRangeMinMaxSegtree::from_slice(&xs);
-        segtree.apply_range_div_floor(0..5, 2);
+        segtree.range_div_floor(0..5, 2);
         assert_eq!(segtree.to_vec(), vec![-5, -3, 0, 2, 5]);
         assert_eq!(segtree.range_min(0..5), -5);
         assert_eq!(segtree.range_max(0..5), 5);
 
         // -3 / 2 = -2 (floor)
-        segtree.apply_range_div_floor(0..5, 2);
+        segtree.range_div_floor(0..5, 2);
         assert_eq!(segtree.to_vec(), vec![-3, -2, 0, 1, 2]);
     }
 
@@ -247,8 +247,8 @@ mod test_range_div_floor_range_min_max {
         let large_val = 1_000_000_000_000i64; // 10^12
 
         // Apply large_val twice. Composition will be large_val * large_val -> saturates to i64::MAX
-        segtree.apply_range_div_floor(0..2, large_val);
-        segtree.apply_range_div_floor(0..2, large_val);
+        segtree.range_div_floor(0..2, large_val);
+        segtree.range_div_floor(0..2, large_val);
 
         // 100 / i64::MAX = 0
         assert_eq!(segtree.to_vec(), vec![0, 0]);
@@ -288,7 +288,7 @@ mod test_range_div_floor_range_min_max {
                         segtree.set(p, x);
                     }
                     1 => {
-                        // apply_range_div_floor(range, x)
+                        // range_div_floor(range, x)
                         let l = rng.random_range(0..=n);
                         let r = rng.random_range(l..=n);
                         if l == r {
@@ -304,7 +304,7 @@ mod test_range_div_floor_range_min_max {
                         for i in l..r {
                             naive_vec[i] = naive_vec[i].div_euclid(x);
                         }
-                        segtree.apply_range_div_floor(l..r, x);
+                        segtree.range_div_floor(l..r, x);
                     }
                     2 => {
                         // get(p)

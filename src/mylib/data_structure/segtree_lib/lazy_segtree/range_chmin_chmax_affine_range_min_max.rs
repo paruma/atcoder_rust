@@ -282,7 +282,7 @@ pub mod range_chmin_chmax_affine_range_min_max {
             self.segtree.all_prod().max
         }
 
-        pub fn apply_range_chmin<R>(&mut self, range: R, x: T)
+        pub fn range_chmin<R>(&mut self, range: R, x: T)
         where
             R: RangeBounds<usize>,
         {
@@ -290,7 +290,7 @@ pub mod range_chmin_chmax_affine_range_min_max {
                 .apply_range(range, ChminChmaxAffineAction::new_chmin(x))
         }
 
-        pub fn apply_range_chmax<R>(&mut self, range: R, x: T)
+        pub fn range_chmax<R>(&mut self, range: R, x: T)
         where
             R: RangeBounds<usize>,
         {
@@ -298,7 +298,7 @@ pub mod range_chmin_chmax_affine_range_min_max {
                 .apply_range(range, ChminChmaxAffineAction::new_chmax(x))
         }
 
-        pub fn apply_range_add<R>(&mut self, range: R, x: T)
+        pub fn range_add<R>(&mut self, range: R, x: T)
         where
             R: RangeBounds<usize>,
         {
@@ -306,7 +306,7 @@ pub mod range_chmin_chmax_affine_range_min_max {
                 .apply_range(range, ChminChmaxAffineAction::new_add(x))
         }
 
-        pub fn apply_range_affine<R>(&mut self, range: R, mul: T, add: T)
+        pub fn range_affine<R>(&mut self, range: R, mul: T, add: T)
         where
             R: RangeBounds<usize>,
         {
@@ -314,7 +314,7 @@ pub mod range_chmin_chmax_affine_range_min_max {
                 .apply_range(range, ChminChmaxAffineAction::new_affine(mul, add))
         }
 
-        pub fn apply_range_update<R>(&mut self, range: R, x: T)
+        pub fn range_update<R>(&mut self, range: R, x: T)
         where
             R: RangeBounds<usize>,
         {
@@ -358,34 +358,34 @@ pub mod test_range_chmin_chmax_affine_range_min_max {
     }
 
     #[test]
-    fn test_apply_range_chmin() {
+    fn test_range_chmin() {
         let xs = vec![10, 20, 30, 40, 50];
         let mut segtree = RangeChminChmaxAffineRangeMinMaxSegtree::<i64>::from_slice(&xs);
-        segtree.apply_range_chmin(1..4, 15);
+        segtree.range_chmin(1..4, 15);
         assert_eq!(segtree.to_vec(), vec![10, 15, 15, 15, 50]);
     }
 
     #[test]
-    fn test_apply_range_chmax() {
+    fn test_range_chmax() {
         let xs = vec![10, 20, 30, 40, 50];
         let mut segtree = RangeChminChmaxAffineRangeMinMaxSegtree::<i64>::from_slice(&xs);
-        segtree.apply_range_chmax(1..4, 35);
+        segtree.range_chmax(1..4, 35);
         assert_eq!(segtree.to_vec(), vec![10, 35, 35, 40, 50]);
     }
 
     #[test]
-    fn test_apply_range_add() {
+    fn test_range_add() {
         let xs = vec![10, 20, 30, 40, 50];
         let mut segtree = RangeChminChmaxAffineRangeMinMaxSegtree::<i64>::from_slice(&xs);
-        segtree.apply_range_add(1..4, 5);
+        segtree.range_add(1..4, 5);
         assert_eq!(segtree.to_vec(), vec![10, 25, 35, 45, 50]);
     }
 
     #[test]
-    fn test_apply_range_affine() {
+    fn test_range_affine() {
         let xs = vec![10, 20, 30, 40, 50];
         let mut segtree = RangeChminChmaxAffineRangeMinMaxSegtree::<i64>::from_slice(&xs);
-        segtree.apply_range_affine(1..4, 2, 3); // x -> 2x + 3
+        segtree.range_affine(1..4, 2, 3); // x -> 2x + 3
         assert_eq!(
             segtree.to_vec(),
             vec![10, 20 * 2 + 3, 30 * 2 + 3, 40 * 2 + 3, 50]
@@ -393,7 +393,7 @@ pub mod test_range_chmin_chmax_affine_range_min_max {
 
         let xs = vec![10, 20, 30, 40, 50];
         let mut segtree = RangeChminChmaxAffineRangeMinMaxSegtree::<i64>::from_slice(&xs);
-        segtree.apply_range_affine(1..4, -1, 100); // x -> -x + 100
+        segtree.range_affine(1..4, -1, 100); // x -> -x + 100
         assert_eq!(
             segtree.to_vec(),
             vec![10, -20 + 100, -30 + 100, -40 + 100, 50]
@@ -401,10 +401,10 @@ pub mod test_range_chmin_chmax_affine_range_min_max {
     }
 
     #[test]
-    fn test_apply_range_update() {
+    fn test_range_update() {
         let xs = vec![10, 20, 30, 40, 50];
         let mut segtree = RangeChminChmaxAffineRangeMinMaxSegtree::<i64>::from_slice(&xs);
-        segtree.apply_range_update(1..4, 100);
+        segtree.range_update(1..4, 100);
         assert_eq!(segtree.to_vec(), vec![10, 100, 100, 100, 50]);
     }
 
@@ -412,8 +412,8 @@ pub mod test_range_chmin_chmax_affine_range_min_max {
     fn test_chmin_add() {
         let xs = vec![10, 20, 30, 40, 50];
         let mut segtree = RangeChminChmaxAffineRangeMinMaxSegtree::<i64>::from_slice(&xs);
-        segtree.apply_range_chmin(1..4, 25); // [10, 20, 25, 25, 50]
-        segtree.apply_range_add(0..3, 5); // [15, 25, 30, 25, 50]
+        segtree.range_chmin(1..4, 25); // [10, 20, 25, 25, 50]
+        segtree.range_add(0..3, 5); // [15, 25, 30, 25, 50]
         assert_eq!(segtree.to_vec(), vec![15, 25, 30, 25, 50]);
     }
 
@@ -421,8 +421,8 @@ pub mod test_range_chmin_chmax_affine_range_min_max {
     fn test_add_chmin() {
         let xs = vec![10, 20, 30, 40, 50];
         let mut segtree = RangeChminChmaxAffineRangeMinMaxSegtree::<i64>::from_slice(&xs);
-        segtree.apply_range_add(0..3, 5); // [15, 25, 35, 40, 50]
-        segtree.apply_range_chmin(1..4, 28); // [15, 25, 28, 28, 50]
+        segtree.range_add(0..3, 5); // [15, 25, 35, 40, 50]
+        segtree.range_chmin(1..4, 28); // [15, 25, 28, 28, 50]
         assert_eq!(segtree.to_vec(), vec![15, 25, 28, 28, 50]);
     }
 
@@ -430,8 +430,8 @@ pub mod test_range_chmin_chmax_affine_range_min_max {
     fn test_chmax_add() {
         let xs = vec![10, 20, 30, 40, 50];
         let mut segtree = RangeChminChmaxAffineRangeMinMaxSegtree::<i64>::from_slice(&xs);
-        segtree.apply_range_chmax(1..4, 25); // [10, 25, 30, 40, 50]
-        segtree.apply_range_add(0..3, 5); // [15, 30, 35, 40, 50]
+        segtree.range_chmax(1..4, 25); // [10, 25, 30, 40, 50]
+        segtree.range_add(0..3, 5); // [15, 30, 35, 40, 50]
         assert_eq!(segtree.to_vec(), vec![15, 30, 35, 40, 50]);
     }
 
@@ -439,8 +439,8 @@ pub mod test_range_chmin_chmax_affine_range_min_max {
     fn test_add_chmax() {
         let xs = vec![10, 20, 30, 40, 50];
         let mut segtree = RangeChminChmaxAffineRangeMinMaxSegtree::<i64>::from_slice(&xs);
-        segtree.apply_range_add(0..3, 5); // [15, 25, 35, 40, 50]
-        segtree.apply_range_chmax(1..4, 30); // [15, 30, 35, 40, 50]
+        segtree.range_add(0..3, 5); // [15, 25, 35, 40, 50]
+        segtree.range_chmax(1..4, 30); // [15, 30, 35, 40, 50]
         assert_eq!(segtree.to_vec(), vec![15, 30, 35, 40, 50]);
     }
 
@@ -448,9 +448,9 @@ pub mod test_range_chmin_chmax_affine_range_min_max {
     fn test_chmin_chmax_add() {
         let xs = vec![10, 20, 30, 40, 50];
         let mut segtree = RangeChminChmaxAffineRangeMinMaxSegtree::<i64>::from_slice(&xs);
-        segtree.apply_range_chmin(0..5, 35); // [10, 20, 30, 35, 35]
-        segtree.apply_range_chmax(0..5, 15); // [15, 20, 30, 35, 35]
-        segtree.apply_range_add(0..5, 3); // [18, 23, 33, 38, 38]
+        segtree.range_chmin(0..5, 35); // [10, 20, 30, 35, 35]
+        segtree.range_chmax(0..5, 15); // [15, 20, 30, 35, 35]
+        segtree.range_add(0..5, 3); // [18, 23, 33, 38, 38]
         assert_eq!(segtree.to_vec(), vec![18, 23, 33, 38, 38]);
     }
 
@@ -458,9 +458,9 @@ pub mod test_range_chmin_chmax_affine_range_min_max {
     fn test_chmin_chmax_affine() {
         let xs = vec![10, 20, 30, 40, 50];
         let mut segtree = RangeChminChmaxAffineRangeMinMaxSegtree::<i64>::from_slice(&xs);
-        segtree.apply_range_chmin(0..5, 35); // [10, 20, 30, 35, 35]
-        segtree.apply_range_chmax(0..5, 15); // [15, 20, 30, 35, 35]
-        segtree.apply_range_affine(0..5, 2, 3); // x -> 2x + 3
+        segtree.range_chmin(0..5, 35); // [10, 20, 30, 35, 35]
+        segtree.range_chmax(0..5, 15); // [15, 20, 30, 35, 35]
+        segtree.range_affine(0..5, 2, 3); // x -> 2x + 3
         // Expected: [15*2+3, 20*2+3, 30*2+3, 35*2+3, 35*2+3]
         //           [33, 43, 63, 73, 73]
         assert_eq!(segtree.to_vec(), vec![33, 43, 63, 73, 73]);
@@ -490,37 +490,37 @@ pub mod test_range_chmin_chmax_affine_range_min_max {
                         }
                     }
                     1 => {
-                        // apply_range_chmin(range, x)
+                        // range_chmin(range, x)
                         let l = rng.random_range(0..=n);
                         let r = rng.random_range(l..=n);
                         let x = rng.random_range(-1..=1);
                         for i in l..r {
                             naive_vec[i] = naive_vec[i].min(x);
                         }
-                        segtree.apply_range_chmin(l..r, x);
+                        segtree.range_chmin(l..r, x);
                     }
                     2 => {
-                        // apply_range_chmax(range, x)
+                        // range_chmax(range, x)
                         let l = rng.random_range(0..=n);
                         let r = rng.random_range(l..=n);
                         let x = rng.random_range(-1..=1);
                         for i in l..r {
                             naive_vec[i] = naive_vec[i].max(x);
                         }
-                        segtree.apply_range_chmax(l..r, x);
+                        segtree.range_chmax(l..r, x);
                     }
                     3 => {
-                        // apply_range_add(range, x)
+                        // range_add(range, x)
                         let l = rng.random_range(0..=n);
                         let r = rng.random_range(l..=n);
                         let x = rng.random_range(-1..=1);
                         for i in l..r {
                             naive_vec[i] += x;
                         }
-                        segtree.apply_range_add(l..r, x);
+                        segtree.range_add(l..r, x);
                     }
                     4 => {
-                        // apply_range_affine(range, mul, add)
+                        // range_affine(range, mul, add)
                         let l = rng.random_range(0..=n);
                         let r = rng.random_range(l..=n);
                         let mul = rng.random_range(-1..=1); // 負の乗数も許可
@@ -528,7 +528,7 @@ pub mod test_range_chmin_chmax_affine_range_min_max {
                         for i in l..r {
                             naive_vec[i] = naive_vec[i] * mul + add;
                         }
-                        segtree.apply_range_affine(l..r, mul, add);
+                        segtree.range_affine(l..r, mul, add);
                     }
                     5 => {
                         // range_minmax(range)
