@@ -1,12 +1,12 @@
-use std::cmp::Ordering;
-
 use cargo_snippet::snippet;
 
 #[snippet]
 // 参考: 整数のまま行う偏角ソート（行列式のあれです。）の実装バリエーションの検討とご紹介です。 - ブログ名 https://ngtkana.hatenablog.com/entry/2021/11/13/202103
 /// x軸正の向きを0度として、反時計回りを正とする偏角で順序を決める。
 /// (0, 0) は未考慮。
-pub fn argcmp((x0, y0): (i64, i64), (x1, y1): (i64, i64)) -> Ordering {
+///
+/// オーバーフローには注意: 座標の絶対値が 3×10^9 を超える場合はオーバーフローする可能性がある
+pub fn argcmp((x0, y0): (i64, i64), (x1, y1): (i64, i64)) -> std::cmp::Ordering {
     ((y0, x0) < (0, 0))
         .cmp(&((y1, x1) < (0, 0)))
         .then_with(|| (x1 * y0).cmp(&(x0 * y1)))
