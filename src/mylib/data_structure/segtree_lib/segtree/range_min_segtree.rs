@@ -26,13 +26,26 @@ pub mod range_min_segtree {
         TupleMin<T>: Monoid<S = T>,
         T: Copy + Ord,
     {
+        /// 単位元で初期化されたセグメント木を構築する
+        pub fn new(n: usize) -> Self {
+            Self {
+                segtree: Segtree::<TupleMin<T>>::new(n),
+                len: n,
+            }
+        }
+
         /// 配列からセグメント木を構築する
-        pub fn new(xs: &[T]) -> Self {
+        pub fn from_slice(xs: &[T]) -> Self {
             let len = xs.len();
             Self {
                 segtree: Segtree::<TupleMin<T>>::from(xs.to_vec()),
                 len,
             }
+        }
+
+        #[allow(clippy::len_without_is_empty)]
+        pub fn len(&self) -> usize {
+            self.len
         }
 
         /// p 番目の要素を x に更新する
@@ -94,8 +107,18 @@ mod tests {
     use super::range_min_segtree::*;
 
     #[test]
+    fn test_new() {
+        let n = 10;
+        let mut seg = RangeMinSegtree::<i64>::new(n);
+        assert_eq!(seg.len(), 10);
+        assert_eq!(seg.all_min(), i64::MAX);
+        seg.set(0, 5);
+        assert_eq!(seg.all_min(), 5);
+    }
+
+    #[test]
     fn test_range_min_segtree() {
-        let mut seg = RangeMinSegtree::new(&[3, 1, 4, 1, 5, 9, 2]);
+        let mut seg = RangeMinSegtree::from_slice(&[3, 1, 4, 1, 5, 9, 2]);
         assert_eq!(seg.range_min(0..3), 1);
         assert_eq!(seg.range_min(2..3), 4);
         assert_eq!(seg.all_min(), 1);
@@ -115,7 +138,7 @@ mod tests {
     fn test_range_min_segtree_tuple() {
         // (値, インデックス) のペアで最小値を管理
         let xs = vec![(10, 0), (5, 1), (5, 2), (15, 3)];
-        let mut seg = RangeMinSegtree::new(&xs);
+        let mut seg = RangeMinSegtree::from_slice(&xs);
 
         // 辞書式順序で比較されるため (5, 1) が最小
         assert_eq!(seg.range_min(0..4), (5, 1));
@@ -127,7 +150,7 @@ mod tests {
 
     #[test]
     fn test_max_right_min_left() {
-        let seg = RangeMinSegtree::new(&[10, 8, 6, 4, 2]);
+        let seg = RangeMinSegtree::from_slice(&[10, 8, 6, 4, 2]);
         assert_eq!(seg.max_right(0, |&s| s >= 5), 3);
         assert_eq!(seg.min_left(5, |&s| s >= 5), 5);
     }
@@ -140,7 +163,7 @@ mod tests {
         for _ in 0..100 {
             let n = rng.random_range(1..=30);
             let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.random_range(-100..=100)).collect();
-            let mut segtree = RangeMinSegtree::<i64>::new(&naive_vec);
+            let mut segtree = RangeMinSegtree::<i64>::from_slice(&naive_vec);
             for _ in 0..100 {
                 let op_type = rng.random_range(0..5);
                 match op_type {

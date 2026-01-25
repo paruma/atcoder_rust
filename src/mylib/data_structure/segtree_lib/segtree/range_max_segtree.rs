@@ -26,13 +26,26 @@ pub mod range_max_segtree {
         TupleMax<T>: Monoid<S = T>,
         T: Copy + Ord,
     {
+        /// 単位元で初期化されたセグメント木を構築する
+        pub fn new(n: usize) -> Self {
+            Self {
+                segtree: Segtree::<TupleMax<T>>::new(n),
+                len: n,
+            }
+        }
+
         /// 配列からセグメント木を構築する
-        pub fn new(xs: &[T]) -> Self {
+        pub fn from_slice(xs: &[T]) -> Self {
             let len = xs.len();
             Self {
                 segtree: Segtree::<TupleMax<T>>::from(xs.to_vec()),
                 len,
             }
+        }
+
+        #[allow(clippy::len_without_is_empty)]
+        pub fn len(&self) -> usize {
+            self.len
         }
 
         /// p 番目の要素を x に更新する
@@ -94,8 +107,18 @@ mod tests {
     use super::range_max_segtree::*;
 
     #[test]
+    fn test_new() {
+        let n = 10;
+        let mut seg = RangeMaxSegtree::<i64>::new(n);
+        assert_eq!(seg.len(), 10);
+        assert_eq!(seg.all_max(), i64::MIN);
+        seg.set(0, 5);
+        assert_eq!(seg.all_max(), 5);
+    }
+
+    #[test]
     fn test_range_max_segtree() {
-        let mut seg = RangeMaxSegtree::new(&[3, 1, 4, 1, 5, 9, 2]);
+        let mut seg = RangeMaxSegtree::from_slice(&[3, 1, 4, 1, 5, 9, 2]);
         assert_eq!(seg.range_max(0..3), 4);
         assert_eq!(seg.range_max(4..7), 9);
         assert_eq!(seg.all_max(), 9);
@@ -115,7 +138,7 @@ mod tests {
     fn test_range_max_segtree_tuple() {
         // (値, インデックス) のペアで最大値を管理（同じ値ならインデックスが大きい方を優先）
         let xs = vec![(10, 0), (20, 1), (20, 2), (15, 3)];
-        let mut seg = RangeMaxSegtree::new(&xs);
+        let mut seg = RangeMaxSegtree::from_slice(&xs);
 
         // 辞書式順序で比較されるため (20, 2) が最大
         assert_eq!(seg.range_max(0..4), (20, 2));
@@ -127,7 +150,7 @@ mod tests {
 
     #[test]
     fn test_max_right_min_left() {
-        let seg = RangeMaxSegtree::new(&[2, 4, 6, 8, 10]);
+        let seg = RangeMaxSegtree::from_slice(&[2, 4, 6, 8, 10]);
         assert_eq!(seg.max_right(0, |&s| s <= 7), 3);
         assert_eq!(seg.min_left(5, |&s| s <= 7), 5);
     }
@@ -140,7 +163,7 @@ mod tests {
         for _ in 0..100 {
             let n = rng.random_range(1..=30);
             let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.random_range(-100..=100)).collect();
-            let mut segtree = RangeMaxSegtree::<i64>::new(&naive_vec);
+            let mut segtree = RangeMaxSegtree::<i64>::from_slice(&naive_vec);
             for _ in 0..100 {
                 let op_type = rng.random_range(0..5);
                 match op_type {

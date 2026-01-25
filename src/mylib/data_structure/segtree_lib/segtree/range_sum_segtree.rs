@@ -45,13 +45,26 @@ pub mod range_sum_segtree {
     where
         T: Sum + Add<Output = T> + Copy,
     {
+        /// 単位元で初期化されたセグメント木を構築する
+        pub fn new(n: usize) -> Self {
+            Self {
+                segtree: Segtree::<GeneralAdditive<T>>::new(n),
+                len: n,
+            }
+        }
+
         /// 配列からセグメント木を構築する
-        pub fn new(xs: &[T]) -> Self {
+        pub fn from_slice(xs: &[T]) -> Self {
             let len = xs.len();
             Self {
                 segtree: Segtree::<GeneralAdditive<T>>::from(xs.to_vec()),
                 len,
             }
+        }
+
+        #[allow(clippy::len_without_is_empty)]
+        pub fn len(&self) -> usize {
+            self.len
         }
 
         /// p 番目の要素を x に更新する
@@ -78,7 +91,7 @@ pub mod range_sum_segtree {
         }
 
         /// p 番目の要素に x を加算する
-        pub fn apply_add(&mut self, p: usize, x: T) {
+        pub fn add(&mut self, p: usize, x: T) {
             let current = self.get(p);
             self.set(p, current + x);
         }
@@ -114,10 +127,20 @@ mod tests {
     use ac_library::ModInt998244353;
 
     #[test]
+    fn test_new() {
+        let n = 10;
+        let mut seg = RangeSumSegtree::<i64>::new(n);
+        assert_eq!(seg.len(), 10);
+        assert_eq!(seg.all_sum(), 0);
+        seg.add(0, 5);
+        assert_eq!(seg.all_sum(), 5);
+    }
+
+    #[test]
     fn test_range_sum_segtree_primitive() {
-        let mut seg = RangeSumSegtree::new(&[1, 2, 3, 4, 5]);
+        let mut seg = RangeSumSegtree::from_slice(&[1, 2, 3, 4, 5]);
         assert_eq!(seg.range_sum(0..3), 6); // 1 + 2 + 3
-        seg.apply_add(2, 10);
+        seg.add(2, 10);
         assert_eq!(seg.get(2), 13);
         assert_eq!(seg.range_sum(0..3), 16);
         assert_eq!(seg.to_vec(), vec![1, 2, 13, 4, 5]);
@@ -127,15 +150,15 @@ mod tests {
     fn test_range_sum_segtree_modint() {
         type Mint = ModInt998244353;
         let xs = vec![Mint::new(1), Mint::new(2), Mint::new(3)];
-        let mut seg = RangeSumSegtree::new(&xs);
+        let mut seg = RangeSumSegtree::from_slice(&xs);
         assert_eq!(seg.range_sum(0..2), Mint::new(3));
-        seg.apply_add(1, Mint::new(10));
+        seg.add(1, Mint::new(10));
         assert_eq!(seg.get(1), Mint::new(12));
     }
 
     #[test]
     fn test_max_right_min_left() {
-        let seg = RangeSumSegtree::new(&[1, 2, 3, 4, 5]);
+        let seg = RangeSumSegtree::from_slice(&[1, 2, 3, 4, 5]);
         // [1, 2, 3, 4, 5]
         assert_eq!(seg.max_right(0, |&s| s <= 6), 3);
         assert_eq!(seg.min_left(5, |&s| s <= 10), 3);
@@ -151,7 +174,7 @@ mod tests {
         for _ in 0..100 {
             let n = rng.random_range(1..=30);
             let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.random_range(-100..=100)).collect();
-            let mut segtree = RangeSumSegtree::<i64>::new(&naive_vec);
+            let mut segtree = RangeSumSegtree::<i64>::from_slice(&naive_vec);
 
             for _ in 0..100 {
                 let op_type = rng.random_range(0..5);
@@ -167,7 +190,7 @@ mod tests {
                         let p = rng.random_range(0..n);
                         let x = rng.random_range(-50..=50);
                         naive_vec[p] += x;
-                        segtree.apply_add(p, x);
+                        segtree.add(p, x);
                     }
                     2 => {
                         let p = rng.random_range(0..n);
