@@ -51,6 +51,56 @@ pub mod rect_add_rect_sum_fenwick_tree {
             }
         }
 
+        /// 配列の 2次元スライスから Rect Add Rect Sum Fenwick Tree を作成します。
+        ///
+        /// # 計算量
+        /// O(H * W)
+        pub fn from_slice(slice: &[Vec<G::S>]) -> Self {
+            let h = slice.len();
+            let w = if h == 0 { 0 } else { slice[0].len() };
+            let mut d = vec![vec![G::zero(); w + 1]; h + 1];
+            let mut dx = vec![vec![G::zero(); w + 1]; h + 1];
+            let mut dy = vec![vec![G::zero(); w + 1]; h + 1];
+            let mut dxy = vec![vec![G::zero(); w + 1]; h + 1];
+
+            for i in 0..=h {
+                for j in 0..=w {
+                    let get_a = |y: isize, x: isize| -> G::S {
+                        if y >= 0 && (y as usize) < h && x >= 0 && (x as usize) < w {
+                            slice[y as usize][x as usize]
+                        } else {
+                            G::zero()
+                        }
+                    };
+
+                    let val = G::add(
+                        &G::sub(
+                            &G::sub(
+                                &get_a(i as isize, j as isize),
+                                &get_a(i as isize - 1, j as isize),
+                            ),
+                            &get_a(i as isize, j as isize - 1),
+                        ),
+                        &get_a(i as isize - 1, j as isize - 1),
+                    );
+
+                    d[i][j] = val;
+                    dx[i][j] = val * G::S::from(j as i64);
+                    dy[i][j] = val * G::S::from(i as i64);
+                    dxy[i][j] = val * G::S::from(i as i64) * G::S::from(j as i64);
+                }
+            }
+
+            Self {
+                h,
+                w,
+                bit00: RectSumFenwickTree2DArbitrary::from_slice(&d),
+                bit01: RectSumFenwickTree2DArbitrary::from_slice(&dx),
+                bit10: RectSumFenwickTree2DArbitrary::from_slice(&dy),
+                bit11: RectSumFenwickTree2DArbitrary::from_slice(&dxy),
+            }
+        }
+
         /// 指定された矩形領域 `y_range` × `x_range` に `val` を加算します。
         ///
         /// # Panics
@@ -84,8 +134,20 @@ pub mod rect_add_rect_sum_fenwick_tree {
                 Bound::Unbounded => self.w,
             };
 
-            assert!(y1 <= y2 && y2 <= self.h);
-            assert!(x1 <= x2 && x2 <= self.w);
+            assert!(
+                y1 <= y2 && y2 <= self.h,
+                "RectAddRectSumFenwickTree2D::rect_add: invalid y range: {}..{}, h={}",
+                y1,
+                y2,
+                self.h
+            );
+            assert!(
+                x1 <= x2 && x2 <= self.w,
+                "RectAddRectSumFenwickTree2D::rect_add: invalid x range: {}..{}, w={}",
+                x1,
+                x2,
+                self.w
+            );
 
             let add = |this: &mut Self, y: usize, x: usize, v: G::S| {
                 if y <= this.h && x <= this.w {
@@ -160,8 +222,20 @@ pub mod rect_add_rect_sum_fenwick_tree {
                 Bound::Unbounded => self.w,
             };
 
-            assert!(y1 <= y2 && y2 <= self.h);
-            assert!(x1 <= x2 && x2 <= self.w);
+            assert!(
+                y1 <= y2 && y2 <= self.h,
+                "RectAddRectSumFenwickTree2D::rect_sum: invalid y range: {}..{}, h={}",
+                y1,
+                y2,
+                self.h
+            );
+            assert!(
+                x1 <= x2 && x2 <= self.w,
+                "RectAddRectSumFenwickTree2D::rect_sum: invalid x range: {}..{}, w={}",
+                x1,
+                x2,
+                self.w
+            );
 
             let term1 = self.accum(y2, x2);
             let term2 = self.accum(y1, x2);
@@ -171,6 +245,32 @@ pub mod rect_add_rect_sum_fenwick_tree {
             let res = G::sub(&term1, &term2);
             let res = G::sub(&res, &term3);
             G::add(&res, &term4)
+        }
+
+        /// `(y, x)` 番目の要素を取得します。
+        ///
+        /// # 計算量
+        /// O(log H * log W)
+        pub fn get(&self, y: usize, x: usize) -> G::S {
+            self.rect_sum(y..=y, x..=x)
+        }
+
+        /// 現在の状態を `Vec<Vec<G::S>>` として返します。
+        ///
+        /// # 計算量
+        /// O(H * W * log H * log W)
+        pub fn to_vec(&self) -> Vec<Vec<G::S>> {
+            (0..self.h)
+                .map(|y| (0..self.w).map(|x| self.get(y, x)).collect())
+                .collect()
+        }
+
+        pub fn len_h(&self) -> usize {
+            self.h
+        }
+
+        pub fn len_w(&self) -> usize {
+            self.w
         }
     }
 }
@@ -200,6 +300,23 @@ mod tests {
         assert_eq!(ft.rect_sum(1..2, 1..2), 15);
         // 全体の和: 20 (前の加算) + 40 (今回の加算) = 60
         assert_eq!(ft.rect_sum(0..5, 0..5), 60);
+    }
+
+    #[test]
+    fn test_rect_add_rect_sum_2d_from_slice_basic() {
+        type G = AdditiveAbGroup<i64>;
+        let vals = vec![
+            vec![1, 2, 3],
+            vec![4, 5, 6],
+            vec![7, 8, 9],
+        ];
+        let ft = RectAddRectSumFenwickTreeArbitrary::<G>::from_slice(&vals);
+
+        assert_eq!(ft.to_vec(), vals);
+        // 矩形和の検証
+        assert_eq!(ft.rect_sum(0..2, 0..2), 1 + 2 + 4 + 5);
+        assert_eq!(ft.rect_sum(1..3, 1..3), 5 + 6 + 8 + 9);
+        assert_eq!(ft.rect_sum(0..3, 0..3), 45);
     }
 
     #[test]
@@ -244,6 +361,25 @@ mod tests {
                     }
                     assert_eq!(ft.rect_sum(y1..y2, x1..x2), expected);
                 }
+            }
+            assert_eq!(ft.to_vec(), naive);
+        }
+    }
+
+    #[test]
+    #[ignore]
+    fn test_random_rect_add_rect_sum_2d_from_slice() {
+        type G = AdditiveAbGroup<i64>;
+        let mut rng = SmallRng::seed_from_u64(42);
+
+        for h in 1..=8 {
+            for w in 1..=8 {
+                let vals: Vec<Vec<i64>> = (0..h)
+                    .map(|_| (0..w).map(|_| rng.random_range(-100..=100)).collect())
+                    .collect();
+                let ft = RectAddRectSumFenwickTreeArbitrary::<G>::from_slice(&vals);
+
+                assert_eq!(ft.to_vec(), vals, "h={}, w={} failed", h, w);
             }
         }
     }

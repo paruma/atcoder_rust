@@ -43,6 +43,32 @@ pub mod range_add_range_sum_fenwick_tree {
             }
         }
 
+        /// 配列のスライスから Range Add Range Sum Fenwick Tree を作成します。
+        ///
+        /// # 計算量
+        /// O(n)
+        pub fn from_slice(slice: &[G::S]) -> Self {
+            let n = slice.len();
+            let mut d = vec![G::zero(); n + 1];
+            let mut di = vec![G::zero(); n + 1];
+            if n > 0 {
+                d[0] = slice[0];
+                // di[0] = d[0] * 0 = 0
+                for i in 1..n {
+                    let val = G::sub(&slice[i], &slice[i - 1]);
+                    d[i] = val;
+                    di[i] = val * G::S::from(i as i64);
+                }
+                d[n] = G::neg(&slice[n - 1]);
+                di[n] = d[n] * G::S::from(n as i64);
+            }
+            Self {
+                n,
+                ft0: RangeSumFenwickTreeArbitrary::from_slice(&d),
+                ft1: RangeSumFenwickTreeArbitrary::from_slice(&di),
+            }
+        }
+
         /// 指定された範囲 `range` に `val` を加算します。
         ///
         /// # Panics
@@ -124,6 +150,22 @@ pub mod range_add_range_sum_fenwick_tree {
             );
             G::sub(&self.accum(r), &self.accum(l))
         }
+
+        /// `p` 番目の要素を取得します。
+        ///
+        /// # 計算量
+        /// O(log n)
+        pub fn get(&self, p: usize) -> G::S {
+            self.range_sum(p..=p)
+        }
+
+        /// 現在の状態を `Vec<G::S>` として返します。
+        ///
+        /// # 計算量
+        /// O(n log n)
+        pub fn to_vec(&self) -> Vec<G::S> {
+            (0..self.n).map(|i| self.get(i)).collect()
+        }
     }
 }
 
@@ -148,6 +190,22 @@ mod tests {
 
         ft.range_add(2..5, 5);
         assert_eq!(ft.range_sum(0..5), (0 + 10 + 15 + 15 + 5) as i64);
+    }
+
+    #[test]
+    fn test_range_add_range_sum_from_slice_basic() {
+        type G = AdditiveAbGroup<i64>;
+        let vals = vec![1, 3, 6, 10, 15];
+        let ft = RangeAddRangeSumFenwickTreeArbitrary::<G>::from_slice(&vals);
+
+        assert_eq!(ft.to_vec(), vals);
+        assert_eq!(ft.range_sum(0..3), 1 + 3 + 6);
+        assert_eq!(ft.range_sum(1..4), 3 + 6 + 10);
+        assert_eq!(ft.range_sum(0..5), 1 + 3 + 6 + 10 + 15);
+        // Unbounded 範囲のテスト
+        assert_eq!(ft.range_sum(..), 1 + 3 + 6 + 10 + 15);
+        assert_eq!(ft.range_sum(2..), 6 + 10 + 15);
+        assert_eq!(ft.range_sum(..3), 1 + 3 + 6);
     }
 
     #[test]
@@ -178,6 +236,21 @@ mod tests {
                     assert_eq!(ft.range_sum(l..r), expected);
                 }
             }
+            assert_eq!(ft.to_vec(), naive_vec);
+        }
+    }
+
+    #[test]
+    #[ignore]
+    fn test_random_range_add_range_sum_from_slice() {
+        type G = AdditiveAbGroup<i64>;
+        let mut rng = SmallRng::seed_from_u64(42);
+
+        for n in 1..=20 {
+            let vals: Vec<i64> = (0..n).map(|_| rng.random_range(-100..=100)).collect();
+            let ft = RangeAddRangeSumFenwickTreeArbitrary::<G>::from_slice(&vals);
+
+            assert_eq!(ft.to_vec(), vals, "n={} failed", n);
         }
     }
 }
