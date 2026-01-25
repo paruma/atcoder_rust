@@ -1,0 +1,20 @@
+[package]
+name = "bench"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+mylib = { path = "../mylib" }
+rand = { workspace = true }
+
+[[bin]]
+name = "range_sum"
+path = "src/range_sum.rs"
+
+[[bin]]
+name = "beats_vs_lazy"
+path = "src/beats_vs_lazy.rs"
+
+[[bin]]
+name = "add_vs_affine"
+path = "src/add_vs_affine.rs"
