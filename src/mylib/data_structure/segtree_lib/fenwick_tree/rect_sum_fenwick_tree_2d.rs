@@ -42,6 +42,40 @@ pub mod rect_sum_fenwick_tree_2d {
             Self { h, w, data }
         }
 
+        /// 配列の 2次元スライスから Fenwick Tree を作成します。
+        ///
+        /// # 計算量
+        /// O(H * W)
+        pub fn from_slice(slice: &[Vec<G::S>]) -> Self {
+            let h = slice.len();
+            let w = if h == 0 { 0 } else { slice[0].len() };
+            let mut data = slice.to_vec();
+
+            // 各行に対して 1次元 BIT の構築アルゴリズムを適用
+            for i in 0..h {
+                for j in 0..w {
+                    let next_j = j | (j + 1);
+                    if next_j < w {
+                        let val = data[i][j].clone();
+                        data[i][next_j] = G::add(&data[i][next_j], &val);
+                    }
+                }
+            }
+
+            // 各列に対して 1次元 BIT の構築アルゴリズムを適用
+            for j in 0..w {
+                for i in 0..h {
+                    let next_i = i | (i + 1);
+                    if next_i < h {
+                        let val = data[i][j].clone();
+                        data[next_i][j] = G::add(&data[next_i][j], &val);
+                    }
+                }
+            }
+
+            Self { h, w, data }
+        }
+
         /// `(y, x)` 番目の要素に `val` を加算（群の演算を適用）します。
         ///
         /// # Panics
@@ -201,6 +235,23 @@ mod tests {
         ft.set(1, 1, 10);
         assert_eq!(ft.get(1, 1), 10);
         assert_eq!(ft.rect_sum(1..2, 1..2), 10);
+    }
+
+    #[test]
+    fn test_rect_sum_fenwick_tree_2d_from_slice() {
+        type G = AdditiveAbGroup<i64>;
+        let vals = vec![vec![1, 2, 3], vec![4, 5, 6], vec![7, 8, 9]];
+        let ft = RectSumFenwickTree2DArbitrary::<G>::from_slice(&vals);
+
+        assert_eq!(ft.len_h(), 3);
+        assert_eq!(ft.len_w(), 3);
+        assert_eq!(ft.accum(3, 3), 45);
+        assert_eq!(ft.rect_sum(1..3, 1..3), 5 + 6 + 8 + 9);
+        for y in 0..3 {
+            for x in 0..3 {
+                assert_eq!(ft.get(y, x), vals[y][x]);
+            }
+        }
     }
 
     #[test]

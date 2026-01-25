@@ -37,6 +37,30 @@ pub mod rect_add_fenwick_tree_2d {
             }
         }
 
+        /// 配列の 2次元スライスから Dual Fenwick Tree を作成します。
+        ///
+        /// # 計算量
+        /// O(H * W)
+        pub fn from_slice(slice: &[Vec<G::S>]) -> Self {
+            let h = slice.len();
+            let w = if h == 0 { 0 } else { slice[0].len() };
+            let mut diff = vec![vec![G::zero(); w + 1]; h + 1];
+
+            for i in 0..h {
+                for j in 0..w {
+                    let val = slice[i][j].clone();
+                    diff[i][j] = G::add(&diff[i][j], &val);
+                    diff[i][j + 1] = G::sub(&diff[i][j + 1], &val);
+                    diff[i + 1][j] = G::sub(&diff[i + 1][j], &val);
+                    diff[i + 1][j + 1] = G::add(&diff[i + 1][j + 1], &val);
+                }
+            }
+
+            Self {
+                ft: RectSumFenwickTree2DArbitrary::from_slice(&diff),
+            }
+        }
+
         /// 指定された矩形領域 `y_range` × `x_range` に `val` を加算します。
         ///
         /// # Panics
@@ -144,6 +168,19 @@ mod tests {
         assert_eq!(ft.get(0, 0), 10i64);
         assert_eq!(ft.get(1, 1), 15i64);
         assert_eq!(ft.get(2, 2), 5i64);
+    }
+
+    #[test]
+    fn test_rect_add_fenwick_tree_2d_from_slice() {
+        type G = AdditiveAbGroup<i64>;
+        let vals = vec![vec![1, 2, 3], vec![4, 5, 6], vec![7, 8, 9]];
+        let ft = RectAddFenwickTree2DArbitrary::<G>::from_slice(&vals);
+
+        for y in 0..3 {
+            for x in 0..3 {
+                assert_eq!(ft.get(y, x), vals[y][x]);
+            }
+        }
     }
 
     #[test]
