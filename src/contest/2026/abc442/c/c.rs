@@ -1,11 +1,29 @@
 // #[fastout]
+fn nc3(n: i64) -> i64 {
+    if n <= 2 { 0 } else { n * (n - 1) * (n - 2) / 6 }
+}
+
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        m: usize,
+        abs: [(Usize1, Usize1); m],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    let degs = abs.iter().copied().fold(vec![0_i64; n], |mut acc, (a, b)| {
+        acc[a] += 1;
+        acc[b] += 1;
+        acc
+    });
+    let ans: Vec<i64> = degs
+        .iter()
+        .copied()
+        .map(|d| {
+            let k = (n as i64) - d - 1;
+            nc3(k)
+        })
+        .collect_vec();
+    print_vec_1line(&ans);
 }
 
 #[cfg(test)]

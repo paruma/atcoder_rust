@@ -1,11 +1,34 @@
-// #[fastout]
+define_queries! {
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    enum Query: usize {
+        1 => Swap { i: Usize1 },
+        2 => Sum { l: Usize1, r: Usize1 },
+    }
+}
+#[fastout]
 fn main() {
     input! {
         n: usize,
+        q: usize,
         xs: [i64; n],
+        qs: [Query; q],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let mut seg = RangeSumSegtree::new(&xs);
+
+    for q in qs {
+        match q {
+            Query::Swap { i } => {
+                let i_val = seg.get(i);
+                let i1_val = seg.get(i + 1);
+                seg.set(i, i1_val);
+                seg.set(i + 1, i_val);
+            }
+            Query::Sum { l, r } => {
+                let ans = seg.range_sum(l..=r);
+                println!("{}", ans);
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -134,3 +157,117 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use range_sum_segtree::*;
+#[allow(clippy::module_inception)]
+pub mod range_sum_segtree {
+    use ac_library::{Monoid, Segtree};
+    use itertools::Itertools;
+    use std::convert::Infallible;
+    use std::iter::Sum;
+    use std::marker::PhantomData;
+    use std::ops::{Add, RangeBounds};
+    /// 汎用的な加算モノイド。
+    /// `std::ops::Add` と `std::iter::Sum` を実装している型に対応。
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub struct GeneralAdditive<T>(Infallible, PhantomData<fn() -> T>);
+    impl<T> Monoid for GeneralAdditive<T>
+    where
+        T: Sum + Add<Output = T> + Copy,
+    {
+        type S = T;
+        #[inline]
+        fn identity() -> Self::S {
+            std::iter::empty().sum()
+        }
+        #[inline]
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            *a + *b
+        }
+    }
+    /// ACL の Segtree を使用した区間和セグメント木。
+    /// 数値型 T に対して点更新・区間和取得を行う。
+    #[derive(Clone)]
+    pub struct RangeSumSegtree<T>
+    where
+        T: Sum + Add<Output = T> + Copy,
+    {
+        segtree: Segtree<GeneralAdditive<T>>,
+        len: usize,
+    }
+    impl<T> RangeSumSegtree<T>
+    where
+        T: Sum + Add<Output = T> + Copy,
+    {
+        /// 配列からセグメント木を構築する
+        pub fn new(xs: &[T]) -> Self {
+            let len = xs.len();
+            Self {
+                segtree: Segtree::<GeneralAdditive<T>>::from(xs.to_vec()),
+                len,
+            }
+        }
+        /// p 番目の要素を x に更新する
+        pub fn set(&mut self, p: usize, x: T) {
+            self.segtree.set(p, x);
+        }
+        /// p 番目の要素を取得する
+        pub fn get(&self, p: usize) -> T {
+            self.segtree.get(p)
+        }
+        /// 指定した範囲の和を取得する
+        pub fn range_sum<R>(&self, range: R) -> T
+        where
+            R: RangeBounds<usize>,
+        {
+            self.segtree.prod(range)
+        }
+        /// 全要素の和を取得する
+        pub fn all_sum(&self) -> T {
+            self.segtree.all_prod()
+        }
+        /// p 番目の要素に x を加算する
+        pub fn apply_add(&mut self, p: usize, x: T) {
+            let current = self.get(p);
+            self.set(p, current + x);
+        }
+        /// セグメント木上の二分探索。
+        /// [l, r) の和 s について f(&s) が true となる最大の r を返す。
+        pub fn max_right<F>(&self, l: usize, f: F) -> usize
+        where
+            F: Fn(&T) -> bool,
+        {
+            self.segtree.max_right(l, f)
+        }
+        /// セグメント木上の二分探索。
+        /// [l, r) の和 s について f(&s) が true となる最小の l を返す。
+        pub fn min_left<F>(&self, r: usize, f: F) -> usize
+        where
+            F: Fn(&T) -> bool,
+        {
+            self.segtree.min_left(r, f)
+        }
+        /// 現在の状態を Vec として返す
+        pub fn to_vec(&self) -> Vec<T> {
+            (0..self.len).map(|i| self.get(i)).collect_vec()
+        }
+    }
+}
+#[macro_use]
+pub mod define_queries {
+    /// クエリ形式の入力を proconio::input! で読み込める enum を定義するマクロ。
+    /// 出典： https://zenn.dev/magurofly/articles/6ee845bd5e385e
+    /// # 利用例
+    /// ```
+    /// use mylib::define_queries;
+    /// use proconio::marker::Usize1;
+    /// define_queries! {
+    ///     #[derive(Debug, PartialEq)]
+    ///     enum Query: usize {
+    ///         1 => Add { a: i64, b: i64 },
+    ///         2 => Show { k: Usize1 },
+    ///     }
+    /// }
+    /// ```
+    #[macro_export]
+    macro_rules ! define_queries {($ ($ (# [$ attr : meta ] ) * enum $ enum_name : ident : $ sig : ty {$ ($ pattern : pat => $ variant : ident $ ({$ ($ name : ident : $ marker : ty $ (, ) ? ) ,* } ) ? $ (, ) ? ) ,* } ) * ) => {$ ($ (# [$ attr ] ) * enum $ enum_name {$ ($ variant $ ({$ ($ name : <$ marker as proconio :: source :: Readable >:: Output ) ,* } ) ? ) ,* } impl proconio :: source :: Readable for $ enum_name {type Output = Self ; fn read < R : std :: io :: BufRead , S : proconio :: source :: Source < R >> (source : & mut S ) -> Self {#! [allow (unreachable_patterns ) ] match <$ sig as proconio :: source :: Readable >:: read (source ) {$ ($ pattern => $ enum_name ::$ variant $ ({$ ($ name : <$ marker as proconio :: source :: Readable >:: read (source ) ) ,* } ) ? ) ,* , _ => unreachable ! () } } } ) * } }
+}

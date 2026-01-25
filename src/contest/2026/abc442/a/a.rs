@@ -1,10 +1,13 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        xs: Chars
     }
-    let ans: i64 = -2_i64;
+    let ans: i64 = xs
+        .iter()
+        .copied()
+        .filter(|ch| *ch == 'i' || *ch == 'j')
+        .count() as i64;
     println!("{}", ans);
 }
 

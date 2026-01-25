@@ -2,10 +2,28 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        qs: [i64; n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    let mut v = 0;
+    let mut playing = false;
+    let mut ans = vec![];
+
+    for q in qs {
+        if q == 1 {
+            v += 1;
+        } else if q == 2 {
+            v = i64::max(v - 1, 0);
+        } else {
+            playing = !playing;
+        }
+
+        ans.push(v >= 3 && playing);
+    }
+
+    for x in ans {
+        print_yesno(x);
+    }
 }
 
 #[cfg(test)]
