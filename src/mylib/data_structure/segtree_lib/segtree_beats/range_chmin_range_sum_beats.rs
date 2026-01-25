@@ -155,7 +155,7 @@ pub mod range_chmin_range_sum {
             Self { segtree, len: n }
         }
 
-        pub fn from(xs: &[i64]) -> Self {
+        pub fn from_slice(xs: &[i64]) -> Self {
             let len = xs.len();
             let segtree = SegtreeBeats::<RangeChminRangeSum>::from(
                 xs.iter().copied().map(RangeSum::unit).collect_vec(),
@@ -203,7 +203,7 @@ mod test_range_chmin_range_sum {
     #[test]
     fn test_range_chmin_range_sum() {
         let xs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-        let mut seg = RangeChminRangeSumSegtree::from(&xs);
+        let mut seg = RangeChminRangeSumSegtree::from_slice(&xs);
         seg.chmin(3..8, 4); // [0,1,2,3,4,4,4,4,8,9]
         assert_eq!(seg.sum(3..6), 11); // [3,4,4]
         assert_eq!(seg.to_vec(), vec![0, 1, 2, 3, 4, 4, 4, 4, 8, 9]);
@@ -223,7 +223,7 @@ mod test_range_chmin_range_sum {
         for _ in 0..100 {
             let n = rng.random_range(1..=30);
             let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.random_range(-100..=100)).collect();
-            let mut segtree = RangeChminRangeSumSegtree::from(&naive_vec);
+            let mut segtree = RangeChminRangeSumSegtree::from_slice(&naive_vec);
 
             for _ in 0..100 {
                 let op_type = rng.random_range(0..5);

@@ -304,7 +304,7 @@ pub mod range_chmin_chmax_add_range_sum_beats {
             Self { segtree, len: n }
         }
 
-        pub fn from(xs: &[i64]) -> Self {
+        pub fn from_slice(xs: &[i64]) -> Self {
             let len = xs.len();
             let segtree = SegtreeBeats::<RangeChminChmaxAddRangeSum>::from(
                 xs.iter().copied().map(RangeSum::unit).collect_vec(),
@@ -362,7 +362,7 @@ mod test_range_chmin_chmax_add_range_sum {
     #[test]
     fn test_simple() {
         let xs = [0, 1, 2, 3, 4];
-        let mut seg = RangeChminChmaxAddRangeSumSegtree::from(&xs);
+        let mut seg = RangeChminChmaxAddRangeSumSegtree::from_slice(&xs);
         // [0, 1, 2, 3, 4]
         seg.add(0..5, 1);
         // [1, 2, 3, 4, 5]
@@ -388,7 +388,7 @@ mod test_range_chmin_chmax_add_range_sum {
         for t in 0..100 {
             let n = rng.random_range(1..=30);
             let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.random_range(-100..=100)).collect();
-            let mut segtree = RangeChminChmaxAddRangeSumSegtree::from(&naive_vec);
+            let mut segtree = RangeChminChmaxAddRangeSumSegtree::from_slice(&naive_vec);
             let mut ops = Vec::new();
 
             for _ in 0..100 {
