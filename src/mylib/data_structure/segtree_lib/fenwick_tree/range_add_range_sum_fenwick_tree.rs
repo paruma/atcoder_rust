@@ -109,6 +109,23 @@ pub mod range_add_range_sum_fenwick_tree {
             self.ft1.add(r, r_val);
         }
 
+        /// `idx` 番目の要素に `val` を加算します。
+        ///
+        /// # 計算量
+        /// O(log n)
+        pub fn add(&mut self, idx: usize, val: G::S) {
+            self.range_add(idx..=idx, val);
+        }
+
+        /// `idx` 番目の要素の値を `val` に設定します。
+        ///
+        /// # 計算量
+        /// O(log n)
+        pub fn set(&mut self, idx: usize, val: G::S) {
+            let old = self.get(idx);
+            self.add(idx, G::sub(&val, &old));
+        }
+
         /// `[0, idx)` の区間和を計算します。
         ///
         /// # 計算量
@@ -166,6 +183,12 @@ pub mod range_add_range_sum_fenwick_tree {
         pub fn to_vec(&self) -> Vec<G::S> {
             (0..self.n).map(|i| self.get(i)).collect()
         }
+
+        /// 保持している要素数を返します。
+        #[allow(clippy::len_without_is_empty)]
+        pub fn len(&self) -> usize {
+            self.n
+        }
     }
 }
 
@@ -181,6 +204,7 @@ mod tests {
         type G = AdditiveAbGroup<i64>;
         let n = 5;
         let mut ft = RangeAddRangeSumFenwickTreeArbitrary::<G>::new(n);
+        assert_eq!(ft.len(), 5);
 
         ft.range_add(1..4, 10);
         assert_eq!(ft.range_sum(0..5), 30i64);
@@ -220,20 +244,43 @@ mod tests {
             let mut ft = RangeAddRangeSumFenwickTreeArbitrary::<G>::new(n);
 
             for _ in 0..100 {
-                let op = rng.random_range(0..2);
-                if op == 0 {
-                    let l = rng.random_range(0..=n);
-                    let r = rng.random_range(l..=n);
-                    let val = rng.random_range(-100..=100);
-                    for i in l..r {
-                        naive_vec[i] += val;
+                let op = rng.random_range(0..4);
+                match op {
+                    0 => {
+                        let l = rng.random_range(0..=n);
+                        let r = rng.random_range(l..=n);
+                        let val = rng.random_range(-100..=100);
+                        for i in l..r {
+                            naive_vec[i] += val;
+                        }
+                        ft.range_add(l..r, val);
                     }
-                    ft.range_add(l..r, val);
-                } else {
-                    let l = rng.random_range(0..=n);
-                    let r = rng.random_range(l..=n);
-                    let expected: i64 = naive_vec[l..r].iter().sum();
-                    assert_eq!(ft.range_sum(l..r), expected);
+                    1 => {
+                        let l = rng.random_range(0..=n);
+                        let r = rng.random_range(l..=n);
+                        let expected: i64 = naive_vec[l..r].iter().sum();
+                        assert_eq!(
+                            ft.range_sum(l..r),
+                            expected,
+                            "range_sum failed: n={}, l={}, r={}",
+                            n,
+                            l,
+                            r
+                        );
+                    }
+                    2 => {
+                        let idx = rng.random_range(0..n);
+                        let val = rng.random_range(-100..=100);
+                        naive_vec[idx] += val;
+                        ft.add(idx, val);
+                    }
+                    3 => {
+                        let idx = rng.random_range(0..n);
+                        let val = rng.random_range(-100..=100);
+                        naive_vec[idx] = val;
+                        ft.set(idx, val);
+                    }
+                    _ => unreachable!(),
                 }
             }
             assert_eq!(ft.to_vec(), naive_vec);

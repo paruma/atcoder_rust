@@ -93,6 +93,23 @@ pub mod range_add_fenwick_tree {
             self.ft.add(r, G::neg(&val));
         }
 
+        /// `idx` 番目の要素に `val` を加算します。
+        ///
+        /// # 計算量
+        /// O(log n)
+        pub fn add(&mut self, idx: usize, val: G::S) {
+            self.range_add(idx..=idx, val);
+        }
+
+        /// `idx` 番目の要素の値を `val` に設定します。
+        ///
+        /// # 計算量
+        /// O(log n)
+        pub fn set(&mut self, idx: usize, val: G::S) {
+            let old = self.get(idx);
+            self.add(idx, G::sub(&val, &old));
+        }
+
         /// `idx` 番目の要素の値を取得します。
         ///
         /// # Panics
@@ -119,6 +136,12 @@ pub mod range_add_fenwick_tree {
             let n = self.ft.len() - 1;
             (0..n).map(|i| self.get(i)).collect()
         }
+
+        /// 保持している要素数を返します。
+        #[allow(clippy::len_without_is_empty)]
+        pub fn len(&self) -> usize {
+            self.ft.len() - 1
+        }
     }
 }
 
@@ -133,6 +156,7 @@ mod tests {
         type G = AdditiveAbGroup<i64>;
         let n = 5;
         let mut ft = RangeAddFenwickTreeArbitrary::<G>::new(n);
+        assert_eq!(ft.len(), 5);
 
         ft.range_add(1..4, 10);
         assert_eq!(ft.get(0), 0);
@@ -168,18 +192,34 @@ mod tests {
             let mut ft = RangeAddFenwickTreeArbitrary::<G>::new(n);
 
             for _ in 0..100 {
-                let op = rng.random_range(0..2);
-                if op == 0 {
-                    let l = rng.random_range(0..=n);
-                    let r = rng.random_range(l..=n);
-                    let val = rng.random_range(-100..=100);
-                    for i in l..r {
-                        naive_vec[i] += val;
+                let op = rng.random_range(0..4);
+                match op {
+                    0 => {
+                        let l = rng.random_range(0..=n);
+                        let r = rng.random_range(l..=n);
+                        let val = rng.random_range(-100..=100);
+                        for i in l..r {
+                            naive_vec[i] += val;
+                        }
+                        ft.range_add(l..r, val);
                     }
-                    ft.range_add(l..r, val);
-                } else {
-                    let idx = rng.random_range(0..n);
-                    assert_eq!(ft.get(idx), naive_vec[idx]);
+                    1 => {
+                        let idx = rng.random_range(0..n);
+                        assert_eq!(ft.get(idx), naive_vec[idx]);
+                    }
+                    2 => {
+                        let idx = rng.random_range(0..n);
+                        let val = rng.random_range(-100..=100);
+                        naive_vec[idx] += val;
+                        ft.add(idx, val);
+                    }
+                    3 => {
+                        let idx = rng.random_range(0..n);
+                        let val = rng.random_range(-100..=100);
+                        naive_vec[idx] = val;
+                        ft.set(idx, val);
+                    }
+                    _ => unreachable!(),
                 }
             }
             assert_eq!(ft.to_vec(), naive_vec);

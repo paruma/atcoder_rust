@@ -113,6 +113,23 @@ pub mod rect_add_fenwick_tree_2d {
             self.ft.add(y2, x2, val);
         }
 
+        /// `(y, x)` 番目の要素に `val` を加算します。
+        ///
+        /// # 計算量
+        /// O(log H * log W)
+        pub fn add(&mut self, y: usize, x: usize, val: G::S) {
+            self.rect_add(y..=y, x..=x, val);
+        }
+
+        /// `(y, x)` 番目の要素の値を `val` に設定します。
+        ///
+        /// # 計算量
+        /// O(log H * log W)
+        pub fn set(&mut self, y: usize, x: usize, val: G::S) {
+            let old = self.get(y, x);
+            self.add(y, x, G::sub(&val, &old));
+        }
+
         /// `(y, x)` 番目の要素の値を取得します。
         ///
         /// # Panics
@@ -139,6 +156,14 @@ pub mod rect_add_fenwick_tree_2d {
                 .map(|y| (0..w).map(|x| self.get(y, x)).collect())
                 .collect()
         }
+
+        pub fn len_h(&self) -> usize {
+            self.ft.len_h() - 1
+        }
+
+        pub fn len_w(&self) -> usize {
+            self.ft.len_w() - 1
+        }
     }
 }
 
@@ -153,6 +178,8 @@ mod tests {
         type G = AdditiveAbGroup<i64>;
         let (h, w) = (4, 4);
         let mut ft = RectAddFenwickTree2DArbitrary::<G>::new(h, w);
+        assert_eq!(ft.len_h(), 4);
+        assert_eq!(ft.len_w(), 4);
 
         // [1, 3) x [1, 3) に 5 を加算
         ft.rect_add(1..3, 1..3, 5);
@@ -196,28 +223,42 @@ mod tests {
             let mut ft = RectAddFenwickTree2DArbitrary::<G>::new(h, w);
 
             for _ in 0..50 {
-                let op = rng.random_range(0..2);
-                if op == 0 {
-                    let y1 = rng.random_range(0..=h);
-                    let y2 = rng.random_range(y1..=h);
-                    let x1 = rng.random_range(0..=w);
-                    let x2 = rng.random_range(x1..=w);
-                    let val = rng.random_range(-100..=100);
+                let op = rng.random_range(0..4);
+                match op {
+                    0 => {
+                        let y1 = rng.random_range(0..=h);
+                        let y2 = rng.random_range(y1..=h);
+                        let x1 = rng.random_range(0..=w);
+                        let x2 = rng.random_range(x1..=w);
+                        let val = rng.random_range(-100..=100);
 
-                    for y in y1..y2 {
-                        for x in x1..x2 {
-                            naive[y][x] += val;
+                        for y in y1..y2 {
+                            for x in x1..x2 {
+                                naive[y][x] += val;
+                            }
                         }
+                        ft.rect_add(y1..y2, x1..x2, val);
                     }
-                    ft.rect_add(y1..y2, x1..x2, val);
-
-                    let y = rng.random_range(0..h);
-                    let x = rng.random_range(0..w);
-                    assert_eq!(ft.get(y, x), naive[y][x]);
-                } else {
-                    let y = rng.random_range(0..h);
-                    let x = rng.random_range(0..w);
-                    assert_eq!(ft.get(y, x), naive[y][x]);
+                    1 => {
+                        let y = rng.random_range(0..h);
+                        let x = rng.random_range(0..w);
+                        assert_eq!(ft.get(y, x), naive[y][x]);
+                    }
+                    2 => {
+                        let y = rng.random_range(0..h);
+                        let x = rng.random_range(0..w);
+                        let val = rng.random_range(-100..=100);
+                        naive[y][x] += val;
+                        ft.add(y, x, val);
+                    }
+                    3 => {
+                        let y = rng.random_range(0..h);
+                        let x = rng.random_range(0..w);
+                        let val = rng.random_range(-100..=100);
+                        naive[y][x] = val;
+                        ft.set(y, x, val);
+                    }
+                    _ => unreachable!(),
                 }
             }
             assert_eq!(ft.to_vec(), naive);
