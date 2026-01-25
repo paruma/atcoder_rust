@@ -100,7 +100,12 @@ pub mod range_update_range_prod {
     where
         T: Copy + Mul<Output = T> + From<i64>,
     {
-        pub fn new(xs: &[T]) -> RangeUpdateRangeProdSegtree<T> {
+        pub fn new(n: usize) -> Self {
+            let xs = vec![0.into(); n];
+            Self::from_slice(&xs)
+        }
+
+        pub fn from_slice(xs: &[T]) -> RangeUpdateRangeProdSegtree<T> {
             let xs = xs.iter().copied().map(RangeProd::unit).collect_vec();
             let len = xs.len();
             RangeUpdateRangeProdSegtree {
@@ -161,6 +166,10 @@ pub mod range_update_range_prod {
             self.segtree.min_left(r, |x| g(x.prod))
         }
 
+        #[allow(clippy::len_without_is_empty)]
+        pub fn len(&self) -> usize {
+            self.len
+        }
         pub fn to_vec(&mut self) -> Vec<T> {
             (0..self.len).map(|i| self.get(i)).collect_vec()
         }
@@ -178,7 +187,7 @@ pub mod test_range_update_range_prod {
     #[test]
     fn test_new_and_get() {
         let xs = vec![10, 20, 30, 40, 50];
-        let mut segtree = RangeUpdateRangeProdSegtree::<i64>::new(&xs);
+        let mut segtree = RangeUpdateRangeProdSegtree::<i64>::from_slice(&xs);
         assert_eq!(segtree.get(0), 10);
         assert_eq!(segtree.get(2), 30);
         assert_eq!(segtree.get(4), 50);
@@ -187,7 +196,7 @@ pub mod test_range_update_range_prod {
     #[test]
     fn test_set() {
         let xs = vec![10, 20, 30, 40, 50];
-        let mut segtree = RangeUpdateRangeProdSegtree::<i64>::new(&xs);
+        let mut segtree = RangeUpdateRangeProdSegtree::<i64>::from_slice(&xs);
         segtree.set(0, 5);
         assert_eq!(segtree.to_vec(), vec![5, 20, 30, 40, 50]);
         segtree.set(4, 45);
@@ -197,7 +206,7 @@ pub mod test_range_update_range_prod {
     #[test]
     fn test_all_prod() {
         let xs = vec![1, 2, 3, 4, 5];
-        let mut segtree = RangeUpdateRangeProdSegtree::<i64>::new(&xs);
+        let mut segtree = RangeUpdateRangeProdSegtree::<i64>::from_slice(&xs);
         assert_eq!(segtree.all_prod(), 120);
         segtree.set(0, 5);
         assert_eq!(segtree.all_prod(), 600);
@@ -206,7 +215,7 @@ pub mod test_range_update_range_prod {
     #[test]
     fn test_range_prod() {
         let xs = vec![1, 2, 3, 4, 5];
-        let mut segtree = RangeUpdateRangeProdSegtree::<i64>::new(&xs);
+        let mut segtree = RangeUpdateRangeProdSegtree::<i64>::from_slice(&xs);
         assert_eq!(segtree.range_prod(1..4), 24); // 2 * 3 * 4
         segtree.set(2, 10);
         assert_eq!(segtree.range_prod(1..4), 80); // 2 * 10 * 4
@@ -215,7 +224,7 @@ pub mod test_range_update_range_prod {
     #[test]
     fn test_apply_update() {
         let xs = vec![1, 2, 3, 4, 5];
-        let mut segtree = RangeUpdateRangeProdSegtree::<i64>::new(&xs);
+        let mut segtree = RangeUpdateRangeProdSegtree::<i64>::from_slice(&xs);
         segtree.apply_update(1, 5);
         assert_eq!(segtree.to_vec(), vec![1, 5, 3, 4, 5]);
         segtree.apply_update(1, 15);
@@ -225,7 +234,7 @@ pub mod test_range_update_range_prod {
     #[test]
     fn test_apply_range_update() {
         let xs = vec![1, 2, 3, 4, 5];
-        let mut segtree = RangeUpdateRangeProdSegtree::<i64>::new(&xs);
+        let mut segtree = RangeUpdateRangeProdSegtree::<i64>::from_slice(&xs);
         segtree.apply_range_update(1..4, 5);
         assert_eq!(segtree.to_vec(), vec![1, 5, 5, 5, 5]);
         segtree.apply_range_update(0..3, 10);
@@ -235,7 +244,7 @@ pub mod test_range_update_range_prod {
     #[test]
     fn test_to_vec() {
         let xs = vec![0, 1, 2, 3, 4, 5];
-        let mut segtree = RangeUpdateRangeProdSegtree::<i64>::new(&xs);
+        let mut segtree = RangeUpdateRangeProdSegtree::<i64>::from_slice(&xs);
         assert_eq!(segtree.to_vec(), vec![0, 1, 2, 3, 4, 5]);
         segtree.apply_range_update(1..4, 10);
         assert_eq!(segtree.to_vec(), vec![0, 10, 10, 10, 4, 5]);
@@ -250,7 +259,7 @@ pub mod test_range_update_range_prod {
             Mint::new(4),
             Mint::new(5),
         ];
-        let mut segtree = RangeUpdateRangeProdSegtree::<Mint>::new(&xs);
+        let mut segtree = RangeUpdateRangeProdSegtree::<Mint>::from_slice(&xs);
 
         // Initial state
         assert_eq!(segtree.all_prod(), Mint::new(0));
@@ -307,7 +316,7 @@ pub mod test_range_update_range_prod {
     #[test]
     fn test_modint() {
         let xs = vec![Mint::new(1), Mint::new(2), Mint::new(3)];
-        let mut segtree = RangeUpdateRangeProdSegtree::<Mint>::new(&xs);
+        let mut segtree = RangeUpdateRangeProdSegtree::<Mint>::from_slice(&xs);
         segtree.apply_range_update(0..3, Mint::new(10));
         assert_eq!(
             segtree.to_vec(),
@@ -319,7 +328,7 @@ pub mod test_range_update_range_prod {
     #[test]
     fn test_max_right_min_left() {
         let xs = vec![2, 2, 2, 2, 2];
-        let mut segtree = RangeUpdateRangeProdSegtree::<i64>::new(&xs);
+        let mut segtree = RangeUpdateRangeProdSegtree::<i64>::from_slice(&xs);
         assert_eq!(segtree.max_right(0, |p| p <= 8), 3);
         assert_eq!(segtree.min_left(5, |p| p <= 4), 3);
     }
@@ -336,7 +345,7 @@ pub mod test_range_update_range_prod {
             let mut naive_vec: Vec<Mint> = (0..n)
                 .map(|_| Mint::new(rng.random_range(1..=100)))
                 .collect();
-            let mut segtree = RangeUpdateRangeProdSegtree::<Mint>::new(&naive_vec);
+            let mut segtree = RangeUpdateRangeProdSegtree::<Mint>::from_slice(&naive_vec);
 
             for _ in 0..100 {
                 let op_type = rng.random_range(0..6);

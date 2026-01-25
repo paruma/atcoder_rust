@@ -107,7 +107,12 @@ pub mod range_linear_add_range_sum {
     where
         T: Copy + Add<Output = T> + Mul<Output = T> + Div<Output = T> + Sub<Output = T> + From<i64>,
     {
-        pub fn new(xs: &[T]) -> RangeLinearAddRangeSumSegtree<T> {
+        pub fn new(n: usize) -> Self {
+            let xs = vec![0.into(); n];
+            Self::from_slice(&xs)
+        }
+
+        pub fn from_slice(xs: &[T]) -> RangeLinearAddRangeSumSegtree<T> {
             let xs = xs
                 .iter()
                 .copied()
@@ -182,6 +187,10 @@ pub mod range_linear_add_range_sum {
             self.segtree.min_left(r, |x| g(x.sum))
         }
 
+        #[allow(clippy::len_without_is_empty)]
+        pub fn len(&self) -> usize {
+            self.len
+        }
         pub fn to_vec(&mut self) -> Vec<T> {
             (0..self.len).map(|i| self.get(i)).collect_vec()
         }
@@ -199,7 +208,7 @@ pub mod test_range_linear_add_range_sum {
     #[test]
     fn test_new_and_get() {
         let xs = vec![10, 20, 30, 40, 50];
-        let mut segtree = RangeLinearAddRangeSumSegtree::<i64>::new(&xs);
+        let mut segtree = RangeLinearAddRangeSumSegtree::<i64>::from_slice(&xs);
         assert_eq!(segtree.get(0), 10);
         assert_eq!(segtree.get(2), 30);
         assert_eq!(segtree.get(4), 50);
@@ -208,7 +217,7 @@ pub mod test_range_linear_add_range_sum {
     #[test]
     fn test_set() {
         let xs = vec![10, 20, 30, 40, 50];
-        let mut segtree = RangeLinearAddRangeSumSegtree::<i64>::new(&xs);
+        let mut segtree = RangeLinearAddRangeSumSegtree::<i64>::from_slice(&xs);
         segtree.set(0, 5);
         assert_eq!(segtree.to_vec(), vec![5, 20, 30, 40, 50]);
         segtree.set(4, 45);
@@ -218,7 +227,7 @@ pub mod test_range_linear_add_range_sum {
     #[test]
     fn test_all_sum() {
         let xs = vec![10, 20, 30, 40, 50];
-        let mut segtree = RangeLinearAddRangeSumSegtree::<i64>::new(&xs);
+        let mut segtree = RangeLinearAddRangeSumSegtree::<i64>::from_slice(&xs);
         assert_eq!(segtree.all_sum(), 150);
         segtree.set(0, 5);
         assert_eq!(segtree.all_sum(), 145);
@@ -227,7 +236,7 @@ pub mod test_range_linear_add_range_sum {
     #[test]
     fn test_range_sum() {
         let xs = vec![10, 20, 30, 40, 50];
-        let mut segtree = RangeLinearAddRangeSumSegtree::<i64>::new(&xs);
+        let mut segtree = RangeLinearAddRangeSumSegtree::<i64>::from_slice(&xs);
         assert_eq!(segtree.range_sum(1..4), 90); // 20 + 30 + 40
         segtree.set(2, 15);
         assert_eq!(segtree.range_sum(1..4), 75); // 20 + 15 + 40
@@ -236,7 +245,7 @@ pub mod test_range_linear_add_range_sum {
     #[test]
     fn test_apply_range_linear_add_with_diff() {
         let xs = vec![0, 0, 0, 0, 0];
-        let mut segtree = RangeLinearAddRangeSumSegtree::<i64>::new(&xs);
+        let mut segtree = RangeLinearAddRangeSumSegtree::<i64>::from_slice(&xs);
         // Apply init=10, diff=2 to range 1..4 (indices 1, 2, 3)
         // i=1: 10 + 2 * (1 - 1) = 10
         // i=2: 10 + 2 * (2 - 1) = 12
@@ -257,7 +266,7 @@ pub mod test_range_linear_add_range_sum {
     #[test]
     fn test_apply_range_add_with_zero_diff() {
         let xs = vec![10, 20, 30, 40, 50];
-        let mut segtree = RangeLinearAddRangeSumSegtree::<i64>::new(&xs);
+        let mut segtree = RangeLinearAddRangeSumSegtree::<i64>::from_slice(&xs);
         segtree.apply_range_linear_add(1..4, 5, 0);
         assert_eq!(segtree.to_vec(), vec![10, 25, 35, 45, 50]);
         segtree.apply_range_linear_add(0..3, -10, 0);
@@ -267,7 +276,7 @@ pub mod test_range_linear_add_range_sum {
     #[test]
     fn test_to_vec() {
         let xs = vec![0, 1, 2, 3, 4, 5];
-        let mut segtree = RangeLinearAddRangeSumSegtree::<i64>::new(&xs);
+        let mut segtree = RangeLinearAddRangeSumSegtree::<i64>::from_slice(&xs);
         assert_eq!(segtree.to_vec(), vec![0, 1, 2, 3, 4, 5]);
         segtree.apply_range_linear_add(1..4, 10, 0);
         assert_eq!(segtree.to_vec(), vec![0, 11, 12, 13, 4, 5]);
@@ -276,7 +285,7 @@ pub mod test_range_linear_add_range_sum {
     #[test]
     fn test_modint() {
         let xs = vec![Mint::new(1), Mint::new(2), Mint::new(3)];
-        let mut segtree = RangeLinearAddRangeSumSegtree::<Mint>::new(&xs);
+        let mut segtree = RangeLinearAddRangeSumSegtree::<Mint>::from_slice(&xs);
         segtree.apply_range_linear_add(0..3, Mint::new(1), Mint::new(0));
         assert_eq!(
             segtree.to_vec(),
@@ -287,7 +296,7 @@ pub mod test_range_linear_add_range_sum {
     #[test]
     fn test_max_right_min_left() {
         let xs = vec![1, 1, 1, 1, 1];
-        let mut segtree = RangeLinearAddRangeSumSegtree::<i64>::new(&xs);
+        let mut segtree = RangeLinearAddRangeSumSegtree::<i64>::from_slice(&xs);
         assert_eq!(segtree.max_right(0, |s| s <= 3), 3);
         assert_eq!(segtree.min_left(5, |s| s <= 3), 2);
     }
@@ -302,7 +311,7 @@ pub mod test_range_linear_add_range_sum {
         for _ in 0..100 {
             let n = rng.random_range(1..=20);
             let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.random_range(-100..=100)).collect();
-            let mut segtree = RangeLinearAddRangeSumSegtree::<i64>::new(&naive_vec);
+            let mut segtree = RangeLinearAddRangeSumSegtree::<i64>::from_slice(&naive_vec);
 
             for _ in 0..100 {
                 // 100 random operations per set

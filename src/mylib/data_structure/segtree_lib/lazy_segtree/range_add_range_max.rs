@@ -98,7 +98,12 @@ pub mod range_add_range_max {
     where
         T: Copy + Ord + From<i64> + Bounded + Add<Output = T>,
     {
-        pub fn new(xs: &[T]) -> Self {
+        pub fn new(n: usize) -> Self {
+            let xs = vec![0.into(); n];
+            Self::from_slice(&xs)
+        }
+
+        pub fn from_slice(xs: &[T]) -> Self {
             let len = xs.len();
             Self {
                 segtree: LazySegtree::from(xs.to_vec()),
@@ -154,6 +159,10 @@ pub mod range_add_range_max {
             self.segtree.min_left(r, g)
         }
 
+        #[allow(clippy::len_without_is_empty)]
+        pub fn len(&self) -> usize {
+            self.len
+        }
         pub fn to_vec(&mut self) -> Vec<T> {
             (0..self.len).map(|i| self.get(i)).collect_vec()
         }
@@ -167,7 +176,7 @@ pub mod test_range_add_range_max {
     #[test]
     fn test_new_and_get() {
         let xs = vec![10, 20, 30, 40, 50];
-        let mut segtree = RangeAddRangeMaxSegtree::<i64>::new(&xs);
+        let mut segtree = RangeAddRangeMaxSegtree::<i64>::from_slice(&xs);
         assert_eq!(segtree.get(0), 10);
         assert_eq!(segtree.get(2), 30);
         assert_eq!(segtree.get(4), 50);
@@ -176,14 +185,14 @@ pub mod test_range_add_range_max {
     #[test]
     fn test_range_max() {
         let xs = vec![10, 20, 30, 40, 50];
-        let mut segtree = RangeAddRangeMaxSegtree::<i64>::new(&xs);
+        let mut segtree = RangeAddRangeMaxSegtree::<i64>::from_slice(&xs);
         assert_eq!(segtree.range_max(1..4), 40);
     }
 
     #[test]
     fn test_apply_range_add() {
         let xs = vec![10, 20, 30, 40, 50];
-        let mut segtree = RangeAddRangeMaxSegtree::<i64>::new(&xs);
+        let mut segtree = RangeAddRangeMaxSegtree::<i64>::from_slice(&xs);
         segtree.apply_range_add(1..4, 5);
         assert_eq!(segtree.to_vec(), vec![10, 25, 35, 45, 50]);
         assert_eq!(segtree.range_max(1..4), 45);
@@ -192,7 +201,7 @@ pub mod test_range_add_range_max {
     #[test]
     fn test_to_vec() {
         let xs = vec![0, 1, 2, 3, 4, 5];
-        let mut segtree = RangeAddRangeMaxSegtree::<i64>::new(&xs);
+        let mut segtree = RangeAddRangeMaxSegtree::<i64>::from_slice(&xs);
         assert_eq!(segtree.to_vec(), vec![0, 1, 2, 3, 4, 5]);
         segtree.apply_range_add(1..4, 10);
         assert_eq!(segtree.to_vec(), vec![0, 11, 12, 13, 4, 5]);
@@ -201,7 +210,7 @@ pub mod test_range_add_range_max {
     #[test]
     fn test_all_max() {
         let xs = vec![10, 20, 30, 40, 50];
-        let mut segtree = RangeAddRangeMaxSegtree::<i64>::new(&xs);
+        let mut segtree = RangeAddRangeMaxSegtree::<i64>::from_slice(&xs);
         assert_eq!(segtree.all_max(), 50);
         segtree.apply_range_add(0..5, -5);
         assert_eq!(segtree.all_max(), 45);
@@ -210,7 +219,7 @@ pub mod test_range_add_range_max {
     #[test]
     fn test_max_right_min_left() {
         let xs = vec![1, 2, 3, 4, 5];
-        let mut segtree = RangeAddRangeMaxSegtree::<i64>::new(&xs);
+        let mut segtree = RangeAddRangeMaxSegtree::<i64>::from_slice(&xs);
         // max_right: [0, r) で max が 3 以下の最大の r
         assert_eq!(segtree.max_right(0, |m| m <= 3), 3);
         // min_left: [l, 5) で max が 3 以下の最小の l (identity i64::MIN <= 3 は true)
@@ -225,7 +234,7 @@ pub mod test_range_add_range_max {
     #[test]
     fn test_identity_mapping() {
         let xs: Vec<i64> = vec![];
-        let mut segtree = RangeAddRangeMaxSegtree::<i64>::new(&xs);
+        let mut segtree = RangeAddRangeMaxSegtree::<i64>::from_slice(&xs);
         assert_eq!(segtree.all_max(), i64::MIN);
         segtree.apply_range_add(0..0, 100);
         assert_eq!(segtree.all_max(), i64::MIN);
@@ -241,7 +250,7 @@ pub mod test_range_add_range_max {
         for _ in 0..100 {
             let n = rng.random_range(1..=20);
             let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.random_range(-100..=100)).collect();
-            let mut segtree = RangeAddRangeMaxSegtree::<i64>::new(&naive_vec);
+            let mut segtree = RangeAddRangeMaxSegtree::<i64>::from_slice(&naive_vec);
 
             for _ in 0..100 {
                 // 100 random operations per set

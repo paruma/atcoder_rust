@@ -129,7 +129,12 @@ pub mod range_affine_range_sum_of_square {
     where
         T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
     {
-        pub fn new(xs: &[T]) -> RangeAffineRangeSumOfSquareSegtree<T> {
+        pub fn new(n: usize) -> Self {
+            let xs = vec![0.into(); n];
+            Self::from_slice(&xs)
+        }
+
+        pub fn from_slice(xs: &[T]) -> RangeAffineRangeSumOfSquareSegtree<T> {
             let xs = xs.iter().copied().map(RangeSum::unit).collect_vec();
             let len = xs.len();
             RangeAffineRangeSumOfSquareSegtree {
@@ -201,6 +206,10 @@ pub mod range_affine_range_sum_of_square {
             self.segtree.apply_range(range, Affine::addition_func(x))
         }
 
+        #[allow(clippy::len_without_is_empty)]
+        pub fn len(&self) -> usize {
+            self.len
+        }
         pub fn to_vec(&mut self) -> Vec<T> {
             (0..self.len).map(|i| self.get(i)).collect_vec()
         }
@@ -404,7 +413,7 @@ mod test_range_affine_range_sum_of_square {
     fn test_range_sum_range_affine_segtree() {
         let xs: Vec<i64> = vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-        let mut segtree = RangeAffineRangeSumOfSquareSegtree::<i64>::new(&xs);
+        let mut segtree = RangeAffineRangeSumOfSquareSegtree::<i64>::from_slice(&xs);
 
         segtree.apply_range_update(3..6, 5); // [0, 1, 2, 5, 5, 5, 6, 7, 8, 9]
         segtree.apply_range_add(0..2, 3); // [3, 4, 2, 5, 5, 5, 6, 7, 8, 9]
@@ -430,7 +439,7 @@ mod test_range_affine_range_sum_of_square {
         for _ in 0..100 {
             let n = rng.random_range(1..=20);
             let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.random_range(-100..=100)).collect();
-            let mut segtree = RangeAffineRangeSumOfSquareSegtree::<i64>::new(&naive_vec);
+            let mut segtree = RangeAffineRangeSumOfSquareSegtree::<i64>::from_slice(&naive_vec);
 
             for _ in 0..100 {
                 // 100 random operations per set

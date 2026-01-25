@@ -81,7 +81,12 @@ pub mod range_update_range_xor {
     where
         T: Copy + BitXor<Output = T> + From<u8>,
     {
-        pub fn new(xs: &[T]) -> RangeUpdateRangeXorSegtree<T> {
+        pub fn new(n: usize) -> Self {
+            let xs = vec![0.into(); n];
+            Self::from_slice(&xs)
+        }
+
+        pub fn from_slice(xs: &[T]) -> RangeUpdateRangeXorSegtree<T> {
             let xs = xs.iter().copied().map(RangeXor::unit).collect_vec();
             let len = xs.len();
             RangeUpdateRangeXorSegtree {
@@ -120,6 +125,10 @@ pub mod range_update_range_xor {
             self.segtree.apply_range(range, Some(x))
         }
 
+        #[allow(clippy::len_without_is_empty)]
+        pub fn len(&self) -> usize {
+            self.len
+        }
         pub fn to_vec(&mut self) -> Vec<T> {
             (0..self.len).map(|i| self.get(i)).collect_vec()
         }
@@ -135,7 +144,7 @@ pub mod test_range_update_range_xor {
     #[test]
     fn test_new_and_get() {
         let xs = vec![10u64, 20, 30, 40, 50];
-        let mut segtree = RangeUpdateRangeXorSegtree::<u64>::new(&xs);
+        let mut segtree = RangeUpdateRangeXorSegtree::<u64>::from_slice(&xs);
         assert_eq!(segtree.get(0), 10);
         assert_eq!(segtree.get(2), 30);
         assert_eq!(segtree.get(4), 50);
@@ -144,7 +153,7 @@ pub mod test_range_update_range_xor {
     #[test]
     fn test_set() {
         let xs = vec![10u64, 20, 30, 40, 50];
-        let mut segtree = RangeUpdateRangeXorSegtree::<u64>::new(&xs);
+        let mut segtree = RangeUpdateRangeXorSegtree::<u64>::from_slice(&xs);
         segtree.set(0, 5);
         assert_eq!(segtree.to_vec(), vec![5, 20, 30, 40, 50]);
         segtree.set(4, 45);
@@ -154,7 +163,7 @@ pub mod test_range_update_range_xor {
     #[test]
     fn test_all_xor() {
         let xs = vec![10u64, 20, 30, 40, 50];
-        let mut segtree = RangeUpdateRangeXorSegtree::<u64>::new(&xs);
+        let mut segtree = RangeUpdateRangeXorSegtree::<u64>::from_slice(&xs);
         assert_eq!(segtree.all_xor(), 10 ^ 20 ^ 30 ^ 40 ^ 50);
         segtree.set(0, 5);
         assert_eq!(segtree.all_xor(), 5 ^ 20 ^ 30 ^ 40 ^ 50);
@@ -163,7 +172,7 @@ pub mod test_range_update_range_xor {
     #[test]
     fn test_range_xor() {
         let xs = vec![10u64, 20, 30, 40, 50];
-        let mut segtree = RangeUpdateRangeXorSegtree::<u64>::new(&xs);
+        let mut segtree = RangeUpdateRangeXorSegtree::<u64>::from_slice(&xs);
         assert_eq!(segtree.range_xor(1..4), 20 ^ 30 ^ 40);
         segtree.set(2, 15);
         assert_eq!(segtree.range_xor(1..4), 20 ^ 15 ^ 40);
@@ -172,7 +181,7 @@ pub mod test_range_update_range_xor {
     #[test]
     fn test_apply_update() {
         let xs = vec![10u64, 20, 30, 40, 50];
-        let mut segtree = RangeUpdateRangeXorSegtree::<u64>::new(&xs);
+        let mut segtree = RangeUpdateRangeXorSegtree::<u64>::from_slice(&xs);
         segtree.apply_update(1, 5);
         assert_eq!(segtree.to_vec(), vec![10, 5, 30, 40, 50]);
         segtree.apply_update(1, 15);
@@ -182,7 +191,7 @@ pub mod test_range_update_range_xor {
     #[test]
     fn test_apply_range_update() {
         let xs = vec![10u64, 20, 30, 40, 50];
-        let mut segtree = RangeUpdateRangeXorSegtree::<u64>::new(&xs);
+        let mut segtree = RangeUpdateRangeXorSegtree::<u64>::from_slice(&xs);
         segtree.apply_range_update(1..4, 5);
         assert_eq!(segtree.to_vec(), vec![10, 5, 5, 5, 50]);
         segtree.apply_range_update(1..4, 20);
@@ -194,7 +203,7 @@ pub mod test_range_update_range_xor {
     #[test]
     fn test_to_vec() {
         let xs = vec![0u64, 1, 2, 3, 4, 5];
-        let mut segtree = RangeUpdateRangeXorSegtree::<u64>::new(&xs);
+        let mut segtree = RangeUpdateRangeXorSegtree::<u64>::from_slice(&xs);
         assert_eq!(segtree.to_vec(), vec![0, 1, 2, 3, 4, 5]);
         segtree.apply_range_update(1..4, 10);
         assert_eq!(segtree.to_vec(), vec![0, 10, 10, 10, 4, 5]);
@@ -203,7 +212,7 @@ pub mod test_range_update_range_xor {
     #[test]
     fn test_with_zeros() {
         let xs = vec![1u64, 2, 0, 4, 5];
-        let mut segtree = RangeUpdateRangeXorSegtree::<u64>::new(&xs);
+        let mut segtree = RangeUpdateRangeXorSegtree::<u64>::from_slice(&xs);
 
         // Initial state
         assert_eq!(segtree.all_xor(), 1 ^ 2 ^ 0 ^ 4 ^ 5);
@@ -239,7 +248,7 @@ pub mod test_range_update_range_xor {
         for _ in 0..100 {
             let n = rng.random_range(1..=20);
             let mut naive_vec: Vec<u64> = (0..n).map(|_| rng.random_range(0..=100)).collect();
-            let mut segtree = RangeUpdateRangeXorSegtree::<u64>::new(&naive_vec);
+            let mut segtree = RangeUpdateRangeXorSegtree::<u64>::from_slice(&naive_vec);
 
             for _ in 0..100 {
                 // 100 random operations per set

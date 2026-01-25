@@ -35,7 +35,12 @@ pub mod range_chmax_range_max {
     }
 
     impl RangeChmaxRangeMaxSegtree {
-        pub fn new(xs: &[i64]) -> RangeChmaxRangeMaxSegtree {
+        pub fn new(n: usize) -> Self {
+            let xs = vec![0; n];
+            Self::from_slice(&xs)
+        }
+
+        pub fn from_slice(xs: &[i64]) -> RangeChmaxRangeMaxSegtree {
             let len = xs.len();
             RangeChmaxRangeMaxSegtree {
                 segtree: LazySegtree::from(xs.to_vec()),
@@ -95,6 +100,10 @@ pub mod range_chmax_range_max {
             self.segtree.min_left(r, g)
         }
 
+        #[allow(clippy::len_without_is_empty)]
+        pub fn len(&self) -> usize {
+            self.len
+        }
         pub fn to_vec(&mut self) -> Vec<i64> {
             (0..self.len).map(|i| self.get(i)).collect_vec()
         }
@@ -108,7 +117,7 @@ pub mod test_range_chmax_range_max {
     #[test]
     fn test_new_and_get() {
         let xs = vec![10, 20, 30, 40, 50];
-        let mut segtree = RangeChmaxRangeMaxSegtree::new(&xs);
+        let mut segtree = RangeChmaxRangeMaxSegtree::from_slice(&xs);
         assert_eq!(segtree.get(0), 10);
         assert_eq!(segtree.get(2), 30);
         assert_eq!(segtree.get(4), 50);
@@ -117,7 +126,7 @@ pub mod test_range_chmax_range_max {
     #[test]
     fn test_set() {
         let xs = vec![10, 20, 30, 40, 50];
-        let mut segtree = RangeChmaxRangeMaxSegtree::new(&xs);
+        let mut segtree = RangeChmaxRangeMaxSegtree::from_slice(&xs);
         segtree.set(0, 5);
         assert_eq!(segtree.to_vec(), vec![5, 20, 30, 40, 50]);
         segtree.set(4, 45);
@@ -127,7 +136,7 @@ pub mod test_range_chmax_range_max {
     #[test]
     fn test_all_max() {
         let xs = vec![10, 20, 30, 40, 50];
-        let mut segtree = RangeChmaxRangeMaxSegtree::new(&xs);
+        let mut segtree = RangeChmaxRangeMaxSegtree::from_slice(&xs);
         assert_eq!(segtree.all_max(), 50);
         segtree.set(0, 55);
         assert_eq!(segtree.all_max(), 55);
@@ -136,7 +145,7 @@ pub mod test_range_chmax_range_max {
     #[test]
     fn test_range_max() {
         let xs = vec![10, 20, 30, 40, 50];
-        let mut segtree = RangeChmaxRangeMaxSegtree::new(&xs);
+        let mut segtree = RangeChmaxRangeMaxSegtree::from_slice(&xs);
         assert_eq!(segtree.range_max(1..4), 40);
         segtree.set(2, 45);
         assert_eq!(segtree.range_max(1..4), 45);
@@ -145,7 +154,7 @@ pub mod test_range_chmax_range_max {
     #[test]
     fn test_apply_chmax() {
         let xs = vec![10, 20, 30, 40, 50];
-        let mut segtree = RangeChmaxRangeMaxSegtree::new(&xs);
+        let mut segtree = RangeChmaxRangeMaxSegtree::from_slice(&xs);
         segtree.apply_chmax(1, 25);
         assert_eq!(segtree.to_vec(), vec![10, 25, 30, 40, 50]);
         segtree.apply_chmax(1, 15); // No change
@@ -155,7 +164,7 @@ pub mod test_range_chmax_range_max {
     #[test]
     fn test_apply_range_chmax() {
         let xs = vec![10, 20, 30, 40, 50];
-        let mut segtree = RangeChmaxRangeMaxSegtree::new(&xs);
+        let mut segtree = RangeChmaxRangeMaxSegtree::from_slice(&xs);
         segtree.apply_range_chmax(0..3, 35);
         assert_eq!(segtree.to_vec(), vec![35, 35, 35, 40, 50]);
         segtree.apply_range_chmax(2..5, 60);
@@ -165,7 +174,7 @@ pub mod test_range_chmax_range_max {
     #[test]
     fn test_max_right_min_left() {
         let xs = vec![1, 2, 3, 4, 5];
-        let mut segtree = RangeChmaxRangeMaxSegtree::new(&xs);
+        let mut segtree = RangeChmaxRangeMaxSegtree::from_slice(&xs);
         assert_eq!(segtree.max_right(0, |m| m <= 3), 3);
         assert_eq!(segtree.min_left(5, |m| m <= 3), 5);
         assert_eq!(segtree.min_left(3, |m| m <= 3), 0);
@@ -174,7 +183,7 @@ pub mod test_range_chmax_range_max {
     #[test]
     fn test_to_vec() {
         let xs = vec![0, 1, 2, 3, 4, 5];
-        let mut segtree = RangeChmaxRangeMaxSegtree::new(&xs);
+        let mut segtree = RangeChmaxRangeMaxSegtree::from_slice(&xs);
         assert_eq!(segtree.to_vec(), vec![0, 1, 2, 3, 4, 5]);
         segtree.apply_range_chmax(1..4, -1);
         assert_eq!(segtree.to_vec(), vec![0, 1, 2, 3, 4, 5]); // No change as -1 is smaller
@@ -192,7 +201,7 @@ pub mod test_range_chmax_range_max {
         for _ in 0..100 {
             let n = rng.random_range(1..=20);
             let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.random_range(-100..=100)).collect();
-            let mut segtree = RangeChmaxRangeMaxSegtree::new(&naive_vec);
+            let mut segtree = RangeChmaxRangeMaxSegtree::from_slice(&naive_vec);
 
             for _ in 0..100 {
                 // 100 random operations per set

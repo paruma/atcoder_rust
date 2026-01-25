@@ -37,7 +37,12 @@ pub mod range_chmin_range_min {
     }
 
     impl RangeChminRangeMinSegtree {
-        pub fn new(xs: &[i64]) -> RangeChminRangeMinSegtree {
+                pub fn new(n: usize) -> Self {
+            let xs = vec![0; n];
+            Self::from_slice(&xs)
+        }
+
+        pub fn from_slice(xs: &[i64]) -> RangeChminRangeMinSegtree {
             let len = xs.len();
             RangeChminRangeMinSegtree {
                 segtree: LazySegtree::from(xs.to_vec()),
@@ -97,6 +102,11 @@ pub mod range_chmin_range_min {
             self.segtree.min_left(r, g)
         }
 
+        
+        #[allow(clippy::len_without_is_empty)]
+        pub fn len(&self) -> usize {
+            self.len
+        }
         pub fn to_vec(&mut self) -> Vec<i64> {
             (0..self.len).map(|i| self.get(i)).collect_vec()
         }
@@ -110,7 +120,7 @@ pub mod test_range_chmin_range_min {
     #[test]
     fn test_new_and_get() {
         let xs = vec![10, 20, 30, 40, 50];
-        let mut segtree = RangeChminRangeMinSegtree::new(&xs);
+        let mut segtree = RangeChminRangeMinSegtree::from_slice(&xs);
         assert_eq!(segtree.get(0), 10);
         assert_eq!(segtree.get(2), 30);
         assert_eq!(segtree.get(4), 50);
@@ -119,7 +129,7 @@ pub mod test_range_chmin_range_min {
     #[test]
     fn test_set() {
         let xs = vec![10, 20, 30, 40, 50];
-        let mut segtree = RangeChminRangeMinSegtree::new(&xs);
+        let mut segtree = RangeChminRangeMinSegtree::from_slice(&xs);
         segtree.set(0, 5);
         assert_eq!(segtree.to_vec(), vec![5, 20, 30, 40, 50]);
         segtree.set(4, 45);
@@ -129,7 +139,7 @@ pub mod test_range_chmin_range_min {
     #[test]
     fn test_all_min() {
         let xs = vec![10, 20, 30, 40, 50];
-        let mut segtree = RangeChminRangeMinSegtree::new(&xs);
+        let mut segtree = RangeChminRangeMinSegtree::from_slice(&xs);
         assert_eq!(segtree.all_min(), 10);
         segtree.set(0, 5);
         assert_eq!(segtree.all_min(), 5);
@@ -138,7 +148,7 @@ pub mod test_range_chmin_range_min {
     #[test]
     fn test_range_min() {
         let xs = vec![10, 20, 30, 40, 50];
-        let mut segtree = RangeChminRangeMinSegtree::new(&xs);
+        let mut segtree = RangeChminRangeMinSegtree::from_slice(&xs);
         assert_eq!(segtree.range_min(1..4), 20);
         segtree.set(2, 15);
         assert_eq!(segtree.range_min(1..4), 15);
@@ -147,7 +157,7 @@ pub mod test_range_chmin_range_min {
     #[test]
     fn test_apply_chmin() {
         let xs = vec![10, 20, 30, 40, 50];
-        let mut segtree = RangeChminRangeMinSegtree::new(&xs);
+        let mut segtree = RangeChminRangeMinSegtree::from_slice(&xs);
         segtree.apply_chmin(1, 15);
         assert_eq!(segtree.to_vec(), vec![10, 15, 30, 40, 50]);
         segtree.apply_chmin(1, 25); // No change
@@ -157,7 +167,7 @@ pub mod test_range_chmin_range_min {
     #[test]
     fn test_apply_range_chmin() {
         let xs = vec![10, 20, 30, 40, 50];
-        let mut segtree = RangeChminRangeMinSegtree::new(&xs);
+        let mut segtree = RangeChminRangeMinSegtree::from_slice(&xs);
         segtree.apply_range_chmin(2..5, 25);
         assert_eq!(segtree.to_vec(), vec![10, 20, 25, 25, 25]);
         segtree.apply_range_chmin(0..3, 5);
@@ -167,7 +177,7 @@ pub mod test_range_chmin_range_min {
     #[test]
     fn test_max_right_min_left() {
         let xs = vec![5, 4, 3, 2, 1];
-        let mut segtree = RangeChminRangeMinSegtree::new(&xs);
+        let mut segtree = RangeChminRangeMinSegtree::from_slice(&xs);
         assert_eq!(segtree.max_right(0, |m| m >= 3), 3);
         assert_eq!(segtree.min_left(5, |m| m >= 3), 5);
         assert_eq!(segtree.min_left(3, |m| m >= 3), 0);
@@ -176,7 +186,7 @@ pub mod test_range_chmin_range_min {
     #[test]
     fn test_to_vec() {
         let xs = vec![0, 1, 2, 3, 4, 5];
-        let mut segtree = RangeChminRangeMinSegtree::new(&xs);
+        let mut segtree = RangeChminRangeMinSegtree::from_slice(&xs);
         assert_eq!(segtree.to_vec(), vec![0, 1, 2, 3, 4, 5]);
         segtree.apply_range_chmin(1..4, 100);
         assert_eq!(segtree.to_vec(), vec![0, 1, 2, 3, 4, 5]); // No change as 100 is greater
@@ -194,7 +204,7 @@ pub mod test_range_chmin_range_min {
         for _ in 0..100 {
             let n = rng.random_range(1..=20);
             let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.random_range(-100..=100)).collect();
-            let mut segtree = RangeChminRangeMinSegtree::new(&naive_vec);
+            let mut segtree = RangeChminRangeMinSegtree::from_slice(&naive_vec);
 
             for _ in 0..100 {
                 // 100 random operations per set

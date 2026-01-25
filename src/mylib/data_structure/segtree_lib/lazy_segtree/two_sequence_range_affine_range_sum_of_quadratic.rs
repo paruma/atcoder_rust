@@ -146,7 +146,12 @@ pub mod two_sequence_range_affine_range_sum_of_quadratic {
         T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
     {
         /// `xs` と `ys` の初期シーケンスでセグメント木を構築します。
-        pub fn new(xs: &[T], ys: &[T]) -> Self {
+        pub fn new(n: usize) -> Self {
+            let xs = vec![0.into(); n];
+            let ys = vec![0.into(); n];
+            Self::from_slice(&xs, &ys)
+        }
+        pub fn from_slice(xs: &[T], ys: &[T]) -> Self {
             assert_eq!(xs.len(), ys.len(), "xs and ys must have the same length");
             let xs_ys = xs
                 .iter()
@@ -252,6 +257,10 @@ pub mod two_sequence_range_affine_range_sum_of_quadratic {
         }
 
         /// セグメント木の現在の状態を `(Vec<T>, Vec<T>)` として返します。
+        #[allow(clippy::len_without_is_empty)]
+        pub fn len(&self) -> usize {
+            self.len
+        }
         pub fn to_vec(&mut self) -> (Vec<T>, Vec<T>) {
             (0..self.len).map(|i| self.get(i)).unzip()
         }
@@ -269,7 +278,8 @@ mod test {
     fn test_simple() {
         let xs = [1, 2, 3];
         let ys = [4, 5, 6];
-        let mut segtree = TwoSequenceRangeAffineRangeSumOfQuadraticSegtree::<Mint>::new(
+
+        let mut segtree = TwoSequenceRangeAffineRangeSumOfQuadraticSegtree::<Mint>::from_slice(
             &xs.map(Mint::new),
             &ys.map(Mint::new),
         );
@@ -371,8 +381,9 @@ mod test {
             let n = rng.random_range(1..=20);
             let mut naive_xs: Vec<i64> = (0..n).map(|_| rng.random_range(-100..=100)).collect();
             let mut naive_ys: Vec<i64> = (0..n).map(|_| rng.random_range(-100..=100)).collect();
-            let mut segtree =
-                TwoSequenceRangeAffineRangeSumOfQuadraticSegtree::<i64>::new(&naive_xs, &naive_ys);
+            let mut segtree = TwoSequenceRangeAffineRangeSumOfQuadraticSegtree::<i64>::from_slice(
+                &naive_xs, &naive_ys,
+            );
 
             for _ in 0..50 {
                 let op_type = rng.random_range(0..16);

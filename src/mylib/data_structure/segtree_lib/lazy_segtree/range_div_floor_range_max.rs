@@ -57,7 +57,12 @@ pub mod range_div_floor_range_max {
     }
 
     impl RangeDivFloorRangeMaxSegtree {
-        pub fn new(xs: &[i64]) -> RangeDivFloorRangeMaxSegtree {
+        pub fn new(n: usize) -> Self {
+            let xs = vec![0; n];
+            Self::from_slice(&xs)
+        }
+
+        pub fn from_slice(xs: &[i64]) -> RangeDivFloorRangeMaxSegtree {
             let len = xs.len();
             RangeDivFloorRangeMaxSegtree {
                 segtree: LazySegtree::from(xs.to_vec()),
@@ -119,6 +124,10 @@ pub mod range_div_floor_range_max {
             self.segtree.min_left(r, g)
         }
 
+        #[allow(clippy::len_without_is_empty)]
+        pub fn len(&self) -> usize {
+            self.len
+        }
         pub fn to_vec(&mut self) -> Vec<i64> {
             (0..self.len).map(|i| self.get(i)).collect_vec()
         }
@@ -132,7 +141,7 @@ mod test_range_div_floor_range_max {
     #[test]
     fn test_new_and_get() {
         let xs = vec![10, 20, 30, 40, 50];
-        let mut segtree = RangeDivFloorRangeMaxSegtree::new(&xs);
+        let mut segtree = RangeDivFloorRangeMaxSegtree::from_slice(&xs);
         assert_eq!(segtree.get(0), 10);
         assert_eq!(segtree.get(2), 30);
         assert_eq!(segtree.get(4), 50);
@@ -141,7 +150,7 @@ mod test_range_div_floor_range_max {
     #[test]
     fn test_range_max() {
         let xs = vec![10, 50, 30, 40, 20];
-        let mut segtree = RangeDivFloorRangeMaxSegtree::new(&xs);
+        let mut segtree = RangeDivFloorRangeMaxSegtree::from_slice(&xs);
         assert_eq!(segtree.range_max(1..4), 50);
         assert_eq!(segtree.range_max(2..5), 40);
     }
@@ -149,7 +158,7 @@ mod test_range_div_floor_range_max {
     #[test]
     fn test_apply_div_floor() {
         let xs = vec![10, 20, 30];
-        let mut segtree = RangeDivFloorRangeMaxSegtree::new(&xs);
+        let mut segtree = RangeDivFloorRangeMaxSegtree::from_slice(&xs);
         segtree.apply_div_floor(1, 2);
         assert_eq!(segtree.get(1), 10);
         segtree.apply_div_floor(2, 3);
@@ -159,7 +168,7 @@ mod test_range_div_floor_range_max {
     #[test]
     fn test_apply_range_div_floor() {
         let xs = vec![10, 20, 30, 40, 50];
-        let mut segtree = RangeDivFloorRangeMaxSegtree::new(&xs);
+        let mut segtree = RangeDivFloorRangeMaxSegtree::from_slice(&xs);
         segtree.apply_range_div_floor(1..4, 2);
         // [10, 10, 15, 20, 50]
         assert_eq!(segtree.to_vec(), vec![10, 10, 15, 20, 50]);
@@ -174,7 +183,7 @@ mod test_range_div_floor_range_max {
     fn test_negative_values() {
         // -5 / 2 = -3 (floor)
         let xs = vec![-10, -5, 0, 5, 10];
-        let mut segtree = RangeDivFloorRangeMaxSegtree::new(&xs);
+        let mut segtree = RangeDivFloorRangeMaxSegtree::from_slice(&xs);
         segtree.apply_range_div_floor(0..5, 2);
         assert_eq!(segtree.to_vec(), vec![-5, -3, 0, 2, 5]);
         assert_eq!(segtree.range_max(0..5), 5);
@@ -187,7 +196,7 @@ mod test_range_div_floor_range_max {
     #[test]
     fn test_composition_overflow() {
         let xs = vec![100, 200];
-        let mut segtree = RangeDivFloorRangeMaxSegtree::new(&xs);
+        let mut segtree = RangeDivFloorRangeMaxSegtree::from_slice(&xs);
 
         // 10^12 * 10^12 will overflow i64.
         // With saturating_mul, it becomes i64::MAX.
@@ -206,7 +215,7 @@ mod test_range_div_floor_range_max {
     #[test]
     fn test_max_right_min_left() {
         let xs = vec![1, 10, 5, 20, 3];
-        let mut segtree = RangeDivFloorRangeMaxSegtree::new(&xs);
+        let mut segtree = RangeDivFloorRangeMaxSegtree::from_slice(&xs);
         // max_right: [0, r) で max が 10 以下の最大の r -> [0, 3) max=10, [0, 4) max=20
         assert_eq!(segtree.max_right(0, |m| m <= 10), 3);
         // min_left: [l, 5) で max が 10 以下の最小の l -> [4, 5) max=3, [3, 5) max=20
@@ -224,7 +233,7 @@ mod test_range_div_floor_range_max {
             let n = rng.random_range(1..=20);
             // 負の数も含めてテスト
             let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.random_range(-1000..=1000)).collect();
-            let mut segtree = RangeDivFloorRangeMaxSegtree::new(&naive_vec);
+            let mut segtree = RangeDivFloorRangeMaxSegtree::from_slice(&naive_vec);
 
             for _ in 0..100 {
                 let op_type = rng.random_range(0..5);
