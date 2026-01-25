@@ -1,28 +1,28 @@
-use crate::data_structure::segtree_lib::fenwick_tree::fenwick_tree_2d::fenwick_tree_2d::FenwickTree2DArbitrary;
+use crate::data_structure::segtree_lib::fenwick_tree::rect_sum_fenwick_tree_2d::rect_sum_fenwick_tree_2d::RectSumFenwickTree2DArbitrary;
 use crate::math::algebra::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
 use cargo_snippet::snippet;
 
 #[snippet(
     prefix = "use rect_add_rect_sum_fenwick_tree::*;",
-    include = "fenwick_tree_2d"
+    include = "rect_sum_fenwick_tree_2d"
 )]
 #[allow(clippy::module_inception)]
 pub mod rect_add_rect_sum_fenwick_tree {
-    use super::{AbGroup, AdditiveAbGroup, FenwickTree2DArbitrary};
+    use super::{AbGroup, AdditiveAbGroup, RectSumFenwickTree2DArbitrary};
     use std::ops::{Bound, RangeBounds};
 
-    /// 矩形加算・矩形和取得が可能な 2次元 Fenwick Tree。
+    /// 矩形加算・矩形和取得が可能な 2次元 Fenwick Tree (Rect Add Rect Sum Fenwick Tree 2D)。
     ///
-    /// 内部的には 4 つの `FenwickTree2DArbitrary` を用いて、
+    /// 内部的には 4 つの `RectSumFenwickTree2DArbitrary` を用いて、
     /// 2次元累積和の各項を管理しています。
     #[derive(Clone)]
     pub struct RectAddRectSumFenwickTreeArbitrary<G: AbGroup> {
         h: usize,
         w: usize,
-        bit00: FenwickTree2DArbitrary<G>,
-        bit01: FenwickTree2DArbitrary<G>,
-        bit10: FenwickTree2DArbitrary<G>,
-        bit11: FenwickTree2DArbitrary<G>,
+        bit00: RectSumFenwickTree2DArbitrary<G>,
+        bit01: RectSumFenwickTree2DArbitrary<G>,
+        bit10: RectSumFenwickTree2DArbitrary<G>,
+        bit11: RectSumFenwickTree2DArbitrary<G>,
     }
 
     /// i64 の加算群を用いた標準的な 2次元矩形加算・矩形和 Fenwick Tree のエイリアス。
@@ -44,10 +44,10 @@ pub mod rect_add_rect_sum_fenwick_tree {
             Self {
                 h,
                 w,
-                bit00: FenwickTree2DArbitrary::new(h + 1, w + 1),
-                bit01: FenwickTree2DArbitrary::new(h + 1, w + 1),
-                bit10: FenwickTree2DArbitrary::new(h + 1, w + 1),
-                bit11: FenwickTree2DArbitrary::new(h + 1, w + 1),
+                bit00: RectSumFenwickTree2DArbitrary::new(h + 1, w + 1),
+                bit01: RectSumFenwickTree2DArbitrary::new(h + 1, w + 1),
+                bit10: RectSumFenwickTree2DArbitrary::new(h + 1, w + 1),
+                bit11: RectSumFenwickTree2DArbitrary::new(h + 1, w + 1),
             }
         }
 

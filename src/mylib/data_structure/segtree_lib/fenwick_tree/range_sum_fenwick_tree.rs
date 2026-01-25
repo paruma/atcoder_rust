@@ -1,9 +1,9 @@
 use crate::math::algebra::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
 use cargo_snippet::snippet;
 
-#[snippet(prefix = "use fenwick_tree::*;", include = "ab_group")]
+#[snippet(prefix = "use range_sum_fenwick_tree::*;", include = "ab_group")]
 #[allow(clippy::module_inception)]
-pub mod fenwick_tree {
+pub mod range_sum_fenwick_tree {
     use super::{AbGroup, AdditiveAbGroup};
     use std::ops::{Bound, RangeBounds};
 
@@ -12,18 +12,20 @@ pub mod fenwick_tree {
     /// 0-indexed で実装されています。
     /// 基本的な加算・区間和クエリに加え、get/set や、二分探索 (max_right / min_left) を提供します。
     #[derive(Clone)]
-    pub struct FenwickTreeArbitrary<G: AbGroup> {
+    pub struct RangeSumFenwickTreeArbitrary<G: AbGroup> {
         n: usize,
         ary: Vec<G::S>,
     }
 
     /// i64 の加算群を用いた標準的な Fenwick Tree のエイリアス。
-    pub type FenwickTreeI64 = FenwickTreeArbitrary<AdditiveAbGroup<i64>>;
+    pub type RangeSumFenwickTreeI64 = RangeSumFenwickTreeArbitrary<AdditiveAbGroup<i64>>;
 
     /// 任意の数値型 T の加算群を用いた Fenwick Tree のエイリアス。
-    pub type FenwickTree<T> = FenwickTreeArbitrary<AdditiveAbGroup<T>>;
+    pub type RangeSumFenwickTree<T> = RangeSumFenwickTreeArbitrary<AdditiveAbGroup<T>>;
 
-    impl<G: AbGroup> FenwickTreeArbitrary<G> {
+    pub type FenwickTree<T> = RangeSumFenwickTree<T>;
+
+    impl<G: AbGroup> RangeSumFenwickTreeArbitrary<G> {
         /// サイズ `n` の Fenwick Tree を作成します。
         /// 要素はすべて `G::zero()` で初期化されます。
         ///
@@ -34,7 +36,7 @@ pub mod fenwick_tree {
             for _ in 0..n {
                 ary.push(G::zero());
             }
-            FenwickTreeArbitrary { n, ary }
+            RangeSumFenwickTreeArbitrary { n, ary }
         }
 
         /// 配列スライスから Fenwick Tree を作成します。
@@ -51,7 +53,7 @@ pub mod fenwick_tree {
                     ary[j] = G::add(&ary[j], &val_i);
                 }
             }
-            FenwickTreeArbitrary { n, ary }
+            RangeSumFenwickTreeArbitrary { n, ary }
         }
 
         /// `[0, idx)` の区間の総和を計算します。
@@ -64,7 +66,7 @@ pub mod fenwick_tree {
         pub fn accum(&self, mut idx: usize) -> G::S {
             assert!(
                 idx <= self.n,
-                "FenwickTreeArbitrary::accum: index out of bounds. idx: {}, n: {}",
+                "RangeSumFenwickTreeArbitrary::accum: index out of bounds. idx: {}, n: {}",
                 idx,
                 self.n
             );
@@ -86,7 +88,7 @@ pub mod fenwick_tree {
         pub fn add(&mut self, mut idx: usize, val: G::S) {
             assert!(
                 idx < self.n,
-                "FenwickTreeArbitrary::add: index out of bounds. idx: {}, n: {}",
+                "RangeSumFenwickTreeArbitrary::add: index out of bounds. idx: {}, n: {}",
                 idx,
                 self.n
             );
@@ -121,7 +123,7 @@ pub mod fenwick_tree {
             };
             assert!(
                 l <= r && r <= self.n,
-                "FenwickTreeArbitrary::range_sum: invalid range. l: {}, r: {}, n: {}",
+                "RangeSumFenwickTreeArbitrary::range_sum: invalid range. l: {}, r: {}, n: {}",
                 l,
                 r,
                 self.n
@@ -146,14 +148,14 @@ pub mod fenwick_tree {
         {
             assert!(
                 l <= self.n,
-                "FenwickTreeArbitrary::max_right: index out of bounds. l: {}, n: {}",
+                "RangeSumFenwickTreeArbitrary::max_right: index out of bounds. l: {}, n: {}",
                 l,
                 self.n
             );
             let zero = G::zero();
             assert!(
                 f(&zero),
-                "FenwickTreeArbitrary::max_right: The predicate f(zero) must be true."
+                "RangeSumFenwickTreeArbitrary::max_right: The predicate f(zero) must be true."
             );
             let val_l = self.accum(l);
             let mut r = 0;
@@ -194,14 +196,14 @@ pub mod fenwick_tree {
         {
             assert!(
                 r <= self.n,
-                "FenwickTreeArbitrary::min_left: index out of bounds. r: {}, n: {}",
+                "RangeSumFenwickTreeArbitrary::min_left: index out of bounds. r: {}, n: {}",
                 r,
                 self.n
             );
             let zero = G::zero();
             assert!(
                 f(&zero),
-                "FenwickTreeArbitrary::min_left: The predicate f(zero) must be true."
+                "RangeSumFenwickTreeArbitrary::min_left: The predicate f(zero) must be true."
             );
 
             let val_r = self.accum(r);
@@ -240,7 +242,7 @@ pub mod fenwick_tree {
         pub fn get(&self, idx: usize) -> G::S {
             assert!(
                 idx < self.n,
-                "FenwickTreeArbitrary::get: index out of bounds. idx: {}, n: {}",
+                "RangeSumFenwickTreeArbitrary::get: index out of bounds. idx: {}, n: {}",
                 idx,
                 self.n
             );
@@ -257,7 +259,7 @@ pub mod fenwick_tree {
         pub fn set(&mut self, idx: usize, val: G::S) {
             assert!(
                 idx < self.n,
-                "FenwickTreeArbitrary::set: index out of bounds. idx: {}, n: {}",
+                "RangeSumFenwickTreeArbitrary::set: index out of bounds. idx: {}, n: {}",
                 idx,
                 self.n
             );
@@ -283,20 +285,20 @@ pub mod fenwick_tree {
 
 #[cfg(test)]
 mod tests {
-    use super::fenwick_tree::*;
+    use super::range_sum_fenwick_tree::*;
     use crate::math::algebra::ab_group::ab_group::AdditiveAbGroup;
     use rand::{Rng, SeedableRng, rngs::SmallRng};
 
     #[test]
     #[ignore]
-    fn test_random_fenwick_tree_arbitrary() {
+    fn test_random_range_sum_fenwick_tree_arbitrary() {
         type G = AdditiveAbGroup<i64>;
         let mut rng = SmallRng::seed_from_u64(42);
 
         for _ in 0..100 {
             let n = rng.random_range(1..=20);
             let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.random_range(-100..=100)).collect();
-            let mut fenwick_tree = FenwickTreeArbitrary::<G>::from_slice(&naive_vec);
+            let mut fenwick_tree = RangeSumFenwickTreeArbitrary::<G>::from_slice(&naive_vec);
 
             for _ in 0..100 {
                 let op_type = rng.random_range(0..4); // 0: add, 1: get, 2: set, 3: range_sum
@@ -345,16 +347,16 @@ mod tests {
     #[test]
     fn test_len() {
         type G = AdditiveAbGroup<i64>;
-        let ft1 = FenwickTreeArbitrary::<G>::new(10);
+        let ft1 = RangeSumFenwickTreeArbitrary::<G>::new(10);
         assert_eq!(ft1.len(), 10);
 
         let initial_vec = vec![1, 2, 3];
-        let ft2 = FenwickTreeArbitrary::<G>::from_slice(&initial_vec);
+        let ft2 = RangeSumFenwickTreeArbitrary::<G>::from_slice(&initial_vec);
         assert_eq!(ft2.len(), 3);
 
-        let ft_empty1 = FenwickTreeArbitrary::<G>::new(0);
+        let ft_empty1 = RangeSumFenwickTreeArbitrary::<G>::new(0);
         assert_eq!(ft_empty1.len(), 0);
-        let ft_empty2 = FenwickTreeArbitrary::<G>::from_slice(&[]);
+        let ft_empty2 = RangeSumFenwickTreeArbitrary::<G>::from_slice(&[]);
         assert_eq!(ft_empty2.len(), 0);
     }
 
@@ -362,18 +364,18 @@ mod tests {
     fn test_from_slice() {
         type G = AdditiveAbGroup<i64>;
         let initial_vec = vec![1, 2, 3, 4, 5];
-        let ft = FenwickTreeArbitrary::<G>::from_slice(&initial_vec);
+        let ft = RangeSumFenwickTreeArbitrary::<G>::from_slice(&initial_vec);
         assert_eq!(ft.to_vec(), initial_vec);
 
         let empty_vec: Vec<i64> = vec![];
-        let ft_empty = FenwickTreeArbitrary::<G>::from_slice(&empty_vec);
+        let ft_empty = RangeSumFenwickTreeArbitrary::<G>::from_slice(&empty_vec);
         assert_eq!(ft_empty.to_vec(), empty_vec);
     }
 
     #[test]
     fn test_range_sum_empty() {
         type G = AdditiveAbGroup<i64>;
-        let ft_empty = FenwickTreeArbitrary::<G>::new(0);
+        let ft_empty = RangeSumFenwickTreeArbitrary::<G>::new(0);
         assert_eq!(ft_empty.range_sum(0..0), 0);
     }
 
@@ -381,7 +383,7 @@ mod tests {
     fn test_range_sum_patterns() {
         type G = AdditiveAbGroup<i64>;
         let initial_vec = vec![1, 2, 4, 8, 16];
-        let ft = FenwickTreeArbitrary::<G>::from_slice(&initial_vec);
+        let ft = RangeSumFenwickTreeArbitrary::<G>::from_slice(&initial_vec);
 
         assert_eq!(ft.range_sum(..3), 1 + 2 + 4);
         assert_eq!(ft.range_sum(..=3), 1 + 2 + 4 + 8);
@@ -414,7 +416,7 @@ mod tests {
     #[should_panic(expected = "index out of bounds")]
     fn test_add_empty_tree_panics() {
         type G = AdditiveAbGroup<i64>;
-        let mut ft_empty = FenwickTreeArbitrary::<G>::new(0);
+        let mut ft_empty = RangeSumFenwickTreeArbitrary::<G>::new(0);
         ft_empty.add(0, 1);
     }
 
@@ -422,7 +424,7 @@ mod tests {
     #[should_panic(expected = "index out of bounds")]
     fn test_set_empty_tree_panics() {
         type G = AdditiveAbGroup<i64>;
-        let mut ft_empty = FenwickTreeArbitrary::<G>::new(0);
+        let mut ft_empty = RangeSumFenwickTreeArbitrary::<G>::new(0);
         ft_empty.set(0, 1);
     }
 
@@ -430,7 +432,7 @@ mod tests {
     fn test_xor_fenwick_tree() {
         use crate::math::algebra::ab_group::ab_group::XorAbGroup;
         let initial_vec: Vec<u64> = vec![1, 2, 4, 8, 16];
-        let mut ft = FenwickTreeArbitrary::<XorAbGroup>::from_slice(&initial_vec);
+        let mut ft = RangeSumFenwickTreeArbitrary::<XorAbGroup>::from_slice(&initial_vec);
 
         // 1 ^ 2 ^ 4 = 7
         assert_eq!(ft.range_sum(0..3), 7);
@@ -449,7 +451,7 @@ mod tests {
             let n = rng.random_range(1..=20);
             // 非負の要素で構成する
             let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.random_range(0..=10)).collect();
-            let mut fenwick_tree = FenwickTreeArbitrary::<G>::from_slice(&naive_vec);
+            let mut fenwick_tree = RangeSumFenwickTreeArbitrary::<G>::from_slice(&naive_vec);
 
             for _ in 0..100 {
                 let op_type = rng.random_range(0..2);
@@ -495,7 +497,7 @@ mod tests {
             let n = rng.random_range(1..=20);
             // 非負の要素で構成する
             let mut naive_vec: Vec<i64> = (0..n).map(|_| rng.random_range(0..=10)).collect();
-            let mut fenwick_tree = FenwickTreeArbitrary::<G>::from_slice(&naive_vec);
+            let mut fenwick_tree = RangeSumFenwickTreeArbitrary::<G>::from_slice(&naive_vec);
 
             for _ in 0..100 {
                 let op_type = rng.random_range(0..2);

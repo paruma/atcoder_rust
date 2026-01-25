@@ -1,30 +1,30 @@
 use crate::math::algebra::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
 use cargo_snippet::snippet;
 
-#[snippet(prefix = "use fenwick_tree_2d::*;", include = "ab_group")]
+#[snippet(prefix = "use rect_sum_fenwick_tree_2d::*;", include = "ab_group")]
 #[allow(clippy::module_inception)]
-pub mod fenwick_tree_2d {
+pub mod rect_sum_fenwick_tree_2d {
     use super::{AbGroup, AdditiveAbGroup};
     use std::ops::{Bound, RangeBounds};
 
-    /// 可換群 (AbGroup) を用いた汎用的な 2次元 Fenwick Tree。
+    /// 可換群 (AbGroup) を用いた汎用的な 2次元 Fenwick Tree (Rect Sum Fenwick Tree 2D)。
     ///
     /// 0-indexed で実装されています。
     /// 矩形領域の和の取得（2次元累積和）と要素への加算を O(log H * log W) で行います。
     #[derive(Clone)]
-    pub struct FenwickTree2DArbitrary<G: AbGroup> {
+    pub struct RectSumFenwickTree2DArbitrary<G: AbGroup> {
         h: usize,
         w: usize,
         data: Vec<Vec<G::S>>,
     }
 
     /// i64 の加算群を用いた標準的な 2次元 Fenwick Tree のエイリアス。
-    pub type FenwickTree2DI64 = FenwickTree2DArbitrary<AdditiveAbGroup<i64>>;
+    pub type RectSumFenwickTree2DI64 = RectSumFenwickTree2DArbitrary<AdditiveAbGroup<i64>>;
 
     /// 任意の数値型 T の加算群を用いた 2次元 Fenwick Tree のエイリアス。
-    pub type FenwickTree2D<T> = FenwickTree2DArbitrary<AdditiveAbGroup<T>>;
+    pub type RectSumFenwickTree2D<T> = RectSumFenwickTree2DArbitrary<AdditiveAbGroup<T>>;
 
-    impl<G: AbGroup> FenwickTree2DArbitrary<G> {
+    impl<G: AbGroup> RectSumFenwickTree2DArbitrary<G> {
         /// H × W の 2次元 Fenwick Tree を作成します。
         /// 要素はすべて `G::zero()` で初期化されます。
         ///
@@ -52,7 +52,7 @@ pub mod fenwick_tree_2d {
         pub fn add(&mut self, mut y: usize, x: usize, val: G::S) {
             assert!(
                 y < self.h && x < self.w,
-                "FenwickTree2D::add: out of bounds"
+                "RectSumFenwickTree2D::add: out of bounds"
             );
             y += 1;
             while y <= self.h {
@@ -75,7 +75,7 @@ pub mod fenwick_tree_2d {
         pub fn accum(&self, mut y: usize, x: usize) -> G::S {
             assert!(
                 y <= self.h && x <= self.w,
-                "FenwickTree2D::accum: out of bounds"
+                "RectSumFenwickTree2D::accum: out of bounds"
             );
             let mut res = G::zero();
             while y > 0 {
@@ -124,11 +124,11 @@ pub mod fenwick_tree_2d {
 
             assert!(
                 y1 <= y2 && y2 <= self.h,
-                "FenwickTree2D::rect_sum: invalid y range"
+                "RectSumFenwickTree2D::rect_sum: invalid y range"
             );
             assert!(
                 x1 <= x2 && x2 <= self.w,
-                "FenwickTree2D::rect_sum: invalid x range"
+                "RectSumFenwickTree2D::rect_sum: invalid x range"
             );
 
             // 二次元累積和の原理 (包除原理): S(y2, x2) - S(y1, x2) - S(y2, x1) + S(y1, x1)
@@ -171,15 +171,15 @@ pub mod fenwick_tree_2d {
 
 #[cfg(test)]
 mod tests {
-    use super::fenwick_tree_2d::*;
+    use super::rect_sum_fenwick_tree_2d::*;
     use crate::math::algebra::ab_group::ab_group::AdditiveAbGroup;
     use rand::{Rng, SeedableRng, rngs::SmallRng};
 
     #[test]
     #[allow(clippy::useless_vec)]
-    fn test_fenwick_tree_2d_basic() {
+    fn test_rect_sum_fenwick_tree_2d_basic() {
         type G = AdditiveAbGroup<i64>;
-        let mut ft = FenwickTree2DArbitrary::<G>::new(3, 3);
+        let mut ft = RectSumFenwickTree2DArbitrary::<G>::new(3, 3);
 
         // [1 2 3]
         // [4 5 6]
@@ -205,7 +205,7 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn test_random_fenwick_tree_2d() {
+    fn test_random_rect_sum_fenwick_tree_2d() {
         type G = AdditiveAbGroup<i64>;
         let mut rng = SmallRng::seed_from_u64(42);
 
@@ -213,7 +213,7 @@ mod tests {
             let h = rng.random_range(1..=10);
             let w = rng.random_range(1..=10);
             let mut naive = vec![vec![0i64; w]; h];
-            let mut ft = FenwickTree2DArbitrary::<G>::new(h, w);
+            let mut ft = RectSumFenwickTree2DArbitrary::<G>::new(h, w);
 
             for _ in 0..50 {
                 let op = rng.random_range(0..3);

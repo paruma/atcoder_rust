@@ -1,28 +1,31 @@
-use crate::data_structure::segtree_lib::fenwick_tree::fenwick_tree_2d::fenwick_tree_2d::FenwickTree2DArbitrary;
+use crate::data_structure::segtree_lib::fenwick_tree::rect_sum_fenwick_tree_2d::rect_sum_fenwick_tree_2d::RectSumFenwickTree2DArbitrary;
 use crate::math::algebra::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
 use cargo_snippet::snippet;
 
-#[snippet(prefix = "use dual_fenwick_tree_2d::*;", include = "fenwick_tree_2d")]
+#[snippet(
+    prefix = "use rect_add_fenwick_tree_2d::*;",
+    include = "rect_sum_fenwick_tree_2d"
+)]
 #[allow(clippy::module_inception)]
-pub mod dual_fenwick_tree_2d {
-    use super::{AbGroup, AdditiveAbGroup, FenwickTree2DArbitrary};
+pub mod rect_add_fenwick_tree_2d {
+    use super::{AbGroup, AdditiveAbGroup, RectSumFenwickTree2DArbitrary};
     use std::ops::{Bound, RangeBounds};
 
-    /// 矩形加算・一点取得が可能な 2次元 Fenwick Tree (Dual Fenwick Tree 2D)。
+    /// 矩形加算・一点取得が可能な 2次元 Fenwick Tree (Rect Add Fenwick Tree 2D)。
     ///
-    /// 内部的には 2次元の階差数列を `FenwickTree2DArbitrary` で管理しています。
+    /// 内部的には 2次元の階差数列を `RectSumFenwickTree2DArbitrary` で管理しています。
     #[derive(Clone)]
-    pub struct DualFenwickTree2DArbitrary<G: AbGroup> {
-        ft: FenwickTree2DArbitrary<G>,
+    pub struct RectAddFenwickTree2DArbitrary<G: AbGroup> {
+        ft: RectSumFenwickTree2DArbitrary<G>,
     }
 
     /// i64 の加算群を用いた標準的な 2次元双対 Fenwick Tree のエイリアス。
-    pub type DualFenwickTree2DI64 = DualFenwickTree2DArbitrary<AdditiveAbGroup<i64>>;
+    pub type RectAddFenwickTree2DI64 = RectAddFenwickTree2DArbitrary<AdditiveAbGroup<i64>>;
 
     /// 任意の数値型 T の加算群を用いた 2次元双対 Fenwick Tree のエイリアス。
-    pub type DualFenwickTree2D<T> = DualFenwickTree2DArbitrary<AdditiveAbGroup<T>>;
+    pub type RectAddFenwickTree2D<T> = RectAddFenwickTree2DArbitrary<AdditiveAbGroup<T>>;
 
-    impl<G: AbGroup> DualFenwickTree2DArbitrary<G> {
+    impl<G: AbGroup> RectAddFenwickTree2DArbitrary<G> {
         /// H × W の 2次元双対 Fenwick Tree を作成します。
         /// 要素はすべて `G::zero()` で初期化されます。
         ///
@@ -30,7 +33,7 @@ pub mod dual_fenwick_tree_2d {
         /// O(H * W)
         pub fn new(h: usize, w: usize) -> Self {
             Self {
-                ft: FenwickTree2DArbitrary::new(h + 1, w + 1),
+                ft: RectSumFenwickTree2DArbitrary::new(h + 1, w + 1),
             }
         }
 
@@ -72,11 +75,11 @@ pub mod dual_fenwick_tree_2d {
 
             assert!(
                 y1 <= y2 && y2 <= h,
-                "DualFenwickTree2D::rect_add: invalid y range"
+                "RectAddFenwickTree2D::rect_add: invalid y range"
             );
             assert!(
                 x1 <= x2 && x2 <= w,
-                "DualFenwickTree2D::rect_add: invalid x range"
+                "RectAddFenwickTree2D::rect_add: invalid x range"
             );
 
             // 2次元いもす法の原理: 4点への加算
@@ -96,7 +99,7 @@ pub mod dual_fenwick_tree_2d {
         pub fn get(&self, y: usize, x: usize) -> G::S {
             let h = self.ft.len_h() - 1;
             let w = self.ft.len_w() - 1;
-            assert!(y < h && x < w, "DualFenwickTree2D::get: out of bounds");
+            assert!(y < h && x < w, "RectAddFenwickTree2D::get: out of bounds");
             // 階差の 2次元累積和が元の値になる
             self.ft.accum(y + 1, x + 1)
         }
@@ -117,15 +120,15 @@ pub mod dual_fenwick_tree_2d {
 
 #[cfg(test)]
 mod tests {
-    use super::dual_fenwick_tree_2d::*;
+    use super::rect_add_fenwick_tree_2d::*;
     use crate::math::algebra::ab_group::ab_group::AdditiveAbGroup;
     use rand::{Rng, SeedableRng, rngs::SmallRng};
 
     #[test]
-    fn test_dual_fenwick_tree_2d_basic() {
+    fn test_rect_add_fenwick_tree_2d_basic() {
         type G = AdditiveAbGroup<i64>;
         let (h, w) = (4, 4);
-        let mut ft = DualFenwickTree2DArbitrary::<G>::new(h, w);
+        let mut ft = RectAddFenwickTree2DArbitrary::<G>::new(h, w);
 
         // [1, 3) x [1, 3) に 5 を加算
         ft.rect_add(1..3, 1..3, 5);
@@ -145,7 +148,7 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn test_random_dual_fenwick_tree_2d() {
+    fn test_random_rect_add_fenwick_tree_2d() {
         type G = AdditiveAbGroup<i64>;
         let mut rng = SmallRng::seed_from_u64(42);
 
@@ -153,7 +156,7 @@ mod tests {
             let h = rng.random_range(1..=10);
             let w = rng.random_range(1..=10);
             let mut naive = vec![vec![0i64; w]; h];
-            let mut ft = DualFenwickTree2DArbitrary::<G>::new(h, w);
+            let mut ft = RectAddFenwickTree2DArbitrary::<G>::new(h, w);
 
             for _ in 0..50 {
                 let op = rng.random_range(0..2);

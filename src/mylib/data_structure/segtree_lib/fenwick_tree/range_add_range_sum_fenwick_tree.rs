@@ -1,22 +1,22 @@
-use crate::data_structure::segtree_lib::fenwick_tree::fenwick_tree::fenwick_tree::FenwickTreeArbitrary;
+use crate::data_structure::segtree_lib::fenwick_tree::range_sum_fenwick_tree::range_sum_fenwick_tree::RangeSumFenwickTreeArbitrary;
 use crate::math::algebra::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
 use cargo_snippet::snippet;
 
 #[snippet(
     prefix = "use range_add_range_sum_fenwick_tree::*;",
-    include = "fenwick_tree"
+    include = "range_sum_fenwick_tree"
 )]
 #[allow(clippy::module_inception)]
 pub mod range_add_range_sum_fenwick_tree {
-    use super::{AbGroup, AdditiveAbGroup, FenwickTreeArbitrary};
+    use super::{AbGroup, AdditiveAbGroup, RangeSumFenwickTreeArbitrary};
     use std::ops::{Bound, RangeBounds};
 
-    /// 区間加算・区間和取得が可能な Fenwick Tree。
+    /// 区間加算・区間和取得が可能な Fenwick Tree (Range Add Range Sum Fenwick Tree)。
     #[derive(Clone)]
     pub struct RangeAddRangeSumFenwickTreeArbitrary<G: AbGroup> {
         n: usize,
-        ft0: FenwickTreeArbitrary<G>,
-        ft1: FenwickTreeArbitrary<G>,
+        ft0: RangeSumFenwickTreeArbitrary<G>,
+        ft1: RangeSumFenwickTreeArbitrary<G>,
     }
 
     /// i64 の加算群を用いた標準的な Range Add Range Sum Fenwick Tree のエイリアス。
@@ -38,8 +38,8 @@ pub mod range_add_range_sum_fenwick_tree {
         pub fn new(n: usize) -> Self {
             RangeAddRangeSumFenwickTreeArbitrary {
                 n,
-                ft0: FenwickTreeArbitrary::new(n + 1),
-                ft1: FenwickTreeArbitrary::new(n + 1),
+                ft0: RangeSumFenwickTreeArbitrary::new(n + 1),
+                ft1: RangeSumFenwickTreeArbitrary::new(n + 1),
             }
         }
 
