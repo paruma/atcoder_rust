@@ -8,7 +8,7 @@ enum Query {
     Chmin { l: usize, r: usize, val: i64 },
     Chmax { l: usize, r: usize, val: i64 },
     Add { l: usize, r: usize, val: i64 },
-    RangeQuery { l: usize, r: usize },
+    Range { l: usize, r: usize },
 }
 
 fn main() {
@@ -28,7 +28,7 @@ fn main() {
                 0 => Query::Chmin { l, r, val },
                 1 => Query::Chmax { l, r, val },
                 2 => Query::Add { l, r, val },
-                3 => Query::RangeQuery { l, r },
+                3 => Query::Range { l, r },
                 _ => unreachable!(),
             }
         })
@@ -52,7 +52,7 @@ fn main() {
             beats.add(l..r, val);
             0
         }
-        Query::RangeQuery { l, r } => beats.sum(l..r), // Range Sum
+        Query::Range { l, r } => beats.sum(l..r), // Range Sum
     });
 
     // 2. Lazy Segment Tree
@@ -71,7 +71,7 @@ fn main() {
             lazy.range_add(l..r, val);
             0
         }
-        Query::RangeQuery { l, r } => lazy.range_min(l..r), // Range Min
+        Query::Range { l, r } => lazy.range_min(l..r), // Range Min
     });
 
     // 結果表示

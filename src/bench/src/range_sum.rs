@@ -16,7 +16,10 @@ fn main() {
     let seed = 42;
     let mut rng = StdRng::seed_from_u64(seed);
 
-    println!("Generating {} queries for N = {} (Range Sum Comparison)...", q, n);
+    println!(
+        "Generating {} queries for N = {} (Range Sum Comparison)...",
+        q, n
+    );
     let queries: Vec<Query> = (0..q)
         .map(|_| {
             let op = rng.random_range(0..3);

@@ -37,23 +37,29 @@ fn main() {
 
     // 1. Range Add Range Sum Segtree
     let add_seg = RangeAddRangeSumSegtree::<i64>::new(n);
-    let res_add = bench_util::run_bench("Range Add Segtree", add_seg, &queries, |seg, q| match *q {
-        Query::Add { l, r, val } => {
-            seg.range_add(l..r, val);
-            0
-        }
-        Query::RangeSum { l, r } => seg.range_sum(l..r),
-    });
+    let res_add =
+        bench_util::run_bench("Range Add Segtree", add_seg, &queries, |seg, q| match *q {
+            Query::Add { l, r, val } => {
+                seg.range_add(l..r, val);
+                0
+            }
+            Query::RangeSum { l, r } => seg.range_sum(l..r),
+        });
 
     // 2. Range Affine Range Sum Segtree (Slope = 1)
     let affine_seg = RangeAffineRangeSumSegtree::<i64>::new(n);
-    let res_affine = bench_util::run_bench("Range Affine Segtree", affine_seg, &queries, |seg, q| match *q {
-        Query::Add { l, r, val } => {
-            seg.range_affine(l..r, 1, val); // 傾き1で固定
-            0
-        }
-        Query::RangeSum { l, r } => seg.range_sum(l..r),
-    });
+    let res_affine = bench_util::run_bench(
+        "Range Affine Segtree",
+        affine_seg,
+        &queries,
+        |seg, q| match *q {
+            Query::Add { l, r, val } => {
+                seg.range_affine(l..r, 1, val); // 傾き1で固定
+                0
+            }
+            Query::RangeSum { l, r } => seg.range_sum(l..r),
+        },
+    );
 
     // 結果表示
     bench_util::print_results(&[res_add, res_affine]);

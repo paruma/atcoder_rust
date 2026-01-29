@@ -20,7 +20,10 @@ impl BenchResult {
 
 /// 複数のベンチマーク結果をまとめて表示・比較する
 pub fn print_results(results: &[BenchResult]) {
-    println!("\n| {:<20} | {:>12} | {:>15} |", "Implementation", "Total Time", "Time per Query");
+    println!(
+        "\n| {:<20} | {:>12} | {:>15} |",
+        "Implementation", "Total Time", "Time per Query"
+    );
     println!("| :--- | :---: | :---: |");
     for res in results {
         res.print_markdown_row();
@@ -28,8 +31,7 @@ pub fn print_results(results: &[BenchResult]) {
 
     if results.len() >= 2 {
         let base = &results[0];
-        for i in 1..results.len() {
-            let target = &results[i];
+        for target in results[1..].iter() {
             let ratio = target.total_time.as_nanos() as f64 / base.total_time.as_nanos() as f64;
             println!(
                 "\n{} is {:.2}x slower than {}.",
@@ -40,7 +42,7 @@ pub fn print_results(results: &[BenchResult]) {
 }
 
 /// 特定の実装に対してクエリ列を実行し、時間を計測する
-/// 
+///
 /// `ds`: データ構造のインスタンス
 /// `queries`: 実行するクエリのリスト
 /// `f`: クエリをデータ構造のメソッド呼び出しにマップするクロージャ。
