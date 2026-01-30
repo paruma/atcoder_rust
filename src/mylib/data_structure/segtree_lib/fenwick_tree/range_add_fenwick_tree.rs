@@ -125,7 +125,7 @@ pub mod range_add_fenwick_tree {
                 idx,
                 n
             );
-            self.ft.accum(idx + 1)
+            self.ft.prefix_sum(idx + 1)
         }
 
         /// 現在の状態を `Vec<G::S>` として返します。

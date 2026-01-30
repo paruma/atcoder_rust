@@ -103,10 +103,10 @@ pub mod rect_sum_fenwick_tree_2d {
         ///
         /// # 計算量
         /// O(log H * log W)
-        pub fn accum(&self, mut y: usize, x: usize) -> G::S {
+        pub fn prefix_sum(&self, mut y: usize, x: usize) -> G::S {
             assert!(
                 y <= self.h && x <= self.w,
-                "RectSumFenwickTree2D::accum: out of bounds. (y, x) = ({}, {}), (h, w) = ({}, {})",
+                "RectSumFenwickTree2D::prefix_sum: out of bounds. (y, x) = ({}, {}), (h, w) = ({}, {})",
                 y,
                 x,
                 self.h,
@@ -173,10 +173,10 @@ pub mod rect_sum_fenwick_tree_2d {
             );
 
             // 二次元累積和の原理 (包除原理): S(y2, x2) - S(y1, x2) - S(y2, x1) + S(y1, x1)
-            let term1 = self.accum(y2, x2);
-            let term2 = self.accum(y1, x2);
-            let term3 = self.accum(y2, x1);
-            let term4 = self.accum(y1, x1);
+            let term1 = self.prefix_sum(y2, x2);
+            let term2 = self.prefix_sum(y1, x2);
+            let term3 = self.prefix_sum(y2, x1);
+            let term4 = self.prefix_sum(y1, x1);
 
             let res = G::sub(&term1, &term2);
             let res = G::sub(&res, &term3);
@@ -246,9 +246,9 @@ mod tests {
             }
         }
 
-        assert_eq!(ft.accum(1, 1), 1);
-        assert_eq!(ft.accum(2, 2), 1 + 2 + 4 + 5);
-        assert_eq!(ft.accum(3, 3), 45);
+        assert_eq!(ft.prefix_sum(1, 1), 1);
+        assert_eq!(ft.prefix_sum(2, 2), 1 + 2 + 4 + 5);
+        assert_eq!(ft.prefix_sum(3, 3), 45);
 
         assert_eq!(ft.rect_sum(1..3, 1..3), 5 + 6 + 8 + 9);
         assert_eq!(ft.get(1, 1), 5);
@@ -266,7 +266,7 @@ mod tests {
 
         assert_eq!(ft.len_h(), 3);
         assert_eq!(ft.len_w(), 3);
-        assert_eq!(ft.accum(3, 3), 45);
+        assert_eq!(ft.prefix_sum(3, 3), 45);
         assert_eq!(ft.rect_sum(1..3, 1..3), 5 + 6 + 8 + 9);
         for y in 0..3 {
             for x in 0..3 {

@@ -142,7 +142,7 @@ pub mod rect_add_fenwick_tree_2d {
             let w = self.ft.len_w() - 1;
             assert!(y < h && x < w, "RectAddFenwickTree2D::get: out of bounds");
             // 階差の 2次元累積和が元の値になる
-            self.ft.accum(y + 1, x + 1)
+            self.ft.prefix_sum(y + 1, x + 1)
         }
 
         /// 現在の状態を `Vec<Vec<G::S>>` として返します。

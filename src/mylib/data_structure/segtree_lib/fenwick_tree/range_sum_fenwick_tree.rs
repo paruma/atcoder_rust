@@ -60,10 +60,10 @@ pub mod range_sum_fenwick_tree {
         ///
         /// # 計算量
         /// O(log n)
-        pub fn accum(&self, mut idx: usize) -> G::S {
+        pub fn prefix_sum(&self, mut idx: usize) -> G::S {
             assert!(
                 idx <= self.n,
-                "RangeSumFenwickTreeArbitrary::accum: index out of bounds. idx: {}, n: {}",
+                "RangeSumFenwickTreeArbitrary::prefix_sum: index out of bounds. idx: {}, n: {}",
                 idx,
                 self.n
             );
@@ -116,7 +116,7 @@ pub mod range_sum_fenwick_tree {
             let l = match range.start_bound() {
                 Bound::Included(l) => *l,
                 Bound::Excluded(l) => l + 1,
-                Bound::Unbounded => return self.accum(r),
+                Bound::Unbounded => return self.prefix_sum(r),
             };
             assert!(
                 l <= r && r <= self.n,
@@ -125,7 +125,7 @@ pub mod range_sum_fenwick_tree {
                 r,
                 self.n
             );
-            G::sub(&self.accum(r), &self.accum(l))
+            G::sub(&self.prefix_sum(r), &self.prefix_sum(l))
         }
 
         /// `l` を左端として、`f(sum(l..r))` が true になる最大の `r` を返します。
@@ -154,7 +154,7 @@ pub mod range_sum_fenwick_tree {
                 f(&zero),
                 "RangeSumFenwickTreeArbitrary::max_right: The predicate f(zero) must be true."
             );
-            let val_l = self.accum(l);
+            let val_l = self.prefix_sum(l);
             let mut r = 0;
             let mut current_val = G::zero();
             let mut k = if self.n == 0 {
@@ -203,7 +203,7 @@ pub mod range_sum_fenwick_tree {
                 "RangeSumFenwickTreeArbitrary::min_left: The predicate f(zero) must be true."
             );
 
-            let val_r = self.accum(r);
+            let val_r = self.prefix_sum(r);
             if f(&val_r) {
                 return 0;
             }

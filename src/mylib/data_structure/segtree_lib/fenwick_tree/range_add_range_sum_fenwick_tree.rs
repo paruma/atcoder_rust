@@ -24,7 +24,7 @@ pub mod range_add_range_sum_fenwick_tree {
     // したがって、
     // ft0: D[k] の合計を管理
     // ft1: k * D[k] の合計を管理
-    // とすることで、S(i) = i * ft0.accum(i) - ft1.accum(i) として計算できる。
+    // とすることで、S(i) = i * ft0.prefix_sum(i) - ft1.prefix_sum(i) として計算できる。
     #[derive(Clone)]
     pub struct RangeAddRangeSumFenwickTreeArbitrary<G: AbGroup> {
         n: usize,
@@ -143,10 +143,10 @@ pub mod range_add_range_sum_fenwick_tree {
         ///
         /// # 計算量
         /// O(log n)
-        pub fn accum(&self, idx: usize) -> G::S {
+        pub fn prefix_sum(&self, idx: usize) -> G::S {
             // S(idx) = idx * ΣD[k] - Σ(k * D[k])
-            let sum0 = self.ft0.accum(idx);
-            let sum1 = self.ft1.accum(idx);
+            let sum0 = self.ft0.prefix_sum(idx);
+            let sum1 = self.ft1.prefix_sum(idx);
             // ret = sum0 * idx - sum1
             G::sub(&(sum0 * G::S::from(idx as i64)), &sum1)
         }
@@ -170,7 +170,7 @@ pub mod range_add_range_sum_fenwick_tree {
             let l = match range.start_bound() {
                 Bound::Included(l) => *l,
                 Bound::Excluded(l) => l + 1,
-                Bound::Unbounded => return self.accum(r),
+                Bound::Unbounded => return self.prefix_sum(r),
             };
             assert!(
                 l <= r && r <= self.n,
@@ -179,7 +179,7 @@ pub mod range_add_range_sum_fenwick_tree {
                 r,
                 self.n
             );
-            G::sub(&self.accum(r), &self.accum(l))
+            G::sub(&self.prefix_sum(r), &self.prefix_sum(l))
         }
 
         /// `p` 番目の要素を取得します。
@@ -216,7 +216,7 @@ pub mod range_add_range_sum_fenwick_tree {
                 "RangeAddRangeSumFenwickTreeArbitrary::max_right: The predicate f(zero) must be true."
             );
 
-            let val_l = self.accum(l);
+            let val_l = self.prefix_sum(l);
             let mut r = 0;
             let mut sum0 = G::zero();
             let mut sum1 = G::zero();
@@ -272,7 +272,7 @@ pub mod range_add_range_sum_fenwick_tree {
                 "RangeAddRangeSumFenwickTreeArbitrary::min_left: The predicate f(zero) must be true."
             );
 
-            let val_r = self.accum(r);
+            let val_r = self.prefix_sum(r);
             if f(&val_r) {
                 return 0;
             }

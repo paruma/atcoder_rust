@@ -186,11 +186,11 @@ pub mod rect_add_rect_sum_fenwick_tree {
         ///
         /// # 計算量
         /// O(log H * log W)
-        pub fn accum(&self, y: usize, x: usize) -> G::S {
-            let s00 = self.bit00.accum(y, x);
-            let s01 = self.bit01.accum(y, x);
-            let s10 = self.bit10.accum(y, x);
-            let s11 = self.bit11.accum(y, x);
+        pub fn prefix_sum(&self, y: usize, x: usize) -> G::S {
+            let s00 = self.bit00.prefix_sum(y, x);
+            let s01 = self.bit01.prefix_sum(y, x);
+            let s10 = self.bit10.prefix_sum(y, x);
+            let s11 = self.bit11.prefix_sum(y, x);
 
             let y_s = G::S::from(y as i64);
             let x_s = G::S::from(x as i64);
@@ -254,10 +254,10 @@ pub mod rect_add_rect_sum_fenwick_tree {
                 self.w
             );
 
-            let term1 = self.accum(y2, x2);
-            let term2 = self.accum(y1, x2);
-            let term3 = self.accum(y2, x1);
-            let term4 = self.accum(y1, x1);
+            let term1 = self.prefix_sum(y2, x2);
+            let term2 = self.prefix_sum(y1, x2);
+            let term3 = self.prefix_sum(y2, x1);
+            let term4 = self.prefix_sum(y1, x1);
 
             let res = G::sub(&term1, &term2);
             let res = G::sub(&res, &term3);
