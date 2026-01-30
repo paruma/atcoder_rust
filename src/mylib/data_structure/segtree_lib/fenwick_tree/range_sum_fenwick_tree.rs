@@ -97,6 +97,20 @@ pub mod range_sum_fenwick_tree {
             }
         }
 
+        fn resolve_range<R: RangeBounds<usize>>(&self, range: R) -> (usize, usize) {
+            let l = match range.start_bound() {
+                Bound::Included(&l) => l,
+                Bound::Excluded(&l) => l + 1,
+                Bound::Unbounded => 0,
+            };
+            let r = match range.end_bound() {
+                Bound::Included(&r) => r + 1,
+                Bound::Excluded(&r) => r,
+                Bound::Unbounded => self.n,
+            };
+            (l, r)
+        }
+
         /// 指定された範囲の区間和を計算します。
         ///
         /// # Panics
@@ -108,16 +122,7 @@ pub mod range_sum_fenwick_tree {
         where
             R: RangeBounds<usize>,
         {
-            let r = match range.end_bound() {
-                Bound::Included(r) => r + 1,
-                Bound::Excluded(r) => *r,
-                Bound::Unbounded => self.n,
-            };
-            let l = match range.start_bound() {
-                Bound::Included(l) => *l,
-                Bound::Excluded(l) => l + 1,
-                Bound::Unbounded => return self.prefix_sum(r),
-            };
+            let (l, r) = self.resolve_range(range);
             assert!(
                 l <= r && r <= self.n,
                 "RangeSumFenwickTreeArbitrary::range_sum: invalid range. l: {}, r: {}, n: {}",

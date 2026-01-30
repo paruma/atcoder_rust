@@ -94,25 +94,13 @@ pub mod range_add_range_sum_fenwick_tree {
 
         /// 指定された範囲 `range` に `val` を加算します。
         ///
-        /// # Panics
-        /// 範囲が不正な場合にパニックします。
-        ///
         /// # 計算量
         /// O(log n)
         pub fn range_add<R>(&mut self, range: R, val: T)
         where
             R: RangeBounds<usize>,
         {
-            let r = match range.end_bound() {
-                Bound::Included(r) => r + 1,
-                Bound::Excluded(r) => *r,
-                Bound::Unbounded => self.n,
-            };
-            let l = match range.start_bound() {
-                Bound::Included(l) => *l,
-                Bound::Excluded(l) => l + 1,
-                Bound::Unbounded => 0,
-            };
+            let (l, r) = self.resolve_range(range);
             assert!(
                 l <= r && r <= self.n,
                 "RangeAddRangeSumFenwickTree::range_add: invalid range. l: {}, r: {}, n: {}",
@@ -171,16 +159,7 @@ pub mod range_add_range_sum_fenwick_tree {
         where
             R: RangeBounds<usize>,
         {
-            let r = match range.end_bound() {
-                Bound::Included(r) => r + 1,
-                Bound::Excluded(r) => *r,
-                Bound::Unbounded => self.n,
-            };
-            let l = match range.start_bound() {
-                Bound::Included(l) => *l,
-                Bound::Excluded(l) => l + 1,
-                Bound::Unbounded => return self.prefix_sum(r),
-            };
+            let (l, r) = self.resolve_range(range);
             assert!(
                 l <= r && r <= self.n,
                 "RangeAddRangeSumFenwickTree::range_sum: invalid range. l: {}, r: {}, n: {}",
@@ -189,6 +168,20 @@ pub mod range_add_range_sum_fenwick_tree {
                 self.n
             );
             self.prefix_sum(r) - self.prefix_sum(l)
+        }
+
+        fn resolve_range<R: RangeBounds<usize>>(&self, range: R) -> (usize, usize) {
+            let l = match range.start_bound() {
+                Bound::Included(&l) => l,
+                Bound::Excluded(&l) => l + 1,
+                Bound::Unbounded => 0,
+            };
+            let r = match range.end_bound() {
+                Bound::Included(&r) => r + 1,
+                Bound::Excluded(&r) => r,
+                Bound::Unbounded => self.n,
+            };
+            (l, r)
         }
 
         /// `p` 番目の要素を取得します。

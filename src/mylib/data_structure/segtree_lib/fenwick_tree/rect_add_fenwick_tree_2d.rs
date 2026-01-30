@@ -75,27 +75,8 @@ pub mod rect_add_fenwick_tree_2d {
         {
             let h = self.ft.len_h() - 1;
             let w = self.ft.len_w() - 1;
-
-            let y1 = match y_range.start_bound() {
-                Bound::Included(&y) => y,
-                Bound::Excluded(&y) => y + 1,
-                Bound::Unbounded => 0,
-            };
-            let y2 = match y_range.end_bound() {
-                Bound::Included(&y) => y + 1,
-                Bound::Excluded(&y) => y,
-                Bound::Unbounded => h,
-            };
-            let x1 = match x_range.start_bound() {
-                Bound::Included(&x) => x,
-                Bound::Excluded(&x) => x + 1,
-                Bound::Unbounded => 0,
-            };
-            let x2 = match x_range.end_bound() {
-                Bound::Included(&x) => x + 1,
-                Bound::Excluded(&x) => x,
-                Bound::Unbounded => w,
-            };
+            let (y1, y2) = Self::resolve_range(y_range, h);
+            let (x1, x2) = Self::resolve_range(x_range, w);
 
             assert!(
                 y1 <= y2 && y2 <= h,
@@ -106,11 +87,24 @@ pub mod rect_add_fenwick_tree_2d {
                 "RectAddFenwickTree2D::rect_add: invalid x range"
             );
 
-            // 2次元いもす法の原理: 4点への加算
             self.ft.add(y1, x1, val.clone());
             self.ft.add(y1, x2, G::neg(&val));
             self.ft.add(y2, x1, G::neg(&val));
             self.ft.add(y2, x2, val);
+        }
+
+        fn resolve_range<R: RangeBounds<usize>>(range: R, n: usize) -> (usize, usize) {
+            let l = match range.start_bound() {
+                Bound::Included(&l) => l,
+                Bound::Excluded(&l) => l + 1,
+                Bound::Unbounded => 0,
+            };
+            let r = match range.end_bound() {
+                Bound::Included(&r) => r + 1,
+                Bound::Excluded(&r) => r,
+                Bound::Unbounded => n,
+            };
+            (l, r)
         }
 
         /// `(y, x)` 番目の要素に `val` を加算します。

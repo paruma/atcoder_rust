@@ -129,26 +129,8 @@ pub mod rect_add_rect_sum_fenwick_tree {
             Ry: RangeBounds<usize>,
             Rx: RangeBounds<usize>,
         {
-            let y1 = match y_range.start_bound() {
-                Bound::Included(&y) => y,
-                Bound::Excluded(&y) => y + 1,
-                Bound::Unbounded => 0,
-            };
-            let y2 = match y_range.end_bound() {
-                Bound::Included(&y) => y + 1,
-                Bound::Excluded(&y) => y,
-                Bound::Unbounded => self.h,
-            };
-            let x1 = match x_range.start_bound() {
-                Bound::Included(&x) => x,
-                Bound::Excluded(&x) => x + 1,
-                Bound::Unbounded => 0,
-            };
-            let x2 = match x_range.end_bound() {
-                Bound::Included(&x) => x + 1,
-                Bound::Excluded(&x) => x,
-                Bound::Unbounded => self.w,
-            };
+            let (y1, y2) = Self::resolve_range(y_range, self.h);
+            let (x1, x2) = Self::resolve_range(x_range, self.w);
 
             assert!(
                 y1 <= y2 && y2 <= self.h,
@@ -227,26 +209,8 @@ pub mod rect_add_rect_sum_fenwick_tree {
             Ry: RangeBounds<usize>,
             Rx: RangeBounds<usize>,
         {
-            let y1 = match y_range.start_bound() {
-                Bound::Included(&y) => y,
-                Bound::Excluded(&y) => y + 1,
-                Bound::Unbounded => 0,
-            };
-            let y2 = match y_range.end_bound() {
-                Bound::Included(&y) => y + 1,
-                Bound::Excluded(&y) => y,
-                Bound::Unbounded => self.h,
-            };
-            let x1 = match x_range.start_bound() {
-                Bound::Included(&x) => x,
-                Bound::Excluded(&x) => x + 1,
-                Bound::Unbounded => 0,
-            };
-            let x2 = match x_range.end_bound() {
-                Bound::Included(&x) => x + 1,
-                Bound::Excluded(&x) => x,
-                Bound::Unbounded => self.w,
-            };
+            let (y1, y2) = Self::resolve_range(y_range, self.h);
+            let (x1, x2) = Self::resolve_range(x_range, self.w);
 
             assert!(
                 y1 <= y2 && y2 <= self.h,
@@ -265,6 +229,20 @@ pub mod rect_add_rect_sum_fenwick_tree {
 
             self.prefix_sum(y2, x2) - self.prefix_sum(y1, x2) - self.prefix_sum(y2, x1)
                 + self.prefix_sum(y1, x1)
+        }
+
+        fn resolve_range<R: RangeBounds<usize>>(range: R, n: usize) -> (usize, usize) {
+            let l = match range.start_bound() {
+                Bound::Included(&l) => l,
+                Bound::Excluded(&l) => l + 1,
+                Bound::Unbounded => 0,
+            };
+            let r = match range.end_bound() {
+                Bound::Included(&r) => r + 1,
+                Bound::Excluded(&r) => r,
+                Bound::Unbounded => n,
+            };
+            (l, r)
         }
 
         /// `(y, x)` 番目の要素を取得します。

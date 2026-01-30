@@ -9,25 +9,23 @@ use cargo_snippet::snippet;
 #[allow(clippy::module_inception)]
 pub mod range_add_fenwick_tree {
     use super::{AbGroup, AdditiveAbGroup, RangeSumFenwickTreeArbitrary};
-    use std::ops::RangeBounds;
+    use std::ops::{Bound, RangeBounds};
 
-    /// 区間加算・一点取得が可能な Fenwick Tree (Range Add Fenwick Tree)。
-    ///
+    /// 1次元の階差数列を管理する Fenwick Tree。
     /// 内部的には階差数列を `RangeSumFenwickTreeArbitrary` で管理しています。
     #[derive(Clone)]
     pub struct RangeAddFenwickTreeArbitrary<G: AbGroup> {
         ft: RangeSumFenwickTreeArbitrary<G>,
     }
 
-    /// i64 の加算群を用いた標準的な双対 Fenwick Tree のエイリアス。
+    /// i64 の加算群を用いた標準的な Range Add Fenwick Tree のエイリアス。
     pub type RangeAddFenwickTreeI64 = RangeAddFenwickTreeArbitrary<AdditiveAbGroup<i64>>;
 
-    /// 任意の数値型 T の加算群を用いた双対 Fenwick Tree のエイリアス。
+    /// 任意の数値型 T の加算群を用いた Range Add Fenwick Tree のエイリアス。
     pub type RangeAddFenwickTree<T> = RangeAddFenwickTreeArbitrary<AdditiveAbGroup<T>>;
 
     impl<G: AbGroup> RangeAddFenwickTreeArbitrary<G> {
-        /// サイズ `n` の Dual Fenwick Tree を作成します。
-        /// 要素はすべて `G::zero()` で初期化されます。
+        /// サイズ `n` の Range Add Fenwick Tree を作成します。
         ///
         /// # 計算量
         /// O(n)
@@ -37,23 +35,20 @@ pub mod range_add_fenwick_tree {
             }
         }
 
-        /// 配列スライスから Dual Fenwick Tree を作成します。
+        /// 配列のスライスから Range Add Fenwick Tree を作成します。
         ///
         /// # 計算量
         /// O(n)
         pub fn from_slice(slice: &[G::S]) -> Self {
             let n = slice.len();
-            let mut diff = Vec::with_capacity(n + 1);
-            if n == 0 {
-                diff.push(G::zero());
-            } else {
-                diff.push(slice[0].clone());
+            let mut diff = vec![G::zero(); n + 1];
+            if n > 0 {
+                diff[0] = slice[0].clone();
                 for i in 1..n {
-                    diff.push(G::sub(&slice[i], &slice[i - 1]));
+                    diff[i] = G::sub(&slice[i], &slice[i - 1]);
                 }
-                diff.push(G::neg(&slice[n - 1]));
+                diff[n] = G::neg(&slice[n - 1]);
             }
-
             Self {
                 ft: RangeSumFenwickTreeArbitrary::from_slice(&diff),
             }
@@ -70,17 +65,8 @@ pub mod range_add_fenwick_tree {
         where
             R: RangeBounds<usize>,
         {
+            let (l, r) = self.resolve_range(range);
             let n = self.ft.len() - 1;
-            let r = match range.end_bound() {
-                std::ops::Bound::Included(r) => r + 1,
-                std::ops::Bound::Excluded(r) => *r,
-                std::ops::Bound::Unbounded => n,
-            };
-            let l = match range.start_bound() {
-                std::ops::Bound::Included(l) => *l,
-                std::ops::Bound::Excluded(l) => l + 1,
-                std::ops::Bound::Unbounded => 0,
-            };
             assert!(
                 l <= r && r <= n,
                 "RangeAddFenwickTreeArbitrary::range_add: invalid range. l: {}, r: {}, n: {}",
@@ -88,9 +74,23 @@ pub mod range_add_fenwick_tree {
                 r,
                 n
             );
-
             self.ft.add(l, val.clone());
             self.ft.add(r, G::neg(&val));
+        }
+
+        fn resolve_range<R: RangeBounds<usize>>(&self, range: R) -> (usize, usize) {
+            let n = self.ft.len() - 1;
+            let l = match range.start_bound() {
+                Bound::Included(&l) => l,
+                Bound::Excluded(&l) => l + 1,
+                Bound::Unbounded => 0,
+            };
+            let r = match range.end_bound() {
+                Bound::Included(&r) => r + 1,
+                Bound::Excluded(&r) => r,
+                Bound::Unbounded => n,
+            };
+            (l, r)
         }
 
         /// `idx` 番目の要素に `val` を加算します。
