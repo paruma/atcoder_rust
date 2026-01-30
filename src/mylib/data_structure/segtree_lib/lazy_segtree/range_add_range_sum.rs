@@ -6,6 +6,7 @@ pub mod range_add_range_sum {
     use ac_library::{LazySegtree, MapMonoid, Monoid};
     use itertools::Itertools;
     use std::convert::Infallible;
+    use std::iter::Sum;
     use std::marker::PhantomData;
     use std::ops::{Add, Mul, RangeBounds};
 
@@ -24,12 +25,12 @@ pub mod range_add_range_sum {
     pub struct ValueLenSum<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> Monoid for ValueLenSum<T>
     where
-        T: Copy + Add<Output = T> + From<i64>,
+        T: Copy + Add<Output = T> + Sum,
     {
         type S = RangeSum<T>;
         fn identity() -> RangeSum<T> {
             RangeSum {
-                sum: 0.into(),
+                sum: std::iter::empty::<T>().sum(),
                 len: 0,
             }
         }
@@ -45,13 +46,13 @@ pub mod range_add_range_sum {
     pub struct RangeAddRangeSum<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> MapMonoid for RangeAddRangeSum<T>
     where
-        T: Copy + Add<Output = T> + Mul<Output = T> + From<i64>,
+        T: Copy + Add<Output = T> + Mul<i64, Output = T> + Sum,
     {
         type M = ValueLenSum<T>;
         type F = T;
 
         fn identity_map() -> T {
-            0.into()
+            std::iter::empty::<T>().sum()
         }
         fn composition(a: &T, b: &T) -> T {
             *a + *b
@@ -59,7 +60,7 @@ pub mod range_add_range_sum {
 
         fn mapping(f: &T, x: &RangeSum<T>) -> RangeSum<T> {
             RangeSum {
-                sum: x.sum + *f * x.len.into(),
+                sum: x.sum + *f * x.len,
                 len: x.len,
             }
         }
@@ -68,7 +69,7 @@ pub mod range_add_range_sum {
     #[derive(Clone)]
     pub struct RangeAddRangeSumSegtree<T>
     where
-        T: Copy + Add<Output = T> + Mul<Output = T> + From<i64>,
+        T: Copy + Add<Output = T> + Mul<i64, Output = T> + Sum,
     {
         segtree: LazySegtree<RangeAddRangeSum<T>>,
         len: usize,
@@ -76,10 +77,10 @@ pub mod range_add_range_sum {
 
     impl<T> RangeAddRangeSumSegtree<T>
     where
-        T: Copy + Add<Output = T> + Mul<Output = T> + From<i64>,
+        T: Copy + Add<Output = T> + Mul<i64, Output = T> + Sum,
     {
         pub fn new(n: usize) -> Self {
-            let xs = vec![0.into(); n];
+            let xs = vec![std::iter::empty::<T>().sum(); n];
             Self::from_slice(&xs)
         }
 
@@ -161,6 +162,13 @@ pub mod test_range_add_range_sum {
     use super::range_add_range_sum::RangeAddRangeSumSegtree;
 
     type Mint = ModInt998244353;
+
+    #[test]
+    fn test_new_and_len() {
+        let segtree = RangeAddRangeSumSegtree::<i64>::new(10);
+        assert_eq!(segtree.len(), 10);
+        assert_eq!(segtree.all_sum(), 0);
+    }
 
     #[test]
     fn test_new_and_get() {
@@ -263,7 +271,7 @@ pub mod test_range_add_range_sum {
     #[ignore]
     #[test]
     fn test_random_add_sum() {
-        use rand::{Rng, SeedableRng, rngs::SmallRng};
+        use rand::{rngs::SmallRng, Rng, SeedableRng};
 
         let mut rng = SmallRng::seed_from_u64(42);
 

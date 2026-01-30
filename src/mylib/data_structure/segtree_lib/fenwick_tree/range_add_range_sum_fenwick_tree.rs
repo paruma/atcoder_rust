@@ -28,13 +28,7 @@ pub mod range_add_range_sum_fenwick_tree {
     #[derive(Clone)]
     pub struct RangeAddRangeSumFenwickTree<T>
     where
-        T: Copy
-            + Add<Output = T>
-            + Sub<Output = T>
-            + Mul<Output = T>
-            + Neg<Output = T>
-            + From<i64>
-            + Sum,
+        T: Copy + Add<Output = T> + Sub<Output = T> + Mul<i64, Output = T> + Neg<Output = T> + Sum,
     {
         n: usize,
         ft0: RangeSumFenwickTree<T>,
@@ -46,13 +40,7 @@ pub mod range_add_range_sum_fenwick_tree {
 
     impl<T> RangeAddRangeSumFenwickTree<T>
     where
-        T: Copy
-            + Add<Output = T>
-            + Sub<Output = T>
-            + Mul<Output = T>
-            + Neg<Output = T>
-            + From<i64>
-            + Sum,
+        T: Copy + Add<Output = T> + Sub<Output = T> + Mul<i64, Output = T> + Neg<Output = T> + Sum,
     {
         /// サイズ `n` の Range Add Range Sum Fenwick Tree を作成します。
         ///
@@ -72,18 +60,18 @@ pub mod range_add_range_sum_fenwick_tree {
         /// O(n)
         pub fn from_slice(slice: &[T]) -> Self {
             let n = slice.len();
-            let mut d = vec![T::from(0); n + 1];
-            let mut di = vec![T::from(0); n + 1];
+            let mut d = vec![std::iter::empty::<T>().sum(); n + 1];
+            let mut di = vec![std::iter::empty::<T>().sum(); n + 1];
             if n > 0 {
                 d[0] = slice[0];
                 // di[0] = d[0] * 0 = 0
                 for i in 1..n {
                     let val = slice[i] - slice[i - 1];
                     d[i] = val;
-                    di[i] = val * T::from(i as i64);
+                    di[i] = val * (i as i64);
                 }
                 d[n] = -slice[n - 1];
-                di[n] = d[n] * T::from(n as i64);
+                di[n] = d[n] * (n as i64);
             }
             Self {
                 n,
@@ -114,8 +102,8 @@ pub mod range_add_range_sum_fenwick_tree {
             self.ft0.add(r, -val);
 
             // ft1: d[i] * i
-            let l_val = val * T::from(l as i64);
-            let r_val = (-val) * T::from(r as i64);
+            let l_val = val * (l as i64);
+            let r_val = (-val) * (r as i64);
             self.ft1.add(l, l_val);
             self.ft1.add(r, r_val);
         }
@@ -145,7 +133,7 @@ pub mod range_add_range_sum_fenwick_tree {
             // S(idx) = idx * ΣD[k] - Σ(k * D[k])
             let sum0 = self.ft0.prefix_sum(idx);
             let sum1 = self.ft1.prefix_sum(idx);
-            sum0 * T::from(idx as i64) - sum1
+            sum0 * (idx as i64) - sum1
         }
 
         /// 指定された範囲 `range` の区間和を計算します。
@@ -213,14 +201,14 @@ pub mod range_add_range_sum_fenwick_tree {
                 self.n
             );
             assert!(
-                f(&T::from(0)),
+                f(&std::iter::empty::<T>().sum()),
                 "RangeAddRangeSumFenwickTree::max_right: The predicate f(0) must be true."
             );
 
             let val_l = self.prefix_sum(l);
             let mut r = 0;
-            let mut sum0 = T::from(0);
-            let mut sum1 = T::from(0);
+            let mut sum0: T = std::iter::empty::<T>().sum();
+            let mut sum1: T = std::iter::empty::<T>().sum();
             let mut k = if self.n + 1 == 0 {
                 0
             } else {
@@ -233,7 +221,7 @@ pub mod range_add_range_sum_fenwick_tree {
                     let next_sum1 = sum1 + self.ft1.ary[r + k - 1];
 
                     // sum(0..r+k) = (r+k) * next_sum0 - next_sum1
-                    let total_sum = next_sum0 * T::from((r + k) as i64) - next_sum1;
+                    let total_sum = next_sum0 * ((r + k) as i64) - next_sum1;
                     let current_range_sum = total_sum - val_l;
 
                     if r + k <= l || f(&current_range_sum) {
@@ -268,7 +256,7 @@ pub mod range_add_range_sum_fenwick_tree {
                 self.n
             );
             assert!(
-                f(&T::from(0)),
+                f(&std::iter::empty::<T>().sum()),
                 "RangeAddRangeSumFenwickTree::min_left: The predicate f(0) must be true."
             );
 
@@ -278,8 +266,8 @@ pub mod range_add_range_sum_fenwick_tree {
             }
 
             let mut idx = 0;
-            let mut sum0 = T::from(0);
-            let mut sum1 = T::from(0);
+            let mut sum0: T = std::iter::empty::<T>().sum();
+            let mut sum1: T = std::iter::empty::<T>().sum();
             let mut k = if self.n + 1 == 0 {
                 0
             } else {
@@ -292,7 +280,7 @@ pub mod range_add_range_sum_fenwick_tree {
                     let next_sum1 = sum1 + self.ft1.ary[idx + k - 1];
 
                     // sum(0..idx+k) = (idx+k) * next_sum0 - next_sum1
-                    let total_sum = next_sum0 * T::from((idx + k) as i64) - next_sum1;
+                    let total_sum = next_sum0 * ((idx + k) as i64) - next_sum1;
                     let current_range_sum = val_r - total_sum;
 
                     if !f(&current_range_sum) {
@@ -325,7 +313,7 @@ pub mod range_add_range_sum_fenwick_tree {
 #[cfg(test)]
 mod tests {
     use super::range_add_range_sum_fenwick_tree::*;
-    use rand::{Rng, SeedableRng, rngs::SmallRng};
+    use rand::{rngs::SmallRng, Rng, SeedableRng};
 
     #[test]
     #[allow(clippy::identity_op)]
@@ -357,6 +345,15 @@ mod tests {
         assert_eq!(ft.range_sum(..), 1 + 3 + 6 + 10 + 15);
         assert_eq!(ft.range_sum(2..), 6 + 10 + 15);
         assert_eq!(ft.range_sum(..3), 1 + 3 + 6);
+    }
+
+    #[test]
+    fn test_modint_compatibility() {
+        use ac_library::ModInt998244353 as Mint;
+        let n = 5;
+        let mut ft = RangeAddRangeSumFenwickTree::<Mint>::new(n);
+        ft.range_add(1..4, Mint::new(10));
+        assert_eq!(ft.range_sum(1..4), Mint::new(30));
     }
 
     #[test]

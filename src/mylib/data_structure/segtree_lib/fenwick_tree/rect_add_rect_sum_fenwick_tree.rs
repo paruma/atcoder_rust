@@ -29,13 +29,7 @@ pub mod rect_add_rect_sum_fenwick_tree {
     #[derive(Clone)]
     pub struct RectAddRectSumFenwickTree<T>
     where
-        T: Copy
-            + Add<Output = T>
-            + Sub<Output = T>
-            + Mul<Output = T>
-            + Neg<Output = T>
-            + From<i64>
-            + Sum,
+        T: Copy + Add<Output = T> + Sub<Output = T> + Mul<i64, Output = T> + Neg<Output = T> + Sum,
     {
         h: usize,
         w: usize,
@@ -50,13 +44,7 @@ pub mod rect_add_rect_sum_fenwick_tree {
 
     impl<T> RectAddRectSumFenwickTree<T>
     where
-        T: Copy
-            + Add<Output = T>
-            + Sub<Output = T>
-            + Mul<Output = T>
-            + Neg<Output = T>
-            + From<i64>
-            + Sum,
+        T: Copy + Add<Output = T> + Sub<Output = T> + Mul<i64, Output = T> + Neg<Output = T> + Sum,
     {
         /// H × W の 2次元矩形加算・矩形和 Fenwick Tree を作成します。
         ///
@@ -80,10 +68,11 @@ pub mod rect_add_rect_sum_fenwick_tree {
         pub fn from_slice(slice: &[Vec<T>]) -> Self {
             let h = slice.len();
             let w = if h == 0 { 0 } else { slice[0].len() };
-            let mut d = vec![vec![T::from(0); w + 1]; h + 1];
-            let mut dx = vec![vec![T::from(0); w + 1]; h + 1];
-            let mut dy = vec![vec![T::from(0); w + 1]; h + 1];
-            let mut dxy = vec![vec![T::from(0); w + 1]; h + 1];
+            let zero: T = std::iter::empty::<T>().sum();
+            let mut d = vec![vec![zero; w + 1]; h + 1];
+            let mut dx = vec![vec![zero; w + 1]; h + 1];
+            let mut dy = vec![vec![zero; w + 1]; h + 1];
+            let mut dxy = vec![vec![zero; w + 1]; h + 1];
 
             for i in 0..=h {
                 for j in 0..=w {
@@ -91,7 +80,7 @@ pub mod rect_add_rect_sum_fenwick_tree {
                         if y >= 0 && (y as usize) < h && x >= 0 && (x as usize) < w {
                             slice[y as usize][x as usize]
                         } else {
-                            T::from(0)
+                            std::iter::empty::<T>().sum()
                         }
                     };
 
@@ -101,9 +90,9 @@ pub mod rect_add_rect_sum_fenwick_tree {
                         + get_a(i as isize - 1, j as isize - 1);
 
                     d[i][j] = val;
-                    dx[i][j] = val * T::from(j as i64);
-                    dy[i][j] = val * T::from(i as i64);
-                    dxy[i][j] = val * T::from(i as i64) * T::from(j as i64);
+                    dx[i][j] = val * (j as i64);
+                    dy[i][j] = val * (i as i64);
+                    dxy[i][j] = val * (i as i64) * (j as i64);
                 }
             }
 
@@ -150,10 +139,9 @@ pub mod rect_add_rect_sum_fenwick_tree {
             let mut add_internal = |y: usize, x: usize, v: T| {
                 if y <= self.h && x <= self.w {
                     self.bit00.add(y, x, v);
-                    self.bit01.add(y, x, v * T::from(x as i64));
-                    self.bit10.add(y, x, v * T::from(y as i64));
-                    self.bit11
-                        .add(y, x, v * T::from(y as i64) * T::from(x as i64));
+                    self.bit01.add(y, x, v * (x as i64));
+                    self.bit10.add(y, x, v * (y as i64));
+                    self.bit11.add(y, x, v * (y as i64) * (x as i64));
                 }
             };
 
@@ -190,11 +178,8 @@ pub mod rect_add_rect_sum_fenwick_tree {
             let s10 = self.bit10.prefix_sum(y, x);
             let s11 = self.bit11.prefix_sum(y, x);
 
-            let y_s = T::from(y as i64);
-            let x_s = T::from(x as i64);
-
             // S(y, x) = y*x*s00 - y*s01 - x*s10 + s11
-            s00 * y_s * x_s - s01 * y_s - s10 * x_s + s11
+            s00 * (y as i64) * (x as i64) - s01 * (y as i64) - s10 * (x as i64) + s11
         }
 
         /// 指定された矩形領域の和を計算します。
@@ -310,6 +295,15 @@ mod tests {
         assert_eq!(ft.rect_sum(0..2, 0..2), 1 + 2 + 4 + 5);
         assert_eq!(ft.rect_sum(1..3, 1..3), 5 + 6 + 8 + 9);
         assert_eq!(ft.rect_sum(0..3, 0..3), 45);
+    }
+
+    #[test]
+    fn test_modint_compatibility() {
+        use ac_library::ModInt998244353 as Mint;
+        let (h, w) = (5, 5);
+        let mut ft = RectAddRectSumFenwickTree::<Mint>::new(h, w);
+        ft.rect_add(1..3, 1..3, Mint::new(5));
+        assert_eq!(ft.rect_sum(1..3, 1..3), Mint::new(20));
     }
 
     #[test]
