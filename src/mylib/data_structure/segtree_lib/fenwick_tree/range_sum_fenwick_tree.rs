@@ -14,7 +14,7 @@ pub mod range_sum_fenwick_tree {
     #[derive(Clone)]
     pub struct RangeSumFenwickTreeArbitrary<G: AbGroup> {
         n: usize,
-        ary: Vec<G::S>,
+        pub(crate) ary: Vec<G::S>,
     }
 
     /// i64 の加算群を用いた標準的な Fenwick Tree のエイリアス。
