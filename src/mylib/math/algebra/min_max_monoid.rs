@@ -7,11 +7,11 @@ pub mod min_max_monoid {
     use std::convert::Infallible;
     use std::marker::PhantomData;
 
-    trait BoundedBelow {
+    pub trait BoundedBelow {
         fn min_value() -> Self;
     }
 
-    trait BoundedAbove {
+    pub trait BoundedAbove {
         fn max_value() -> Self;
     }
 
@@ -35,9 +35,7 @@ pub mod min_max_monoid {
         };
     }
 
-    impl_bounded!(
-        i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize
-    );
+    impl_bounded!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize);
 
     impl<T: BoundedAbove> BoundedBelow for std::cmp::Reverse<T> {
         #[inline]
@@ -197,5 +195,29 @@ mod tests {
 
         assert_eq!(M::binary_operation(&a, &b), (10, Reverse(200)));
         assert_eq!(M::binary_operation(&a, &c), (5, Reverse(50)));
+    }
+
+    #[test]
+    fn test_tuple_with_ext_int() {
+        use crate::math::ext_int::mod_ext_int::ExtInt;
+        type M = TupleMin<(ExtInt, i64)>;
+        let identity = M::identity();
+        assert_eq!(identity, (ExtInt::INF, i64::MAX));
+
+        let a = (ExtInt::fin(10), 100);
+        let b = (ExtInt::INF, 200);
+        assert_eq!(M::binary_operation(&a, &b), a);
+    }
+
+    #[test]
+    fn test_tuple_with_neg_ext_int() {
+        use crate::math::neg_ext_int::mod_neg_ext_int::NegExtInt;
+        type M = TupleMax<(NegExtInt, i64)>;
+        let identity = M::identity();
+        assert_eq!(identity, (NegExtInt::NEG_INF, i64::MIN));
+
+        let a = (NegExtInt::fin(10), 100);
+        let b = (NegExtInt::NEG_INF, 200);
+        assert_eq!(M::binary_operation(&a, &b), a);
     }
 }

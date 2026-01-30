@@ -1,7 +1,7 @@
+use crate::math::algebra::min_max_monoid::min_max_monoid::{BoundedAbove, BoundedBelow};
 use cargo_snippet::snippet;
 
 #[snippet(prefix = "use mod_ext_int::*;")]
-
 pub mod mod_ext_int {
     use ac_library::Monoid;
     use std::{
@@ -32,7 +32,11 @@ pub mod mod_ext_int {
             }
         }
         pub fn get_fin_or(self, default: i64) -> i64 {
-            if self.is_fin() { self.0 } else { default }
+            if self.is_fin() {
+                self.0
+            } else {
+                default
+            }
         }
         #[inline]
         pub fn is_fin(self) -> bool {
@@ -42,7 +46,11 @@ pub mod mod_ext_int {
             self.0 == i64::MAX
         }
         pub fn to_option(self) -> Option<i64> {
-            if self.is_fin() { Some(self.0) } else { None }
+            if self.is_fin() {
+                Some(self.0)
+            } else {
+                None
+            }
         }
         pub fn from_option(opt: Option<i64>) -> ExtInt {
             match opt {
@@ -94,7 +102,6 @@ pub mod mod_ext_int {
             *self = *self + rhs;
         }
     }
-
     impl Sub<i64> for ExtInt {
         type Output = ExtInt;
         fn sub(self, rhs: i64) -> Self::Output {
@@ -140,7 +147,6 @@ pub mod mod_ext_int {
             }
         }
     }
-
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct ExtIntAdditive(Infallible);
     impl Monoid for ExtIntAdditive {
@@ -165,11 +171,29 @@ pub mod mod_ext_int {
     }
 }
 
+#[snippet(prefix = "use mod_ext_int_bounded::*;")]
+pub mod mod_ext_int_bounded {
+    use super::mod_ext_int::ExtInt;
+    use super::{BoundedAbove, BoundedBelow};
+
+    impl BoundedBelow for ExtInt {
+        fn min_value() -> Self {
+            Self::fin(i64::MIN)
+        }
+    }
+
+    impl BoundedAbove for ExtInt {
+        fn max_value() -> Self {
+            Self::INF
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use ac_library::Monoid;
 
     use super::mod_ext_int::*;
-    use ac_library::Monoid;
 
     #[allow(clippy::eq_op)]
     #[test]
