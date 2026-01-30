@@ -1,5 +1,4 @@
-use crate::data_structure::segtree_lib::fenwick_tree::rect_sum_fenwick_tree_2d::rect_sum_fenwick_tree_2d::RectSumFenwickTree2DArbitrary;
-use crate::math::algebra::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
+use crate::data_structure::segtree_lib::fenwick_tree::rect_sum_fenwick_tree_2d::rect_sum_fenwick_tree_2d::RectSumFenwickTree2D;
 use cargo_snippet::snippet;
 
 #[snippet(
@@ -8,33 +7,56 @@ use cargo_snippet::snippet;
 )]
 #[allow(clippy::module_inception)]
 pub mod rect_add_rect_sum_fenwick_tree {
-    use super::{AbGroup, AdditiveAbGroup, RectSumFenwickTree2DArbitrary};
-    use std::ops::{Bound, RangeBounds};
+    use super::RectSumFenwickTree2D;
+    use std::iter::Sum;
+    use std::ops::{Add, Bound, Mul, Neg, RangeBounds, Sub};
 
-    /// 矩形加算・矩形和取得が可能な 2次元 Fenwick Tree (Rect Add Rect Sum Fenwick Tree 2D)。
-    ///
-    /// 内部的には 4 つの `RectSumFenwickTree2DArbitrary` を用いて、
-    /// 2次元累積和の各項を管理しています。
+    /// 任意の数値型 T に対して矩形加算・矩形和取得が可能な 2次元 Fenwick Tree (Rect Add Rect Sum Fenwick Tree 2D)。
+    //
+    // [原理]
+    // 1次元の Range Add Range Sum の拡張。
+    // A[y][x] の 2次元階差を D[y][x] とすると、
+    // A[y][x] = Σ_{i=0}^y Σ_{j=0}^x D[i][j]
+    // 累積和 S(y, x) = Σ_{i=0}^{y-1} Σ_{j=0}^{x-1} A[i][j] は以下のように変形できる：
+    // S(y, x) = Σ_{i=0}^{y-1} Σ_{j=0}^{x-1} (y - i)(x - j) D[i][j]
+    //         = y*x*ΣD[i][j] - y*Σ(j*D[i][j]) - x*Σ(i*D[i][j]) + Σ(i*j*D[i][j])
+    //
+    // よって 4 つの 2次元 BIT で以下の値を管理すればよい：
+    // bit00: Σ D[i][j]
+    // bit01: Σ j * D[i][j]
+    // bit10: Σ i * D[i][j]
+    // bit11: Σ i * j * D[i][j]
     #[derive(Clone)]
-    pub struct RectAddRectSumFenwickTreeArbitrary<G: AbGroup> {
+    pub struct RectAddRectSumFenwickTree<T>
+    where
+        T: Copy
+            + Add<Output = T>
+            + Sub<Output = T>
+            + Mul<Output = T>
+            + Neg<Output = T>
+            + From<i64>
+            + Sum,
+    {
         h: usize,
         w: usize,
-        bit00: RectSumFenwickTree2DArbitrary<G>,
-        bit01: RectSumFenwickTree2DArbitrary<G>,
-        bit10: RectSumFenwickTree2DArbitrary<G>,
-        bit11: RectSumFenwickTree2DArbitrary<G>,
+        bit00: RectSumFenwickTree2D<T>,
+        bit01: RectSumFenwickTree2D<T>,
+        bit10: RectSumFenwickTree2D<T>,
+        bit11: RectSumFenwickTree2D<T>,
     }
 
     /// i64 の加算群を用いた標準的な 2次元矩形加算・矩形和 Fenwick Tree のエイリアス。
-    pub type RectAddRectSumFenwickTreeI64 =
-        RectAddRectSumFenwickTreeArbitrary<AdditiveAbGroup<i64>>;
+    pub type RectAddRectSumFenwickTreeI64 = RectAddRectSumFenwickTree<i64>;
 
-    /// 任意の数値型 T の加算群を用いた 2次元矩形加算・矩形和 Fenwick Tree のエイリアス。
-    pub type RectAddRectSumFenwickTree<T> = RectAddRectSumFenwickTreeArbitrary<AdditiveAbGroup<T>>;
-
-    impl<G: AbGroup> RectAddRectSumFenwickTreeArbitrary<G>
+    impl<T> RectAddRectSumFenwickTree<T>
     where
-        G::S: Copy + std::ops::Mul<Output = G::S> + From<i64>,
+        T: Copy
+            + Add<Output = T>
+            + Sub<Output = T>
+            + Mul<Output = T>
+            + Neg<Output = T>
+            + From<i64>
+            + Sum,
     {
         /// H × W の 2次元矩形加算・矩形和 Fenwick Tree を作成します。
         ///
@@ -44,10 +66,10 @@ pub mod rect_add_rect_sum_fenwick_tree {
             Self {
                 h,
                 w,
-                bit00: RectSumFenwickTree2DArbitrary::new(h + 1, w + 1),
-                bit01: RectSumFenwickTree2DArbitrary::new(h + 1, w + 1),
-                bit10: RectSumFenwickTree2DArbitrary::new(h + 1, w + 1),
-                bit11: RectSumFenwickTree2DArbitrary::new(h + 1, w + 1),
+                bit00: RectSumFenwickTree2D::new(h + 1, w + 1),
+                bit01: RectSumFenwickTree2D::new(h + 1, w + 1),
+                bit10: RectSumFenwickTree2D::new(h + 1, w + 1),
+                bit11: RectSumFenwickTree2D::new(h + 1, w + 1),
             }
         }
 
@@ -55,49 +77,43 @@ pub mod rect_add_rect_sum_fenwick_tree {
         ///
         /// # 計算量
         /// O(H * W)
-        pub fn from_slice(slice: &[Vec<G::S>]) -> Self {
+        pub fn from_slice(slice: &[Vec<T>]) -> Self {
             let h = slice.len();
             let w = if h == 0 { 0 } else { slice[0].len() };
-            let mut d = vec![vec![G::zero(); w + 1]; h + 1];
-            let mut dx = vec![vec![G::zero(); w + 1]; h + 1];
-            let mut dy = vec![vec![G::zero(); w + 1]; h + 1];
-            let mut dxy = vec![vec![G::zero(); w + 1]; h + 1];
+            let mut d = vec![vec![T::from(0); w + 1]; h + 1];
+            let mut dx = vec![vec![T::from(0); w + 1]; h + 1];
+            let mut dy = vec![vec![T::from(0); w + 1]; h + 1];
+            let mut dxy = vec![vec![T::from(0); w + 1]; h + 1];
 
             for i in 0..=h {
                 for j in 0..=w {
-                    let get_a = |y: isize, x: isize| -> G::S {
+                    let get_a = |y: isize, x: isize| -> T {
                         if y >= 0 && (y as usize) < h && x >= 0 && (x as usize) < w {
                             slice[y as usize][x as usize]
                         } else {
-                            G::zero()
+                            T::from(0)
                         }
                     };
 
-                    let val = G::add(
-                        &G::sub(
-                            &G::sub(
-                                &get_a(i as isize, j as isize),
-                                &get_a(i as isize - 1, j as isize),
-                            ),
-                            &get_a(i as isize, j as isize - 1),
-                        ),
-                        &get_a(i as isize - 1, j as isize - 1),
-                    );
+                    let val = get_a(i as isize, j as isize)
+                        - get_a(i as isize - 1, j as isize)
+                        - get_a(i as isize, j as isize - 1)
+                        + get_a(i as isize - 1, j as isize - 1);
 
                     d[i][j] = val;
-                    dx[i][j] = val * G::S::from(j as i64);
-                    dy[i][j] = val * G::S::from(i as i64);
-                    dxy[i][j] = val * G::S::from(i as i64) * G::S::from(j as i64);
+                    dx[i][j] = val * T::from(j as i64);
+                    dy[i][j] = val * T::from(i as i64);
+                    dxy[i][j] = val * T::from(i as i64) * T::from(j as i64);
                 }
             }
 
             Self {
                 h,
                 w,
-                bit00: RectSumFenwickTree2DArbitrary::from_slice(&d),
-                bit01: RectSumFenwickTree2DArbitrary::from_slice(&dx),
-                bit10: RectSumFenwickTree2DArbitrary::from_slice(&dy),
-                bit11: RectSumFenwickTree2DArbitrary::from_slice(&dxy),
+                bit00: RectSumFenwickTree2D::from_slice(&d),
+                bit01: RectSumFenwickTree2D::from_slice(&dx),
+                bit10: RectSumFenwickTree2D::from_slice(&dy),
+                bit11: RectSumFenwickTree2D::from_slice(&dxy),
             }
         }
 
@@ -108,7 +124,7 @@ pub mod rect_add_rect_sum_fenwick_tree {
         ///
         /// # 計算量
         /// O(log H * log W)
-        pub fn rect_add<Ry, Rx>(&mut self, y_range: Ry, x_range: Rx, val: G::S)
+        pub fn rect_add<Ry, Rx>(&mut self, y_range: Ry, x_range: Rx, val: T)
         where
             Ry: RangeBounds<usize>,
             Rx: RangeBounds<usize>,
@@ -136,40 +152,40 @@ pub mod rect_add_rect_sum_fenwick_tree {
 
             assert!(
                 y1 <= y2 && y2 <= self.h,
-                "RectAddRectSumFenwickTree2D::rect_add: invalid y range: {}..{}, h={}",
+                "RectAddRectSumFenwickTree::rect_add: invalid y range: {}..{}, h={}",
                 y1,
                 y2,
                 self.h
             );
             assert!(
                 x1 <= x2 && x2 <= self.w,
-                "RectAddRectSumFenwickTree2D::rect_add: invalid x range: {}..{}, w={}",
+                "RectAddRectSumFenwickTree::rect_add: invalid x range: {}..{}, w={}",
                 x1,
                 x2,
                 self.w
             );
 
-            let add = |this: &mut Self, y: usize, x: usize, v: G::S| {
-                if y <= this.h && x <= this.w {
-                    this.bit00.add(y, x, v);
-                    this.bit01.add(y, x, v * G::S::from(x as i64));
-                    this.bit10.add(y, x, v * G::S::from(y as i64));
-                    this.bit11
-                        .add(y, x, v * G::S::from(y as i64) * G::S::from(x as i64));
+            let mut add_internal = |y: usize, x: usize, v: T| {
+                if y <= self.h && x <= self.w {
+                    self.bit00.add(y, x, v);
+                    self.bit01.add(y, x, v * T::from(x as i64));
+                    self.bit10.add(y, x, v * T::from(y as i64));
+                    self.bit11
+                        .add(y, x, v * T::from(y as i64) * T::from(x as i64));
                 }
             };
 
-            add(self, y1, x1, val);
-            add(self, y1, x2, G::neg(&val));
-            add(self, y2, x1, G::neg(&val));
-            add(self, y2, x2, val);
+            add_internal(y1, x1, val);
+            add_internal(y1, x2, -val);
+            add_internal(y2, x1, -val);
+            add_internal(y2, x2, val);
         }
 
         /// `(y, x)` 番目の要素に `val` を加算します。
         ///
         /// # 計算量
         /// O(log H * log W)
-        pub fn add(&mut self, y: usize, x: usize, val: G::S) {
+        pub fn add(&mut self, y: usize, x: usize, val: T) {
             self.rect_add(y..=y, x..=x, val);
         }
 
@@ -177,33 +193,26 @@ pub mod rect_add_rect_sum_fenwick_tree {
         ///
         /// # 計算量
         /// O(log H * log W)
-        pub fn set(&mut self, y: usize, x: usize, val: G::S) {
+        pub fn set(&mut self, y: usize, x: usize, val: T) {
             let old = self.get(y, x);
-            self.add(y, x, G::sub(&val, &old));
+            self.add(y, x, val - old);
         }
 
         /// 左上 (0,0) から右下 (y,x) までの矩形和を取得します。
         ///
         /// # 計算量
         /// O(log H * log W)
-        pub fn prefix_sum(&self, y: usize, x: usize) -> G::S {
+        pub fn prefix_sum(&self, y: usize, x: usize) -> T {
             let s00 = self.bit00.prefix_sum(y, x);
             let s01 = self.bit01.prefix_sum(y, x);
             let s10 = self.bit10.prefix_sum(y, x);
             let s11 = self.bit11.prefix_sum(y, x);
 
-            let y_s = G::S::from(y as i64);
-            let x_s = G::S::from(x as i64);
+            let y_s = T::from(y as i64);
+            let x_s = T::from(x as i64);
 
             // S(y, x) = y*x*s00 - y*s01 - x*s10 + s11
-            let term1 = s00 * y_s * x_s;
-            let term2 = s01 * y_s;
-            let term3 = s10 * x_s;
-            let term4 = s11;
-
-            let res = G::sub(&term1, &term2);
-            let res = G::sub(&res, &term3);
-            G::add(&res, &term4)
+            s00 * y_s * x_s - s01 * y_s - s10 * x_s + s11
         }
 
         /// 指定された矩形領域の和を計算します。
@@ -213,7 +222,7 @@ pub mod rect_add_rect_sum_fenwick_tree {
         ///
         /// # 計算量
         /// O(log H * log W)
-        pub fn rect_sum<Ry, Rx>(&self, y_range: Ry, x_range: Rx) -> G::S
+        pub fn rect_sum<Ry, Rx>(&self, y_range: Ry, x_range: Rx) -> T
         where
             Ry: RangeBounds<usize>,
             Rx: RangeBounds<usize>,
@@ -241,42 +250,36 @@ pub mod rect_add_rect_sum_fenwick_tree {
 
             assert!(
                 y1 <= y2 && y2 <= self.h,
-                "RectAddRectSumFenwickTree2D::rect_sum: invalid y range: {}..{}, h={}",
+                "RectAddRectSumFenwickTree::rect_sum: invalid y range: {}..{}, h={}",
                 y1,
                 y2,
                 self.h
             );
             assert!(
                 x1 <= x2 && x2 <= self.w,
-                "RectAddRectSumFenwickTree2D::rect_sum: invalid x range: {}..{}, w={}",
+                "RectAddRectSumFenwickTree::rect_sum: invalid x range: {}..{}, w={}",
                 x1,
                 x2,
                 self.w
             );
 
-            let term1 = self.prefix_sum(y2, x2);
-            let term2 = self.prefix_sum(y1, x2);
-            let term3 = self.prefix_sum(y2, x1);
-            let term4 = self.prefix_sum(y1, x1);
-
-            let res = G::sub(&term1, &term2);
-            let res = G::sub(&res, &term3);
-            G::add(&res, &term4)
+            self.prefix_sum(y2, x2) - self.prefix_sum(y1, x2) - self.prefix_sum(y2, x1)
+                + self.prefix_sum(y1, x1)
         }
 
         /// `(y, x)` 番目の要素を取得します。
         ///
         /// # 計算量
         /// O(log H * log W)
-        pub fn get(&self, y: usize, x: usize) -> G::S {
+        pub fn get(&self, y: usize, x: usize) -> T {
             self.rect_sum(y..=y, x..=x)
         }
 
-        /// 現在の状態を `Vec<Vec<G::S>>` として返します。
+        /// 現在の状態を `Vec<Vec<T>>` として返します。
         ///
         /// # 計算量
         /// O(H * W * log H * log W)
-        pub fn to_vec(&self) -> Vec<Vec<G::S>> {
+        pub fn to_vec(&self) -> Vec<Vec<T>> {
             (0..self.h)
                 .map(|y| (0..self.w).map(|x| self.get(y, x)).collect())
                 .collect()
@@ -295,14 +298,12 @@ pub mod rect_add_rect_sum_fenwick_tree {
 #[cfg(test)]
 mod tests {
     use super::rect_add_rect_sum_fenwick_tree::*;
-    use crate::math::algebra::ab_group::ab_group::AdditiveAbGroup;
     use rand::{Rng, SeedableRng, rngs::SmallRng};
 
     #[test]
     fn test_rect_add_rect_sum_2d_basic() {
-        type G = AdditiveAbGroup<i64>;
         let (h, w) = (5, 5);
-        let mut ft = RectAddRectSumFenwickTreeArbitrary::<G>::new(h, w);
+        let mut ft = RectAddRectSumFenwickTree::<i64>::new(h, w);
         assert_eq!(ft.len_h(), 5);
         assert_eq!(ft.len_w(), 5);
 
@@ -323,9 +324,8 @@ mod tests {
 
     #[test]
     fn test_rect_add_rect_sum_2d_from_slice_basic() {
-        type G = AdditiveAbGroup<i64>;
         let vals = vec![vec![1, 2, 3], vec![4, 5, 6], vec![7, 8, 9]];
-        let ft = RectAddRectSumFenwickTreeArbitrary::<G>::from_slice(&vals);
+        let ft = RectAddRectSumFenwickTree::<i64>::from_slice(&vals);
 
         assert_eq!(ft.to_vec(), vals);
         // 矩形和の検証
@@ -337,14 +337,13 @@ mod tests {
     #[test]
     #[ignore]
     fn test_random_rect_add_rect_sum_2d() {
-        type G = AdditiveAbGroup<i64>;
         let mut rng = SmallRng::seed_from_u64(42);
 
         for _ in 0..20 {
             let h = rng.random_range(1..=10);
             let w = rng.random_range(1..=10);
             let mut naive = vec![vec![0i64; w]; h];
-            let mut ft = RectAddRectSumFenwickTreeArbitrary::<G>::new(h, w);
+            let mut ft = RectAddRectSumFenwickTree::<i64>::new(h, w);
 
             for _ in 0..50 {
                 let op = rng.random_range(0..4);
@@ -404,7 +403,6 @@ mod tests {
     #[test]
     #[ignore]
     fn test_random_rect_add_rect_sum_2d_from_slice() {
-        type G = AdditiveAbGroup<i64>;
         let mut rng = SmallRng::seed_from_u64(42);
 
         for h in 1..=8 {
@@ -412,7 +410,7 @@ mod tests {
                 let vals: Vec<Vec<i64>> = (0..h)
                     .map(|_| (0..w).map(|_| rng.random_range(-100..=100)).collect())
                     .collect();
-                let ft = RectAddRectSumFenwickTreeArbitrary::<G>::from_slice(&vals);
+                let ft = RectAddRectSumFenwickTree::<i64>::from_slice(&vals);
 
                 assert_eq!(ft.to_vec(), vals, "h={}, w={} failed", h, w);
             }
