@@ -32,10 +32,7 @@ pub mod range_sum_fenwick_tree {
         /// # 計算量
         /// O(n)
         pub fn new(n: usize) -> Self {
-            let mut ary = Vec::with_capacity(n);
-            for _ in 0..n {
-                ary.push(G::zero());
-            }
+            let ary = vec![G::zero(); n];
             RangeSumFenwickTreeArbitrary { n, ary }
         }
 
@@ -160,11 +157,11 @@ pub mod range_sum_fenwick_tree {
             let val_l = self.accum(l);
             let mut r = 0;
             let mut current_val = G::zero();
-            let mut k = 1;
-            while k <= self.n {
-                k <<= 1;
-            }
-            k >>= 1;
+            let mut k = if self.n == 0 {
+                0
+            } else {
+                1 << (usize::BITS - 1 - self.n.leading_zeros())
+            };
 
             while k > 0 {
                 if r + k <= self.n {
@@ -213,11 +210,11 @@ pub mod range_sum_fenwick_tree {
 
             let mut idx = 0;
             let mut current_val = G::zero();
-            let mut k = 1;
-            while k <= self.n {
-                k <<= 1;
-            }
-            k >>= 1;
+            let mut k = if self.n == 0 {
+                0
+            } else {
+                1 << (usize::BITS - 1 - self.n.leading_zeros())
+            };
 
             while k > 0 {
                 if idx + k <= r {

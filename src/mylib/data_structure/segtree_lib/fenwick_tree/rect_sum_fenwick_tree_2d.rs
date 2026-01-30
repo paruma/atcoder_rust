@@ -31,14 +31,7 @@ pub mod rect_sum_fenwick_tree_2d {
         /// # 計算量
         /// O(H * W)
         pub fn new(h: usize, w: usize) -> Self {
-            let mut data = Vec::with_capacity(h);
-            for _ in 0..h {
-                let mut row = Vec::with_capacity(w);
-                for _ in 0..w {
-                    row.push(G::zero());
-                }
-                data.push(row);
-            }
+            let data = vec![vec![G::zero(); w]; h];
             Self { h, w, data }
         }
 
@@ -86,7 +79,11 @@ pub mod rect_sum_fenwick_tree_2d {
         pub fn add(&mut self, mut y: usize, x: usize, val: G::S) {
             assert!(
                 y < self.h && x < self.w,
-                "RectSumFenwickTree2D::add: out of bounds"
+                "RectSumFenwickTree2D::add: out of bounds. (y, x) = ({}, {}), (h, w) = ({}, {})",
+                y,
+                x,
+                self.h,
+                self.w
             );
             y += 1;
             while y <= self.h {
@@ -109,7 +106,11 @@ pub mod rect_sum_fenwick_tree_2d {
         pub fn accum(&self, mut y: usize, x: usize) -> G::S {
             assert!(
                 y <= self.h && x <= self.w,
-                "RectSumFenwickTree2D::accum: out of bounds"
+                "RectSumFenwickTree2D::accum: out of bounds. (y, x) = ({}, {}), (h, w) = ({}, {})",
+                y,
+                x,
+                self.h,
+                self.w
             );
             let mut res = G::zero();
             while y > 0 {
@@ -158,11 +159,17 @@ pub mod rect_sum_fenwick_tree_2d {
 
             assert!(
                 y1 <= y2 && y2 <= self.h,
-                "RectSumFenwickTree2D::rect_sum: invalid y range"
+                "RectSumFenwickTree2D::rect_sum: invalid y range. y_range = {}..{}, h = {}",
+                y1,
+                y2,
+                self.h
             );
             assert!(
                 x1 <= x2 && x2 <= self.w,
-                "RectSumFenwickTree2D::rect_sum: invalid x range"
+                "RectSumFenwickTree2D::rect_sum: invalid x range. x_range = {}..{}, w = {}",
+                x1,
+                x2,
+                self.w
             );
 
             // 二次元累積和の原理 (包除原理): S(y2, x2) - S(y1, x2) - S(y2, x1) + S(y1, x1)
@@ -191,6 +198,20 @@ pub mod rect_sum_fenwick_tree_2d {
         pub fn set(&mut self, y: usize, x: usize, val: G::S) {
             let old = self.get(y, x);
             self.add(y, x, G::sub(&val, &old));
+        }
+
+        /// 2次元 Fenwick Tree の現在の状態を `Vec<Vec<G::S>>` として返します。
+        ///
+        /// # 計算量
+        /// O(H * W * log H * log W)
+        pub fn to_vec(&self) -> Vec<Vec<G::S>> {
+            let mut res = vec![vec![G::zero(); self.w]; self.h];
+            for y in 0..self.h {
+                for x in 0..self.w {
+                    res[y][x] = self.get(y, x);
+                }
+            }
+            res
         }
 
         pub fn len_h(&self) -> usize {
