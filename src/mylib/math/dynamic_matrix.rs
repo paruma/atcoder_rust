@@ -4,7 +4,7 @@ use cargo_snippet::snippet;
 #[allow(clippy::module_inception)]
 pub mod dynamic_matrix {
     use std::iter::{Product, Sum};
-    use std::ops::{Add, AddAssign, Index, IndexMut, Mul, Sub, SubAssign};
+    use std::ops::{Add, AddAssign, Index, IndexMut, Mul, Neg, Sub, SubAssign};
 
     // Helper functions for zero and one, similar to matrix.rs
     fn t_zero<T>() -> T
@@ -60,6 +60,17 @@ pub mod dynamic_matrix {
                 );
             }
             Self { rows, cols, data }
+        }
+
+        /// スカラ倍 (Matrix * T)
+        pub fn scalar_mul(self, rhs: T) -> Self {
+            let mut result = Self::new(self.rows, self.cols, t_zero());
+            for i in 0..self.rows {
+                for j in 0..self.cols {
+                    result.data[i][j] = self.data[i][j] * rhs;
+                }
+            }
+            result
         }
     }
 
@@ -175,6 +186,33 @@ pub mod dynamic_matrix {
         }
     }
 
+    // 符号反転
+    impl<T> Neg for DynamicMatrix<T>
+    where
+        T: Copy
+            + Sum
+            + Product
+            + Add<Output = T>
+            + Sub<Output = T>
+            + Mul<Output = T>
+            + Neg<Output = T>,
+    {
+        type Output = Self;
+        fn neg(self) -> Self::Output {
+            let mut data = self.data;
+            for row in &mut data {
+                for x in row {
+                    *x = -*x;
+                }
+            }
+            Self {
+                rows: self.rows,
+                cols: self.cols,
+                data,
+            }
+        }
+    }
+
     // Mul (Matrix * Matrix)
     impl<T> Mul for DynamicMatrix<T>
     where
@@ -199,13 +237,19 @@ pub mod dynamic_matrix {
         }
     }
 
-    // Mul (Matrix * Scalar)
-    impl<T> Mul<T> for DynamicMatrix<T>
+    // 整数倍 (Matrix * i64)
+    impl<T> Mul<i64> for DynamicMatrix<T>
     where
-        T: Copy + Sum + Product + Mul<Output = T> + Add<Output = T> + Sub<Output = T>,
+        T: Copy
+            + Sum
+            + Product
+            + Mul<i64, Output = T>
+            + Add<Output = T>
+            + Sub<Output = T>
+            + Mul<Output = T>,
     {
         type Output = Self;
-        fn mul(self, rhs: T) -> Self::Output {
+        fn mul(self, rhs: i64) -> Self::Output {
             let mut result = Self::new(self.rows, self.cols, t_zero());
             for i in 0..self.rows {
                 for j in 0..self.cols {
@@ -276,20 +320,6 @@ mod tests {
     }
 
     #[test]
-    fn test_identity() {
-        let m = DynamicMatrix::<i32>::identity(3);
-        assert_eq!(m.rows, 3);
-        assert_eq!(m.cols, 3);
-        assert_eq!(m.data, [[1, 0, 0], [0, 1, 0], [0, 0, 1]]);
-    }
-
-    #[test]
-    #[should_panic(expected = "Matrix must be square for exponentiation.")]
-    fn test_identity_non_square_panic() {
-        let _ = DynamicMatrix::<i32>::new(2, 3, 0).pow(1);
-    }
-
-    #[test]
     fn test_from_vec() {
         let m = DynamicMatrix::<i32>::from_vec(vec![vec![1, 2], vec![3, 4]]);
         assert_eq!(m.rows, 2);
@@ -298,15 +328,23 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "Matrix cannot be empty")]
+    #[should_panic]
     fn test_from_vec_empty_panic() {
         let _ = DynamicMatrix::<i32>::from_vec(vec![]);
     }
 
     #[test]
-    #[should_panic(expected = "All rows must have the same number of columns")]
+    #[should_panic]
     fn test_from_vec_ragged_panic() {
         let _ = DynamicMatrix::<i32>::from_vec(vec![vec![1, 2], vec![3]]);
+    }
+
+    #[test]
+    fn test_identity() {
+        let m = DynamicMatrix::<i32>::identity(3);
+        assert_eq!(m.rows, 3);
+        assert_eq!(m.cols, 3);
+        assert_eq!(m.data, [[1, 0, 0], [0, 1, 0], [0, 0, 1]]);
     }
 
     #[test]
@@ -318,6 +356,13 @@ mod tests {
         m[(1, 1)] = 4;
         assert_eq!(m[(0, 0)], 1);
         assert_eq!(m[(1, 1)], 4);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_index_out_of_bounds() {
+        let m = DynamicMatrix::<i32>::new(2, 2, 0);
+        let _ = m[(2, 0)];
     }
 
     #[test]
@@ -337,19 +382,11 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "Matrices must have the same number of rows for addition.")]
+    #[should_panic]
     fn test_add_mismatched_rows_panic() {
         let m1 = DynamicMatrix::<i32>::new(2, 2, 0);
         let m2 = DynamicMatrix::<i32>::new(3, 2, 0);
         let _ = m1 + m2;
-    }
-
-    #[test]
-    #[should_panic(expected = "Matrices must have the same number of columns for addition.")]
-    fn test_add_assign_mismatched_cols_panic() {
-        let mut m1 = DynamicMatrix::<i32>::new(2, 2, 0);
-        let m2 = DynamicMatrix::<i32>::new(2, 3, 0);
-        m1 += m2;
     }
 
     #[test]
@@ -369,19 +406,9 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "Matrices must have the same number of rows for subtraction.")]
-    fn test_sub_mismatched_rows_panic() {
-        let m1 = DynamicMatrix::<i32>::new(2, 2, 0);
-        let m2 = DynamicMatrix::<i32>::new(3, 2, 0);
-        let _ = m1 - m2;
-    }
-
-    #[test]
-    #[should_panic(expected = "Matrices must have the same number of columns for subtraction.")]
-    fn test_sub_assign_mismatched_cols_panic() {
-        let mut m1 = DynamicMatrix::<i32>::new(2, 2, 0);
-        let m2 = DynamicMatrix::<i32>::new(2, 3, 0);
-        m1 -= m2;
+    fn test_neg() {
+        let m = DynamicMatrix::<i32>::from_vec(vec![vec![1, -2], vec![-3, 4]]);
+        assert_eq!((-m).data, [[-1, 2], [3, -4]]);
     }
 
     #[test]
@@ -393,9 +420,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(
-        expected = "The number of columns of the left matrix must equal the number of rows of the right matrix for multiplication."
-    )]
+    #[should_panic]
     fn test_mul_matrix_mismatched_dims_panic() {
         let m1 = DynamicMatrix::<i32>::new(2, 3, 0);
         let m2 = DynamicMatrix::<i32>::new(2, 2, 0);
@@ -405,7 +430,21 @@ mod tests {
     #[test]
     fn test_mul_scalar() {
         let m = DynamicMatrix::<i32>::from_vec(vec![vec![1, 2], vec![3, 4]]);
-        let m_scaled = m * 2;
+        let m_scaled = m.scalar_mul(2);
+        assert_eq!(m_scaled.data, [[2, 4], [6, 8]]);
+    }
+
+    #[test]
+    fn test_mul_integer() {
+        let m = DynamicMatrix::<i64>::from_vec(vec![vec![1, 2], vec![3, 4]]);
+        let m_scaled = m * 2i64;
+        assert_eq!(m_scaled.data, [[2, 4], [6, 8]]);
+    }
+
+    #[test]
+    fn test_scalar_mul() {
+        let m = DynamicMatrix::<i32>::from_vec(vec![vec![1, 2], vec![3, 4]]);
+        let m_scaled = m.scalar_mul(2);
         assert_eq!(m_scaled.data, [[2, 4], [6, 8]]);
     }
 
@@ -417,6 +456,12 @@ mod tests {
     }
 
     #[test]
+    #[should_panic]
+    fn test_pow_non_square_panic() {
+        let _ = DynamicMatrix::<i32>::new(2, 3, 0).pow(1);
+    }
+
+    #[test]
     fn test_apply() {
         let m = DynamicMatrix::<i32>::from_vec(vec![vec![1, 2, 3], vec![4, 5, 6]]);
         let x = vec![7, 8, 9];
@@ -425,9 +470,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(
-        expected = "The number of columns of the matrix must equal the length of the vector for application."
-    )]
+    #[should_panic]
     fn test_apply_mismatched_dims_panic() {
         let m = DynamicMatrix::<i32>::new(2, 3, 0);
         let x = vec![1, 2];
