@@ -3,14 +3,13 @@ use cargo_snippet::snippet;
 #[allow(clippy::module_inception)]
 pub mod matrix {
 
-    use std::ops::{Add, AddAssign, Index, IndexMut, Mul, Sub, SubAssign};
+    use std::iter::{Product, Sum};
+    use std::ops::{Add, AddAssign, Index, IndexMut, Mul, Neg, Sub, SubAssign};
 
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     pub struct Matrix<T, const R: usize, const C: usize> {
         pub data: [[T; C]; R],
     }
-
-    use std::iter::{Product, Sum};
 
     fn t_zero<T>() -> T
     where
@@ -140,6 +139,39 @@ pub mod matrix {
                     self.data[i][j] -= rhs.data[i][j];
                 }
             }
+        }
+    }
+
+    // 符号反転
+    impl<T, const R: usize, const C: usize> Neg for Matrix<T, R, C>
+    where
+        T: Copy
+            + Sum
+            + Product
+            + Add<Output = T>
+            + Sub<Output = T>
+            + Mul<Output = T>
+            + Neg<Output = T>,
+    {
+        type Output = Self;
+        fn neg(self) -> Self::Output {
+            let mut data = self.data;
+            for row in &mut data {
+                for x in row {
+                    *x = -*x;
+                }
+            }
+            Self { data }
+        }
+    }
+
+    // Sum
+    impl<T, const R: usize, const C: usize> Sum for Matrix<T, R, C>
+    where
+        T: Copy + Sum + Product + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+            iter.fold(Self::new(t_zero()), |acc, x| acc + x)
         }
     }
 
@@ -315,6 +347,13 @@ mod tests {
     }
 
     #[test]
+    #[should_panic]
+    fn test_index_out_of_bounds() {
+        let m = Matrix::<i32, 2, 2>::new(0);
+        let _ = m[(2, 0)];
+    }
+
+    #[test]
     fn test_add() {
         let m1 = Matrix::<i32, 2, 2>::from_array([[1, 2], [3, 4]]);
         let m2 = Matrix::<i32, 2, 2>::from_array([[5, 6], [7, 8]]);
@@ -347,6 +386,26 @@ mod tests {
     }
 
     #[test]
+    fn test_neg() {
+        let m = Matrix::<i32, 2, 2>::from_array([[1, -2], [-3, 4]]);
+        assert_eq!((-m).data, [[-1, 2], [3, -4]]);
+    }
+
+    #[test]
+    fn test_sum() {
+        let m1 = Matrix::<i32, 2, 2>::from_array([[1, 2], [3, 4]]);
+        let m2 = Matrix::<i32, 2, 2>::from_array([[5, 6], [7, 8]]);
+        let m3 = Matrix::<i32, 2, 2>::from_array([[9, 10], [11, 12]]);
+        let matrices = vec![m1, m2, m3];
+        let sum: Matrix<i32, 2, 2> = matrices.into_iter().sum();
+        assert_eq!(sum.data, [[15, 18], [21, 24]]);
+
+        let empty: Vec<Matrix<i32, 2, 2>> = vec![];
+        let sum_empty: Matrix<i32, 2, 2> = empty.into_iter().sum();
+        assert_eq!(sum_empty, Matrix::<i32, 2, 2>::new(0));
+    }
+
+    #[test]
     fn test_mul_matrix() {
         let m1 = Matrix::<i32, 2, 2>::from_array([[1, 2], [3, 4]]);
         let m2 = Matrix::<i32, 2, 2>::from_array([[5, 6], [7, 8]]);
@@ -376,20 +435,6 @@ mod tests {
         let m = Matrix::<i32, 2, 2>::from_array([[1, 2], [3, 4]]);
         let m_scaled = m.scalar_mul(2);
         assert_eq!(m_scaled.data, [[2, 4], [6, 8]]);
-    }
-
-    #[test]
-    fn test_mul_scalar_mint_matrix() {
-        use ac_library::ModInt998244353 as Mint;
-        let m = Matrix::<Mint, 2, 2>::from_array([
-            [Mint::new(1), Mint::new(2)],
-            [Mint::new(3), Mint::new(4)],
-        ]);
-        let m_scaled = m * 2i64;
-        assert_eq!(
-            m_scaled.data,
-            [[Mint::new(2), Mint::new(4)], [Mint::new(6), Mint::new(8)]]
-        );
     }
 
     #[test]
@@ -428,29 +473,6 @@ mod tests {
     }
 
     #[test]
-    fn test_modint_matrix() {
-        use ac_library::ModInt998244353 as Mint;
-        let m = Matrix::<Mint, 3, 3>::identity();
-        assert_eq!(
-            m.data,
-            [
-                [Mint::new(1), Mint::new(0), Mint::new(0)],
-                [Mint::new(0), Mint::new(1), Mint::new(0)],
-                [Mint::new(0), Mint::new(0), Mint::new(1)]
-            ]
-        );
-    }
-
-    #[test]
-    fn test_matrix22_usage() {
-        let m = Matrix22::<i32>::identity();
-        assert_eq!(m.data, [[1, 0], [0, 1]]);
-
-        let m2 = Matrix22::from_array([[1, 2], [3, 4]]);
-        assert_eq!(m2.data, [[1, 2], [3, 4]]);
-    }
-
-    #[test]
     fn test_det_2x2() {
         let m = Matrix22::<i32>::from_array([[1, 2], [3, 4]]);
         assert_eq!(m.det(), -2);
@@ -481,6 +503,43 @@ mod tests {
         let m2 =
             Matrix44::<i32>::from_array([[3, 2, 0, 1], [4, 0, 1, 2], [3, 0, 2, 1], [9, 2, 3, 1]]);
         assert_eq!(m2.det(), 24);
+    }
+
+    #[test]
+    fn test_modint_matrix() {
+        use ac_library::ModInt998244353 as Mint;
+        let m = Matrix::<Mint, 3, 3>::identity();
+        assert_eq!(
+            m.data,
+            [
+                [Mint::new(1), Mint::new(0), Mint::new(0)],
+                [Mint::new(0), Mint::new(1), Mint::new(0)],
+                [Mint::new(0), Mint::new(0), Mint::new(1)]
+            ]
+        );
+    }
+
+    #[test]
+    fn test_mul_scalar_mint_matrix() {
+        use ac_library::ModInt998244353 as Mint;
+        let m = Matrix::<Mint, 2, 2>::from_array([
+            [Mint::new(1), Mint::new(2)],
+            [Mint::new(3), Mint::new(4)],
+        ]);
+        let m_scaled = m * 2i64;
+        assert_eq!(
+            m_scaled.data,
+            [[Mint::new(2), Mint::new(4)], [Mint::new(6), Mint::new(8)]]
+        );
+    }
+
+    #[test]
+    fn test_matrix22_usage() {
+        let m = Matrix22::<i32>::identity();
+        assert_eq!(m.data, [[1, 0], [0, 1]]);
+
+        let m2 = Matrix22::from_array([[1, 2], [3, 4]]);
+        assert_eq!(m2.data, [[1, 2], [3, 4]]);
     }
 
     #[test]
