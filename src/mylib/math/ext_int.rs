@@ -32,7 +32,11 @@ pub mod mod_ext_int {
             }
         }
         pub fn get_fin_or(self, default: i64) -> i64 {
-            if self.is_fin() { self.0 } else { default }
+            if self.is_fin() {
+                self.0
+            } else {
+                default
+            }
         }
         #[inline]
         pub fn is_fin(self) -> bool {
@@ -42,7 +46,11 @@ pub mod mod_ext_int {
             self.0 == i64::MAX
         }
         pub fn to_option(self) -> Option<i64> {
-            if self.is_fin() { Some(self.0) } else { None }
+            if self.is_fin() {
+                Some(self.0)
+            } else {
+                None
+            }
         }
         pub fn from_option(opt: Option<i64>) -> ExtInt {
             match opt {
@@ -139,6 +147,7 @@ pub mod mod_ext_int {
             }
         }
     }
+
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct ExtIntAdditive(Infallible);
     impl Monoid for ExtIntAdditive {
@@ -163,6 +172,8 @@ pub mod mod_ext_int {
     }
 }
 
+/// MinMonoid/MaxMonoid を使うためのコード。
+/// min_max_monoid と ext_int のスニペットをあらかじめ貼った上で利用する
 #[snippet(prefix = "use mod_ext_int_bounded::*;")]
 pub mod mod_ext_int_bounded {
     use super::mod_ext_int::ExtInt;
@@ -310,6 +321,7 @@ mod tests {
         assert_eq!(fin(-3).times(10), fin(-30));
         assert_eq!(INF.times(0), fin(0)); // INF を 0 回足した場合と考え、足し算の単位元 fin(0) 扱い
         assert_eq!(INF.times(10), INF);
+        assert_eq!(fin(10).times(2), fin(20)); // Ensure Greater case is covered
     }
 
     #[test]
@@ -339,5 +351,28 @@ mod tests {
 
         assert_eq!(format!("{}", INF), "+∞");
         assert_eq!(format!("{:?}", INF), "+∞");
+    }
+
+    #[test]
+    fn test_min_monoid_with_ext_int() {
+        use crate::math::algebra::min_max_monoid::min_max_monoid::MinMonoid;
+        type M = MinMonoid<(ExtInt, i64)>;
+        let identity = M::identity();
+        assert_eq!(identity, (ExtInt::INF, i64::MAX));
+
+        let a = (ExtInt::fin(10), 100);
+        let b = (ExtInt::INF, 200);
+        assert_eq!(M::binary_operation(&a, &b), a);
+    }
+
+    #[test]
+    fn test_max_monoid_with_ext_int() {
+        use crate::math::algebra::min_max_monoid::min_max_monoid::{BoundedBelow, MaxMonoid};
+        type M = MaxMonoid<ExtInt>;
+        assert_eq!(M::identity(), ExtInt::min_value());
+
+        let a = fin(10);
+        let b = INF;
+        assert_eq!(M::binary_operation(&a, &b), b);
     }
 }

@@ -186,6 +186,20 @@ mod tests {
     }
 
     #[test]
+    fn test_max_monoid_with_reverse_primitive() {
+        type M = MaxMonoid<Reverse<i64>>;
+        let identity = M::identity();
+        assert_eq!(identity, Reverse(i64::MAX));
+
+        let a = Reverse(10);
+        let b = Reverse(20);
+        let c = Reverse(5);
+
+        assert_eq!(M::binary_operation(&a, &b), Reverse(10));
+        assert_eq!(M::binary_operation(&a, &c), Reverse(5));
+    }
+
+    #[test]
     fn test_min_monoid_with_reverse_tuple() {
         type M = MinMonoid<(i64, Reverse<i64>)>;
         let identity = M::identity();
@@ -197,29 +211,5 @@ mod tests {
 
         assert_eq!(M::binary_operation(&a, &b), (10, Reverse(200)));
         assert_eq!(M::binary_operation(&a, &c), (5, Reverse(50)));
-    }
-
-    #[test]
-    fn test_min_monoid_with_ext_int() {
-        use crate::math::ext_int::mod_ext_int::ExtInt;
-        type M = MinMonoid<(ExtInt, i64)>;
-        let identity = M::identity();
-        assert_eq!(identity, (ExtInt::INF, i64::MAX));
-
-        let a = (ExtInt::fin(10), 100);
-        let b = (ExtInt::INF, 200);
-        assert_eq!(M::binary_operation(&a, &b), a);
-    }
-
-    #[test]
-    fn test_max_monoid_with_neg_ext_int() {
-        use crate::math::neg_ext_int::mod_neg_ext_int::NegExtInt;
-        type M = MaxMonoid<(NegExtInt, i64)>;
-        let identity = M::identity();
-        assert_eq!(identity, (NegExtInt::NEG_INF, i64::MIN));
-
-        let a = (NegExtInt::fin(10), 100);
-        let b = (NegExtInt::NEG_INF, 200);
-        assert_eq!(M::binary_operation(&a, &b), a);
     }
 }

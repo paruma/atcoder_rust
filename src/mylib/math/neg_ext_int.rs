@@ -32,7 +32,11 @@ pub mod mod_neg_ext_int {
             }
         }
         pub fn get_fin_or(self, default: i64) -> i64 {
-            if self.is_fin() { self.0 } else { default }
+            if self.is_fin() {
+                self.0
+            } else {
+                default
+            }
         }
         #[inline]
         pub fn is_fin(self) -> bool {
@@ -42,7 +46,11 @@ pub mod mod_neg_ext_int {
             self.0 == i64::MIN
         }
         pub fn to_option(self) -> Option<i64> {
-            if self.is_fin() { Some(self.0) } else { None }
+            if self.is_fin() {
+                Some(self.0)
+            } else {
+                None
+            }
         }
         pub fn from_option(opt: Option<i64>) -> NegExtInt {
             match opt {
@@ -139,6 +147,7 @@ pub mod mod_neg_ext_int {
             }
         }
     }
+
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct NegExtIntAdditive(Infallible);
     impl Monoid for NegExtIntAdditive {
@@ -163,6 +172,8 @@ pub mod mod_neg_ext_int {
     }
 }
 
+/// MinMonoid/MaxMonoid を使うためのコード。
+/// min_max_monoid と neg_ext_int のスニペットをあらかじめ貼った上で利用する
 #[snippet(prefix = "use mod_neg_ext_int_bounded::*;")]
 pub mod mod_neg_ext_int_bounded {
     use super::mod_neg_ext_int::NegExtInt;
@@ -246,13 +257,13 @@ mod tests {
     }
 
     #[test]
-    fn test_ext_int_sub_i64() {
+    fn test_neg_ext_int_sub_i64() {
         assert_eq!(NEG_INF - 4, NEG_INF);
         assert_eq!(fin(3) - 4, fin(-1));
     }
 
     #[test]
-    fn test_ext_int_sub_assign_i64() {
+    fn test_neg_ext_int_sub_assign_i64() {
         let mut x = fin(3);
         x -= 4;
         assert_eq!(x, fin(-1));
@@ -310,6 +321,7 @@ mod tests {
         assert_eq!(fin(-3).times(10), fin(-30));
         assert_eq!(NEG_INF.times(0), fin(0)); // NEG_INF を 0 回足した場合と考え、足し算の単位元 fin(0) 扱い
         assert_eq!(NEG_INF.times(10), NEG_INF);
+        assert_eq!(fin(10).times(2), fin(20)); // Ensure Greater case is covered
     }
 
     #[test]
@@ -323,7 +335,7 @@ mod tests {
     }
 
     #[test]
-    fn test_neg_ext_int_min() {
+    fn test_neg_ext_int_max() {
         type M = NegExtIntMax;
         assert_eq!(M::binary_operation(&fin(3), &fin(4)), fin(4));
         assert_eq!(M::binary_operation(&fin(3), &NEG_INF), fin(3));
@@ -339,5 +351,28 @@ mod tests {
 
         assert_eq!(format!("{}", NEG_INF), "-∞");
         assert_eq!(format!("{:?}", NEG_INF), "-∞");
+    }
+
+    #[test]
+    fn test_max_monoid_with_neg_ext_int() {
+        use crate::math::algebra::min_max_monoid::min_max_monoid::MaxMonoid;
+        type M = MaxMonoid<(NegExtInt, i64)>;
+        let identity = M::identity();
+        assert_eq!(identity, (NegExtInt::NEG_INF, i64::MIN));
+
+        let a = (NegExtInt::fin(10), 100);
+        let b = (NegExtInt::NEG_INF, 200);
+        assert_eq!(M::binary_operation(&a, &b), a);
+    }
+
+    #[test]
+    fn test_min_monoid_with_neg_ext_int() {
+        use crate::math::algebra::min_max_monoid::min_max_monoid::{BoundedAbove, MinMonoid};
+        type M = MinMonoid<NegExtInt>;
+        assert_eq!(M::identity(), NegExtInt::max_value());
+
+        let a = fin(10);
+        let b = NEG_INF;
+        assert_eq!(M::binary_operation(&a, &b), b);
     }
 }
