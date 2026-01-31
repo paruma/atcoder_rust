@@ -9,10 +9,6 @@ path = "lib.rs"
 [lints]
 workspace = true
 
-[[bin]]
-name = "benchmark_range_add_sum"
-path = "benchmark_range_add_sum.rs"
-
 [dependencies]
 mylib = { path = "../mylib" }
 cargo-snippet = { workspace = true }

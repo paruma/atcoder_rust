@@ -1,7 +1,6 @@
-use cargo_snippet::snippet;
-
+/// FenwickTree を使った range_add_range_sum_fenwick_tree の方が定数倍が軽いため、
+/// 原則として range_add_range_sum_fenwick_tree を使うほうがよいはずです。
 #[allow(clippy::module_inception)]
-#[snippet(prefix = "use range_add_range_sum::*;")]
 pub mod range_add_range_sum {
     use ac_library::{LazySegtree, MapMonoid, Monoid};
     use itertools::Itertools;
