@@ -8,7 +8,7 @@ pub mod mod_neg_ext_int {
         cmp::Ordering,
         convert::Infallible,
         fmt,
-        ops::{Add, AddAssign, Sub, SubAssign},
+        ops::{Add, AddAssign, Mul, Sub, SubAssign},
     };
 
     pub const NEG_INF: NegExtInt = NegExtInt::NEG_INF;
@@ -32,11 +32,7 @@ pub mod mod_neg_ext_int {
             }
         }
         pub fn get_fin_or(self, default: i64) -> i64 {
-            if self.is_fin() {
-                self.0
-            } else {
-                default
-            }
+            if self.is_fin() { self.0 } else { default }
         }
         #[inline]
         pub fn is_fin(self) -> bool {
@@ -46,11 +42,7 @@ pub mod mod_neg_ext_int {
             self.0 == i64::MIN
         }
         pub fn to_option(self) -> Option<i64> {
-            if self.is_fin() {
-                Some(self.0)
-            } else {
-                None
-            }
+            if self.is_fin() { Some(self.0) } else { None }
         }
         pub fn from_option(opt: Option<i64>) -> NegExtInt {
             match opt {
@@ -59,17 +51,7 @@ pub mod mod_neg_ext_int {
             }
         }
         pub fn times(self, t: i64) -> Self {
-            match t.cmp(&0) {
-                Ordering::Less => panic!("t must be non-negative."),
-                Ordering::Equal => Self(0),
-                Ordering::Greater => {
-                    if self.is_fin() {
-                        Self(self.0 * t)
-                    } else {
-                        Self::NEG_INF
-                    }
-                }
-            }
+            self * t
         }
     }
     impl Add for NegExtInt {
@@ -115,6 +97,22 @@ pub mod mod_neg_ext_int {
     impl SubAssign<i64> for NegExtInt {
         fn sub_assign(&mut self, rhs: i64) {
             *self = *self - rhs;
+        }
+    }
+    impl Mul<i64> for NegExtInt {
+        type Output = NegExtInt;
+        fn mul(self, rhs: i64) -> Self::Output {
+            match rhs.cmp(&0) {
+                Ordering::Less => panic!("multiplier must be non-negative."),
+                Ordering::Equal => Self::fin(0),
+                Ordering::Greater => {
+                    if self.is_fin() {
+                        Self::fin(self.0 * rhs)
+                    } else {
+                        Self::NEG_INF
+                    }
+                }
+            }
         }
     }
     impl std::iter::Sum for NegExtInt {
@@ -271,6 +269,22 @@ mod tests {
         let mut y = NEG_INF;
         y -= 4;
         assert_eq!(y, NEG_INF);
+    }
+
+    #[test]
+    #[allow(clippy::erasing_op)]
+    fn test_neg_ext_int_mul() {
+        assert_eq!(NEG_INF * 0, fin(0));
+        assert_eq!(NEG_INF * 1, NEG_INF);
+        assert_eq!(NEG_INF * 10, NEG_INF);
+        assert_eq!(fin(3) * 0, fin(0));
+        assert_eq!(fin(3) * 4, fin(12));
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_neg_ext_int_mul_panic() {
+        let _ = NEG_INF * -1;
     }
 
     #[test]

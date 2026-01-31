@@ -9,7 +9,7 @@ description: src/mylib 配下の Rust ライブラリ編集時に、テスト・
 
 ## Instructions
 
-あなたは、`src/mylib` 配下のコードを編集する際、**ユーザーからの明示的な依頼がなくても**、このスキルを有効化して以下の「The Verification Flow」を完遂する責務を負います。
+あなたは、`src/mylib` 配下のコードを編集する際、**ユーザーからの明示的な依頼がなくても、編集完了と同時に必ず**このスキルを有効化し、以下の「The Verification Flow」を**一段階も飛ばさず、かつ記述された順序で厳格に**完遂する責務を負います。
 
 ### The Verification Flow
 
@@ -22,7 +22,7 @@ description: src/mylib 配下の Rust ライブラリ編集時に、テスト・
 2.  **カバレッジの確認**
     - `cargo llvm-cov` で `lcov.info` を生成し、未実行行（`DA:行番号,0`）がないか確認。
     - コマンド: `cargo llvm-cov test --lcov --output-path lcov.info --package mylib --lib <モジュールパス> -- --include-ignored`
-    - 未実行行がある場合、その理由を分析し、可能な限りテストケースを追加してステップ 1 に戻ってください。
+    - 未実行行がある場合、その理由を分析し、**可能な限りテストケースを追加してステップ 1 に戻ってください**。
     - 実行後、`lcov.info` は即座に削除してください。
 3.  **フォーマットの適用**
     - コマンド: `cargo fmt`

@@ -7,10 +7,14 @@ description: 対称性のあるファイル群（ext_int/neg_ext_int, min/max �
 
 対称性のあるファイル（対になる実装を持つファイル群）の構造的完全性を維持するためのスペシャリスト。
 
+## Instructions
+
+あなたは、対象となるファイルの一方を編集した際、**ユーザーからの明示的な依頼がなくても、編集完了と同時に必ず**このスキルを有効化し、以下の「The Symmetry Sync Flow」を完遂し、**行数まで含めて完全に構造を同期させる**責務を負います。
+
 ## 対象となるケース
 - `ext_int.rs` と `neg_ext_int.rs`
 - `range_add_range_min.rs` と `range_add_range_max.rs`
-- その他、最小/最大、正/負、加算/減算などで対になる実装
+- その他、最大/最小 などで対になる実装
 
 ## The Symmetry Sync Flow
 
