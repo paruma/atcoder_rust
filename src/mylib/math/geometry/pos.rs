@@ -21,7 +21,7 @@ pub mod pos {
             Pos { x, y }
         }
 
-        pub fn scala_mul(self, rhs: i64) -> Pos {
+        pub fn scalar_mul(self, rhs: i64) -> Pos {
             Pos::new(self.x * rhs, self.y * rhs)
         }
 
@@ -471,9 +471,9 @@ mod tests_pos {
     }
 
     #[test]
-    fn test_pos_scala_mul() {
+    fn test_pos_scalar_mul() {
         let p: Pos = Pos::new(2, 3);
-        assert_eq!(p.scala_mul(4), Pos::new(8, 12));
+        assert_eq!(p.scalar_mul(4), Pos::new(8, 12));
         assert_eq!(p * 4, Pos::new(8, 12));
 
         let mut p2 = Pos::new(2, 3);

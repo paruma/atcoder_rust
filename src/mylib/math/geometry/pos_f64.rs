@@ -17,7 +17,7 @@ pub mod pos_f64 {
             PosF64 { x, y }
         }
 
-        pub fn scala_mul(self, rhs: f64) -> PosF64 {
+        pub fn scalar_mul(self, rhs: f64) -> PosF64 {
             self * rhs
         }
 
@@ -238,9 +238,9 @@ mod tests_pos_f64 {
     }
 
     #[test]
-    fn test_pos_scala_mul() {
+    fn test_pos_scalar_mul() {
         let p: PosF64 = PosF64::new(2.0, 3.0);
-        assert_eq!(p.scala_mul(4.0), PosF64::new(8.0, 12.0));
+        assert_eq!(p.scalar_mul(4.0), PosF64::new(8.0, 12.0));
         assert_eq!(p * 4.0, PosF64::new(8.0, 12.0));
 
         let mut p2 = p;

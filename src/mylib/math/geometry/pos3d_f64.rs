@@ -18,7 +18,7 @@ pub mod pos3d_f64 {
             Pos3dF64 { x, y, z }
         }
 
-        pub fn scala_mul(self, rhs: f64) -> Pos3dF64 {
+        pub fn scalar_mul(self, rhs: f64) -> Pos3dF64 {
             self * rhs
         }
 
@@ -247,9 +247,9 @@ mod tests_pos3d_f64 {
     }
 
     #[test]
-    fn test_pos3d_scala_mul() {
+    fn test_pos3d_scalar_mul() {
         let p: Pos3dF64 = Pos3dF64::new(2.0, 3.0, 4.0);
-        assert_eq!(p.scala_mul(4.0), Pos3dF64::new(8.0, 12.0, 16.0));
+        assert_eq!(p.scalar_mul(4.0), Pos3dF64::new(8.0, 12.0, 16.0));
         assert_eq!(p * 4.0, Pos3dF64::new(8.0, 12.0, 16.0));
 
         let mut p2 = p;

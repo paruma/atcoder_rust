@@ -21,7 +21,7 @@ pub mod pos3d {
             Pos3d { x, y, z }
         }
 
-        pub fn scala_mul(self, rhs: i64) -> Pos3d {
+        pub fn scalar_mul(self, rhs: i64) -> Pos3d {
             Pos3d::new(self.x * rhs, self.y * rhs, self.z * rhs)
         }
 
@@ -177,7 +177,7 @@ pub mod pos3d {
         type Output = Pos3d;
 
         fn mul(self, rhs: i64) -> Self::Output {
-            self.scala_mul(rhs)
+            self.scalar_mul(rhs)
         }
     }
 
@@ -420,7 +420,7 @@ mod tests_pos3d {
     }
 
     #[test]
-    fn test_pos3d_scala_mul() {
+    fn test_pos3d_scalar_mul() {
         let p = Pos3d::new(1, 2, 3);
         assert_eq!(p * 2, Pos3d::new(2, 4, 6));
     }
