@@ -42,6 +42,17 @@ pub mod matrix {
             Self { data }
         }
 
+        /// スカラ倍 (Matrix * T)
+        pub fn scalar_mul(self, rhs: T) -> Self {
+            let mut result = Self::new(t_zero());
+            for i in 0..R {
+                for j in 0..C {
+                    result.data[i][j] = self.data[i][j] * rhs;
+                }
+            }
+            result
+        }
+
         /// ベクトルを行列に適用します (行列-ベクトル積)。
         /// `self`はR行C列の行列、`x`はC要素の列ベクトルです。
         /// 結果はR要素の列ベクトルになります。
@@ -151,13 +162,19 @@ pub mod matrix {
         }
     }
 
-    // スカラ乗算 (Matrix * T)
-    impl<T, const R: usize, const C: usize> Mul<T> for Matrix<T, R, C>
+    // 整数倍 (Matrix * i64)
+    impl<T, const R: usize, const C: usize> Mul<i64> for Matrix<T, R, C>
     where
-        T: Copy + Sum + Product + Mul<Output = T> + Add<Output = T> + Sub<Output = T>,
+        T: Copy
+            + Sum
+            + Product
+            + Mul<i64, Output = T>
+            + Add<Output = T>
+            + Sub<Output = T>
+            + Mul<Output = T>,
     {
         type Output = Self;
-        fn mul(self, rhs: T) -> Self::Output {
+        fn mul(self, rhs: i64) -> Self::Output {
             let mut result = Self::new(t_zero());
             for i in 0..R {
                 for j in 0..C {
@@ -348,10 +365,31 @@ mod tests {
     }
 
     #[test]
-    fn test_mul_scalar_matrix() {
-        let m = Matrix::<i32, 2, 2>::from_array([[1, 2], [3, 4]]);
-        let m_scaled = m * 2;
+    fn test_mul_integer_matrix() {
+        let m = Matrix::<i64, 2, 2>::from_array([[1, 2], [3, 4]]);
+        let m_scaled = m * 2i64;
         assert_eq!(m_scaled.data, [[2, 4], [6, 8]]);
+    }
+
+    #[test]
+    fn test_scalar_mul() {
+        let m = Matrix::<i32, 2, 2>::from_array([[1, 2], [3, 4]]);
+        let m_scaled = m.scalar_mul(2);
+        assert_eq!(m_scaled.data, [[2, 4], [6, 8]]);
+    }
+
+    #[test]
+    fn test_mul_scalar_mint_matrix() {
+        use ac_library::ModInt998244353 as Mint;
+        let m = Matrix::<Mint, 2, 2>::from_array([
+            [Mint::new(1), Mint::new(2)],
+            [Mint::new(3), Mint::new(4)],
+        ]);
+        let m_scaled = m * 2i64;
+        assert_eq!(
+            m_scaled.data,
+            [[Mint::new(2), Mint::new(4)], [Mint::new(6), Mint::new(8)]]
+        );
     }
 
     #[test]
