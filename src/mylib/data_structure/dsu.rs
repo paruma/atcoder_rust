@@ -1,4 +1,5 @@
 pub mod dsu_core;
+pub mod dsu_core_no_compress;
 pub mod dsu_ix;
 pub mod enumerable_dsu;
 pub mod grid_dsu;
