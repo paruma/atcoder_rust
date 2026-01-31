@@ -313,7 +313,7 @@ pub mod range_add_range_sum_fenwick_tree {
 #[cfg(test)]
 mod tests {
     use super::range_add_range_sum_fenwick_tree::*;
-    use rand::{rngs::SmallRng, Rng, SeedableRng};
+    use rand::{Rng, SeedableRng, rngs::SmallRng};
 
     #[test]
     #[allow(clippy::identity_op)]

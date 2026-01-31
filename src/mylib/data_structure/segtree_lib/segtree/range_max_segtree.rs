@@ -1,10 +1,10 @@
-use crate::math::algebra::min_max_monoid::min_max_monoid::TupleMax;
+use crate::math::algebra::min_max_monoid::min_max_monoid::MaxMonoid;
 use cargo_snippet::snippet;
 
 #[allow(clippy::module_inception)]
 #[snippet(prefix = "use range_max_segtree::*;", include = "min_max_monoid")]
 pub mod range_max_segtree {
-    use super::TupleMax;
+    use super::MaxMonoid;
     use ac_library::{Monoid, Segtree};
     use itertools::Itertools;
     use std::ops::RangeBounds;
@@ -14,22 +14,22 @@ pub mod range_max_segtree {
     #[derive(Clone)]
     pub struct RangeMaxSegtree<T>
     where
-        TupleMax<T>: Monoid<S = T>,
+        MaxMonoid<T>: Monoid<S = T>,
         T: Clone,
     {
-        segtree: Segtree<TupleMax<T>>,
+        segtree: Segtree<MaxMonoid<T>>,
         len: usize,
     }
 
     impl<T> RangeMaxSegtree<T>
     where
-        TupleMax<T>: Monoid<S = T>,
+        MaxMonoid<T>: Monoid<S = T>,
         T: Copy + Ord,
     {
         /// 単位元で初期化されたセグメント木を構築する
         pub fn new(n: usize) -> Self {
             Self {
-                segtree: Segtree::<TupleMax<T>>::new(n),
+                segtree: Segtree::<MaxMonoid<T>>::new(n),
                 len: n,
             }
         }
@@ -38,7 +38,7 @@ pub mod range_max_segtree {
         pub fn from_slice(xs: &[T]) -> Self {
             let len = xs.len();
             Self {
-                segtree: Segtree::<TupleMax<T>>::from(xs.to_vec()),
+                segtree: Segtree::<MaxMonoid<T>>::from(xs.to_vec()),
                 len,
             }
         }

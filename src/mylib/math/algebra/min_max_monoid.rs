@@ -35,7 +35,9 @@ pub mod min_max_monoid {
         };
     }
 
-    impl_bounded!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize);
+    impl_bounded!(
+        i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize
+    );
 
     impl<T: BoundedAbove> BoundedBelow for std::cmp::Reverse<T> {
         #[inline]
@@ -85,9 +87,9 @@ pub mod min_max_monoid {
 
     /// 辞書式順序で最小の要素を管理するモノイド (単位元は最大値)
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-    pub struct TupleMin<T>(Infallible, PhantomData<fn() -> T>);
+    pub struct MinMonoid<T>(Infallible, PhantomData<fn() -> T>);
 
-    impl<T> Monoid for TupleMin<T>
+    impl<T> Monoid for MinMonoid<T>
     where
         T: BoundedAbove + Ord + Clone,
     {
@@ -102,9 +104,9 @@ pub mod min_max_monoid {
 
     /// 辞書式順序で最大の要素を管理するモノイド (単位元は最小値)
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-    pub struct TupleMax<T>(Infallible, PhantomData<fn() -> T>);
+    pub struct MaxMonoid<T>(Infallible, PhantomData<fn() -> T>);
 
-    impl<T> Monoid for TupleMax<T>
+    impl<T> Monoid for MaxMonoid<T>
     where
         T: BoundedBelow + Ord + Clone,
     {
@@ -125,8 +127,8 @@ mod tests {
     use std::cmp::Reverse;
 
     #[test]
-    fn test_tuple_min_monoid() {
-        type M = TupleMin<(i64, i64, i64)>;
+    fn test_min_monoid() {
+        type M = MinMonoid<(i64, i64, i64)>;
         let identity = M::identity();
         assert_eq!(identity, (i64::MAX, i64::MAX, i64::MAX));
 
@@ -140,8 +142,8 @@ mod tests {
     }
 
     #[test]
-    fn test_tuple_max_monoid() {
-        type M = TupleMax<(i64, i64)>;
+    fn test_max_monoid() {
+        type M = MaxMonoid<(i64, i64)>;
         let identity = M::identity();
         assert_eq!(identity, (i64::MIN, i64::MIN));
 
@@ -155,23 +157,23 @@ mod tests {
     }
 
     #[test]
-    fn test_tuple_long() {
-        type M = TupleMin<(i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64)>;
+    fn test_min_monoid_long_tuple() {
+        type M = MinMonoid<(i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64)>;
         let identity = M::identity();
         assert_eq!(identity.0, i64::MAX);
         assert_eq!(identity.11, i64::MAX);
     }
 
     #[test]
-    fn test_tuple_min_monoid_primitive() {
-        type M = TupleMin<i64>;
+    fn test_min_monoid_primitive() {
+        type M = MinMonoid<i64>;
         assert_eq!(M::identity(), i64::MAX);
         assert_eq!(M::binary_operation(&10, &20), 10);
     }
 
     #[test]
-    fn test_reverse_monoid() {
-        type M = TupleMin<Reverse<i64>>;
+    fn test_min_monoid_with_reverse_primitive() {
+        type M = MinMonoid<Reverse<i64>>;
         let identity = M::identity();
         assert_eq!(identity, Reverse(i64::MIN));
 
@@ -184,8 +186,8 @@ mod tests {
     }
 
     #[test]
-    fn test_tuple_with_reverse() {
-        type M = TupleMin<(i64, Reverse<i64>)>;
+    fn test_min_monoid_with_reverse_tuple() {
+        type M = MinMonoid<(i64, Reverse<i64>)>;
         let identity = M::identity();
         assert_eq!(identity, (i64::MAX, Reverse(i64::MIN)));
 
@@ -198,9 +200,9 @@ mod tests {
     }
 
     #[test]
-    fn test_tuple_with_ext_int() {
+    fn test_min_monoid_with_ext_int() {
         use crate::math::ext_int::mod_ext_int::ExtInt;
-        type M = TupleMin<(ExtInt, i64)>;
+        type M = MinMonoid<(ExtInt, i64)>;
         let identity = M::identity();
         assert_eq!(identity, (ExtInt::INF, i64::MAX));
 
@@ -210,9 +212,9 @@ mod tests {
     }
 
     #[test]
-    fn test_tuple_with_neg_ext_int() {
+    fn test_max_monoid_with_neg_ext_int() {
         use crate::math::neg_ext_int::mod_neg_ext_int::NegExtInt;
-        type M = TupleMax<(NegExtInt, i64)>;
+        type M = MaxMonoid<(NegExtInt, i64)>;
         let identity = M::identity();
         assert_eq!(identity, (NegExtInt::NEG_INF, i64::MIN));
 
