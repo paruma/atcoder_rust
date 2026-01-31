@@ -1,5 +1,3 @@
-use cargo_snippet::snippet;
-
 #[allow(clippy::module_inception)]
 /// 経路圧縮なしの DsuCore。マージテクにより各操作 O(log N)。
 pub mod dsu_core_no_compress {
