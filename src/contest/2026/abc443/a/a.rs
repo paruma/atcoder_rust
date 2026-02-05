@@ -1,11 +1,10 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        mut xs: Chars,
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    xs.push('s');
+    print_chars(&xs);
 }
 
 #[cfg(test)]
