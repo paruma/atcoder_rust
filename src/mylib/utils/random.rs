@@ -13,11 +13,11 @@ pub mod random_test {
 
     /// 指定された個数のユニークな値を生成する。
     ///
-    /// `gen` クロージャが返す値が `n` 種類に達するまで値の生成を繰り返す。
+    /// `generator` クロージャが返す値が `n` 種類に達するまで値の生成を繰り返す。
     ///
     /// # Arguments
     /// * `n` - 生成するユニークな値の個数
-    /// * `gen` - 値を生成するクロージャ
+    /// * `generator` - 値を生成するクロージャ
     ///
     /// # Examples
     /// ```
@@ -28,14 +28,14 @@ pub mod random_test {
     /// let uniq_seq = generate_random_uniq_sequence(10, || rng.random_range(0..100));
     /// assert_eq!(uniq_seq.len(), 10);
     /// ```
-    pub fn generate_random_uniq_sequence<T, F>(n: usize, mut r#gen: F) -> Vec<T>
+    pub fn generate_random_uniq_sequence<T, F>(n: usize, mut generator: F) -> Vec<T>
     where
         T: Hash + PartialEq + Eq,
         F: FnMut() -> T,
     {
         let mut set: HashSet<T> = HashSet::new();
         while set.len() != n {
-            set.insert(r#gen());
+            set.insert(generator());
         }
 
         set.into_iter().collect_vec()
@@ -43,10 +43,12 @@ pub mod random_test {
 
     /// 条件 `pred` を満たすランダムな値を生成する。
     ///
-    /// `gen` クロージャで値を生成し、`pred` が `true` を返すまで繰り返す。
+    /// `generator` クロージャで値を生成し、`pred` が `true` を返すまで繰り返す。
+    ///
+    /// `(0..).map(|_| generator()).find(|x| pred(x)).unwrap()` と書くのと同じ。
     ///
     /// # Arguments
-    /// * `gen` - 値を生成するクロージャ
+    /// * `generator` - 値を生成するクロージャ
     /// * `pred` - 値が満たすべき条件を判定するクロージャ
     ///
     /// # Examples
@@ -58,13 +60,13 @@ pub mod random_test {
     /// let even_number = generate_random_while(|| rng.random_range(0..100), |&x| x % 2 == 0);
     /// assert!(even_number % 2 == 0);
     /// ```
-    pub fn generate_random_while<T, F, P>(mut r#gen: F, mut pred: P) -> T
+    pub fn generate_random_while<T, F, P>(mut generator: F, mut pred: P) -> T
     where
         F: FnMut() -> T,
         P: FnMut(&T) -> bool,
     {
         loop {
-            let x = r#gen();
+            let x = generator();
             if pred(&x) {
                 return x;
             }
@@ -133,8 +135,8 @@ pub mod random_test {
     where
         R: Rng,
     {
-        let r#gen = || rng.random_range(begin..end);
-        generate_random_while(r#gen, |x| is_prime(*x))
+        let generator = || rng.random_range(begin..end);
+        generate_random_while(generator, |x| is_prime(*x))
     }
 }
 
