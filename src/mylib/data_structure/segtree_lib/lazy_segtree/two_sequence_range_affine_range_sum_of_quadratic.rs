@@ -6,6 +6,7 @@ pub mod two_sequence_range_affine_range_sum_of_quadratic {
     use ac_library::{LazySegtree, MapMonoid, Monoid};
     use itertools::Itertools;
     use std::convert::Infallible;
+    use std::iter::{Product, Sum};
     use std::marker::PhantomData;
     use std::ops::{Add, Mul, RangeBounds};
 
@@ -22,7 +23,7 @@ pub mod two_sequence_range_affine_range_sum_of_quadratic {
 
     impl<T> TwoSequenceQuadraticData<T>
     where
-        T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
+        T: Copy + Mul<Output = T> + Add<Output = T>,
     {
         pub fn unit(x_val: T, y_val: T) -> Self {
             Self {
@@ -41,16 +42,16 @@ pub mod two_sequence_range_affine_range_sum_of_quadratic {
     pub struct TwoSequenceQuadraticDataMonoid<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> Monoid for TwoSequenceQuadraticDataMonoid<T>
     where
-        T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
+        T: Copy + Mul<Output = T> + Add<Output = T> + Sum,
     {
         type S = TwoSequenceQuadraticData<T>;
         fn identity() -> Self::S {
             Self::S {
-                sum_x: 0.into(),
-                sum_y: 0.into(),
-                sum_x2: 0.into(),
-                sum_y2: 0.into(),
-                sum_xy: 0.into(),
+                sum_x: std::iter::empty::<T>().sum(),
+                sum_y: std::iter::empty::<T>().sum(),
+                sum_x2: std::iter::empty::<T>().sum(),
+                sum_y2: std::iter::empty::<T>().sum(),
+                sum_xy: std::iter::empty::<T>().sum(),
                 len: 0,
             }
         }
@@ -80,17 +81,17 @@ pub mod two_sequence_range_affine_range_sum_of_quadratic {
     pub struct TwoSequenceRangeAffineRangeSumOfQuadratic<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> MapMonoid for TwoSequenceRangeAffineRangeSumOfQuadratic<T>
     where
-        T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
+        T: Copy + Mul<Output = T> + Add<Output = T> + Mul<i64, Output = T> + Sum + Product,
     {
         type M = TwoSequenceQuadraticDataMonoid<T>;
         type F = TwoSequenceAffine<T>;
 
         fn identity_map() -> Self::F {
             Self::F {
-                a: 1.into(),
-                b: 0.into(),
-                c: 1.into(),
-                d: 0.into(),
+                a: std::iter::empty::<T>().product(),
+                b: std::iter::empty::<T>().sum(),
+                c: std::iter::empty::<T>().product(),
+                d: std::iter::empty::<T>().sum(),
             }
         }
 
@@ -109,16 +110,15 @@ pub mod two_sequence_range_affine_range_sum_of_quadratic {
             let b = f.b;
             let c = f.c;
             let d = f.d;
-            let len_t: T = data.len.into();
 
-            let new_sum_x = a * data.sum_x + b * len_t;
-            let new_sum_y = c * data.sum_y + d * len_t;
+            let new_sum_x = a * data.sum_x + b * data.len;
+            let new_sum_y = c * data.sum_y + d * data.len;
 
-            let new_sum_x2 = a * a * data.sum_x2 + (a + a) * b * data.sum_x + b * b * len_t;
-            let new_sum_y2 = c * c * data.sum_y2 + (c + c) * d * data.sum_y + d * d * len_t;
+            let new_sum_x2 = a * a * data.sum_x2 + (a + a) * b * data.sum_x + b * b * data.len;
+            let new_sum_y2 = c * c * data.sum_y2 + (c + c) * d * data.sum_y + d * d * data.len;
 
             let new_sum_xy =
-                a * c * data.sum_xy + a * d * data.sum_x + b * c * data.sum_y + b * d * len_t;
+                a * c * data.sum_xy + a * d * data.sum_x + b * c * data.sum_y + b * d * data.len;
 
             TwoSequenceQuadraticData {
                 sum_x: new_sum_x,
@@ -135,7 +135,7 @@ pub mod two_sequence_range_affine_range_sum_of_quadratic {
     #[derive(Clone)]
     pub struct TwoSequenceRangeAffineRangeSumOfQuadraticSegtree<T>
     where
-        T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
+        T: Copy + Mul<Output = T> + Add<Output = T> + Mul<i64, Output = T> + Sum + Product,
     {
         segtree: LazySegtree<TwoSequenceRangeAffineRangeSumOfQuadratic<T>>,
         len: usize,
@@ -143,12 +143,12 @@ pub mod two_sequence_range_affine_range_sum_of_quadratic {
 
     impl<T> TwoSequenceRangeAffineRangeSumOfQuadraticSegtree<T>
     where
-        T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
+        T: Copy + Mul<Output = T> + Add<Output = T> + Mul<i64, Output = T> + Sum + Product,
     {
         /// `xs` と `ys` の初期シーケンスでセグメント木を構築します。
         pub fn new(n: usize) -> Self {
-            let xs = vec![0.into(); n];
-            let ys = vec![0.into(); n];
+            let xs = vec![std::iter::empty::<T>().sum(); n];
+            let ys = vec![std::iter::empty::<T>().sum(); n];
             Self::from_slice(&xs, &ys)
         }
         pub fn from_slice(xs: &[T], ys: &[T]) -> Self {
@@ -173,32 +173,44 @@ pub mod two_sequence_range_affine_range_sum_of_quadratic {
 
         /// 指定された区間 `range` に対して、`xs[i] ← a * xs[i] + b` のアフィン変換を適用します。
         pub fn range_affine_x(&mut self, range: impl RangeBounds<usize>, a: T, b: T) {
-            self.range_affine(range, a, b, 1.into(), 0.into())
+            self.range_affine(
+                range,
+                a,
+                b,
+                std::iter::empty::<T>().product(),
+                std::iter::empty::<T>().sum(),
+            )
         }
 
         /// 指定された区間 `range` に対して、`ys[i] ← c * ys[i] + d` のアフィン変換を適用します。
         pub fn range_affine_y(&mut self, range: impl RangeBounds<usize>, c: T, d: T) {
-            self.range_affine(range, 1.into(), 0.into(), c, d)
+            self.range_affine(
+                range,
+                std::iter::empty::<T>().product(),
+                std::iter::empty::<T>().sum(),
+                c,
+                d,
+            )
         }
 
         /// 指定された区間 `range` に対して、`xs[i] ← xs[i] + b` の加算を適用します。
         pub fn range_add_x(&mut self, range: impl RangeBounds<usize>, b: T) {
-            self.range_affine_x(range, 1.into(), b)
+            self.range_affine_x(range, std::iter::empty::<T>().product(), b)
         }
 
         /// 指定された区間 `range` に対して、`xs[i] ← x` の更新を適用します。
         pub fn range_update_x(&mut self, range: impl RangeBounds<usize>, x: T) {
-            self.range_affine_x(range, 0.into(), x)
+            self.range_affine_x(range, std::iter::empty::<T>().sum(), x)
         }
 
         /// 指定された区間 `range` に対して、`ys[i] ← ys[i] + d` の加算を適用します。
         pub fn range_add_y(&mut self, range: impl RangeBounds<usize>, d: T) {
-            self.range_affine_y(range, 1.into(), d)
+            self.range_affine_y(range, std::iter::empty::<T>().product(), d)
         }
 
         /// 指定された区間 `range` に対して、`ys[i] ← y` の更新を適用します。
         pub fn range_update_y(&mut self, range: impl RangeBounds<usize>, y: T) {
-            self.range_affine_y(range, 0.into(), y)
+            self.range_affine_y(range, std::iter::empty::<T>().sum(), y)
         }
 
         /// 指定された区間 `range` の `sum(xs[i] * ys[i])` を計算して返します。

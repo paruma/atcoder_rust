@@ -6,6 +6,7 @@ pub mod range_chmin_chmax_range_min {
     use ac_library::{LazySegtree, MapMonoid, Monoid};
     use itertools::Itertools;
     use std::convert::Infallible;
+    use std::iter::{Product, Sum};
     use std::marker::PhantomData;
     use std::ops::{Add, Mul, RangeBounds};
 
@@ -62,7 +63,7 @@ pub mod range_chmin_chmax_range_min {
     pub struct RangeChminChmaxRangeMin<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> MapMonoid for RangeChminChmaxRangeMin<T>
     where
-        T: Copy + Ord + From<i64> + Bounded + Add<Output = T> + Mul<Output = T>,
+        T: Copy + Ord + Bounded + Add<Output = T> + Mul<Output = T> + Sum + Product,
     {
         type M = RangeMin<T>;
         type F = ChminChmaxAction<T>;
@@ -106,7 +107,7 @@ pub mod range_chmin_chmax_range_min {
     #[derive(Clone)]
     pub struct RangeChminChmaxRangeMinSegtree<T>
     where
-        T: Copy + Ord + From<i64> + Bounded + Add<Output = T> + Mul<Output = T>,
+        T: Copy + Ord + Bounded + Add<Output = T> + Mul<Output = T> + Sum + Product,
     {
         segtree: LazySegtree<RangeChminChmaxRangeMin<T>>,
         len: usize,
@@ -114,10 +115,10 @@ pub mod range_chmin_chmax_range_min {
 
     impl<T> RangeChminChmaxRangeMinSegtree<T>
     where
-        T: Copy + Ord + From<i64> + Bounded + Add<Output = T> + Mul<Output = T>,
+        T: Copy + Ord + Bounded + Add<Output = T> + Mul<Output = T> + Sum + Product,
     {
         pub fn new(n: usize) -> Self {
-            let xs = vec![0.into(); n];
+            let xs = vec![std::iter::empty::<T>().sum(); n];
             Self::from_slice(&xs)
         }
 

@@ -6,6 +6,7 @@ pub mod range_quadratic_add_range_sum {
     use ac_library::{LazySegtree, MapMonoid, Monoid};
     use itertools::Itertools;
     use std::convert::Infallible;
+    use std::iter::{Product, Sum};
     use std::marker::PhantomData;
     use std::ops::{Add, Div, Mul, RangeBounds, Sub};
 
@@ -18,10 +19,10 @@ pub mod range_quadratic_add_range_sum {
     }
     impl<T> RangeSum<T>
     where
-        T: From<i64> + Copy + Mul<Output = T>,
+        T: Copy + Mul<Output = T> + Product + Mul<i64, Output = T>,
     {
         pub fn unit(x: T, idx: i64) -> RangeSum<T> {
-            let idx: T = idx.into();
+            let idx: T = std::iter::empty::<T>().product::<T>() * idx;
             RangeSum {
                 sum: x,
                 len: 1,
@@ -35,15 +36,15 @@ pub mod range_quadratic_add_range_sum {
     pub struct ValueLenSum<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> Monoid for ValueLenSum<T>
     where
-        T: Copy + Add<Output = T> + From<i64>,
+        T: Copy + Add<Output = T> + Sum,
     {
         type S = RangeSum<T>;
         fn identity() -> RangeSum<T> {
             RangeSum {
-                sum: 0.into(),
+                sum: std::iter::empty::<T>().sum(),
                 len: 0,
-                sum_idx: 0.into(),
-                sum_sq_idx: 0.into(),
+                sum_idx: std::iter::empty::<T>().sum(),
+                sum_sq_idx: std::iter::empty::<T>().sum(),
             }
         }
         fn binary_operation(a: &RangeSum<T>, b: &RangeSum<T>) -> RangeSum<T> {
@@ -68,16 +69,23 @@ pub mod range_quadratic_add_range_sum {
     pub struct RangeQuadraticAddRangeSum<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> MapMonoid for RangeQuadraticAddRangeSum<T>
     where
-        T: Copy + Add<Output = T> + Mul<Output = T> + Div<Output = T> + Sub<Output = T> + From<i64>,
+        T: Copy
+            + Add<Output = T>
+            + Mul<Output = T>
+            + Div<Output = T>
+            + Sub<Output = T>
+            + Mul<i64, Output = T>
+            + Sum
+            + Product,
     {
         type M = ValueLenSum<T>;
         type F = Quadratic<T>;
 
         fn identity_map() -> Quadratic<T> {
             Quadratic {
-                coef0: 0.into(),
-                coef1: 0.into(),
-                coef2: 0.into(),
+                coef0: std::iter::empty::<T>().sum(),
+                coef1: std::iter::empty::<T>().sum(),
+                coef2: std::iter::empty::<T>().sum(),
             }
         }
 
@@ -95,7 +103,7 @@ pub mod range_quadratic_add_range_sum {
         fn mapping(f: &Quadratic<T>, x: &RangeSum<T>) -> RangeSum<T> {
             // sum(xs[i] + a_0 + a_1 i + a_2 i^2) = sum xs[i] + a_0 n + a_1 sum i + a_2 sum i^2
             RangeSum {
-                sum: x.sum + f.coef0 * x.len.into() + f.coef1 * x.sum_idx + f.coef2 * x.sum_sq_idx,
+                sum: x.sum + f.coef0 * x.len + f.coef1 * x.sum_idx + f.coef2 * x.sum_sq_idx,
                 len: x.len,
                 sum_idx: x.sum_idx,
                 sum_sq_idx: x.sum_sq_idx,
@@ -106,7 +114,14 @@ pub mod range_quadratic_add_range_sum {
     #[derive(Clone)]
     pub struct RangeQuadraticAddRangeSumSegtree<T>
     where
-        T: Copy + Add<Output = T> + Mul<Output = T> + Div<Output = T> + Sub<Output = T> + From<i64>,
+        T: Copy
+            + Add<Output = T>
+            + Mul<Output = T>
+            + Div<Output = T>
+            + Sub<Output = T>
+            + Mul<i64, Output = T>
+            + Sum
+            + Product,
     {
         segtree: LazySegtree<RangeQuadraticAddRangeSum<T>>,
         len: usize,
@@ -114,10 +129,17 @@ pub mod range_quadratic_add_range_sum {
 
     impl<T> RangeQuadraticAddRangeSumSegtree<T>
     where
-        T: Copy + Add<Output = T> + Mul<Output = T> + Div<Output = T> + Sub<Output = T> + From<i64>,
+        T: Copy
+            + Add<Output = T>
+            + Mul<Output = T>
+            + Div<Output = T>
+            + Sub<Output = T>
+            + Mul<i64, Output = T>
+            + Sum
+            + Product,
     {
         pub fn new(n: usize) -> Self {
-            let xs = vec![0.into(); n];
+            let xs = vec![std::iter::empty::<T>().sum(); n];
             Self::from_slice(&xs)
         }
 
@@ -166,9 +188,9 @@ pub mod range_quadratic_add_range_sum {
                 Bound::Excluded(val) => *val + 1,
                 Bound::Unbounded => 0,
             };
-            let l: T = (l as i64).into();
+            let l: T = std::iter::empty::<T>().product::<T>() * (l as i64);
             let new_coef0 = coef0 - coef1 * l + coef2 * l * l;
-            let new_coef1 = coef1 - coef2 * l * 2.into();
+            let new_coef1 = coef1 - coef2 * l * (std::iter::empty::<T>().product::<T>() * 2);
             let new_coef2 = coef2;
             let quad = Quadratic {
                 coef0: new_coef0,

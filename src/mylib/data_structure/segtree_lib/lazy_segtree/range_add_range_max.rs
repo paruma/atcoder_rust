@@ -6,6 +6,7 @@ pub mod range_add_range_max {
     use ac_library::{LazySegtree, MapMonoid, Monoid};
     use itertools::Itertools;
     use std::convert::Infallible;
+    use std::iter::Sum;
     use std::marker::PhantomData;
     use std::ops::{Add, RangeBounds};
 
@@ -33,7 +34,7 @@ pub mod range_add_range_max {
 
     impl<T> AddAction<T>
     where
-        T: Copy + From<i64>,
+        T: Copy,
     {
         pub fn new(val: T) -> Self {
             Self { add_val: val }
@@ -44,14 +45,14 @@ pub mod range_add_range_max {
     pub struct RangeAddRangeMax<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> MapMonoid for RangeAddRangeMax<T>
     where
-        T: Copy + Ord + From<i64> + Bounded + Add<Output = T>,
+        T: Copy + Ord + Bounded + Add<Output = T> + Sum,
     {
         type M = RangeMax<T>;
         type F = AddAction<T>;
 
         fn identity_map() -> Self::F {
             AddAction {
-                add_val: T::from(0),
+                add_val: std::iter::empty::<T>().sum(),
             }
         }
 
@@ -88,7 +89,7 @@ pub mod range_add_range_max {
     #[derive(Clone)]
     pub struct RangeAddRangeMaxSegtree<T>
     where
-        T: Copy + Ord + From<i64> + Bounded + Add<Output = T>,
+        T: Copy + Ord + Bounded + Add<Output = T> + Sum,
     {
         segtree: LazySegtree<RangeAddRangeMax<T>>,
         len: usize,
@@ -96,10 +97,10 @@ pub mod range_add_range_max {
 
     impl<T> RangeAddRangeMaxSegtree<T>
     where
-        T: Copy + Ord + From<i64> + Bounded + Add<Output = T>,
+        T: Copy + Ord + Bounded + Add<Output = T> + Sum,
     {
         pub fn new(n: usize) -> Self {
-            let xs = vec![0.into(); n];
+            let xs = vec![std::iter::empty::<T>().sum(); n];
             Self::from_slice(&xs)
         }
 

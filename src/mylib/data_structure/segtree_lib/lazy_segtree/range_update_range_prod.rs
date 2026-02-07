@@ -6,14 +6,15 @@ pub mod range_update_range_prod {
     use ac_library::{LazySegtree, MapMonoid, Monoid};
     use itertools::Itertools;
     use std::convert::Infallible;
+    use std::iter::{Product, Sum};
     use std::marker::PhantomData;
     use std::ops::{Mul, RangeBounds};
 
     fn power<T>(base: T, exp: u64) -> T
     where
-        T: Copy + Mul<Output = T> + From<i64>,
+        T: Copy + Mul<Output = T> + Product,
     {
-        let mut res = 1.into();
+        let mut res = std::iter::empty::<T>().product();
         let mut base = base;
         let mut exp = exp;
         while exp > 0 {
@@ -41,12 +42,12 @@ pub mod range_update_range_prod {
     pub struct ValueLenProd<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> Monoid for ValueLenProd<T>
     where
-        T: Copy + Mul<Output = T> + From<i64>,
+        T: Copy + Mul<Output = T> + Product,
     {
         type S = RangeProd<T>;
         fn identity() -> RangeProd<T> {
             RangeProd {
-                prod: 1.into(),
+                prod: std::iter::empty::<T>().product(),
                 len: 0,
             }
         }
@@ -62,7 +63,7 @@ pub mod range_update_range_prod {
     pub struct RangeUpdateRangeProd<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> MapMonoid for RangeUpdateRangeProd<T>
     where
-        T: Copy + Mul<Output = T> + From<i64>,
+        T: Copy + Mul<Output = T> + Product,
     {
         type M = ValueLenProd<T>;
         type F = Option<T>; // None means no update, Some(val) means update to val
@@ -90,7 +91,7 @@ pub mod range_update_range_prod {
     #[derive(Clone)]
     pub struct RangeUpdateRangeProdSegtree<T>
     where
-        T: Copy + Mul<Output = T> + From<i64>,
+        T: Copy + Mul<Output = T> + Product + Sum,
     {
         segtree: LazySegtree<RangeUpdateRangeProd<T>>,
         len: usize,
@@ -98,10 +99,10 @@ pub mod range_update_range_prod {
 
     impl<T> RangeUpdateRangeProdSegtree<T>
     where
-        T: Copy + Mul<Output = T> + From<i64>,
+        T: Copy + Mul<Output = T> + Product + Sum,
     {
         pub fn new(n: usize) -> Self {
-            let xs = vec![0.into(); n];
+            let xs = vec![std::iter::empty::<T>().sum(); n];
             Self::from_slice(&xs)
         }
 

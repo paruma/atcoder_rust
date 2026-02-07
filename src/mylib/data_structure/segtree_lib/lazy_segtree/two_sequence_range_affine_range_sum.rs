@@ -6,6 +6,7 @@ pub mod two_sequence_range_affine_range_sum {
     use ac_library::{LazySegtree, MapMonoid, Monoid};
     use itertools::Itertools;
     use std::convert::Infallible;
+    use std::iter::{Product, Sum};
     use std::marker::PhantomData;
     use std::ops::{Add, Mul, RangeBounds};
 
@@ -20,7 +21,7 @@ pub mod two_sequence_range_affine_range_sum {
 
     impl<T> TwoSequenceData<T>
     where
-        T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
+        T: Copy + Mul<Output = T> + Add<Output = T>,
     {
         pub fn unit(x_val: T, y_val: T) -> Self {
             Self {
@@ -37,14 +38,14 @@ pub mod two_sequence_range_affine_range_sum {
     pub struct TwoSequenceDataMonoid<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> Monoid for TwoSequenceDataMonoid<T>
     where
-        T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
+        T: Copy + Add<Output = T> + Sum,
     {
         type S = TwoSequenceData<T>;
         fn identity() -> Self::S {
             Self::S {
-                sum_x: 0.into(),
-                sum_y: 0.into(),
-                sum_xy: 0.into(),
+                sum_x: std::iter::empty::<T>().sum(),
+                sum_y: std::iter::empty::<T>().sum(),
+                sum_xy: std::iter::empty::<T>().sum(),
                 len: 0,
             }
         }
@@ -72,17 +73,17 @@ pub mod two_sequence_range_affine_range_sum {
     pub struct TwoSequenceRangeAffineRangeSum<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> MapMonoid for TwoSequenceRangeAffineRangeSum<T>
     where
-        T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
+        T: Copy + Mul<Output = T> + Add<Output = T> + Mul<i64, Output = T> + Sum + Product,
     {
         type M = TwoSequenceDataMonoid<T>;
         type F = TwoSequenceAffine<T>;
 
         fn identity_map() -> Self::F {
             Self::F {
-                a: 1.into(),
-                b: 0.into(),
-                c: 1.into(),
-                d: 0.into(),
+                a: std::iter::empty::<T>().product(),
+                b: std::iter::empty::<T>().sum(),
+                c: std::iter::empty::<T>().product(),
+                d: std::iter::empty::<T>().sum(),
             }
         }
 
@@ -101,9 +102,9 @@ pub mod two_sequence_range_affine_range_sum {
                 sum_xy: f.a * f.c * x.sum_xy
                     + f.a * f.d * x.sum_x
                     + f.b * f.c * x.sum_y
-                    + f.b * f.d * x.len.into(),
-                sum_x: f.a * x.sum_x + f.b * x.len.into(),
-                sum_y: f.c * x.sum_y + f.d * x.len.into(),
+                    + f.b * f.d * x.len,
+                sum_x: f.a * x.sum_x + f.b * x.len,
+                sum_y: f.c * x.sum_y + f.d * x.len,
                 len: x.len,
             }
         }
@@ -113,7 +114,7 @@ pub mod two_sequence_range_affine_range_sum {
     #[derive(Clone)]
     pub struct TwoSequenceRangeAffineRangeSumSegtree<T>
     where
-        T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
+        T: Copy + Mul<Output = T> + Add<Output = T> + Mul<i64, Output = T> + Sum + Product,
     {
         segtree: LazySegtree<TwoSequenceRangeAffineRangeSum<T>>,
         len: usize,
@@ -121,12 +122,12 @@ pub mod two_sequence_range_affine_range_sum {
 
     impl<T> TwoSequenceRangeAffineRangeSumSegtree<T>
     where
-        T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
+        T: Copy + Mul<Output = T> + Add<Output = T> + Mul<i64, Output = T> + Sum + Product,
     {
         /// `xs` と `ys` の初期シーケンスでセグメント木を構築します。
         pub fn new(n: usize) -> Self {
-            let xs = vec![0.into(); n];
-            let ys = vec![0.into(); n];
+            let xs = vec![std::iter::empty::<T>().sum(); n];
+            let ys = vec![std::iter::empty::<T>().sum(); n];
             Self::from_slice(&xs, &ys)
         }
 
@@ -154,32 +155,44 @@ pub mod two_sequence_range_affine_range_sum {
 
         /// 指定された区間 `range` に対して、`xs[i] ← a * xs[i] + b` のアフィン変換を適用します。
         pub fn range_affine_x(&mut self, range: impl RangeBounds<usize>, a: T, b: T) {
-            self.range_affine(range, a, b, 1.into(), 0.into())
+            self.range_affine(
+                range,
+                a,
+                b,
+                std::iter::empty::<T>().product(),
+                std::iter::empty::<T>().sum(),
+            )
         }
 
         /// 指定された区間 `range` に対して、`ys[i] ← c * ys[i] + d` のアフィン変換を適用します。
         pub fn range_affine_y(&mut self, range: impl RangeBounds<usize>, c: T, d: T) {
-            self.range_affine(range, 1.into(), 0.into(), c, d)
+            self.range_affine(
+                range,
+                std::iter::empty::<T>().product(),
+                std::iter::empty::<T>().sum(),
+                c,
+                d,
+            )
         }
 
         /// 指定された区間 `range` に対して、`xs[i] ← xs[i] + b` の加算を適用します。
         pub fn range_add_x(&mut self, range: impl RangeBounds<usize>, b: T) {
-            self.range_affine_x(range, 1.into(), b)
+            self.range_affine_x(range, std::iter::empty::<T>().product(), b)
         }
 
         /// 指定された区間 `range` に対して、`xs[i] ← x` の更新を適用します。
         pub fn range_update_x(&mut self, range: impl RangeBounds<usize>, x: T) {
-            self.range_affine_x(range, 0.into(), x)
+            self.range_affine_x(range, std::iter::empty::<T>().sum(), x)
         }
 
         /// 指定された区間 `range` に対して、`ys[i] ← ys[i] + d` の加算を適用します。
         pub fn range_add_y(&mut self, range: impl RangeBounds<usize>, d: T) {
-            self.range_affine_y(range, 1.into(), d)
+            self.range_affine_y(range, std::iter::empty::<T>().product(), d)
         }
 
         /// 指定された区間 `range` に対して、`ys[i] ← y` の更新を適用します。
         pub fn range_update_y(&mut self, range: impl RangeBounds<usize>, y: T) {
-            self.range_affine_y(range, 0.into(), y)
+            self.range_affine_y(range, std::iter::empty::<T>().sum(), y)
         }
 
         /// 指定された区間 `range` の `sum(xs[i] * ys[i])` を計算して返します。

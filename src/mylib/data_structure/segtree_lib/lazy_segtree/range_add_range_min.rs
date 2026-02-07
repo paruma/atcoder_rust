@@ -6,6 +6,7 @@ pub mod range_add_range_min {
     use ac_library::{LazySegtree, MapMonoid, Monoid};
     use itertools::Itertools;
     use std::convert::Infallible;
+    use std::iter::Sum;
     use std::marker::PhantomData;
     use std::ops::{Add, RangeBounds};
 
@@ -33,7 +34,7 @@ pub mod range_add_range_min {
 
     impl<T> AddAction<T>
     where
-        T: Copy + From<i64>,
+        T: Copy,
     {
         pub fn new(val: T) -> Self {
             Self { add_val: val }
@@ -44,14 +45,14 @@ pub mod range_add_range_min {
     pub struct RangeAddRangeMin<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> MapMonoid for RangeAddRangeMin<T>
     where
-        T: Copy + Ord + From<i64> + Bounded + Add<Output = T>,
+        T: Copy + Ord + Bounded + Add<Output = T> + Sum,
     {
         type M = RangeMin<T>;
         type F = AddAction<T>;
 
         fn identity_map() -> Self::F {
             AddAction {
-                add_val: T::from(0),
+                add_val: std::iter::empty::<T>().sum(),
             }
         }
 
@@ -88,7 +89,7 @@ pub mod range_add_range_min {
     #[derive(Clone)]
     pub struct RangeAddRangeMinSegtree<T>
     where
-        T: Copy + Ord + From<i64> + Bounded + Add<Output = T>,
+        T: Copy + Ord + Bounded + Add<Output = T> + Sum,
     {
         segtree: LazySegtree<RangeAddRangeMin<T>>,
         len: usize,
@@ -96,10 +97,10 @@ pub mod range_add_range_min {
 
     impl<T> RangeAddRangeMinSegtree<T>
     where
-        T: Copy + Ord + From<i64> + Bounded + Add<Output = T>,
+        T: Copy + Ord + Bounded + Add<Output = T> + Sum,
     {
         pub fn new(n: usize) -> Self {
-            let xs = vec![0.into(); n];
+            let xs = vec![std::iter::empty::<T>().sum(); n];
             Self::from_slice(&xs)
         }
 
@@ -224,6 +225,8 @@ pub mod test_range_add_range_min {
         assert_eq!(segtree.max_right(0, |m| m >= 3), 3);
         // min_left: [l, 5) で min が 3 以上の最小の l (identity i64::MAX >= 3 は true)
         // [2, 1] は 3 以上ではないので、l=5, 4, 3... と見ていって止まる
+        // 実際には [3, 4, 5] の min は 1 or 2 なので g(min) >= 3 は false。
+        // 右端 5 から左へ: [4..5] min=1 (false), なので 5。
         assert_eq!(segtree.min_left(5, |m| m >= 3), 5);
         // [0..3] min=3 (true) なので、右端 3 から左へなら 0 までいける
         assert_eq!(segtree.min_left(3, |m| m >= 3), 0);

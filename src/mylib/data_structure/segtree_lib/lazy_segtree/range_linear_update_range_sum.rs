@@ -6,6 +6,7 @@ pub mod range_linear_update_range_sum {
     use ac_library::{LazySegtree, MapMonoid, Monoid};
     use itertools::Itertools;
     use std::convert::Infallible;
+    use std::iter::{Product, Sum};
     use std::marker::PhantomData;
     use std::ops::{Add, Div, Mul, RangeBounds, Sub};
 
@@ -18,13 +19,13 @@ pub mod range_linear_update_range_sum {
     }
     impl<T> RangeSum<T>
     where
-        T: From<i64>,
+        T: Copy + Mul<i64, Output = T> + Product,
     {
         pub fn unit(x: T, idx: i64) -> RangeSum<T> {
             RangeSum {
                 sum: x,
                 len: 1,
-                sum_idx: idx.into(),
+                sum_idx: std::iter::empty::<T>().product::<T>() * idx,
             }
         }
     }
@@ -33,14 +34,14 @@ pub mod range_linear_update_range_sum {
     pub struct ValueLenSum<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> Monoid for ValueLenSum<T>
     where
-        T: Copy + Add<Output = T> + From<i64>,
+        T: Copy + Add<Output = T> + Sum,
     {
         type S = RangeSum<T>;
         fn identity() -> RangeSum<T> {
             RangeSum {
-                sum: 0.into(),
+                sum: std::iter::empty::<T>().sum(),
                 len: 0,
-                sum_idx: 0.into(),
+                sum_idx: std::iter::empty::<T>().sum(),
             }
         }
         fn binary_operation(a: &RangeSum<T>, b: &RangeSum<T>) -> RangeSum<T> {
@@ -63,7 +64,14 @@ pub mod range_linear_update_range_sum {
     pub struct RangeLinearUpdateRangeSum<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> MapMonoid for RangeLinearUpdateRangeSum<T>
     where
-        T: Copy + Add<Output = T> + Mul<Output = T> + Div<Output = T> + Sub<Output = T> + From<i64>,
+        T: Copy
+            + Add<Output = T>
+            + Mul<Output = T>
+            + Mul<i64, Output = T>
+            + Div<Output = T>
+            + Sub<Output = T>
+            + Sum
+            + Product,
     {
         type M = ValueLenSum<T>;
         type F = Option<Linear<T>>;
@@ -87,7 +95,7 @@ pub mod range_linear_update_range_sum {
             if let Some(f) = f {
                 // sum(a + bi) = na + b sum i
                 RangeSum {
-                    sum: f.intercept * x.len.into() + f.slope * x.sum_idx,
+                    sum: f.intercept * x.len + f.slope * x.sum_idx,
                     len: x.len,
                     sum_idx: x.sum_idx,
                 }
@@ -100,7 +108,14 @@ pub mod range_linear_update_range_sum {
     #[derive(Clone)]
     pub struct RangeLinearUpdateRangeSumSegtree<T>
     where
-        T: Copy + Add<Output = T> + Mul<Output = T> + Div<Output = T> + Sub<Output = T> + From<i64>,
+        T: Copy
+            + Add<Output = T>
+            + Mul<Output = T>
+            + Mul<i64, Output = T>
+            + Div<Output = T>
+            + Sub<Output = T>
+            + Sum
+            + Product,
     {
         segtree: LazySegtree<RangeLinearUpdateRangeSum<T>>,
         len: usize,
@@ -108,10 +123,17 @@ pub mod range_linear_update_range_sum {
 
     impl<T> RangeLinearUpdateRangeSumSegtree<T>
     where
-        T: Copy + Add<Output = T> + Mul<Output = T> + Div<Output = T> + Sub<Output = T> + From<i64>,
+        T: Copy
+            + Add<Output = T>
+            + Mul<Output = T>
+            + Mul<i64, Output = T>
+            + Div<Output = T>
+            + Sub<Output = T>
+            + Sum
+            + Product,
     {
         pub fn new(n: usize) -> Self {
-            let xs = vec![0.into(); n];
+            let xs = vec![std::iter::empty::<T>().sum(); n];
             Self::from_slice(&xs)
         }
 
@@ -160,7 +182,7 @@ pub mod range_linear_update_range_sum {
                 Bound::Excluded(val) => *val + 1,
                 Bound::Unbounded => 0,
             };
-            let intercept = init - diff * (l as i64).into();
+            let intercept = init - diff * (l as i64);
             let linear = Linear {
                 intercept,
                 slope: diff,

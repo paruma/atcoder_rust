@@ -6,6 +6,7 @@ pub mod range_chmin_chmax_affine_range_min_max {
     use ac_library::{LazySegtree, MapMonoid, Monoid};
     use itertools::Itertools;
     use std::convert::Infallible;
+    use std::iter::{Product, Sum};
     use std::marker::PhantomData;
     use std::ops::{Add, Mul, RangeBounds};
 
@@ -76,14 +77,14 @@ pub mod range_chmin_chmax_affine_range_min_max {
 
     impl<T> ChminChmaxAffineAction<T>
     where
-        T: Copy + Ord + Bounded + From<i64> + Add<Output = T> + Mul<Output = T>,
+        T: Copy + Ord + Bounded + Sum + Product,
     {
         pub fn new_chmin(val: T) -> Self {
             Self {
                 chmin_val: val,
                 chmax_val: T::min_value(),
-                mul_val: T::from(1),
-                add_val: T::from(0),
+                mul_val: std::iter::empty::<T>().product(),
+                add_val: std::iter::empty::<T>().sum(),
             }
         }
 
@@ -91,8 +92,8 @@ pub mod range_chmin_chmax_affine_range_min_max {
             Self {
                 chmin_val: T::max_value(),
                 chmax_val: val,
-                mul_val: T::from(1),
-                add_val: T::from(0),
+                mul_val: std::iter::empty::<T>().product(),
+                add_val: std::iter::empty::<T>().sum(),
             }
         }
 
@@ -100,7 +101,7 @@ pub mod range_chmin_chmax_affine_range_min_max {
             Self {
                 chmin_val: T::max_value(),
                 chmax_val: T::min_value(),
-                mul_val: T::from(1),
+                mul_val: std::iter::empty::<T>().product(),
                 add_val: val,
             }
         }
@@ -109,7 +110,7 @@ pub mod range_chmin_chmax_affine_range_min_max {
             Self {
                 chmin_val: T::max_value(),
                 chmax_val: T::min_value(),
-                mul_val: T::from(0),
+                mul_val: std::iter::empty::<T>().sum(),
                 add_val: val,
             }
         }
@@ -128,7 +129,14 @@ pub mod range_chmin_chmax_affine_range_min_max {
     pub struct RangeChminChmaxAffineRangeMinMax<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> MapMonoid for RangeChminChmaxAffineRangeMinMax<T>
     where
-        T: Copy + Ord + From<i64> + Bounded + Add<Output = T> + Mul<Output = T> + std::fmt::Debug,
+        T: Copy
+            + Ord
+            + Bounded
+            + Add<Output = T>
+            + Mul<Output = T>
+            + Sum
+            + Product
+            + std::fmt::Debug,
     {
         type M = RangeMinMaxMonoid<T>;
         type F = ChminChmaxAffineAction<T>;
@@ -137,8 +145,8 @@ pub mod range_chmin_chmax_affine_range_min_max {
             ChminChmaxAffineAction {
                 chmin_val: T::max_value(),
                 chmax_val: T::min_value(),
-                mul_val: T::from(1),
-                add_val: T::from(0),
+                mul_val: std::iter::empty::<T>().product(),
+                add_val: std::iter::empty::<T>().sum(),
             }
         }
 
@@ -154,7 +162,7 @@ pub mod range_chmin_chmax_affine_range_min_max {
             // gのchmin_valを処理
             if g.chmin_val != T::max_value() {
                 let transformed_g_chmin = g.chmin_val * f.mul_val + f.add_val;
-                if f.mul_val >= T::from(0) {
+                if f.mul_val >= std::iter::empty::<T>().sum() {
                     composed_chmin_val = composed_chmin_val.min(transformed_g_chmin);
                 } else {
                     // f.mul_val < 0
@@ -165,7 +173,7 @@ pub mod range_chmin_chmax_affine_range_min_max {
             // gのchmax_valを処理
             if g.chmax_val != T::min_value() {
                 let transformed_g_chmax = g.chmax_val * f.mul_val + f.add_val;
-                if f.mul_val >= T::from(0) {
+                if f.mul_val >= std::iter::empty::<T>().sum() {
                     composed_chmax_val = composed_chmax_val.max(transformed_g_chmax);
                 } else {
                     // f.mul_val < 0
@@ -191,11 +199,12 @@ pub mod range_chmin_chmax_affine_range_min_max {
                 return *x;
             }
 
-            let (mut transformed_min, mut transformed_max) = if f.mul_val >= T::from(0) {
-                (min * f.mul_val + f.add_val, max * f.mul_val + f.add_val)
-            } else {
-                (max * f.mul_val + f.add_val, min * f.mul_val + f.add_val)
-            };
+            let (mut transformed_min, mut transformed_max) =
+                if f.mul_val >= std::iter::empty::<T>().sum() {
+                    (min * f.mul_val + f.add_val, max * f.mul_val + f.add_val)
+                } else {
+                    (max * f.mul_val + f.add_val, min * f.mul_val + f.add_val)
+                };
 
             // fのchmin/chmax制約を適用
             if f.chmin_val != T::max_value() {
@@ -217,7 +226,14 @@ pub mod range_chmin_chmax_affine_range_min_max {
     #[derive(Clone)]
     pub struct RangeChminChmaxAffineRangeMinMaxSegtree<T>
     where
-        T: Copy + Ord + From<i64> + Bounded + Add<Output = T> + Mul<Output = T> + std::fmt::Debug,
+        T: Copy
+            + Ord
+            + Bounded
+            + Add<Output = T>
+            + Mul<Output = T>
+            + Sum
+            + Product
+            + std::fmt::Debug,
     {
         segtree: LazySegtree<RangeChminChmaxAffineRangeMinMax<T>>,
         len: usize,
@@ -225,10 +241,17 @@ pub mod range_chmin_chmax_affine_range_min_max {
 
     impl<T> RangeChminChmaxAffineRangeMinMaxSegtree<T>
     where
-        T: Copy + Ord + From<i64> + Bounded + Add<Output = T> + Mul<Output = T> + std::fmt::Debug,
+        T: Copy
+            + Ord
+            + Bounded
+            + Add<Output = T>
+            + Mul<Output = T>
+            + Sum
+            + Product
+            + std::fmt::Debug,
     {
         pub fn new(n: usize) -> Self {
-            let xs = vec![0.into(); n];
+            let xs = vec![std::iter::empty::<T>().sum(); n];
             Self::from_slice(&xs)
         }
 

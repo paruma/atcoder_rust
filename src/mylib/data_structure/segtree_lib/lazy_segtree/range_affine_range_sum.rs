@@ -6,6 +6,7 @@ pub mod range_affine_range_sum {
     use ac_library::{LazySegtree, MapMonoid, Monoid};
     use itertools::Itertools;
     use std::convert::Infallible;
+    use std::iter::{Product, Sum};
     use std::marker::PhantomData;
     use std::ops::{Add, Mul, RangeBounds};
 
@@ -28,12 +29,12 @@ pub mod range_affine_range_sum {
 
     impl<T> Affine<T>
     where
-        T: From<i64>,
+        T: Sum + Product,
     {
         /// 区間変更用（定数関数）
         pub fn constant_func(x: T) -> Affine<T> {
             Affine {
-                slope: 0.into(),
+                slope: std::iter::empty::<T>().sum(),
                 intercept: x,
             }
         }
@@ -41,7 +42,7 @@ pub mod range_affine_range_sum {
         /// 区間加算用
         pub fn addition_func(x: T) -> Affine<T> {
             Affine {
-                slope: 1.into(),
+                slope: std::iter::empty::<T>().product(),
                 intercept: x,
             }
         }
@@ -51,12 +52,12 @@ pub mod range_affine_range_sum {
     pub struct ValueLenSum<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> Monoid for ValueLenSum<T>
     where
-        T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
+        T: Copy + Add<Output = T> + Sum,
     {
         type S = RangeSum<T>;
         fn identity() -> RangeSum<T> {
             RangeSum {
-                sum: 0.into(),
+                sum: std::iter::empty::<T>().sum(),
                 len: 0,
             }
         }
@@ -72,15 +73,15 @@ pub mod range_affine_range_sum {
     pub struct RangeAffineRangeSum<T>(Infallible, PhantomData<fn() -> T>);
     impl<T> MapMonoid for RangeAffineRangeSum<T>
     where
-        T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
+        T: Copy + Mul<Output = T> + Add<Output = T> + Mul<i64, Output = T> + Sum + Product,
     {
         type M = ValueLenSum<T>;
         type F = Affine<T>;
 
         fn identity_map() -> Affine<T> {
             Affine {
-                slope: 1.into(),
-                intercept: 0.into(),
+                slope: std::iter::empty::<T>().product(),
+                intercept: std::iter::empty::<T>().sum(),
             }
         }
         fn composition(a: &Affine<T>, b: &Affine<T>) -> Affine<T> {
@@ -92,7 +93,7 @@ pub mod range_affine_range_sum {
 
         fn mapping(f: &Affine<T>, x: &RangeSum<T>) -> RangeSum<T> {
             RangeSum {
-                sum: f.slope * x.sum + f.intercept * x.len.into(),
+                sum: f.slope * x.sum + f.intercept * x.len,
                 len: x.len,
             }
         }
@@ -101,7 +102,7 @@ pub mod range_affine_range_sum {
     #[derive(Clone)]
     pub struct RangeAffineRangeSumSegtree<T>
     where
-        T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
+        T: Copy + Mul<Output = T> + Add<Output = T> + Mul<i64, Output = T> + Sum + Product,
     {
         segtree: LazySegtree<RangeAffineRangeSum<T>>,
         len: usize,
@@ -109,10 +110,10 @@ pub mod range_affine_range_sum {
 
     impl<T> RangeAffineRangeSumSegtree<T>
     where
-        T: Copy + Mul<Output = T> + Add<Output = T> + From<i64>,
+        T: Copy + Mul<Output = T> + Add<Output = T> + Mul<i64, Output = T> + Sum + Product,
     {
         pub fn new(n: usize) -> Self {
-            let xs = vec![0.into(); n];
+            let xs = vec![std::iter::empty::<T>().sum(); n];
             Self::from_slice(&xs)
         }
 
