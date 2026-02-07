@@ -1,12 +1,40 @@
 // 問題文と制約は読みましたか？
+
+fn pred(xs: &[i64], target: i64) -> bool {
+    let n = xs.len();
+    if n % 2 == 1 {
+        return false;
+    }
+
+    (0..n / 2).all(|i| xs[i] + xs[n - i - 1] == target)
+}
+
 // #[fastout]
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        mut xs: [i64; n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    xs.sort();
+
+    let max = xs.iter().copied().max().unwrap();
+    let min = xs.iter().copied().min().unwrap();
+
+    let mut ans: Vec<i64> = vec![];
+
+    if pred(&xs, max + min) {
+        ans.push(max + min);
+    }
+
+    let xs_exclude_max = xs.iter().copied().filter(|x| *x != max).collect_vec();
+    if pred(&xs_exclude_max, max) {
+        ans.push(max);
+    }
+
+    ans.sort();
+    ans.dedup();
+    print_vec_1line(&ans);
 }
 
 #[cfg(test)]

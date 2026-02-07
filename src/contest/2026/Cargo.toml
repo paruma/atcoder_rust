@@ -171,3 +171,31 @@ path = "abc443/f/f.rs"
 [[bin]]
 name = "abc443_g"
 path = "abc443/g/g.rs"
+
+[[bin]]
+name = "abc444_a"
+path = "abc444/a/a.rs"
+
+[[bin]]
+name = "abc444_b"
+path = "abc444/b/b.rs"
+
+[[bin]]
+name = "abc444_c"
+path = "abc444/c/c.rs"
+
+[[bin]]
+name = "abc444_d"
+path = "abc444/d/d.rs"
+
+[[bin]]
+name = "abc444_e"
+path = "abc444/e/e.rs"
+
+[[bin]]
+name = "abc444_f"
+path = "abc444/f/f.rs"
+
+[[bin]]
+name = "abc444_g"
+path = "abc444/g/g.rs"

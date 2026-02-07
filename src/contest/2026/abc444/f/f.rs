@@ -1,12 +1,18 @@
-// 問題文と制約は読みましたか？
-// #[fastout]
+#[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        t: usize
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    for _ in 0..t {
+        input! {
+            n: usize,
+            m: usize,
+            xs: [i64; n],
+        }
+        let ans = -2_i64;
+        println!("{}", ans);
+    }
 }
 
 #[cfg(test)]
