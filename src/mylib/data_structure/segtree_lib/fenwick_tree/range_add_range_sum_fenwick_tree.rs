@@ -11,6 +11,10 @@ pub mod range_add_range_sum_fenwick_tree {
     use std::iter::Sum;
     use std::ops::{Add, Bound, Mul, Neg, RangeBounds, Sub};
 
+    fn zero<T: Sum>() -> T {
+        std::iter::empty::<T>().sum()
+    }
+
     /// 任意の数値型 T に対して区間加算・区間和取得が可能な Fenwick Tree (Range Add Range Sum Fenwick Tree)。
     //
     // [原理]
@@ -60,8 +64,8 @@ pub mod range_add_range_sum_fenwick_tree {
         /// O(n)
         pub fn from_slice(slice: &[T]) -> Self {
             let n = slice.len();
-            let mut d = vec![std::iter::empty::<T>().sum(); n + 1];
-            let mut di = vec![std::iter::empty::<T>().sum(); n + 1];
+            let mut d = vec![zero(); n + 1];
+            let mut di = vec![zero(); n + 1];
             if n > 0 {
                 d[0] = slice[0];
                 // di[0] = d[0] * 0 = 0
@@ -201,14 +205,14 @@ pub mod range_add_range_sum_fenwick_tree {
                 self.n
             );
             assert!(
-                f(&std::iter::empty::<T>().sum()),
+                f(&zero()),
                 "RangeAddRangeSumFenwickTree::max_right: The predicate f(0) must be true."
             );
 
             let val_l = self.prefix_sum(l);
             let mut r = 0;
-            let mut sum0: T = std::iter::empty::<T>().sum();
-            let mut sum1: T = std::iter::empty::<T>().sum();
+            let mut sum0: T = zero();
+            let mut sum1: T = zero();
             let mut k = if self.n + 1 == 0 {
                 0
             } else {
@@ -256,7 +260,7 @@ pub mod range_add_range_sum_fenwick_tree {
                 self.n
             );
             assert!(
-                f(&std::iter::empty::<T>().sum()),
+                f(&zero()),
                 "RangeAddRangeSumFenwickTree::min_left: The predicate f(0) must be true."
             );
 
@@ -266,8 +270,8 @@ pub mod range_add_range_sum_fenwick_tree {
             }
 
             let mut idx = 0;
-            let mut sum0: T = std::iter::empty::<T>().sum();
-            let mut sum1: T = std::iter::empty::<T>().sum();
+            let mut sum0: T = zero();
+            let mut sum1: T = zero();
             let mut k = if self.n + 1 == 0 {
                 0
             } else {

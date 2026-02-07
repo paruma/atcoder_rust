@@ -10,6 +10,10 @@ pub mod range_sum_segtree {
     use std::marker::PhantomData;
     use std::ops::{Add, RangeBounds};
 
+    fn zero<T: Sum>() -> T {
+        std::iter::empty::<T>().sum()
+    }
+
     /// 汎用的な加算モノイド。
     /// `std::ops::Add` と `std::iter::Sum` を実装している型に対応。
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -22,7 +26,7 @@ pub mod range_sum_segtree {
         type S = T;
         #[inline]
         fn identity() -> Self::S {
-            std::iter::empty().sum()
+            zero()
         }
         #[inline]
         fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {

@@ -10,6 +10,13 @@ pub mod range_affine_range_sum {
     use std::marker::PhantomData;
     use std::ops::{Add, Mul, RangeBounds};
 
+    fn zero<T: Sum>() -> T {
+        std::iter::empty::<T>().sum()
+    }
+    fn one<T: Product>() -> T {
+        std::iter::empty::<T>().product()
+    }
+
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeSum<T> {
         pub sum: T,
@@ -34,7 +41,7 @@ pub mod range_affine_range_sum {
         /// 区間変更用（定数関数）
         pub fn constant_func(x: T) -> Affine<T> {
             Affine {
-                slope: std::iter::empty::<T>().sum(),
+                slope: zero(),
                 intercept: x,
             }
         }
@@ -42,7 +49,7 @@ pub mod range_affine_range_sum {
         /// 区間加算用
         pub fn addition_func(x: T) -> Affine<T> {
             Affine {
-                slope: std::iter::empty::<T>().product(),
+                slope: one(),
                 intercept: x,
             }
         }
@@ -57,7 +64,7 @@ pub mod range_affine_range_sum {
         type S = RangeSum<T>;
         fn identity() -> RangeSum<T> {
             RangeSum {
-                sum: std::iter::empty::<T>().sum(),
+                sum: zero(),
                 len: 0,
             }
         }
@@ -80,8 +87,8 @@ pub mod range_affine_range_sum {
 
         fn identity_map() -> Affine<T> {
             Affine {
-                slope: std::iter::empty::<T>().product(),
-                intercept: std::iter::empty::<T>().sum(),
+                slope: one(),
+                intercept: zero(),
             }
         }
         fn composition(a: &Affine<T>, b: &Affine<T>) -> Affine<T> {
@@ -113,7 +120,7 @@ pub mod range_affine_range_sum {
         T: Copy + Mul<Output = T> + Add<Output = T> + Mul<i64, Output = T> + Sum + Product,
     {
         pub fn new(n: usize) -> Self {
-            let xs = vec![std::iter::empty::<T>().sum(); n];
+            let xs = vec![zero(); n];
             Self::from_slice(&xs)
         }
 

@@ -10,11 +10,18 @@ pub mod range_update_range_prod {
     use std::marker::PhantomData;
     use std::ops::{Mul, RangeBounds};
 
+    fn zero<T: Sum>() -> T {
+        std::iter::empty::<T>().sum()
+    }
+    fn one<T: Product>() -> T {
+        std::iter::empty::<T>().product()
+    }
+
     fn power<T>(base: T, exp: u64) -> T
     where
         T: Copy + Mul<Output = T> + Product,
     {
-        let mut res = std::iter::empty::<T>().product();
+        let mut res = one();
         let mut base = base;
         let mut exp = exp;
         while exp > 0 {
@@ -47,7 +54,7 @@ pub mod range_update_range_prod {
         type S = RangeProd<T>;
         fn identity() -> RangeProd<T> {
             RangeProd {
-                prod: std::iter::empty::<T>().product(),
+                prod: one(),
                 len: 0,
             }
         }
@@ -102,7 +109,7 @@ pub mod range_update_range_prod {
         T: Copy + Mul<Output = T> + Product + Sum,
     {
         pub fn new(n: usize) -> Self {
-            let xs = vec![std::iter::empty::<T>().sum(); n];
+            let xs = vec![zero(); n];
             Self::from_slice(&xs)
         }
 

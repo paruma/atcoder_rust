@@ -11,6 +11,10 @@ pub mod rect_add_rect_sum_fenwick_tree {
     use std::iter::Sum;
     use std::ops::{Add, Bound, Mul, Neg, RangeBounds, Sub};
 
+    fn zero<T: Sum>() -> T {
+        std::iter::empty::<T>().sum()
+    }
+
     /// 任意の数値型 T に対して矩形加算・矩形和取得が可能な 2次元 Fenwick Tree (Rect Add Rect Sum Fenwick Tree 2D)。
     //
     // [原理]
@@ -68,11 +72,11 @@ pub mod rect_add_rect_sum_fenwick_tree {
         pub fn from_slice(slice: &[Vec<T>]) -> Self {
             let h = slice.len();
             let w = if h == 0 { 0 } else { slice[0].len() };
-            let zero: T = std::iter::empty::<T>().sum();
-            let mut d = vec![vec![zero; w + 1]; h + 1];
-            let mut dx = vec![vec![zero; w + 1]; h + 1];
-            let mut dy = vec![vec![zero; w + 1]; h + 1];
-            let mut dxy = vec![vec![zero; w + 1]; h + 1];
+            let zero_val: T = zero();
+            let mut d = vec![vec![zero_val; w + 1]; h + 1];
+            let mut dx = vec![vec![zero_val; w + 1]; h + 1];
+            let mut dy = vec![vec![zero_val; w + 1]; h + 1];
+            let mut dxy = vec![vec![zero_val; w + 1]; h + 1];
 
             for i in 0..=h {
                 for j in 0..=w {
@@ -80,7 +84,7 @@ pub mod rect_add_rect_sum_fenwick_tree {
                         if y >= 0 && (y as usize) < h && x >= 0 && (x as usize) < w {
                             slice[y as usize][x as usize]
                         } else {
-                            std::iter::empty::<T>().sum()
+                            zero()
                         }
                     };
 

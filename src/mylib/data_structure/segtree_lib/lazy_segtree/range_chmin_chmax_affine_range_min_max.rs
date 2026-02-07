@@ -10,6 +10,13 @@ pub mod range_chmin_chmax_affine_range_min_max {
     use std::marker::PhantomData;
     use std::ops::{Add, Mul, RangeBounds};
 
+    fn zero<T: Sum>() -> T {
+        std::iter::empty::<T>().sum()
+    }
+    fn one<T: Product>() -> T {
+        std::iter::empty::<T>().product()
+    }
+
     pub trait Bounded {
         fn min_value() -> Self;
         fn max_value() -> Self;
@@ -83,8 +90,8 @@ pub mod range_chmin_chmax_affine_range_min_max {
             Self {
                 chmin_val: val,
                 chmax_val: T::min_value(),
-                mul_val: std::iter::empty::<T>().product(),
-                add_val: std::iter::empty::<T>().sum(),
+                mul_val: one(),
+                add_val: zero(),
             }
         }
 
@@ -92,8 +99,8 @@ pub mod range_chmin_chmax_affine_range_min_max {
             Self {
                 chmin_val: T::max_value(),
                 chmax_val: val,
-                mul_val: std::iter::empty::<T>().product(),
-                add_val: std::iter::empty::<T>().sum(),
+                mul_val: one(),
+                add_val: zero(),
             }
         }
 
@@ -101,7 +108,7 @@ pub mod range_chmin_chmax_affine_range_min_max {
             Self {
                 chmin_val: T::max_value(),
                 chmax_val: T::min_value(),
-                mul_val: std::iter::empty::<T>().product(),
+                mul_val: one(),
                 add_val: val,
             }
         }
@@ -110,7 +117,7 @@ pub mod range_chmin_chmax_affine_range_min_max {
             Self {
                 chmin_val: T::max_value(),
                 chmax_val: T::min_value(),
-                mul_val: std::iter::empty::<T>().sum(),
+                mul_val: zero(),
                 add_val: val,
             }
         }
@@ -145,8 +152,8 @@ pub mod range_chmin_chmax_affine_range_min_max {
             ChminChmaxAffineAction {
                 chmin_val: T::max_value(),
                 chmax_val: T::min_value(),
-                mul_val: std::iter::empty::<T>().product(),
-                add_val: std::iter::empty::<T>().sum(),
+                mul_val: one(),
+                add_val: zero(),
             }
         }
 
@@ -162,7 +169,7 @@ pub mod range_chmin_chmax_affine_range_min_max {
             // gのchmin_valを処理
             if g.chmin_val != T::max_value() {
                 let transformed_g_chmin = g.chmin_val * f.mul_val + f.add_val;
-                if f.mul_val >= std::iter::empty::<T>().sum() {
+                if f.mul_val >= zero() {
                     composed_chmin_val = composed_chmin_val.min(transformed_g_chmin);
                 } else {
                     // f.mul_val < 0
@@ -173,7 +180,7 @@ pub mod range_chmin_chmax_affine_range_min_max {
             // gのchmax_valを処理
             if g.chmax_val != T::min_value() {
                 let transformed_g_chmax = g.chmax_val * f.mul_val + f.add_val;
-                if f.mul_val >= std::iter::empty::<T>().sum() {
+                if f.mul_val >= zero() {
                     composed_chmax_val = composed_chmax_val.max(transformed_g_chmax);
                 } else {
                     // f.mul_val < 0
@@ -199,12 +206,11 @@ pub mod range_chmin_chmax_affine_range_min_max {
                 return *x;
             }
 
-            let (mut transformed_min, mut transformed_max) =
-                if f.mul_val >= std::iter::empty::<T>().sum() {
-                    (min * f.mul_val + f.add_val, max * f.mul_val + f.add_val)
-                } else {
-                    (max * f.mul_val + f.add_val, min * f.mul_val + f.add_val)
-                };
+            let (mut transformed_min, mut transformed_max) = if f.mul_val >= zero() {
+                (min * f.mul_val + f.add_val, max * f.mul_val + f.add_val)
+            } else {
+                (max * f.mul_val + f.add_val, min * f.mul_val + f.add_val)
+            };
 
             // fのchmin/chmax制約を適用
             if f.chmin_val != T::max_value() {
@@ -251,7 +257,7 @@ pub mod range_chmin_chmax_affine_range_min_max {
             + std::fmt::Debug,
     {
         pub fn new(n: usize) -> Self {
-            let xs = vec![std::iter::empty::<T>().sum(); n];
+            let xs = vec![zero(); n];
             Self::from_slice(&xs)
         }
 
