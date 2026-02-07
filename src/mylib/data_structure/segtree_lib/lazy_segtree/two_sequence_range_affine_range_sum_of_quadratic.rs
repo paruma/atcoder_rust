@@ -10,6 +10,13 @@ pub mod two_sequence_range_affine_range_sum_of_quadratic {
     use std::marker::PhantomData;
     use std::ops::{Add, Mul, RangeBounds};
 
+    fn zero<T: Sum>() -> T {
+        std::iter::empty::<T>().sum()
+    }
+    fn one<T: Product>() -> T {
+        std::iter::empty::<T>().product()
+    }
+
     // 区間が持つデータ
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct TwoSequenceQuadraticData<T> {
@@ -47,11 +54,11 @@ pub mod two_sequence_range_affine_range_sum_of_quadratic {
         type S = TwoSequenceQuadraticData<T>;
         fn identity() -> Self::S {
             Self::S {
-                sum_x: std::iter::empty::<T>().sum(),
-                sum_y: std::iter::empty::<T>().sum(),
-                sum_x2: std::iter::empty::<T>().sum(),
-                sum_y2: std::iter::empty::<T>().sum(),
-                sum_xy: std::iter::empty::<T>().sum(),
+                sum_x: zero(),
+                sum_y: zero(),
+                sum_x2: zero(),
+                sum_y2: zero(),
+                sum_xy: zero(),
                 len: 0,
             }
         }
@@ -88,10 +95,10 @@ pub mod two_sequence_range_affine_range_sum_of_quadratic {
 
         fn identity_map() -> Self::F {
             Self::F {
-                a: std::iter::empty::<T>().product(),
-                b: std::iter::empty::<T>().sum(),
-                c: std::iter::empty::<T>().product(),
-                d: std::iter::empty::<T>().sum(),
+                a: one(),
+                b: zero(),
+                c: one(),
+                d: zero(),
             }
         }
 
@@ -147,8 +154,8 @@ pub mod two_sequence_range_affine_range_sum_of_quadratic {
     {
         /// `xs` と `ys` の初期シーケンスでセグメント木を構築します。
         pub fn new(n: usize) -> Self {
-            let xs = vec![std::iter::empty::<T>().sum(); n];
-            let ys = vec![std::iter::empty::<T>().sum(); n];
+            let xs = vec![zero(); n];
+            let ys = vec![zero(); n];
             Self::from_slice(&xs, &ys)
         }
         pub fn from_slice(xs: &[T], ys: &[T]) -> Self {
@@ -173,44 +180,32 @@ pub mod two_sequence_range_affine_range_sum_of_quadratic {
 
         /// 指定された区間 `range` に対して、`xs[i] ← a * xs[i] + b` のアフィン変換を適用します。
         pub fn range_affine_x(&mut self, range: impl RangeBounds<usize>, a: T, b: T) {
-            self.range_affine(
-                range,
-                a,
-                b,
-                std::iter::empty::<T>().product(),
-                std::iter::empty::<T>().sum(),
-            )
+            self.range_affine(range, a, b, one(), zero())
         }
 
         /// 指定された区間 `range` に対して、`ys[i] ← c * ys[i] + d` のアフィン変換を適用します。
         pub fn range_affine_y(&mut self, range: impl RangeBounds<usize>, c: T, d: T) {
-            self.range_affine(
-                range,
-                std::iter::empty::<T>().product(),
-                std::iter::empty::<T>().sum(),
-                c,
-                d,
-            )
+            self.range_affine(range, one(), zero(), c, d)
         }
 
         /// 指定された区間 `range` に対して、`xs[i] ← xs[i] + b` の加算を適用します。
         pub fn range_add_x(&mut self, range: impl RangeBounds<usize>, b: T) {
-            self.range_affine_x(range, std::iter::empty::<T>().product(), b)
+            self.range_affine_x(range, one(), b)
         }
 
         /// 指定された区間 `range` に対して、`xs[i] ← x` の更新を適用します。
         pub fn range_update_x(&mut self, range: impl RangeBounds<usize>, x: T) {
-            self.range_affine_x(range, std::iter::empty::<T>().sum(), x)
+            self.range_affine_x(range, zero(), x)
         }
 
         /// 指定された区間 `range` に対して、`ys[i] ← ys[i] + d` の加算を適用します。
         pub fn range_add_y(&mut self, range: impl RangeBounds<usize>, d: T) {
-            self.range_affine_y(range, std::iter::empty::<T>().product(), d)
+            self.range_affine_y(range, one(), d)
         }
 
         /// 指定された区間 `range` に対して、`ys[i] ← y` の更新を適用します。
         pub fn range_update_y(&mut self, range: impl RangeBounds<usize>, y: T) {
-            self.range_affine_y(range, std::iter::empty::<T>().sum(), y)
+            self.range_affine_y(range, zero(), y)
         }
 
         /// 指定された区間 `range` の `sum(xs[i] * ys[i])` を計算して返します。

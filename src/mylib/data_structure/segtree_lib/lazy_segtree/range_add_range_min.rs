@@ -10,6 +10,10 @@ pub mod range_add_range_min {
     use std::marker::PhantomData;
     use std::ops::{Add, RangeBounds};
 
+    fn zero<T: Sum>() -> T {
+        std::iter::empty::<T>().sum()
+    }
+
     // Range minimum query monoid
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeMin<T>(Infallible, PhantomData<fn() -> T>);
@@ -51,9 +55,7 @@ pub mod range_add_range_min {
         type F = AddAction<T>;
 
         fn identity_map() -> Self::F {
-            AddAction {
-                add_val: std::iter::empty::<T>().sum(),
-            }
+            AddAction { add_val: zero() }
         }
 
         // f: new action, g: old action
@@ -100,7 +102,7 @@ pub mod range_add_range_min {
         T: Copy + Ord + Bounded + Add<Output = T> + Sum,
     {
         pub fn new(n: usize) -> Self {
-            let xs = vec![std::iter::empty::<T>().sum(); n];
+            let xs = vec![zero(); n];
             Self::from_slice(&xs)
         }
 

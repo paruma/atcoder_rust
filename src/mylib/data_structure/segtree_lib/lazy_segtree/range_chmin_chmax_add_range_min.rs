@@ -10,6 +10,10 @@ pub mod range_chmin_chmax_add_range_min {
     use std::marker::PhantomData;
     use std::ops::{Add, Mul, RangeBounds};
 
+    fn zero<T: Sum>() -> T {
+        std::iter::empty::<T>().sum()
+    }
+
     // Range minimum query monoid
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeMin<T>(Infallible, PhantomData<fn() -> T>);
@@ -42,7 +46,7 @@ pub mod range_chmin_chmax_add_range_min {
             Self {
                 chmin_val: val,
                 chmax_val: T::min_value(),
-                add_val: std::iter::empty::<T>().sum(),
+                add_val: zero(),
             }
         }
 
@@ -50,7 +54,7 @@ pub mod range_chmin_chmax_add_range_min {
             Self {
                 chmin_val: T::max_value(),
                 chmax_val: val,
-                add_val: std::iter::empty::<T>().sum(),
+                add_val: zero(),
             }
         }
 
@@ -66,7 +70,7 @@ pub mod range_chmin_chmax_add_range_min {
             Self {
                 chmin_val: val,
                 chmax_val: val,
-                add_val: std::iter::empty::<T>().sum(),
+                add_val: zero(),
             }
         }
     }
@@ -84,7 +88,7 @@ pub mod range_chmin_chmax_add_range_min {
             ChminChmaxAddAction {
                 chmin_val: T::max_value(),
                 chmax_val: T::min_value(),
-                add_val: std::iter::empty::<T>().sum(),
+                add_val: zero(),
             }
         }
 
@@ -147,7 +151,7 @@ pub mod range_chmin_chmax_add_range_min {
         T: Copy + Ord + Bounded + Add<Output = T> + Mul<Output = T> + Sum + Product,
     {
         pub fn new(n: usize) -> Self {
-            let xs = vec![std::iter::empty::<T>().sum(); n];
+            let xs = vec![zero(); n];
             Self::from_slice(&xs)
         }
 

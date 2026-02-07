@@ -10,6 +10,13 @@ pub mod range_quadratic_add_range_sum {
     use std::marker::PhantomData;
     use std::ops::{Add, Div, Mul, RangeBounds, Sub};
 
+    fn zero<T: Sum>() -> T {
+        std::iter::empty::<T>().sum()
+    }
+    fn one<T: Product>() -> T {
+        std::iter::empty::<T>().product()
+    }
+
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeSum<T> {
         pub sum: T,
@@ -22,7 +29,7 @@ pub mod range_quadratic_add_range_sum {
         T: Copy + Mul<Output = T> + Product + Mul<i64, Output = T>,
     {
         pub fn unit(x: T, idx: i64) -> RangeSum<T> {
-            let idx: T = std::iter::empty::<T>().product::<T>() * idx;
+            let idx: T = one::<T>() * idx;
             RangeSum {
                 sum: x,
                 len: 1,
@@ -41,10 +48,10 @@ pub mod range_quadratic_add_range_sum {
         type S = RangeSum<T>;
         fn identity() -> RangeSum<T> {
             RangeSum {
-                sum: std::iter::empty::<T>().sum(),
+                sum: zero(),
                 len: 0,
-                sum_idx: std::iter::empty::<T>().sum(),
-                sum_sq_idx: std::iter::empty::<T>().sum(),
+                sum_idx: zero(),
+                sum_sq_idx: zero(),
             }
         }
         fn binary_operation(a: &RangeSum<T>, b: &RangeSum<T>) -> RangeSum<T> {
@@ -83,9 +90,9 @@ pub mod range_quadratic_add_range_sum {
 
         fn identity_map() -> Quadratic<T> {
             Quadratic {
-                coef0: std::iter::empty::<T>().sum(),
-                coef1: std::iter::empty::<T>().sum(),
-                coef2: std::iter::empty::<T>().sum(),
+                coef0: zero(),
+                coef1: zero(),
+                coef2: zero(),
             }
         }
 
@@ -139,7 +146,7 @@ pub mod range_quadratic_add_range_sum {
             + Product,
     {
         pub fn new(n: usize) -> Self {
-            let xs = vec![std::iter::empty::<T>().sum(); n];
+            let xs = vec![zero(); n];
             Self::from_slice(&xs)
         }
 
@@ -188,9 +195,9 @@ pub mod range_quadratic_add_range_sum {
                 Bound::Excluded(val) => *val + 1,
                 Bound::Unbounded => 0,
             };
-            let l: T = std::iter::empty::<T>().product::<T>() * (l as i64);
+            let l: T = one::<T>() * (l as i64);
             let new_coef0 = coef0 - coef1 * l + coef2 * l * l;
-            let new_coef1 = coef1 - coef2 * l * (std::iter::empty::<T>().product::<T>() * 2);
+            let new_coef1 = coef1 - coef2 * l * (one::<T>() * 2);
             let new_coef2 = coef2;
             let quad = Quadratic {
                 coef0: new_coef0,

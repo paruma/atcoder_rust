@@ -10,6 +10,13 @@ pub mod range_linear_update_range_sum {
     use std::marker::PhantomData;
     use std::ops::{Add, Div, Mul, RangeBounds, Sub};
 
+    fn zero<T: Sum>() -> T {
+        std::iter::empty::<T>().sum()
+    }
+    fn one<T: Product>() -> T {
+        std::iter::empty::<T>().product()
+    }
+
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeSum<T> {
         pub sum: T,
@@ -25,7 +32,7 @@ pub mod range_linear_update_range_sum {
             RangeSum {
                 sum: x,
                 len: 1,
-                sum_idx: std::iter::empty::<T>().product::<T>() * idx,
+                sum_idx: one::<T>() * idx,
             }
         }
     }
@@ -39,9 +46,9 @@ pub mod range_linear_update_range_sum {
         type S = RangeSum<T>;
         fn identity() -> RangeSum<T> {
             RangeSum {
-                sum: std::iter::empty::<T>().sum(),
+                sum: zero(),
                 len: 0,
-                sum_idx: std::iter::empty::<T>().sum(),
+                sum_idx: zero(),
             }
         }
         fn binary_operation(a: &RangeSum<T>, b: &RangeSum<T>) -> RangeSum<T> {
@@ -133,7 +140,7 @@ pub mod range_linear_update_range_sum {
             + Product,
     {
         pub fn new(n: usize) -> Self {
-            let xs = vec![std::iter::empty::<T>().sum(); n];
+            let xs = vec![zero(); n];
             Self::from_slice(&xs)
         }
 

@@ -9,6 +9,10 @@ pub mod range_add_range_sum {
     use std::marker::PhantomData;
     use std::ops::{Add, Mul, RangeBounds};
 
+    fn zero<T: Sum>() -> T {
+        std::iter::empty::<T>().sum()
+    }
+
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeSum<T> {
         pub sum: T,
@@ -29,7 +33,7 @@ pub mod range_add_range_sum {
         type S = RangeSum<T>;
         fn identity() -> RangeSum<T> {
             RangeSum {
-                sum: std::iter::empty::<T>().sum(),
+                sum: zero(),
                 len: 0,
             }
         }
@@ -51,7 +55,7 @@ pub mod range_add_range_sum {
         type F = T;
 
         fn identity_map() -> T {
-            std::iter::empty::<T>().sum()
+            zero()
         }
         fn composition(a: &T, b: &T) -> T {
             *a + *b
@@ -79,7 +83,7 @@ pub mod range_add_range_sum {
         T: Copy + Add<Output = T> + Mul<i64, Output = T> + Sum,
     {
         pub fn new(n: usize) -> Self {
-            let xs = vec![std::iter::empty::<T>().sum(); n];
+            let xs = vec![zero(); n];
             Self::from_slice(&xs)
         }
 
