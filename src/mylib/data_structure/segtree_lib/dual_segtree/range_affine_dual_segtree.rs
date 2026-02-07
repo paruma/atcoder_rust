@@ -165,6 +165,11 @@ mod tests {
 
     #[test]
     fn test_range_affine_dual_segtree_basic() {
+        let initial = vec![1, 2, 3];
+        let mut seg = RangeAffineDualSegtree::<i64>::from_slice(&initial);
+        assert_eq!(seg.len(), 3);
+        assert_eq!(seg.to_vec(), initial);
+
         let n = 10;
         let mut seg = RangeAffineDualSegtree::<i64>::new(n);
         assert_eq!(seg.len(), n);
@@ -174,43 +179,36 @@ mod tests {
         let mut expected = vec![0, 0, 10, 10, 10, 0, 0, 0, 0, 0];
         assert_eq!(seg.to_vec(), expected);
 
-        // test affine point
-        seg.affine(5, 3, 1);
-        expected[5] = expected[5] * 3 + 1;
-        assert_eq!(seg.get(5), expected[5]);
-
         seg.range_update(4..7, 5);
         expected[4] = 5;
         expected[5] = 5;
         expected[6] = 5;
         assert_eq!(seg.to_vec(), expected);
 
-        // test range patterns
-        seg.range_affine(.., 2, 3); // All
+        // test point update/add
+        seg.update(0, 100);
+        expected[0] = 100;
+        seg.add(1, 50);
+        expected[1] = 50;
+        assert_eq!(seg.to_vec(), expected);
+
+        // test affine (point)
+        seg.affine(1, 2, 3);
+        expected[1] = expected[1] * 2 + 3;
+        assert_eq!(seg.get(1), expected[1]);
+
+        // test range full
+        seg.range_affine(.., 2, 1);
         for x in expected.iter_mut() {
-            *x = *x * 2 + 3;
+            *x = *x * 2 + 1;
         }
         assert_eq!(seg.to_vec(), expected);
 
-        seg.range_affine(2.., 1, 5); // l..
-        for i in 2..n {
-            #[allow(clippy::identity_op)]
-            {
-                expected[i] = expected[i] * 1 + 5;
-            }
-        }
-        assert_eq!(seg.to_vec(), expected);
-
-        seg.range_affine(..5, 2, 0); // ..r
-        for i in 0..5 {
-            expected[i] *= 2;
-        }
-        assert_eq!(seg.to_vec(), expected);
-
-        seg.range_affine(3..=7, 0, 10); // l..=r
-        for i in 3..=7 {
-            expected[i] = 10;
-        }
+        // test other bounds (Excluded, etc.)
+        use std::ops::Bound;
+        seg.range_affine((Bound::Excluded(1), Bound::Excluded(4)), 1, 10);
+        expected[2] += 10;
+        expected[3] += 10;
         assert_eq!(seg.to_vec(), expected);
     }
 

@@ -20,10 +20,10 @@ description: src/mylib 配下の Rust ライブラリ編集時に、テスト・
     - コマンド: `cargo test --package mylib --lib <モジュールパス> -- --include-ignored --show-output`
     - **制約**: ファイル単位で 0.2 秒以内に終了することを確認してください。
 2.  **カバレッジの確認**
-    - `cargo llvm-cov` で `lcov.info` を生成し、未実行行（`DA:行番号,0`）がないか確認。
-    - コマンド: `cargo llvm-cov test --lcov --output-path lcov.info --package mylib --lib <モジュールパス> -- --include-ignored`
+    - `--show-missing-lines` フラグを使用し、対象ファイルに未実行行がないか確認。
+    - コマンド: `cargo llvm-cov test --package mylib --lib <モジュールパス> --show-missing-lines --include-ignored | grep "<ファイル名>.rs"`
+    - **判断基準**: 出力の `Missed Lines` 列を確認し、空（または意図的な未実行）であることを確認する。
     - 未実行行がある場合、その理由を分析し、**可能な限りテストケースを追加してステップ 1 に戻ってください**。
-    - 実行後、`lcov.info` は即座に削除してください。
 3.  **フォーマットの適用**
     - コマンド: `cargo fmt`
 4.  **静的解析 (Clippy)**
