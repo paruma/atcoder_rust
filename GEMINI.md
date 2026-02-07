@@ -88,7 +88,11 @@
   ```bash
   cargo fmt
   ```
-- **ライブラリのテスト**:
+- **ライブラリの一括検証 (推奨)**:
+  ```bash
+  python3 .gemini/skills/code-verifier/scripts/verify_lib.py <モジュールパス>
+  ```
+- **ライブラリの個別テスト**:
   - 通常のテスト:
     ```bash
     cargo test --package mylib --lib -- segtree_lib::lazy_segtree::range_update_range_sum::test_range_update_range_sum::test_random_update --exact --show-output
