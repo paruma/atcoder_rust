@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "notion": {
+      "command": "sh",
+      "args": [
+        "-c",
+        "export HOME=/tmp && [ -f .env ] && . ./.env && npx -y @notionhq/notion-mcp-server"
+      ]
+    }
+  }
+}

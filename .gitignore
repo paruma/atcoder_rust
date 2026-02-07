@@ -4,3 +4,5 @@
 .venv-gemini
 
 lcov.info
+
+.env
