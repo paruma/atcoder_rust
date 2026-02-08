@@ -26,7 +26,7 @@
 
 ### 1.3. 支援ツール
 
-開発を補助するためのスクリプト群です。
+開発を補助するためのスクリプト群です。これらは人間が使うことを想定していて、AIエージェントが使うことは想定していません。
 
 - `contest.py`: 指定したコンテスト・問題用のディレクトリ作成とファイル配置を自動化し、`Cargo.toml` 用の定義を出力します。
 - `script.sh`: `oj test` や提出、ビルド・実行などの頻用コマンドをエイリアス（`ojt`, `ojs`, `exe` 等）として提供します（`source script.sh` で使用）。
@@ -80,42 +80,14 @@
 - リファクタリングの際も、これらのテンプレートコードが未使用であることを理由に削除提案をする必要はありません。
 
 
-## 3. コマンドリファレンス
+## 3. 開発環境
 
-### 3.1. よく使うコマンド
+### 3.1. サンドボックス環境
 
-- **コードのフォーマット**:
-  ```bash
-  cargo fmt
-  ```
-- **ライブラリの一括検証 (推奨)**:
-  ```bash
-  python3 .gemini/skills/code-verifier/scripts/verify_lib.py <モジュールパス>
-  ```
-- **ライブラリの個別テスト**:
-  - 通常のテスト:
-    ```bash
-    cargo test --package mylib --lib -- segtree_lib::lazy_segtree::range_update_range_sum::test_range_update_range_sum::test_random_update --exact --show-output
-    ```
-  - `ignored` 指定のテスト:
-    ```bash
-    cargo test --package mylib --lib -- segtree_lib::lazy_segtree::range_update_range_sum::test_range_update_range_sum::test_random_update --exact --show-output --ignored
-    ```
-
-## 4. 開発環境
-
-### 4.1. サンドボックス環境
-
-- Rust と Python (pip, venv) が利用可能です。
+- Rust と Python (uv) が利用可能です。
 - サンドボックス環境の詳細は `.gemini/Dockerfile` を参照してください。
-- Pythonでサードパーティライブラリを使用する場合は、`.venv-gemini` の仮想環境を利用してください。
 
-### 4.2. ソースコードの場所
-
-- **サードパーティクレート**: `/home/node/.cargo` にあります。`read_file`で読めない場合は `cat` コマンドを使用してください（`cargo build`が事前に必要です）。
-- **標準ライブラリ**: `/home/node/.rustup` にあります。`read_file`で読めない場合は `cat` コマンドを使用してください（`rustup component add rust-src` が必要になる場合があります）。
-
-## 5. 開発のテクニック
+## 4. 開発のテクニック
 
 1. **修正箇所は1箇所とは限らない**: ある箇所を指摘されて修正した場合は、同様のパターンや構造を持つ他の箇所にも適用可能であるかを調査してください。
 1. **周りのコードも見る**: 一部のコードを修正したらその周りのコードも見て、整合性が取れているか確認してください。一部を修正した結果、周りと整合性が取れていないことがよくあります。
