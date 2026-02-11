@@ -20,7 +20,7 @@ This skill provides utilities for searching and viewing Notion pages with clean,
 To find a page's ID by its title:
 
 ```bash
-./scripts/notion_view.sh search "Query String"
+HOME=/home/node UV_CACHE_DIR=/home/node/.cache/uv PATH="/home/node/.local/bin:$PATH" uv run .gemini/skills/notion-viewer/scripts/notion_viewer.py search "Query String"
 ```
 
 ### 2. View Page Content
@@ -28,14 +28,15 @@ To find a page's ID by its title:
 To display the content of a page (blocks) in Markdown format:
 
 ```bash
-./scripts/notion_view.sh view "Page-ID-or-Block-ID"
+HOME=/home/node UV_CACHE_DIR=/home/node/.cache/uv PATH="/home/node/.local/bin:$PATH" uv run .gemini/skills/notion-viewer/scripts/notion_viewer.py view "Page-ID-or-Block-ID"
 ```
 
 ## Requirements
 
-- **Environment Variables**: `NOTION_TOKEN` must be set in the `.env` file or environment.
-- **MCP Server**: The `@notionhq/notion-mcp-server` package is used internally by the script.
-- **Runtime**: Requires `npx`, `jq`, and `bash`.
+- **Environment Variables**: 
+  - `NOTION_TOKEN` must be set.
+  - `HOME=/home/node`, `UV_CACHE_DIR=/home/node/.cache/uv`, and `PATH` update are required for `uv run` in the sandbox.
+- **Runtime**: Python 3.13+ and `uv`.
 
 ## Troubleshooting
 

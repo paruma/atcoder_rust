@@ -1,16 +1,16 @@
 ---
-name: rust-source-reader
+name: rust-lib-reader
 description: Rust の標準ライブラリ（std, core, alloc）およびサードパーティライブラリ（crates.io）のソースコードを探索・閲覧するためのスキル。
 ---
 
-# rust-source-reader
+# rust-lib-reader
 
 Rust の内部実装や依存ライブラリの仕様を確認するために、システムの `/home/node/.rustup` や `/home/node/.cargo` 配下にあるソースコードを探索し、読み取ります。
 
 ## ワークフロー
 
 1. **ソース場所の特定**:
-  - `python3 .gemini/skills/rust-source-reader/scripts/locate_rust_source.py <クレート名>` を実行して、そのクレートのベースディレクトリを取得します。
+  - `python3 .gemini/skills/rust-lib-reader/scripts/locate_rust_source.py <クレート名>` を実行して、そのクレートのベースディレクトリを取得します。
   - 入力例: `std`, `core`, `itertools`, `ac-library-rs`
 
 2. **シンボルの探索と閲覧**:

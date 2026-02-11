@@ -10,19 +10,18 @@
 
 2. **現代的な型ヒント (Python 3.10+)**:
    - **全ての関数引数と戻り値に型ヒントを記述すること**。
-   - 組み込み型を使い、`typing.List` や `typing.Dict` を使用しない（例: `list[str]`, `dict[str, int]`, `tuple[int, int]`）。
+   - 現代的な Python (3.9+) の記法を用い、`typing.List` や `typing.Dict` などの `typing` モジュールの使用を避ける（例: `list[str]`, `dict[str, int]`, `tuple[int, int]`）。
    - `Optional[T]` は使用せず、`T | None` と記述すること。
    - `Union[A, B]` は使用せず、`A | B` と記述すること。
 
 3. **環境管理 (PEP 723)**:
-   - スクリプトの冒頭に `script` メタデータを記述し、`uv run` で実行可能にすること。
+   - 全ての Python スクリプトの先頭に PEP 723 形式のインラインメタデータを記述し、`uv run` で実行可能にすること。
    - 例:
      ```python
      # /// script
-     # requires-python = ">=3.12"
+     # requires-python = ">=3.13"
      # dependencies = [
-     #   "httpx",
-     #   "python-dotenv",
+     #   "requests",
      # ]
      # ///
      ```
@@ -34,8 +33,12 @@
    export HOME=/home/node && uvx ruff format <script_path>
    ```
 
+5. **設計原則**:
+   - 入力、処理、出力を明確に分離し、保守性の高い SOLID な構造にすること。
+
 ## Critical Rules
 
 - **即時検証の義務**: `write_file` や `replace` 等で Python コードを変更した直後、**他の作業（ユーザーへの報告を含む）を行う前に必ず** Ruff による品質検証を実行してください。
+- **実行による最終確認**: スクリプトを修正または作成した後は、実際にスクリプトを実行し、意図した通りに正しく動作することを必ず確認してください。
 - **妥協の禁止**: Ruff がエラーを報告している間は、タスクの完了を報告してはいけません。
 - **再帰的修正**: Ruff の指摘を修正するためにコードを変更した場合、再度 Ruff を実行して完全にクリーンな状態であることを確認してください。
