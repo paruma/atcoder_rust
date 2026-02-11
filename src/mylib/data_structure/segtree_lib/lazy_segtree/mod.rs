@@ -1,145 +1,29 @@
 //! # Lazy Segment Tree (遅延セグメント木)
 //!
-//! ## 含まれる遅延セグメント木の一部
-//!
-//! ### `range_affine_range_sum`
-//!
-//! 次のクエリが処理できます。
-//! - 区間 `[L, R)` の各要素 `x` を `a * x + b` に更新する。
-//! - 区間 `[L, R)` の要素の合計値を取得する。
-//!
-//! ### `range_add_range_sum`
-//!
-//! 次のクエリが処理できます。
-//! - 区間 `[L, R)` の各要素に値を加算する。
-//! - 区間 `[L, R)` の要素の合計値を取得する。
-//!
-//! ### `range_add_range_max`
-//!
-//! 次のクエリが処理できます。
-//! - 区間 `[L, R)` の各要素に値を加算する。
-//! - 区間 `[L, R)` の要素の最大値を取得する。
-//!
-//! ### `range_add_range_min`
-//!
-//! 次のクエリが処理できます。
-//! - 区間 `[L, R)` の各要素に値を加算する。
-//! - 区間 `[L, R)` の要素の最小値を取得する。
-//!
-//! ### `range_affine_range_minmax`
-//!
-//! 次のクエリが処理できます。
-//! - 区間 `[L, R)` の各要素 `x` を `a * x + b` に更新する。
-//! - 区間 `[L, R)` の各要素を特定の値 `x` に更新する。
-//! - 区間 `[L, R)` の各要素に値を加算する。
-//! - 区間 `[L, R)` の要素の最小値を取得する。
-//! - 区間 `[L, R)` の要素の最大値を取得する。
-//!
-//! ### `range_chmax_range_max`
-//!
-//! 次のクエリが処理できます。
-//! - 区間 `[L, R)` の各要素を値 `x` との最大値で更新する。
-//! - 区間 `[L, R)` の要素の最大値を取得する。
-//!
-//! ### `range_chmin_range_min`
-//!
-//! 次のクエリが処理できます。
-//! - 区間 `[L, R)` の各要素を値 `x` との最小値で更新する。
-//! - 区間 `[L, R)` の要素の最小値を取得する。
-//!
-//! ### `range_chmin_chmax_add_range_min_max`
-//!
-//! 次のクエリが処理できます。
-//! - 区間 `[L, R)` の各要素を値 `x` との最小値で更新する。
-//! - 区間 `[L, R)` の各要素を値 `x` との最大値で更新する。
-//! - 区間 `[L, R)` の各要素に値を加算する。
-//! - 区間 `[L, R)` の要素の最小値を取得する。
-//! - 区間 `[L, R)` の要素の最大値を取得する。
-//!
-//! ### `range_chmin_chmax_affine_range_min_max`
-//!
-//! 次のクエリが処理できます。
-//! - 区間 `[L, R)` の各要素を値 `x` との最小値で更新する。
-//! - 区間 `[L, R)` の各要素を値 `x` との最大値で更新する。
-//! - 区間 `[L, R)` の各要素にアフィン変換 `ax + b` を適用する。
-//! - 区間 `[L, R)` の要素の最小値を取得する。
-//! - 区間 `[L, R)` の要素の最大値を取得する。
-//!
-//! ### `range_chmin_chmax_range_min_max`
-//!
-//! 次のクエリが処理できます。
-//! - 区間 `[L, R)` の各要素を値 `x` との最小値で更新する。
-//! - 区間 `[L, R)` の各要素を値 `x` との最大値で更新する。
-//! - 区間 `[L, R)` の要素の最小値を取得する。
-//! - 区間 `[L, R)` の要素の最大値を取得する。
-//!
-//! ### `range_linear_add_range_sum`
-//!
-//! 次のクエリが処理できます。
-//! - 区間 `[L, R)` の各要素 `i` に対して、`init + diff * (i - L)` を加算する。
-//! - 区間 `[L, R)` の要素の合計値を取得する。
-//!
-//! ### `range_linear_update_range_sum`
-//!
-//! 次のクエリが処理できます。
-//! - 区間 `[L, R)` の各要素 `i` を `init + diff * (i - L)` に更新する。
-//! - 区間 `[L, R)` の要素の合計値を取得する。
-//!
-//! ### `range_quadratic_add_range_sum`
-//!
-//! 次のクエリが処理できます。
-//! - 区間 `[L, R)` の各要素 `i` に対して、`coef0 + coef1 * (i - L) + coef2 * (i - L)^2` を加算する。
-//! - 区間 `[L, R)` の要素の合計値を取得する。
-//!
-//! ### `range_update_range_sum`
-//!
-//! 次のクエリが処理できます。
-//! - 区間 `[L, R)` の各要素を特定の値 `x` に更新する。
-//! - 区間 `[L, R)` の要素の合計値を取得する。
-//!
-//! ### `range_update_range_prod`
-//!
-//! 次のクエリが処理できます。
-//! - 区間 `[L, R)` の各要素を特定の値 `x` に更新する。
-//! - 区間 `[L, R)` の要素の積を取得する。
-//!
-//! ### `range_mult_range_prod`
-//!
-//! 次のクエリが処理できます。
-//! - 区間 `[L, R)` の各要素に特定の値 `x` を乗算する。
-//! - 区間 `[L, R)` の要素の積を取得する。
-//!
-//! ### `range_update_range_xor`
-//!
-//! 次のクエリが処理できます。
-//! - 区間 `[L, R)` の各要素を特定の値 `x` に更新する。
-//! - 区間 `[L, R)` の要素のXOR和を取得する。
-//!
-//! ### `range_xor_apply_range_xor`
-//!
-//! 次のクエリが処理できます。
-//! - 区間 `[L, R)` の各要素に特定の値 `x` をXORする。
-//! - 区間 `[L, R)` の要素のXOR和を取得する。
-//!
-//! ### `two_sequence_range_affine_range_sum`
-//!
-//! 次のクエリが処理できます。
-//! - 区間 `[L, R)` の各要素 `(xs[i], ys[i])` に対して、`xs[i] ← a * xs[i] + b`, `ys[i] ← c * ys[i] + d` のアフィン変換を適用する。
-//! - 区間 `[L, R)` の `sum(xs[i] * ys[i])` を取得する。
-//! - 区間 `[L, R)` の `sum(xs[i])` を取得する。
-//! - 区間 `[L, R)` の `sum(ys[i])` を取得する。
-//!
-//! ### `two_sequence_range_affine_range_sum_of_quadratic`
-//!
-//! 次のクエリが処理できます。
-//! - 区間 `[L, R)` の各要素 `(xs[i], ys[i])` に対して、`xs[i] ← a * xs[i] + b`, `ys[i] ← c * ys[i] + d` のアフィン変換を適用する。
-//! - 区間 `[L, R)` の `sum(xs[i] * ys[i])` を取得する。
-//! - 区間 `[L, R)` の `sum(xs[i] * xs[i])` を取得する。
-//! - 区間 `[L, R)` の `sum(ys[i] * ys[i])` を取得する。
-//! - 区間 `[L, R)` の `sum(xs[i])` を取得する。
-//! - 区間 `[L, R)` の `sum(ys[i])` を取得する。
-//!
-//! <!-- 他の遅延セグメント木の説明がここに追加されます -->
+//! - `range_add_range_sum`: 加算 / 和
+//! - `range_add_range_max`: 加算 / 最大値
+//! - `range_add_range_min`: 加算 / 最小値
+//! - `range_affine_range_sum`: アフィン変換 ($ax+b$) / 和
+//! - `range_affine_range_sum_of_square`: アフィン変換 / 和・2乗和
+//! - `range_affine_range_minmax`: アフィン変換 / 最小値・最大値
+//! - `range_chmax_range_max`: chmax / 最大値
+//! - `range_chmin_range_min`: chmin / 最小値
+//! - `range_chmin_chmax_add_range_min_max`: chmin, chmax, 加算 / 最小値・最大値
+//! - `range_chmin_chmax_affine_range_min_max`: chmin, chmax, アフィン変換 / 最小値・最大値
+//! - `range_chmin_chmax_range_min_max`: chmin, chmax / 最小値・最大値
+//! - `range_div_ceil_range_min_max`: $\lceil x/d \rceil$ / 最小値・最大値
+//! - `range_div_floor_range_max`: $\lfloor x/d \rfloor$ / 最大値
+//! - `range_div_floor_range_min_max`: $\lfloor x/d \rfloor$ / 最小値・最大値
+//! - `range_linear_add_range_sum`: 一次式加算 ($x_i \leftarrow x_i + ai + b$) / 和
+//! - `range_linear_update_range_sum`: 一次式更新 ($x_i \leftarrow ai + b$) / 和
+//! - `range_quadratic_add_range_sum`: 二次式加算 ($x_i \leftarrow x_i + ai^2 + bi + c$) / 和
+//! - `range_update_range_sum`: 更新 / 和
+//! - `range_update_range_prod`: 更新 / 積
+//! - `range_mult_range_prod`: 乗算 / 積
+//! - `range_update_range_xor`: 更新 / XOR和
+//! - `range_xor_apply_range_xor`: XOR / XOR和
+//! - `two_sequence_range_affine_range_sum`: 2変数アフィン変換 ($x \leftarrow ax+b, y \leftarrow cy+d$) / $\sum xy, \sum x, \sum y$
+//! - `two_sequence_range_affine_range_sum_of_quadratic`: 2変数アフィン変換 / $\sum xy, \sum x^2, \sum y^2, \sum x, \sum y$
 
 use cargo_snippet::snippet;
 pub mod map_monoid_template;
@@ -153,6 +37,7 @@ pub mod range_chmax_range_max;
 pub mod range_chmin_chmax_add_range_min_max;
 pub mod range_chmin_chmax_affine_range_min_max;
 pub mod range_chmin_chmax_range_min_max;
+pub mod range_chmin_range_min;
 pub mod range_div_ceil_range_min_max;
 pub mod range_div_floor_range_max;
 pub mod range_div_floor_range_min_max;
