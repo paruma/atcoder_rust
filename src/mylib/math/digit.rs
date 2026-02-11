@@ -22,13 +22,13 @@ pub mod digit {
     /// n の base 進数を Little Endian で生成するイテレータ
     ///
     /// 例: `digits_le_iter(123, 10).collect::<Vec<_>>() == vec![3, 2, 1]`
-    pub fn digits_le_iter(n: i64, base: i64) -> DigitsLeIterator {
+    pub fn digits_le_iter(n: i64, base: i64) -> impl Iterator<Item = i64> {
         assert!(n >= 0);
         assert!(base >= 2);
         DigitsLeIterator { n, base }
     }
 
-    pub struct DigitsLeIterator {
+    struct DigitsLeIterator {
         n: i64,
         base: i64,
     }
