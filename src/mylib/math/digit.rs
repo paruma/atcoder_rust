@@ -4,8 +4,8 @@ use cargo_snippet::snippet;
 pub mod digit {
     /// n の base 進数を Little Endian で表す
     ///
-    /// 例: `to_digits_le(123, 10) == vec![3, 2, 1]`
-    pub fn to_digits_le(mut n: i64, base: i64) -> Vec<i64> {
+    /// 例: `to_digits_le_vec(123, 10) == vec![3, 2, 1]`
+    pub fn to_digits_le_vec(mut n: i64, base: i64) -> Vec<i64> {
         assert!(n >= 0);
         assert!(base >= 2);
         if n == 0 {
@@ -21,8 +21,8 @@ pub mod digit {
 
     /// n の base 進数を Little Endian で生成するイテレータ
     ///
-    /// 例: `digits_le_iter(123, 10).collect::<Vec<_>>() == vec![3, 2, 1]`
-    pub fn digits_le_iter(n: i64, base: i64) -> impl Iterator<Item = i64> {
+    /// 例: `to_digits_le_iter(123, 10).collect::<Vec<_>>() == vec![3, 2, 1]`
+    pub fn to_digits_le_iter(n: i64, base: i64) -> impl Iterator<Item = i64> {
         assert!(n >= 0);
         assert!(base >= 2);
         DigitsLeIterator { n, base }
@@ -53,23 +53,6 @@ pub mod digit {
         digits.iter().rfold(0, |acc, &d| acc * base + d)
     }
 
-    // /// n の base 進数を Big Endian で表す
-    // ///
-    // /// 例: `to_digits_be(123, 10) == vec![1, 2, 3]`
-    // pub fn to_digits_be(n: i64, base: i64) -> Vec<i64> {
-    //     let mut res = to_digits_le(n, base);
-    //     res.reverse();
-    //     res
-    // }
-
-    // /// Big Endian で表された各桁から、数値を評価する
-    // ///
-    // /// 例: `from_digits_be(&[1, 2, 3], 10) == 123`
-    // pub fn from_digits_be(digits: &[i64], base: i64) -> i64 {
-    //     assert!(base >= 2);
-    //     digits.iter().fold(0, |acc, &d| acc * base + d)
-    // }
-
     /// x を base 進数で表した際の桁数を返す
     ///
     /// 例: `count_digits(123, 10) == 3`
@@ -94,9 +77,9 @@ mod test_digit {
 
     #[test]
     fn test_to_digits_le() {
-        assert_eq!(to_digits_le(12345, 10), vec![5, 4, 3, 2, 1]);
-        assert_eq!(to_digits_le(102030405, 100), vec![5, 4, 3, 2, 1]);
-        assert_eq!(to_digits_le(0, 10), vec![]);
+        assert_eq!(to_digits_le_vec(12345, 10), vec![5, 4, 3, 2, 1]);
+        assert_eq!(to_digits_le_vec(102030405, 100), vec![5, 4, 3, 2, 1]);
+        assert_eq!(to_digits_le_vec(0, 10), vec![]);
     }
 
     #[test]
@@ -109,29 +92,15 @@ mod test_digit {
     #[test]
     fn test_digits_le_iter() {
         assert_eq!(
-            digits_le_iter(12345, 10).collect::<Vec<_>>(),
+            to_digits_le_iter(12345, 10).collect::<Vec<_>>(),
             vec![5, 4, 3, 2, 1]
         );
         assert_eq!(
-            digits_le_iter(102030405, 100).collect::<Vec<_>>(),
+            to_digits_le_iter(102030405, 100).collect::<Vec<_>>(),
             vec![5, 4, 3, 2, 1]
         );
-        assert_eq!(digits_le_iter(0, 10).collect::<Vec<_>>(), vec![]);
+        assert_eq!(to_digits_le_iter(0, 10).collect::<Vec<_>>(), vec![]);
     }
-
-    // #[test]
-    // fn test_to_digits_be() {
-    //     assert_eq!(to_digits_be(12345, 10), vec![1, 2, 3, 4, 5]);
-    //     assert_eq!(to_digits_be(102030405, 100), vec![1, 2, 3, 4, 5]);
-    //     assert_eq!(to_digits_be(0, 10), vec![]);
-    // }
-
-    // #[test]
-    // fn test_from_digits_be() {
-    //     assert_eq!(from_digits_be(&[1, 2, 3, 4, 5], 10), 12345);
-    //     assert_eq!(from_digits_be(&[1, 2, 3, 4, 5], 100), 102030405);
-    //     assert_eq!(from_digits_be(&[], 10), 0);
-    // }
 
     #[test]
     fn test_count_digits() {
