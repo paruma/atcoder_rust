@@ -1,7 +1,7 @@
 use cargo_snippet::snippet;
 #[allow(clippy::module_inception)]
-#[snippet(prefix = "use positional_notation::*;")]
-pub mod positional_notation {
+#[snippet(prefix = "use digit::*;")]
+pub mod digit {
     /// n の base 進数を Little Endian で表す
     ///
     /// 例: `to_digits_le(123, 10) == vec![3, 2, 1]`
@@ -89,8 +89,8 @@ pub mod positional_notation {
 }
 
 #[cfg(test)]
-mod test_positional_notation {
-    use crate::math::positional_notation::positional_notation::*;
+mod test_digit {
+    use crate::math::digit::digit::*;
 
     #[test]
     fn test_to_digits_le() {
