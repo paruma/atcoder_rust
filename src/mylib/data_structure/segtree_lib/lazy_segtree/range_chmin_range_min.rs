@@ -3,7 +3,6 @@ use cargo_snippet::snippet;
 #[allow(clippy::module_inception)]
 #[snippet(prefix = "use range_chmin_range_min::*;")]
 pub mod range_chmin_range_min {
-    // range chmax range max や range chmin range max なども同様に作れる
     use ac_library::LazySegtree;
     use ac_library::Min;
     use ac_library::lazysegtree::MapMonoid;
@@ -30,14 +29,13 @@ pub mod range_chmin_range_min {
         }
     }
 
-    #[derive(Clone)]
     pub struct RangeChminRangeMinSegtree {
         segtree: LazySegtree<RangeChminRangeMin>,
         len: usize,
     }
 
     impl RangeChminRangeMinSegtree {
-                pub fn new(n: usize) -> Self {
+        pub fn new(n: usize) -> Self {
             let xs = vec![0; n];
             Self::from_slice(&xs)
         }
@@ -102,7 +100,6 @@ pub mod range_chmin_range_min {
             self.segtree.min_left(r, g)
         }
 
-        
         #[allow(clippy::len_without_is_empty)]
         pub fn len(&self) -> usize {
             self.len
@@ -208,7 +205,7 @@ pub mod test_range_chmin_range_min {
 
             for _ in 0..100 {
                 // 100 random operations per set
-                let op_type = rng.random_range(0..5); // 5 operations
+                let op_type = rng.random_range(0..6); // 6 operations
 
                 match op_type {
                     0 => {
@@ -238,6 +235,11 @@ pub mod test_range_chmin_range_min {
                         segtree.range_chmin(l..r, x);
                     }
                     3 => {
+                        // get(p)
+                        let p = rng.random_range(0..n);
+                        assert_eq!(segtree.get(p), naive_vec[p], "get({}) failed", p);
+                    }
+                    4 => {
                         // range_min(range)
                         let l = rng.random_range(0..=n);
                         let r = rng.random_range(l..=n);
@@ -252,7 +254,7 @@ pub mod test_range_chmin_range_min {
                             r
                         );
                     }
-                    4 => {
+                    5 => {
                         // all_min()
                         let expected_min = naive_vec.iter().copied().min().unwrap_or(i64::MAX);
                         assert_eq!(segtree.all_min(), expected_min, "all_min() failed");
