@@ -1,10 +1,10 @@
-// 問題文と制約は読みましたか？
-
 fn pred(xs: &[i64], target: i64) -> bool {
     let n = xs.len();
     if n % 2 == 1 {
         return false;
     }
+    // こう書くと、n - i -1 というややこしい添字を書かなくて済む
+    // izip!(xs, xs.iter().rev()).take(n / 2).all(|(a, b)| a == b);
 
     (0..n / 2).all(|i| xs[i] + xs[n - i - 1] == target)
 }

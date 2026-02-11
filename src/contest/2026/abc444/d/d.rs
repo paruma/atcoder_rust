@@ -1,5 +1,49 @@
-// 問題文と制約は読みましたか？
-// #[fastout]
+// digits_carry_up2 と比べて、もとの配列の部分と配列延長部分を分離した形。
+// ちょっと長くなるのがデメリット
+fn digits_carry_up(mut digits: Vec<i64>) -> Vec<i64> {
+    let mut carry = 0;
+    for i in 0..digits.len() {
+        let cur = digits[i] / 10;
+        digits[i] %= 10;
+        if i == digits.len() - 1 {
+            carry = cur;
+        } else {
+            digits[i + 1] += cur;
+        }
+    }
+    while carry > 0 {
+        digits.push(carry % 10);
+        carry /= 10;
+    }
+    digits
+}
+
+#[allow(dead_code)]
+// 初期実装。
+// 自然な発想ではあるが、配列の次の値がない場合は、終了するか配列拡張して carry 分を足すかという処理があって、ちょっとややこしい
+fn digits_carry_up2(mut digits: Vec<i64>) -> Vec<i64> {
+    for i in 0.. {
+        let cur = digits[i] / 10;
+        digits[i] %= 10;
+        if digits.len() == i + 1 {
+            if cur == 0 {
+                break;
+            }
+            digits.push(0);
+        }
+        digits[i + 1] += cur;
+    }
+    digits
+}
+
+fn print_digits(digits: &[i64]) {
+    let msg = digits
+        .iter()
+        .map(|&d| (d as u8 + b'0') as char)
+        .collect::<String>();
+    println!("{}", msg);
+}
+
 fn main() {
     input! {
         n: usize,
@@ -13,22 +57,10 @@ fn main() {
         imos.range_add(0..x, 1);
     }
 
-    let mut digits = imos.to_vec();
-
-    for i in 0.. {
-        let car = digits[i] / 10;
-        digits[i] %= 10;
-        if digits.len() == i + 1 {
-            if car == 0 {
-                break;
-            }
-            digits.push(0);
-        }
-        digits[i + 1] += car;
-    }
-
-    let msg = digits.iter().rev().map(|x| format!("{}", x)).join("");
-    println!("{}", msg);
+    let digits = imos.to_vec(); // little endian (1の位が先)
+    let mut digits = digits_carry_up(digits);
+    digits.reverse(); // big endian にする
+    print_digits(&digits);
 }
 
 #[cfg(test)]
