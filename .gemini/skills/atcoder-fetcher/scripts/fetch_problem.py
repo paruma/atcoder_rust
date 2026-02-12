@@ -33,7 +33,7 @@ def fetch_atcoder_problem(url):
     # Attempt to find "Time Limit" and "Memory Limit"
     text_content = soup.get_text()
     time_limit_match = re.search(r"Time Limit:\s*(\d+(\.\d+)?\s*sec)", text_content)
-    memory_limit_match = re.search(r"Memory Limit:\s*(\d+\s*MB)", text_content)
+    memory_limit_match = re.search(r"Memory Limit:\s*(\d+\s*(?:MB|MiB))", text_content)
 
     if time_limit_match:
         print(f"- **Time Limit:** {time_limit_match.group(1)}")
