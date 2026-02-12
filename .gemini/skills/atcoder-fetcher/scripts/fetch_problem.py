@@ -13,7 +13,7 @@ import requests
 from bs4 import BeautifulSoup
 
 
-def fetch_atcoder_problem(url):
+def fetch_atcoder_problem(url: str) -> None:
     try:
         response = requests.get(url)
         response.raise_for_status()
@@ -42,24 +42,20 @@ def fetch_atcoder_problem(url):
     print("\n---\n")
 
     # Main Task Statement
-    # AtCoder problems usually have English and Japanese.
-    # We try to find the English section.
-    # Structure: <span class="lang-en"> ... </span> OR <div id="task-statement"> ... </div>
-
     # Priority 1: lang-en
     content_root = soup.find("span", class_="lang-en")
 
-    # Priority 2: task-statement (might contain both langs, but usually separated)
+    # Priority 2: task-statement (fallback for some problems)
     if not content_root:
         content_root = soup.find("div", id="task-statement")
 
     if not content_root:
-        # Fallback: Just try to find sections
-        content_root = soup
+        print(
+            "Warning: Could not find a standard English task statement. This problem might be too old or using an unsupported format."
+        )
+        return
 
     # Extract sections
-    # Sections are usually <h3>Title</h3> followed by content.
-    # In newer format: <div class="part"><section><h3>...</h3>...</section></div>
     parts = content_root.find_all("section")
 
     for part in parts:
@@ -68,33 +64,6 @@ def fetch_atcoder_problem(url):
             continue
 
         section_title = h3.get_text().strip()
-
-        # Skip Japanese sections if we are in a mixed container (rough heuristic)
-        # Usually English sections start with "Problem Statement", "Constraints", "Input", "Output", "Sample Input"
-        # Japanese: "問題文", "制約", "入力", "出力", "入力例"
-        # We allow standard headers.
-
-        allowed_headers = [
-            "Problem Statement",
-            "Constraints",
-            "Input",
-            "Output",
-            "Sample Input",
-            "Sample Output",
-            "Note",
-            "Explanation",
-        ]
-
-        # Check if title starts with "Sample" (e.g. "Sample Input 1")
-        is_sample = section_title.startswith("Sample")
-
-        if not (any(h in section_title for h in allowed_headers) or is_sample):
-            # check against Japanese to be sure we skip it if we found English?
-            # actually, if we found 'lang-en', we are safe.
-            # if we didn't, we might be printing Japanese.
-            # Let's assume the user wants whatever is there if we couldn't filter by lang.
-            pass
-
         print(f"## {section_title}\n")
 
         # Get content siblings of h3
