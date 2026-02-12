@@ -9,6 +9,21 @@ https://atcoder.jp/users/paruma184
 sh snippet.sh
 ```
 
+## oj の使い方
+
+```sh
+uv sync
+source .venv/bin/activate
+```
+
+## oj の補助ツールの使い方
+
+以下を実行すると、ojt, ojs などの oj 補助ツールが使える。
+
+```sh
+source script.sh
+```
+
 ## oj でのログイン方法
 
 aclogin を使う。詳細は以下のツイートを参照
