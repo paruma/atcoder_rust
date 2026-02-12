@@ -134,7 +134,9 @@ def verify_coverage(module_path: str) -> StepResult:
         capture=True,
     )
     if not ok:
-        return StepResult(name, VerificationStatus.FAIL, "cargo llvm-cov failed", output)
+        return StepResult(
+            name, VerificationStatus.FAIL, "cargo llvm-cov failed", output
+        )
 
     # フィルタリング用のパス断片を作成 (例: data_structure::segtree -> data_structure/segtree)
     path_fragment = module_path.replace("::", "/")
@@ -142,9 +144,13 @@ def verify_coverage(module_path: str) -> StepResult:
 
     lines = output.splitlines()
     # ヘッダー行を保持
-    header_lines = [l for l in lines if l.startswith("Filename") or l.startswith("---")]
+    header_lines = [
+        line for line in lines if line.startswith("Filename") or line.startswith("---")
+    ]
     # パス断片が含まれる行（データ行）を抽出
-    data_lines = [l for l in lines if path_fragment in l and not l.startswith("TOTAL")]
+    data_lines = [
+        line for line in lines if path_fragment in line and not line.startswith("TOTAL")
+    ]
 
     if not data_lines:
         msg = f"Could not find specific coverage data for {module_path} in the report."
@@ -168,7 +174,9 @@ def verify_coverage(module_path: str) -> StepResult:
             if percentages := re.findall(r"(\d+\.\d+)%", line):
                 # 100% でない項目があればサマリーに表示するメッセージを作成
                 if any(p != "100.00" for p in percentages):
-                    summary_msg = f"{target_basename}.rs coverage summary: {percentages}"
+                    summary_msg = (
+                        f"{target_basename}.rs coverage summary: {percentages}"
+                    )
                     status = VerificationStatus.WARN
             break  # 最初に見つかった代表ファイルで判定終了
 
@@ -191,7 +199,10 @@ def verify_static_analysis() -> list[StepResult]:
     )
     results.append(
         StepResult(
-            "Clippy", VerificationStatus.PASS if ok else VerificationStatus.FAIL, "", out
+            "Clippy",
+            VerificationStatus.PASS if ok else VerificationStatus.FAIL,
+            "",
+            out,
         )
     )
 
