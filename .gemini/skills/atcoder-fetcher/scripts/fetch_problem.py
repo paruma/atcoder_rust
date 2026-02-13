@@ -3,6 +3,7 @@
 # dependencies = [
 #     "beautifulsoup4",
 #     "requests",
+#     "markdownify",
 # ]
 # ///
 
@@ -12,6 +13,7 @@ from dataclasses import dataclass
 
 import requests
 from bs4 import BeautifulSoup, Tag
+from markdownify import markdownify as md
 
 
 @dataclass(frozen=True)
@@ -24,14 +26,6 @@ class ProblemMetaData:
     memory_limit: str | None
 
 
-@dataclass(frozen=True)
-class Section:
-    """問題文の各セクション（問題文、制約、入力、出力、サンプル等）を保持する。"""
-
-    title: str
-    content_html: list[Tag]
-
-
 def fetch_html(url: str) -> str:
     """指定されたURLからHTMLテキストを取得する。"""
     response = requests.get(url, timeout=10)
@@ -40,7 +34,7 @@ def fetch_html(url: str) -> str:
 
 
 def extract_metadata(soup: BeautifulSoup, url: str) -> ProblemMetaData:
-    """HTMLから問題のタイトル、時間制限、メモリ制限などのメタデータを抽出する。"""
+    """HTMLから問題のメタデータを抽出する。"""
     title_tag = soup.find("title")
     title = title_tag.text.strip() if title_tag else "Unknown Problem"
 
@@ -56,38 +50,34 @@ def extract_metadata(soup: BeautifulSoup, url: str) -> ProblemMetaData:
     )
 
 
-def extract_sections(soup: BeautifulSoup) -> list[Section]:
-    """HTMLから問題文の各セクションを抽出する。"""
-    # 英語の本文を優先的に探す
-    content_root = soup.find("span", class_="lang-en")
-    if not content_root:
-        content_root = soup.find("div", id="task-statement")
+def unescape_math(text: str) -> str:
+    r"""
+    markdownify によってエスケープされた数式内のアンダースコアを元に戻す。
+    \( ... \), \[ ... \], $$ ... $$ の内側を対象とする。
+    """
 
-    if not content_root:
-        return []
+    def replace_math(match: re.Match) -> str:
+        return match.group(0).replace("\\_", "_")
 
-    sections: list[Section] = []
-    for section_tag in content_root.find_all("section"):
-        h3 = section_tag.find("h3")
-        if not h3:
-            continue
-
-        title = h3.get_text().strip()
-        # h3以外のコンテンツを抽出
-        content_html = [
-            child
-            for child in section_tag.children
-            if isinstance(child, Tag) and child.name != "h3"
-        ]
-        sections.append(Section(title=title, content_html=content_html))
-
-    return sections
+    text = re.sub(r"\\\(.*?\\\)", replace_math, text, flags=re.DOTALL)
+    text = re.sub(r"\\\[.*?\\\]", replace_math, text, flags=re.DOTALL)
+    text = re.sub(r"\$\$.*?\$\$", replace_math, text, flags=re.DOTALL)
+    return text
 
 
-def format_problem_as_markdown(
-    metadata: ProblemMetaData, sections: list[Section]
-) -> str:
-    """問題情報をMarkdown形式に整形する。"""
+def format_problem_as_markdown(metadata: ProblemMetaData, content_tag: Tag) -> str:
+    """markdownify を使用して問題文を Markdown 形式に整形する。"""
+    # markdownify による変換
+    markdown_content = md(
+        str(content_tag),
+        strip=["script", "style", "noscript"],
+        heading_style="ATX",
+        newline_style="backslash",
+    )
+
+    # 数式のエスケープ解除
+    markdown_content = unescape_math(markdown_content)
+
     lines = [f"# {metadata.title}\n"]
     lines.append(f"Source: {metadata.url}\n")
 
@@ -97,37 +87,27 @@ def format_problem_as_markdown(
         lines.append(f"- **Memory Limit:** {metadata.memory_limit}")
 
     lines.append("\n---\n")
-
-    if not sections:
-        lines.append(
-            "Warning: Could not find a standard task statement. "
-            "This problem might be too old or using an unsupported format."
-        )
-        return "\n".join(lines)
-
-    for section in sections:
-        lines.append(f"## {section.title}\n")
-        for tag in section.content_html:
-            if tag.name == "pre":
-                # サンプル入力・出力などのコードブロック
-                lines.append(f"```\n{tag.get_text().strip()}\n```\n")
-            else:
-                # 段落、リスト等のテキスト
-                text = tag.get_text().strip()
-                if text:
-                    lines.append(text + "\n")
+    lines.append(markdown_content)
 
     return "\n".join(lines)
 
 
 def run_fetch_problem(url: str) -> None:
-    """各ステップを組み合わせて問題文を取得・表示する。"""
+    """問題文の取得と表示を実行する。"""
     html = fetch_html(url)
     soup = BeautifulSoup(html, "html.parser")
 
+    # 日本語の本文を最優先で探す
+    content_root = soup.find("span", class_="lang-ja")
+    if not content_root:
+        content_root = soup.find("div", id="task-statement")
+
+    if not content_root:
+        print("Warning: Could not find a standard task statement.")
+        return
+
     metadata = extract_metadata(soup, url)
-    sections = extract_sections(soup)
-    markdown = format_problem_as_markdown(metadata, sections)
+    markdown = format_problem_as_markdown(metadata, content_root)
 
     print(markdown)
 
