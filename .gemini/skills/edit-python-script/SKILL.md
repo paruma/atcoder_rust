@@ -43,8 +43,8 @@ description: Python スクリプト（ツール、ユーティリティ）の作
 ### 2.4. 品質検証 (ruff)
 - スクリプトの修正後は必ず以下のコマンドを実行し、エラーがないことを確認すること。
   ```bash
-  export HOME=/home/node && uvx ruff check --fix <script_path>
-  export HOME=/home/node && uvx ruff format <script_path>
+  HOME=/home/node uvx ruff check --fix <script_path>
+  HOME=/home/node uvx ruff format <script_path>
   ```
 
 ## 3. 重要なルール

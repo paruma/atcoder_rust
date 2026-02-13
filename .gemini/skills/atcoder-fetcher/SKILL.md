@@ -15,13 +15,13 @@ Execute the corresponding Python script using `uv run`.
 ### Fetching a Problem Statement
 
 ```bash
-export HOME=/home/node && export UV_CACHE_DIR=/home/node/.cache/uv && export PATH="/home/node/.local/bin:$PATH" && uv run .gemini/skills/atcoder-fetcher/scripts/fetch_problem.py <URL>
+HOME=/home/node UV_CACHE_DIR=/home/node/.cache/uv PATH="/home/node/.local/bin:$PATH" uv run .gemini/skills/atcoder-fetcher/scripts/fetch_problem.py <URL>
 ```
 
 ### Fetching an Editorial
 
 ```bash
-export HOME=/home/node && export UV_CACHE_DIR=/home/node/.cache/uv && export PATH="/home/node/.local/bin:$PATH" && uv run .gemini/skills/atcoder-fetcher/scripts/fetch_editorial.py <URL>
+HOME=/home/node UV_CACHE_DIR=/home/node/.cache/uv PATH="/home/node/.local/bin:$PATH" uv run .gemini/skills/atcoder-fetcher/scripts/fetch_editorial.py <URL>
 ```
 
 ## URL Construction Rules
