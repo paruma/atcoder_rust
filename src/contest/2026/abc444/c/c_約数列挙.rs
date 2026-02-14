@@ -1,13 +1,10 @@
-// 解法: 必要条件を max or min + max まで絞り込む
-fn pred(xs: &[i64], target: i64) -> bool {
-    let n = xs.len();
-    if n % 2 == 1 {
+// 解法: 必要条件を sum の 約数かつ max 以上して、十分性を判定する
+fn pred(bag: &HashBag<i64>, target: i64) -> bool {
+    if target % 2 == 0 && bag.contains(&(target / 2)) % 2 != 0 {
         return false;
     }
-    // こう書くと、n - i -1 というややこしい添字を書かなくて済む
-    // izip!(xs, xs.iter().rev()).take(n / 2).all(|(a, b)| a == b);
-
-    (0..n / 2).all(|i| xs[i] + xs[n - i - 1] == target)
+    bag.set_iter()
+        .all(|(&key, cnt)| key == target || bag.contains(&(target - key)) == cnt)
 }
 
 // #[fastout]
@@ -16,25 +13,20 @@ fn main() {
         n: usize,
         mut xs: [i64; n],
     }
-
-    xs.sort();
-
     let max = xs.iter().copied().max().unwrap();
-    let min = xs.iter().copied().min().unwrap();
+    let sum = xs.iter().copied().sum::<i64>();
 
-    let mut ans: Vec<i64> = vec![];
+    let divs = divisors(sum);
 
-    if pred(&xs, max + min) {
-        ans.push(max + min);
-    }
+    let bag = xs.iter().copied().collect::<HashBag<i64>>();
 
-    let xs_exclude_max = xs.iter().copied().filter(|x| *x != max).collect_vec();
-    if pred(&xs_exclude_max, max) {
-        ans.push(max);
-    }
+    let ans: Vec<i64> = divs
+        .iter()
+        .copied()
+        .filter(|&d| d >= max && pred(&bag, d))
+        .sorted()
+        .collect_vec();
 
-    ans.sort();
-    ans.dedup();
     print_vec_1line(&ans);
 }
 
@@ -96,6 +88,7 @@ mod tests {
     }
 }
 
+use hashbag::HashBag;
 // ====== import ======
 #[allow(unused_imports)]
 use {
@@ -164,3 +157,21 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+/// n の正の約数を列挙する。
+/// # 計算量
+/// O(sqrt(n))
+pub fn divisors(n: i64) -> Vec<i64> {
+    use num::Integer;
+    use num_integer::Roots;
+    assert!(n >= 1);
+    let mut retval: Vec<i64> = Vec::new();
+    for i in 1..=n.sqrt() {
+        if n.is_multiple_of(&i) {
+            retval.push(i);
+            if i * i != n {
+                retval.push(n / i);
+            }
+        }
+    }
+    retval
+}
