@@ -3,10 +3,25 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        xss: [Chars; n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let max = xss.iter().map(|xs| xs.len()).max().unwrap();
+
+    let ans = xss
+        .iter()
+        .map(|xs| {
+            let len = xs.len();
+            let n_append = (max - len) / 2;
+
+            let dots = vec!['.'; n_append];
+
+            chain!(&dots, xs, &dots).copied().collect_vec()
+        })
+        .collect_vec();
+
+    for row in ans {
+        print_chars(&row);
+    }
 }
 
 #[cfg(test)]

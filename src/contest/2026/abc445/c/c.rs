@@ -1,12 +1,30 @@
 // 問題文と制約は読みましたか？
-// #[fastout]
+
+fn rec(xs: &[usize], cur: usize, memo: &mut Vec<usize>) -> usize {
+    if memo[cur] != usize::MAX {
+        return memo[cur];
+    }
+    let ans = if xs[cur] == cur {
+        cur
+    } else {
+        rec(xs, xs[cur], memo)
+    };
+
+    memo[cur] = ans;
+    ans
+}
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        xs: [Usize1; n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let mut memo = vec![usize::MAX; n];
+    for i in 0..n {
+        rec(&xs, i, &mut memo);
+    }
+
+    let ans = memo.iter().copied().map(|x| x + 1).collect_vec();
+    print_vec_1line(&ans);
 }
 
 #[cfg(test)]

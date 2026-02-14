@@ -1,12 +1,82 @@
-// 問題文と制約は読みましたか？
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        t: usize
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    use ac_library::ModInt998244353 as Mint;
+
+    let sieve = EratosthenesSieve::new(10_000_000);
+
+    for _ in 0..t {
+        input! {
+            n: usize,
+            xs: [usize; n],
+        }
+
+        let xs_f = xs
+            .iter()
+            .copied()
+            .map(|x| sieve.prime_factorize(x))
+            .collect_vec();
+
+        // 変化する部分は一部だから差分管理できそう？
+
+        let mut map = HashMap::<usize, BTreeMultiSet<usize>>::new();
+
+        let mut lcm = Mint::new(1);
+
+        for i in (0..n).rev() {
+            // dbg!(lcm);
+            for (&p, &cnt) in &xs_f[i] {
+                let max_cnt = map
+                    .get(&p)
+                    .and_then(|bag| bag.range(..).max().map(|p| p.0))
+                    .copied()
+                    .unwrap_or(0);
+                if cnt > max_cnt {
+                    lcm *= Mint::new(p).pow((cnt - max_cnt) as u64);
+                }
+                map.entry(p).or_default().insert(cnt);
+            }
+        }
+
+        // dbg!(lcm);
+        let mut ans = vec![];
+
+        for i in 0..n {
+            // right から i を取る
+            // dbg!(lcm);
+            for (&p, &cnt) in &xs_f[i] {
+                map.entry(p).or_default().remove1(&cnt);
+                let max_cnt = map
+                    .get(&p)
+                    .and_then(|bag| bag.range(..).max().map(|p| p.0))
+                    .copied()
+                    .unwrap_or(0);
+                if cnt > max_cnt {
+                    lcm /= Mint::new(p).pow((cnt - max_cnt) as u64);
+                }
+            }
+            // dbg!(lcm);
+
+            ans.push(lcm);
+            // left に i を追加する
+
+            for (&p, &cnt) in &xs_f[i] {
+                let max_cnt = map
+                    .get(&p)
+                    .and_then(|bag| bag.range(..).max().map(|p| p.0))
+                    .copied()
+                    .unwrap_or(0);
+                if cnt > max_cnt {
+                    lcm *= Mint::new(p).pow((cnt - max_cnt) as u64);
+                }
+                map.entry(p).or_default().insert(cnt);
+            }
+        }
+        print_vec_1line(&ans);
+    }
 }
 
 #[cfg(test)]
@@ -135,3 +205,187 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use {eratosthenes_sieve::*, std::collections::BTreeSet};
+pub mod eratosthenes_sieve {
+    use std::collections::HashMap;
+    #[derive(Clone, Debug)]
+    pub struct EratosthenesSieve {
+        is_prime_list: Vec<bool>,
+        min_factor_list: Vec<Option<usize>>,
+    }
+    impl EratosthenesSieve {
+        /// [0, n] の区間でエラトステネスのふるいをする
+        /// # 計算量
+        /// O(n log(log(n)))
+        pub fn new(n: usize) -> Self {
+            let mut is_prime_list = vec![true; n + 1];
+            let mut min_factor_list = vec![None; n + 1];
+            is_prime_list[0] = false;
+            is_prime_list[1] = false;
+            for p in 2..=n {
+                if !is_prime_list[p] {
+                    continue;
+                }
+                min_factor_list[p] = Some(p);
+                for q in (p * 2..=n).step_by(p) {
+                    is_prime_list[q] = false;
+                    if min_factor_list[q].is_none() {
+                        min_factor_list[q] = Some(p);
+                    }
+                }
+            }
+            Self {
+                is_prime_list,
+                min_factor_list,
+            }
+        }
+        /// n が素数かどうか判定する
+        /// # 計算量
+        /// O(1)
+        pub fn is_prime(&self, n: usize) -> bool {
+            self.is_prime_list[n]
+        }
+        /// n を素因数分解する。key を素数、value をその素数の指数とした HashMap を返す。
+        /// # 計算量
+        /// O(log n)
+        pub fn prime_factorize(&self, n: usize) -> HashMap<usize, usize> {
+            let mut n = n;
+            let mut cnt_table: HashMap<usize, usize> = HashMap::new();
+            while n > 1 {
+                let p = self.min_factor_list[n].unwrap();
+                let mut exp = 0;
+                while self.min_factor_list[n] == Some(p) {
+                    n /= p;
+                    exp += 1;
+                }
+                cnt_table.insert(p, exp);
+            }
+            cnt_table
+        }
+        /// n の正の約数を列挙する
+        /// # 計算量
+        /// O(nの約数の個数)
+        pub fn divisors(&self, n: usize) -> Vec<usize> {
+            let mut res = vec![1];
+            let pf = self.prime_factorize(n);
+            for (p, e) in pf {
+                for i in 0..res.len() {
+                    let mut tmp = 1;
+                    for _ in 0..e {
+                        tmp *= p;
+                        res.push(res[i] * tmp);
+                    }
+                }
+            }
+            res
+        }
+    }
+}
+use btree_multiset::*;
+#[allow(clippy::module_inception)]
+pub mod btree_multiset {
+    use std::{
+        borrow::Borrow,
+        collections::{BTreeMap, btree_map::Range},
+        ops::RangeBounds,
+    };
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct BTreeMultiSet<T> {
+        map: BTreeMap<T, usize>,
+        length: usize,
+    }
+    impl<T> Default for BTreeMultiSet<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+    impl<T> BTreeMultiSet<T> {
+        pub const fn new() -> BTreeMultiSet<T> {
+            BTreeMultiSet {
+                map: BTreeMap::new(),
+                length: 0,
+            }
+        }
+        pub fn range<R>(&self, range: R) -> Range<'_, T, usize>
+        where
+            T: Ord,
+            R: RangeBounds<T>,
+        {
+            self.map.range(range)
+        }
+        pub fn iter(&self) -> impl Iterator<Item = &T> {
+            self.map
+                .iter()
+                .flat_map(|(e, cnt)| std::iter::repeat_n(e, *cnt))
+        }
+        pub fn set_iter(&self) -> impl Iterator<Item = (&T, usize)> {
+            self.map.iter().map(|(e, cnt)| (e, *cnt))
+        }
+        pub fn insert(&mut self, value: T)
+        where
+            T: Ord,
+        {
+            *self.map.entry(value).or_insert(0) += 1;
+            self.length += 1;
+        }
+        pub fn remove1<Q>(&mut self, value: &Q) -> bool
+        where
+            T: Borrow<Q> + Ord,
+            Q: ?Sized + Ord,
+        {
+            if let Some(cnt) = self.map.get_mut(value) {
+                *cnt -= 1;
+                if *cnt == 0 {
+                    self.map.remove(value);
+                }
+                self.length -= 1;
+                return true;
+            }
+            false
+        }
+        pub fn remove_all<Q>(&mut self, value: &Q) -> bool
+        where
+            T: Borrow<Q> + Ord,
+            Q: ?Sized + Ord,
+        {
+            if let Some(cnt) = self.map.get(value) {
+                self.length -= cnt;
+                self.map.remove(value);
+                return true;
+            }
+            false
+        }
+        pub fn len(&self) -> usize {
+            self.length
+        }
+        pub fn set_len(&self) -> usize {
+            self.map.len()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.length == 0
+        }
+        pub fn count<Q>(&self, value: &Q) -> usize
+        where
+            T: Borrow<Q> + Ord,
+            Q: ?Sized + Ord,
+        {
+            self.map.get(value).copied().unwrap_or(0)
+        }
+        pub fn contains<Q>(&self, value: &Q) -> bool
+        where
+            T: Borrow<Q> + Ord,
+            Q: ?Sized + Ord,
+        {
+            self.map.contains_key(value)
+        }
+    }
+    impl<T: Ord> FromIterator<T> for BTreeMultiSet<T> {
+        fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> BTreeMultiSet<T> {
+            let mut set = BTreeMultiSet::new();
+            for x in iter {
+                set.insert(x);
+            }
+            set
+        }
+    }
+}

@@ -1,12 +1,73 @@
 // 問題文と制約は読みましたか？
-// #[fastout]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Piece {
+    h: i64,
+    w: i64,
+}
+#[fastout]
 fn main() {
     input! {
+        h: i64,
+        w: i64,
         n: usize,
-        xs: [i64; n],
+        ps: [Piece; n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    let mut h_map = HashMap::<i64, BTreeSet<usize>>::new();
+    let mut w_map = HashMap::<i64, BTreeSet<usize>>::new();
+
+    for (i, p) in ps.iter().copied().enumerate() {
+        h_map.entry(p.h).or_default().insert(i);
+        w_map.entry(p.w).or_default().insert(i);
+    }
+
+    let mut cur_h = h;
+    let mut cur_w = w;
+    let mut cur_r = 1;
+    let mut cur_c = 1;
+
+    let mut ans = vec![(i64::MAX, i64::MAX); n];
+
+    while cur_h > 0 && cur_w > 0 {
+        // dbg!(cur_h);
+        // dbg!(cur_w);
+        if let Some(is) = h_map.get_mut(&cur_h) {
+            if let Some(&i) = is.iter().min() {
+                // dbg!(i);
+                let p = ps[i];
+                // dbg!(p);
+                is.remove(&i);
+                w_map.get_mut(&p.w).unwrap().remove(&i);
+
+                ans[i] = (cur_r, cur_c);
+
+                cur_c += p.w;
+                cur_w -= p.w;
+            }
+        }
+        // dbg!(cur_h);
+        // dbg!(cur_w);
+
+        if let Some(is) = w_map.get_mut(&cur_w) {
+            if let Some(&i) = is.iter().min() {
+                // dbg!(i);
+                let p = ps[i];
+                // dbg!(p);
+                is.remove(&i);
+                h_map.get_mut(&p.h).unwrap().remove(&i);
+
+                ans[i] = (cur_r, cur_c);
+
+                cur_r += p.h;
+                cur_h -= p.h;
+            }
+        }
+    }
+
+    for (r, c) in ans {
+        println!("{} {}", r, c);
+    }
 }
 
 #[cfg(test)]
@@ -68,6 +129,7 @@ mod tests {
 }
 
 // ====== import ======
+use std::collections::BTreeSet;
 #[allow(unused_imports)]
 use {
     itertools::{Itertools, chain, iproduct, izip},
