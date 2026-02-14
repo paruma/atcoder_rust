@@ -10,10 +10,11 @@
 import argparse
 import re
 from dataclasses import dataclass
+from typing import Any
 
 import requests
 from bs4 import BeautifulSoup, Tag
-from markdownify import markdownify as md
+from markdownify import MarkdownConverter
 
 
 @dataclass(frozen=True)
@@ -24,6 +25,17 @@ class ProblemMetaData:
     url: str
     time_limit: str | None
     memory_limit: str | None
+
+
+class AtCoderConverter(MarkdownConverter):
+    """AtCoder の HTML 構造に特化した Markdown 変換器。"""
+
+    def convert_var(
+        self, el: Tag, text: str, convert_as_inline: bool = True, **kwargs: Any
+    ) -> str:
+        """<var> タグを数式デリミタ $ で囲む。"""
+
+        return f"${text}$"
 
 
 def fetch_html(url: str) -> str:
@@ -53,7 +65,7 @@ def extract_metadata(soup: BeautifulSoup, url: str) -> ProblemMetaData:
 def unescape_math(text: str) -> str:
     r"""
     markdownify によってエスケープされた数式内のアンダースコアを元に戻す。
-    \( ... \), \[ ... \], $$ ... $$ の内側を対象とする。
+    \( ... \), \[ ... \], $$ ... $$, $ ... $ の内側を対象とする。
     """
 
     def replace_math(match: re.Match) -> str:
@@ -62,18 +74,18 @@ def unescape_math(text: str) -> str:
     text = re.sub(r"\\\(.*?\\\)", replace_math, text, flags=re.DOTALL)
     text = re.sub(r"\\\[.*?\\\]", replace_math, text, flags=re.DOTALL)
     text = re.sub(r"\$\$.*?\$\$", replace_math, text, flags=re.DOTALL)
+    text = re.sub(r"\$.*?\$", replace_math, text, flags=re.DOTALL)
     return text
 
 
 def format_problem_as_markdown(metadata: ProblemMetaData, content_tag: Tag) -> str:
-    """markdownify を使用して問題文を Markdown 形式に整形する。"""
-    # markdownify による変換
-    markdown_content = md(
-        str(content_tag),
+    """AtCoderConverter を使用して問題文を Markdown 形式に整形する。"""
+    # カスタムコンバータを使用して変換
+    markdown_content = AtCoderConverter(
         strip=["script", "style", "noscript"],
         heading_style="ATX",
         newline_style="backslash",
-    )
+    ).convert_soup(content_tag)
 
     # 数式のエスケープ解除
     markdown_content = unescape_math(markdown_content)
