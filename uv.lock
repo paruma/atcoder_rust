@@ -194,6 +194,7 @@ dev = [
     { name = "aclogin" },
     { name = "bpython" },
     { name = "jupyterlab" },
+    { name = "online-judge-api-client" },
     { name = "online-judge-tools" },
     { name = "ptpython" },
     { name = "ruff" },
@@ -213,6 +214,7 @@ dev = [
     { name = "aclogin", specifier = ">=0.2.1" },
     { name = "bpython", specifier = ">=0.25" },
     { name = "jupyterlab", specifier = ">=4.1.6" },
+    { name = "online-judge-api-client", git = "https://github.com/online-judge-tools/api-client.git?rev=refs%2Fpull%2F173%2Fhead" },
     { name = "online-judge-tools", specifier = ">=11.5.1" },
     { name = "ptpython", specifier = ">=3.0.30" },
     { name = "ruff", specifier = ">=0.4.4" },
@@ -2134,7 +2136,7 @@ wheels = [
 [[package]]
 name = "online-judge-api-client"
 version = "10.10.1"
-source = { registry = "https://pypi.org/simple" }
+source = { git = "https://github.com/online-judge-tools/api-client.git?rev=refs%2Fpull%2F173%2Fhead#9f52b9a47d0d488730572f22faa410a2c6e914b8" }
 dependencies = [
     { name = "appdirs" },
     { name = "beautifulsoup4" },
@@ -2143,10 +2145,6 @@ dependencies = [
     { name = "jsonschema", version = "4.26.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "lxml" },
     { name = "requests" },
-    { name = "toml" },
-]
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/87/0d/7301a6d3ea54847c0874ec8025aa799f7b9db0c279459a1b1a6c847b34c2/online_judge_api_client-10.10.1-py3-none-any.whl", hash = "sha256:2e7bf210db2709ab41b85454c76f7901231ddb0990c52f5c01624a53a28a534d", size = 185968, upload-time = "2022-08-14T07:37:02.701Z" },
 ]
 
 [[package]]
@@ -3338,15 +3336,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/7a/fd/7a5ee21fd08ff70d3d33a5781c255cbe779659bd03278feb98b19ee550f4/tinycss2-1.4.0.tar.gz", hash = "sha256:10c0972f6fc0fbee87c3edb76549357415e94548c1ae10ebccdea16fb404a9b7", size = 87085, upload-time = "2024-10-24T14:58:29.895Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e6/34/ebdc18bae6aa14fbee1a08b63c015c72b64868ff7dae68808ab500c492e2/tinycss2-1.4.0-py3-none-any.whl", hash = "sha256:3a49cf47b7675da0b15d0c6e1df8df4ebd96e9394bb905a5775adb0d884c5289", size = 26610, upload-time = "2024-10-24T14:58:28.029Z" },
-]
-
-[[package]]
-name = "toml"
-version = "0.10.2"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/be/ba/1f744cdc819428fc6b5084ec34d9b30660f6f9daaf70eead706e3203ec3c/toml-0.10.2.tar.gz", hash = "sha256:b3bda1d108d5dd99f4a20d24d9c348e91c4db7ab1b749200bded2f839ccbe68f", size = 22253, upload-time = "2020-11-01T01:40:22.204Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/44/6f/7120676b6d73228c96e17f1f794d8ab046fc910d781c8d151120c3f1569e/toml-0.10.2-py2.py3-none-any.whl", hash = "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b", size = 16588, upload-time = "2020-11-01T01:40:20.672Z" },
 ]
 
 [[package]]
