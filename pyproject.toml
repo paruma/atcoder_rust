@@ -25,6 +25,7 @@ dev = [
     "ptpython>=3.0.30",
     "aclogin>=0.2.1",
     "online-judge-tools>=11.5.1",
+    # AtCoder のメモリ表記変更(MB->MiB)によるパースエラー対応 (PR #173)
     "online-judge-api-client @ git+https://github.com/online-judge-tools/api-client.git@refs/pull/173/head",
 ]
 
