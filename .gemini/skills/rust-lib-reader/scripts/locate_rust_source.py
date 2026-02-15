@@ -8,6 +8,17 @@ from pathlib import Path
 
 
 def find_std_lib_root() -> Path | None:
+    # Use rustc to find the sysroot
+    try:
+        import subprocess
+        sysroot = subprocess.check_output(["rustc", "--print", "sysroot"], text=True).strip()
+        base_path = Path(sysroot) / "lib/rustlib/src/rust/library"
+        if base_path.exists():
+            return base_path
+    except Exception:
+        pass
+
+    # Fallback to hardcoded path
     rustup_home = "/home/node/.rustup/toolchains"
     if not os.path.exists(rustup_home):
         return None

@@ -11,11 +11,13 @@ Rust の内部実装や依存ライブラリの仕様を確認するために、
 
 1. **ソース場所の特定**:
   - `python3 .gemini/skills/rust-lib-reader/scripts/locate_rust_source.py <クレート名>` を実行して、そのクレートのベースディレクトリを取得します。
-  - 入力例: `std`, `core`, `itertools`, `ac-library-rs`
+  - 入力例: `std`, `core`, `alloc`, `itertools`, `ac-library-rs`
+  - **重要**: 標準ライブラリ（std, core, alloc）のソースが見つからない場合は、`rustup component add rust-src` を実行してソースコードをインストールしてください。
 
-2. **シンボルの探索と閲覧**:
-  - 取得したディレクトリ配下で `ls` や `grep` を使用して、目的のファイルやシンボルの定義場所を探します。
-  - 目的のファイルが特定できたら、`read_file` ツールを使用して読み取ります。
+2. **シンボルの探索**:
+  - `grep` を使用して、目的のシンボル（`struct BTreeMap`, `fn next_back`, `impl.*Iterator` など）が定義されているファイルを特定します。
+  - 例: `grep -r "struct BTreeMap" <探索ディレクトリ>`
+  - ファイルが特定できたら、`read_file` ツールを使用して読み取ります。
 
 ## 具体的なパス構造（参考）
 
@@ -28,4 +30,3 @@ Rust の内部実装や依存ライブラリの仕様を確認するために、
 ## 注意事項
 
 - サードパーティライブラリを読む前に、`cargo build` を実行して依存関係がダウンロードされていることを確認してください。
-- 標準ライブラリのソースがない場合は、`rustup component add rust-src` が必要になる場合があります。
