@@ -35,7 +35,3 @@ cli_test_dir = { workspace = true }
 [[bin]]
 name = "template"
 path = "template.rs"
-
-[[bin]]
-name = "template2"
-path = "template2.rs"

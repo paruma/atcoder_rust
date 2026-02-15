@@ -78,7 +78,7 @@ use {
     rand::{Rng, SeedableRng, rngs::SmallRng, seq::SliceRandom},
     std::{
         cmp::Reverse,
-        collections::{BinaryHeap, HashMap, HashSet},
+        collections::{BTreeMap, BTreeSet, BinaryHeap, HashMap, HashSet},
     },
 };
 
@@ -88,49 +88,50 @@ use print_util::*;
 pub mod print_util {
     use itertools::Itertools;
     use proconio::fastout;
+
     #[fastout]
     pub fn print_vec<T: std::fmt::Display>(arr: &[T]) {
         for a in arr {
             println!("{}", a);
         }
     }
+
     #[fastout]
     pub fn print_vec_1line<T: std::fmt::Display>(arr: &[T]) {
-        let msg = arr.iter().map(|x| format!("{}", x)).join(" ");
-        println!("{}", msg);
+        println!("{}", arr.iter().join(" "));
     }
+
     #[fastout]
-    pub fn print_vec2<T: std::fmt::Display>(arr: &Vec<Vec<T>>) {
+    pub fn print_vec2<T: std::fmt::Display, R: AsRef<[T]>>(arr: &[R]) {
         for row in arr {
-            let msg = row.iter().map(|x| format!("{}", x)).join(" ");
-            println!("{}", msg);
+            println!("{}", row.as_ref().iter().join(" "));
         }
     }
+
     pub fn print_bytes(bytes: &[u8]) {
-        let msg = String::from_utf8(bytes.to_vec()).unwrap();
-        println!("{}", msg);
+        println!("{}", std::str::from_utf8(bytes).unwrap());
     }
+
     pub fn print_chars(chars: &[char]) {
-        let msg = chars.iter().collect::<String>();
-        println!("{}", msg);
+        println!("{}", chars.iter().collect::<String>());
     }
+
     #[fastout]
-    pub fn print_vec_bytes(vec_bytes: &[Vec<u8>]) {
+    pub fn print_vec_bytes<R: AsRef<[u8]>>(vec_bytes: &[R]) {
         for row in vec_bytes {
-            let msg = String::from_utf8(row.to_vec()).unwrap();
-            println!("{}", msg);
+            println!("{}", std::str::from_utf8(row.as_ref()).unwrap());
         }
     }
+
     #[fastout]
-    pub fn print_vec_chars(vec_chars: &[Vec<char>]) {
+    pub fn print_vec_chars<R: AsRef<[char]>>(vec_chars: &[R]) {
         for row in vec_chars {
-            let msg = row.iter().collect::<String>();
-            println!("{}", msg);
+            println!("{}", row.as_ref().iter().collect::<String>());
         }
     }
+
     pub fn print_yesno(ans: bool) {
-        let msg = if ans { "Yes" } else { "No" };
-        println!("{}", msg);
+        println!("{}", if ans { "Yes" } else { "No" });
     }
 }
 
