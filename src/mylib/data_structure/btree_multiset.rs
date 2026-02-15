@@ -36,14 +36,127 @@ pub mod btree_multiset {
             self.map.range(range)
         }
 
-        pub fn iter(&self) -> impl Iterator<Item = &T> {
-            self.map
-                .iter()
-                .flat_map(|(e, cnt)| std::iter::repeat_n(e, *cnt))
+        /// 内部の BTreeMap のイテレータを返す。
+        ///
+        /// 要素とその個数のペア `(&T, &usize)` を巡回する。
+        pub fn iter(&self) -> std::collections::btree_map::Iter<'_, T, usize> {
+            self.map.iter()
         }
 
-        pub fn set_iter(&self) -> impl Iterator<Item = (&T, usize)> {
-            self.map.iter().map(|(e, cnt)| (e, *cnt))
+        /// 最小の要素を返す。
+        ///
+        /// 空の場合は `None` を返す。計算量は $O(\log K)$ ($K$ は要素の種類数)。
+        pub fn min(&self) -> Option<&T>
+        where
+            T: Ord,
+        {
+            self.map.first_key_value().map(|(k, _)| k)
+        }
+
+        /// 最大の要素を返す。
+        ///
+        /// 空の場合は `None` を返す。計算量は $O(\log K)$ ($K$ は要素の種類数)。
+        pub fn max(&self) -> Option<&T>
+        where
+            T: Ord,
+        {
+            self.map.last_key_value().map(|(k, _)| k)
+        }
+
+        /// 重複を考慮して、$n$ 番目に小さい要素を返す（0-indexed）。
+        ///
+        /// $n$ が全体の要素数（`len()`）以上の場合は `None` を返す。
+        /// 計算量は $O(\log K + \min(m, K))$ ($m$ は走査したユニークな要素数、$K$ は種類数)。
+        pub fn nth_min(&self, n: usize) -> Option<&T>
+        where
+            T: Ord,
+        {
+            let mut sum = 0;
+            for (val, &cnt) in self.iter() {
+                if sum + cnt > n {
+                    return Some(val);
+                }
+                sum += cnt;
+            }
+            None
+        }
+
+        /// 重複を考慮して、$n$ 番目に大きい要素を返す（0-indexed）。
+        ///
+        /// $n$ が全体の要素数（`len()`）以上の場合は `None` を返す。
+        /// 計算量は $O(\log K + \min(m, K))$ ($m$ は走査したユニークな要素数、$K$ は種類数)。
+        pub fn nth_max(&self, n: usize) -> Option<&T>
+        where
+            T: Ord,
+        {
+            let mut sum = 0;
+            for (val, &cnt) in self.iter().rev() {
+                if sum + cnt > n {
+                    return Some(val);
+                }
+                sum += cnt;
+            }
+            None
+        }
+
+        /// 指定した範囲内での最小の要素を返す。
+        ///
+        /// 範囲内に要素がない場合は `None` を返す。計算量は $O(\log K)$ ($K$ は種類数)。
+        pub fn min_in_range<R>(&self, range: R) -> Option<&T>
+        where
+            T: Ord,
+            R: RangeBounds<T>,
+        {
+            self.range(range).next().map(|(k, _)| k)
+        }
+
+        /// 指定した範囲内での最大の要素を返す。
+        ///
+        /// 範囲内に要素がない場合は `None` を返す。計算量は $O(\log K)$ ($K$ は種類数)。
+        pub fn max_in_range<R>(&self, range: R) -> Option<&T>
+        where
+            T: Ord,
+            R: RangeBounds<T>,
+        {
+            self.range(range).next_back().map(|(k, _)| k)
+        }
+
+        /// 指定した範囲内で、重複を考慮して $n$ 番目に小さい要素を返す（0-indexed）。
+        ///
+        /// $n$ が範囲内の要素数以上の場合は `None` を返す。
+        /// 計算量は $O(\log K + \min(m, K))$ ($m$ は範囲内で走査したユニークな要素数、$K$ は種類数)。
+        pub fn nth_min_in_range<R>(&self, n: usize, range: R) -> Option<&T>
+        where
+            T: Ord,
+            R: RangeBounds<T>,
+        {
+            let mut sum = 0;
+            for (val, &cnt) in self.range(range) {
+                if sum + cnt > n {
+                    return Some(val);
+                }
+                sum += cnt;
+            }
+            None
+        }
+
+        /// 指定した範囲内で、重複を考慮して $n$ 番目に大きい要素を返す（0-indexed）。
+        ///
+        /// $n$ が範囲内の要素数以上の場合は `None` を返す。
+        /// 計算量は $O(\log K + \min(m, K))$ ($m$ は範囲内で走査したユニークな要素数、$K$ は種類数)。
+        pub fn nth_max_in_range<R>(&self, n: usize, range: R) -> Option<&T>
+        where
+            T: Ord,
+            R: RangeBounds<T>,
+        {
+            let mut sum = 0;
+            for (val, &cnt) in self.range(range).rev() {
+                if sum + cnt > n {
+                    return Some(val);
+                }
+                sum += cnt;
+            }
+            None
         }
 
         pub fn insert(&mut self, value: T)
@@ -267,16 +380,69 @@ mod tests {
     fn test_iter() {
         let vec = vec![1, 1, 2, 3];
         let set: BTreeMultiSet<_> = vec.into_iter().collect();
-        let elements: Vec<_> = set.iter().copied().collect();
-        assert_eq!(elements, vec![1, 1, 2, 3]);
+        let elements: Vec<_> = set.iter().map(|(k, v)| (k, *v)).collect();
+        assert_eq!(elements, vec![(&1, 2), (&2, 1), (&3, 1)]);
     }
 
     #[test]
-    fn test_set_iter() {
-        let vec = vec![1, 1, 2, 3];
-        let set: BTreeMultiSet<_> = vec.into_iter().collect();
-        let elements: Vec<_> = set.set_iter().collect();
-        assert_eq!(elements, vec![(&1, 2), (&2, 1), (&3, 1)]);
+    fn test_min_max() {
+        let mut set = BTreeMultiSet::new();
+        assert_eq!(set.min(), None);
+        assert_eq!(set.max(), None);
+
+        set.insert(20);
+        set.insert(10);
+        set.insert(30);
+        set.insert(20);
+
+        assert_eq!(set.min(), Some(&10));
+        assert_eq!(set.max(), Some(&30));
+    }
+
+    #[test]
+    fn test_nth() {
+        let set: BTreeMultiSet<_> = vec![10, 20, 20, 30].into_iter().collect();
+
+        // nth_min
+        assert_eq!(set.nth_min(0), Some(&10));
+        assert_eq!(set.nth_min(1), Some(&20));
+        assert_eq!(set.nth_min(2), Some(&20));
+        assert_eq!(set.nth_min(3), Some(&30));
+        assert_eq!(set.nth_min(4), None);
+
+        // nth_max
+        assert_eq!(set.nth_max(0), Some(&30));
+        assert_eq!(set.nth_max(1), Some(&20));
+        assert_eq!(set.nth_max(2), Some(&20));
+        assert_eq!(set.nth_max(3), Some(&10));
+        assert_eq!(set.nth_max(4), None);
+    }
+
+    #[test]
+    fn test_range_min_max() {
+        let set: BTreeMultiSet<_> = vec![10, 20, 20, 30, 40].into_iter().collect();
+
+        assert_eq!(set.min_in_range(15..35), Some(&20));
+        assert_eq!(set.max_in_range(15..35), Some(&30));
+
+        assert_eq!(set.min_in_range(45..), None);
+        assert_eq!(set.max_in_range(..5), None);
+    }
+
+    #[test]
+    fn test_range_nth() {
+        let set: BTreeMultiSet<_> = vec![10, 20, 20, 30, 40].into_iter().collect();
+
+        // 15..35 contains {20, 20, 30}
+        assert_eq!(set.nth_min_in_range(0, 15..35), Some(&20));
+        assert_eq!(set.nth_min_in_range(1, 15..35), Some(&20));
+        assert_eq!(set.nth_min_in_range(2, 15..35), Some(&30));
+        assert_eq!(set.nth_min_in_range(3, 15..35), None);
+
+        assert_eq!(set.nth_max_in_range(0, 15..35), Some(&30));
+        assert_eq!(set.nth_max_in_range(1, 15..35), Some(&20));
+        assert_eq!(set.nth_max_in_range(2, 15..35), Some(&20));
+        assert_eq!(set.nth_max_in_range(3, 15..35), None);
     }
 
     #[test]
