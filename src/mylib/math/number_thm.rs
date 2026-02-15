@@ -1,7 +1,5 @@
 use cargo_snippet::snippet;
 
-use std::collections::HashMap;
-
 #[snippet]
 /// n の正の約数を列挙する。
 ///
@@ -46,16 +44,16 @@ pub fn is_prime(n: i64) -> bool {
 }
 
 #[snippet]
-/// n を素因数分解する。key を素数、value をその素数の指数とした HashMap を返す。
+/// n を素因数分解する。素数とその指数のペアのリストを返す。
 ///
 /// # 計算量
 /// O(sqrt(n))
-pub fn prime_factorize(n: i64) -> HashMap<i64, i64> {
+pub fn prime_factorize(n: i64) -> Vec<(i64, i64)> {
     use num::Integer;
     use num_integer::Roots;
 
     assert!(n >= 1);
-    let mut cnt_table: HashMap<i64, i64> = HashMap::new();
+    let mut res = Vec::new();
     let mut n = n;
     for i in 2..=n.sqrt() {
         if n.is_multiple_of(&i) {
@@ -65,13 +63,13 @@ pub fn prime_factorize(n: i64) -> HashMap<i64, i64> {
                 n /= i;
                 cnt += 1;
             }
-            cnt_table.insert(i, cnt);
+            res.push((i, cnt));
         }
     }
     if n != 1 {
-        cnt_table.insert(n, 1);
+        res.push((n, 1));
     }
-    cnt_table
+    res
 }
 
 #[snippet(include = "prime_factorize")]
@@ -85,7 +83,7 @@ pub fn euler_phi(n: i64) -> i64 {
     assert!(n >= 1);
     let pf = prime_factorize(n);
     let mut res = n;
-    for p in pf.keys() {
+    for (p, _) in pf {
         res = res / p * (p - 1);
     }
 
@@ -94,12 +92,12 @@ pub fn euler_phi(n: i64) -> i64 {
 
 #[snippet(prefix = "use eratosthenes_sieve::*;")]
 pub mod eratosthenes_sieve {
-    use std::collections::HashMap;
-
+    /// エラトステネスのふるいを用いて素数判定を行う。
+    ///
+    /// メモリ効率のため `is_prime_list` のみを持つ。
     #[derive(Clone, Debug)]
     pub struct EratosthenesSieve {
         is_prime_list: Vec<bool>,
-        min_factor_list: Vec<Option<usize>>,
     }
 
     impl EratosthenesSieve {
@@ -109,25 +107,17 @@ pub mod eratosthenes_sieve {
         /// O(n log(log(n)))
         pub fn new(n: usize) -> Self {
             let mut is_prime_list = vec![true; n + 1];
-            let mut min_factor_list = vec![None; n + 1];
             is_prime_list[0] = false;
             is_prime_list[1] = false;
             for p in 2..=n {
                 if !is_prime_list[p] {
                     continue;
                 }
-                min_factor_list[p] = Some(p);
                 for q in (p * 2..=n).step_by(p) {
                     is_prime_list[q] = false;
-                    if min_factor_list[q].is_none() {
-                        min_factor_list[q] = Some(p);
-                    }
                 }
             }
-            Self {
-                is_prime_list,
-                min_factor_list,
-            }
+            Self { is_prime_list }
         }
 
         /// n が素数かどうか判定する
@@ -137,28 +127,66 @@ pub mod eratosthenes_sieve {
         pub fn is_prime(&self, n: usize) -> bool {
             self.is_prime_list[n]
         }
+    }
 
-        /// n を素因数分解する。key を素数、value をその素数の指数とした HashMap を返す。
+    /// エラトステネスのふるいを用いて、最小素因数（min prime factor）を管理する。
+    ///
+    /// 素因数分解や約数列挙を高速に行うことができる。
+    #[derive(Clone, Debug)]
+    pub struct EratosthenesSieveMinFactor {
+        min_factor_list: Vec<usize>,
+    }
+
+    impl EratosthenesSieveMinFactor {
+        /// [0, n] の区間でエラトステネスのふるいをする
+        ///
+        /// # 計算量
+        /// O(n log(log(n)))
+        pub fn new(n: usize) -> Self {
+            let mut min_factor_list = vec![0; n + 1];
+            for p in 2..=n {
+                if min_factor_list[p] != 0 {
+                    continue;
+                }
+                for q in (p..=n).step_by(p) {
+                    if min_factor_list[q] == 0 {
+                        // 0 は初期値（未決定）であることを表す
+                        min_factor_list[q] = p;
+                    }
+                }
+            }
+            Self { min_factor_list }
+        }
+
+        /// n が素数かどうか判定する
+        ///
+        /// # 計算量
+        /// O(1)
+        pub fn is_prime(&self, n: usize) -> bool {
+            n >= 2 && self.min_factor_list[n] == n
+        }
+
+        /// n を素因数分解する。素数とその指数のペアのリストを返す。
         ///
         /// # 計算量
         /// O(log n)
-        pub fn prime_factorize(&self, n: usize) -> HashMap<usize, usize> {
+        pub fn prime_factorize(&self, n: usize) -> Vec<(usize, usize)> {
             let mut n = n;
-            let mut cnt_table: HashMap<usize, usize> = HashMap::new();
+            let mut res = Vec::new();
             while n > 1 {
-                let p = self.min_factor_list[n].unwrap(); // n >= 2 なら unwrap できる
+                let p = self.min_factor_list[n];
                 let mut exp = 0;
-                while self.min_factor_list[n] == Some(p) {
+                while self.min_factor_list[n] == p {
                     n /= p;
                     exp += 1;
                 }
-                cnt_table.insert(p, exp);
+                res.push((p, exp));
             }
 
-            cnt_table
+            res
         }
 
-        /// n の正の約数を列挙する
+        /// n の正の約数を列挙する。
         ///
         /// # 計算量
         /// O(nの約数の個数)
@@ -166,7 +194,8 @@ pub mod eratosthenes_sieve {
             let mut res = vec![1];
             let pf = self.prime_factorize(n);
             for (p, e) in pf {
-                for i in 0..res.len() {
+                let n = res.len();
+                for i in 0..n {
                     let mut tmp = 1;
                     for _ in 0..e {
                         tmp *= p;
@@ -174,7 +203,6 @@ pub mod eratosthenes_sieve {
                     }
                 }
             }
-
             res
         }
     }
@@ -182,12 +210,9 @@ pub mod eratosthenes_sieve {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
-
     use itertools::Itertools;
-    use maplit::hashmap;
 
-    use super::eratosthenes_sieve::EratosthenesSieve;
+    use super::eratosthenes_sieve::{EratosthenesSieve, EratosthenesSieveMinFactor};
     use super::*;
 
     #[test]
@@ -238,7 +263,7 @@ mod tests {
     fn test_prime_factorize() {
         struct TestCase {
             n: i64,
-            expected: HashMap<i64, i64>,
+            expected: Vec<(i64, i64)>,
         }
         impl TestCase {
             fn check(&self) {
@@ -246,12 +271,12 @@ mod tests {
             }
         }
         let test_case_list = [
-            (1, HashMap::new()),
-            (2, hashmap! {2=> 1}),
-            (3, hashmap! {3=> 1}),
-            (4, hashmap! {2=> 2}),
-            (12, hashmap! {2=> 2, 3=>1}),
-            (720, hashmap! {2=> 4, 3=>2, 5=>1}),
+            (1, vec![]),
+            (2, vec![(2, 1)]),
+            (3, vec![(3, 1)]),
+            (4, vec![(2, 2)]),
+            (12, vec![(2, 2), (3, 1)]),
+            (720, vec![(2, 4), (3, 2), (5, 1)]),
         ]
         .map(|(n, expected)| TestCase { n, expected });
 
@@ -260,8 +285,8 @@ mod tests {
         }
 
         prime_factorize(12)
-            .values()
-            .map(|cnt| cnt + 1)
+            .iter()
+            .map(|&(_, cnt)| cnt + 1)
             .product::<i64>();
     }
 
@@ -284,8 +309,8 @@ mod tests {
         }
 
         prime_factorize(12)
-            .values()
-            .map(|cnt| cnt + 1)
+            .iter()
+            .map(|&(_, cnt)| cnt + 1)
             .product::<i64>();
     }
 
@@ -305,23 +330,84 @@ mod tests {
         assert!(!sieve.is_prime(10));
         assert!(sieve.is_prime(11));
         assert!(!sieve.is_prime(12));
+
+        let sieve_mf = EratosthenesSieveMinFactor::new(12);
+        assert!(!sieve_mf.is_prime(0));
+        assert!(!sieve_mf.is_prime(1));
+        assert!(sieve_mf.is_prime(2));
+        assert!(sieve_mf.is_prime(3));
+        assert!(!sieve_mf.is_prime(4));
+        assert!(sieve_mf.is_prime(5));
+        assert!(!sieve_mf.is_prime(6));
+        assert!(sieve_mf.is_prime(7));
+        assert!(!sieve_mf.is_prime(8));
+        assert!(!sieve_mf.is_prime(9));
+        assert!(!sieve_mf.is_prime(10));
+        assert!(sieve_mf.is_prime(11));
+        assert!(!sieve_mf.is_prime(12));
     }
 
     #[test]
     fn test_eratosthenes_prime_factorize() {
-        let sieve = EratosthenesSieve::new(100);
-        assert_eq!(sieve.prime_factorize(1), HashMap::new());
-        assert_eq!(sieve.prime_factorize(2), hashmap! {2 => 1});
-        assert_eq!(sieve.prime_factorize(3), hashmap! {3 => 1});
-        assert_eq!(sieve.prime_factorize(4), hashmap! {2 => 2});
-        assert_eq!(sieve.prime_factorize(12), hashmap! {2 => 2, 3 => 1});
-        assert_eq!(sieve.prime_factorize(84), hashmap! {2 => 2, 3 => 1, 7 => 1});
-        assert_eq!(sieve.prime_factorize(97), hashmap! {97 => 1});
+        let sieve = EratosthenesSieveMinFactor::new(100);
+        assert_eq!(sieve.prime_factorize(1), vec![]);
+        assert_eq!(sieve.prime_factorize(2), vec![(2, 1)]);
+        assert_eq!(sieve.prime_factorize(3), vec![(3, 1)]);
+        assert_eq!(sieve.prime_factorize(4), vec![(2, 2)]);
+        assert_eq!(sieve.prime_factorize(12), vec![(2, 2), (3, 1)]);
+        assert_eq!(sieve.prime_factorize(84), vec![(2, 2), (3, 1), (7, 1)]);
+        assert_eq!(sieve.prime_factorize(97), vec![(97, 1)]);
     }
+
+    #[test]
+    #[ignore]
+    fn test_eratosthenes_exhaustive() {
+        let max_n = 1000;
+        let sieve = EratosthenesSieve::new(max_n);
+        let sieve_mf = EratosthenesSieveMinFactor::new(max_n);
+
+        for n in 0..=max_n {
+            let is_p = is_prime(n as i64);
+            assert_eq!(sieve.is_prime(n), is_p, "Sieve is_prime failed for {}", n);
+            assert_eq!(
+                sieve_mf.is_prime(n),
+                is_p,
+                "SieveMinFactor is_prime failed for {}",
+                n
+            );
+
+            if n >= 1 {
+                let pf_naive = prime_factorize(n as i64)
+                    .into_iter()
+                    .map(|(p, e)| (p as usize, e as usize))
+                    .collect_vec();
+                assert_eq!(
+                    sieve_mf.prime_factorize(n),
+                    pf_naive,
+                    "SieveMinFactor prime_factorize failed for {}",
+                    n
+                );
+
+                let mut div_mf = sieve_mf.divisors(n);
+                div_mf.sort_unstable();
+                let mut div_naive = divisors(n as i64)
+                    .into_iter()
+                    .map(|d| d as usize)
+                    .collect_vec();
+                div_naive.sort_unstable();
+                assert_eq!(
+                    div_mf, div_naive,
+                    "SieveMinFactor divisors failed for {}",
+                    n
+                );
+            }
+        }
+    }
+
     #[test]
     fn test_eratosthenes_divisors() {
-        let sieve = EratosthenesSieve::new(100);
-        let sort = |xs: Vec<usize>| xs.iter().copied().sorted().collect_vec();
+        let sieve = EratosthenesSieveMinFactor::new(100);
+        let sort = |xs: Vec<usize>| xs.into_iter().sorted().collect_vec();
         assert_eq!(sort(sieve.divisors(1)), vec![1]);
         assert_eq!(sort(sieve.divisors(2)), vec![1, 2]);
         assert_eq!(sort(sieve.divisors(3)), vec![1, 3]);
