@@ -14,6 +14,7 @@ fn main() {
         ps: [Piece; n],
     }
 
+    // h_map[h]: 高さが h のピースの添字集合
     let mut h_map = HashMap::<i64, BTreeSet<usize>>::new();
     let mut w_map = HashMap::<i64, BTreeSet<usize>>::new();
 
@@ -30,14 +31,9 @@ fn main() {
     let mut ans = vec![(i64::MAX, i64::MAX); n];
 
     while cur_h > 0 && cur_w > 0 {
-        // dbg!(cur_h);
-        // dbg!(cur_w);
         if let Some(is) = h_map.get_mut(&cur_h) {
-            if let Some(&i) = is.iter().min() {
-                // dbg!(i);
+            if let Some(i) = is.pop_first() {
                 let p = ps[i];
-                // dbg!(p);
-                is.remove(&i);
                 w_map.get_mut(&p.w).unwrap().remove(&i);
 
                 ans[i] = (cur_r, cur_c);
@@ -46,15 +42,10 @@ fn main() {
                 cur_w -= p.w;
             }
         }
-        // dbg!(cur_h);
-        // dbg!(cur_w);
 
         if let Some(is) = w_map.get_mut(&cur_w) {
-            if let Some(&i) = is.iter().min() {
-                // dbg!(i);
+            if let Some(i) = is.pop_first() {
                 let p = ps[i];
-                // dbg!(p);
-                is.remove(&i);
                 h_map.get_mut(&p.h).unwrap().remove(&i);
 
                 ans[i] = (cur_r, cur_c);
