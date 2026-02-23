@@ -5,7 +5,16 @@ fn main() {
         n: usize,
         xs: [i64; n],
     }
-    let ans: i64 = -2_i64;
+
+    let mut map: HashMap<i64, NegExtInt> = HashMap::new();
+
+    for i in 0..n {
+        let left = map.get(&(xs[i] - 1)).copied().unwrap_or(NEG_INF);
+        let next = (left + 1).max(NegExtInt::fin(1));
+        *map.entry(xs[i]).or_insert(NEG_INF) = next;
+    }
+
+    let ans: i64 = map.values().max().unwrap().get_fin();
     println!("{}", ans);
 }
 
@@ -136,3 +145,167 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use mod_neg_ext_int::*;
+pub mod mod_neg_ext_int {
+    use ac_library::Monoid;
+    use std::{
+        cmp::Ordering,
+        convert::Infallible,
+        fmt,
+        ops::{Add, AddAssign, Mul, Sub, SubAssign},
+    };
+    pub const NEG_INF: NegExtInt = NegExtInt::NEG_INF;
+    pub fn fin(x: i64) -> NegExtInt {
+        NegExtInt::fin(x)
+    }
+    #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    pub struct NegExtInt(i64);
+    impl NegExtInt {
+        pub const NEG_INF: Self = Self(i64::MIN);
+        pub fn fin(x: i64) -> Self {
+            Self(x)
+        }
+        pub fn get_fin(self) -> i64 {
+            if self.is_fin() {
+                self.0
+            } else {
+                panic!("called `NegExtInt::get_fin()` on a negative infinity")
+            }
+        }
+        pub fn get_fin_or(self, default: i64) -> i64 {
+            if self.is_fin() { self.0 } else { default }
+        }
+        #[inline]
+        pub fn is_fin(self) -> bool {
+            self.0 != i64::MIN
+        }
+        pub fn is_neg_inf(self) -> bool {
+            self.0 == i64::MIN
+        }
+        pub fn to_option(self) -> Option<i64> {
+            if self.is_fin() { Some(self.0) } else { None }
+        }
+        pub fn from_option(opt: Option<i64>) -> NegExtInt {
+            match opt {
+                Some(a) => Self(a),
+                None => Self::NEG_INF,
+            }
+        }
+        pub fn times(self, t: i64) -> Self {
+            self * t
+        }
+    }
+    impl Add for NegExtInt {
+        type Output = NegExtInt;
+        fn add(self, rhs: Self) -> Self::Output {
+            if self.is_neg_inf() || rhs.is_neg_inf() {
+                Self::NEG_INF
+            } else {
+                Self::fin(self.0 + rhs.0)
+            }
+        }
+    }
+    impl AddAssign for NegExtInt {
+        fn add_assign(&mut self, rhs: Self) {
+            *self = *self + rhs;
+        }
+    }
+    impl Add<i64> for NegExtInt {
+        type Output = NegExtInt;
+        fn add(self, rhs: i64) -> Self::Output {
+            if self.is_neg_inf() {
+                Self::NEG_INF
+            } else {
+                Self::fin(self.0 + rhs)
+            }
+        }
+    }
+    impl AddAssign<i64> for NegExtInt {
+        fn add_assign(&mut self, rhs: i64) {
+            *self = *self + rhs;
+        }
+    }
+    impl Sub<i64> for NegExtInt {
+        type Output = NegExtInt;
+        fn sub(self, rhs: i64) -> Self::Output {
+            if self.is_neg_inf() {
+                Self::NEG_INF
+            } else {
+                Self::fin(self.0 - rhs)
+            }
+        }
+    }
+    impl SubAssign<i64> for NegExtInt {
+        fn sub_assign(&mut self, rhs: i64) {
+            *self = *self - rhs;
+        }
+    }
+    impl Mul<i64> for NegExtInt {
+        type Output = NegExtInt;
+        fn mul(self, rhs: i64) -> Self::Output {
+            match rhs.cmp(&0) {
+                Ordering::Less => panic!("multiplier must be non-negative."),
+                Ordering::Equal => Self::fin(0),
+                Ordering::Greater => {
+                    if self.is_fin() {
+                        Self::fin(self.0 * rhs)
+                    } else {
+                        Self::NEG_INF
+                    }
+                }
+            }
+        }
+    }
+    impl std::iter::Sum for NegExtInt {
+        fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+            let mut s = 0;
+            for x in iter {
+                if x.is_neg_inf() {
+                    return Self::NEG_INF;
+                }
+                s += x.0;
+            }
+            Self::fin(s)
+        }
+    }
+    impl fmt::Display for NegExtInt {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            if self.is_neg_inf() {
+                write!(f, "-∞")
+            } else {
+                write!(f, "{}", self.0)
+            }
+        }
+    }
+    impl fmt::Debug for NegExtInt {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            if self.is_neg_inf() {
+                write!(f, "-∞")
+            } else {
+                write!(f, "{}", self.0)
+            }
+        }
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub struct NegExtIntAdditive(Infallible);
+    impl Monoid for NegExtIntAdditive {
+        type S = NegExtInt;
+        fn identity() -> Self::S {
+            NegExtInt::fin(0)
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            *a + *b
+        }
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub struct NegExtIntMax(Infallible);
+    impl Monoid for NegExtIntMax {
+        type S = NegExtInt;
+        fn identity() -> Self::S {
+            NegExtInt::NEG_INF
+        }
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            *a.max(b)
+        }
+    }
+}

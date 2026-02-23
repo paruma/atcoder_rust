@@ -2,11 +2,39 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        n: usize,// 人
+        m: usize,
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    let xss = (0..n)
+        .map(|_| {
+            input! {
+                l: usize,
+                xs: [Usize1; l]
+            }
+
+            xs
+        })
+        .collect_vec();
+
+    let mut used = vec![false; m];
+    let mut ans: Vec<Option<usize>> = vec![None; n];
+
+    for i in 0..n {
+        let sub = xss[i].iter().copied().find(|&j| !used[j]);
+        ans[i] = sub;
+        if let Some(sub) = sub {
+            used[sub] = true;
+        }
+    }
+
+    for row in ans {
+        if let Some(row) = row {
+            println!("{}", row + 1);
+        } else {
+            println!("0"); // 水
+        }
+    }
 }
 
 #[cfg(test)]

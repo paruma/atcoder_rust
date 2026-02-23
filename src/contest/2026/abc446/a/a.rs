@@ -2,11 +2,25 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        xs: Chars,
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let mut ans: Vec<char> = xs
+        .iter()
+        .copied()
+        .map(|ch| ch.to_ascii_lowercase())
+        .collect_vec();
+    ans.insert(0, 'f');
+    ans.insert(0, 'O');
+    print_chars(&ans);
+
+    // String を使う場合
+    // input! {
+    //     xs: String,
+    // }
+    // let xs_low = xs.to_ascii_lowercase();
+    // let ans = String::from("Of") + &xs_low;
+
+    // println!("{}", ans);
 }
 
 #[cfg(test)]

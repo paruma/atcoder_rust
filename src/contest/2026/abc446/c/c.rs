@@ -1,12 +1,38 @@
-// 問題文と制約は読みましたか？
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        t: usize
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    for _ in 0..t {
+        input! {
+            n: usize,
+            d: usize,
+            a_s: [usize; n],
+            b_s: [usize; n],
+        }
+
+        // 仕入れた日付を入れておく
+        let mut eggs: BTreeMultiSet<usize> = BTreeMultiSet::new();
+
+        for i in 0..n {
+            for _ in 0..a_s[i] {
+                eggs.insert(i);
+            }
+
+            for _ in 0..b_s[i] {
+                let min = *eggs.min().unwrap();
+                eggs.remove1(&min);
+            }
+
+            if i >= d {
+                eggs.remove_all(&(i - d));
+            }
+        }
+
+        let ans = eggs.len();
+        println!("{}", ans);
+    }
 }
 
 #[cfg(test)]
@@ -136,3 +162,208 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use btree_multiset::*;
+#[allow(clippy::module_inception)]
+pub mod btree_multiset {
+    use std::{
+        borrow::Borrow,
+        collections::{BTreeMap, btree_map::Range},
+        ops::RangeBounds,
+    };
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct BTreeMultiSet<T> {
+        map: BTreeMap<T, usize>,
+        length: usize,
+    }
+    impl<T> Default for BTreeMultiSet<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+    impl<T> BTreeMultiSet<T> {
+        pub const fn new() -> BTreeMultiSet<T> {
+            BTreeMultiSet {
+                map: BTreeMap::new(),
+                length: 0,
+            }
+        }
+        pub fn range<R>(&self, range: R) -> Range<'_, T, usize>
+        where
+            T: Ord,
+            R: RangeBounds<T>,
+        {
+            self.map.range(range)
+        }
+        /// 内部の BTreeMap のイテレータを返す。
+        /// 要素とその個数のペア `(&T, &usize)` を巡回する。
+        pub fn iter(&self) -> std::collections::btree_map::Iter<'_, T, usize> {
+            self.map.iter()
+        }
+        /// 最小の要素を返す。
+        /// 空の場合は `None` を返す。計算量は $O(\log K)$ ($K$ は要素の種類数)。
+        pub fn min(&self) -> Option<&T>
+        where
+            T: Ord,
+        {
+            self.map.first_key_value().map(|(k, _)| k)
+        }
+        /// 最大の要素を返す。
+        /// 空の場合は `None` を返す。計算量は $O(\log K)$ ($K$ は要素の種類数)。
+        pub fn max(&self) -> Option<&T>
+        where
+            T: Ord,
+        {
+            self.map.last_key_value().map(|(k, _)| k)
+        }
+        /// 重複を考慮して、$n$ 番目に小さい要素を返す（0-indexed）。
+        /// $n$ が全体の要素数（`len()`）以上の場合は `None` を返す。
+        /// 計算量は $O(\log K + \min(m, K))$ ($m$ は走査したユニークな要素数、$K$ は種類数)。
+        pub fn nth_min(&self, n: usize) -> Option<&T>
+        where
+            T: Ord,
+        {
+            let mut sum = 0;
+            for (val, &cnt) in self.iter() {
+                if sum + cnt > n {
+                    return Some(val);
+                }
+                sum += cnt;
+            }
+            None
+        }
+        /// 重複を考慮して、$n$ 番目に大きい要素を返す（0-indexed）。
+        /// $n$ が全体の要素数（`len()`）以上の場合は `None` を返す。
+        /// 計算量は $O(\log K + \min(m, K))$ ($m$ は走査したユニークな要素数、$K$ は種類数)。
+        pub fn nth_max(&self, n: usize) -> Option<&T>
+        where
+            T: Ord,
+        {
+            let mut sum = 0;
+            for (val, &cnt) in self.iter().rev() {
+                if sum + cnt > n {
+                    return Some(val);
+                }
+                sum += cnt;
+            }
+            None
+        }
+        /// 指定した範囲内での最小の要素を返す。
+        /// 範囲内に要素がない場合は `None` を返す。計算量は $O(\log K)$ ($K$ は種類数)。
+        pub fn min_in_range<R>(&self, range: R) -> Option<&T>
+        where
+            T: Ord,
+            R: RangeBounds<T>,
+        {
+            self.range(range).next().map(|(k, _)| k)
+        }
+        /// 指定した範囲内での最大の要素を返す。
+        /// 範囲内に要素がない場合は `None` を返す。計算量は $O(\log K)$ ($K$ は種類数)。
+        pub fn max_in_range<R>(&self, range: R) -> Option<&T>
+        where
+            T: Ord,
+            R: RangeBounds<T>,
+        {
+            self.range(range).next_back().map(|(k, _)| k)
+        }
+        /// 指定した範囲内で、重複を考慮して $n$ 番目に小さい要素を返す（0-indexed）。
+        /// $n$ が範囲内の要素数以上の場合は `None` を返す。
+        /// 計算量は $O(\log K + \min(m, K))$ ($m$ は範囲内で走査したユニークな要素数、$K$ は種類数)。
+        pub fn nth_min_in_range<R>(&self, n: usize, range: R) -> Option<&T>
+        where
+            T: Ord,
+            R: RangeBounds<T>,
+        {
+            let mut sum = 0;
+            for (val, &cnt) in self.range(range) {
+                if sum + cnt > n {
+                    return Some(val);
+                }
+                sum += cnt;
+            }
+            None
+        }
+        /// 指定した範囲内で、重複を考慮して $n$ 番目に大きい要素を返す（0-indexed）。
+        /// $n$ が範囲内の要素数以上の場合は `None` を返す。
+        /// 計算量は $O(\log K + \min(m, K))$ ($m$ は範囲内で走査したユニークな要素数、$K$ は種類数)。
+        pub fn nth_max_in_range<R>(&self, n: usize, range: R) -> Option<&T>
+        where
+            T: Ord,
+            R: RangeBounds<T>,
+        {
+            let mut sum = 0;
+            for (val, &cnt) in self.range(range).rev() {
+                if sum + cnt > n {
+                    return Some(val);
+                }
+                sum += cnt;
+            }
+            None
+        }
+        pub fn insert(&mut self, value: T)
+        where
+            T: Ord,
+        {
+            *self.map.entry(value).or_insert(0) += 1;
+            self.length += 1;
+        }
+        pub fn remove1<Q>(&mut self, value: &Q) -> bool
+        where
+            T: Borrow<Q> + Ord,
+            Q: ?Sized + Ord,
+        {
+            if let Some(cnt) = self.map.get_mut(value) {
+                *cnt -= 1;
+                if *cnt == 0 {
+                    self.map.remove(value);
+                }
+                self.length -= 1;
+                return true;
+            }
+            false
+        }
+        pub fn remove_all<Q>(&mut self, value: &Q) -> bool
+        where
+            T: Borrow<Q> + Ord,
+            Q: ?Sized + Ord,
+        {
+            if let Some(cnt) = self.map.get(value) {
+                self.length -= cnt;
+                self.map.remove(value);
+                return true;
+            }
+            false
+        }
+        pub fn len(&self) -> usize {
+            self.length
+        }
+        pub fn set_len(&self) -> usize {
+            self.map.len()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.length == 0
+        }
+        pub fn count<Q>(&self, value: &Q) -> usize
+        where
+            T: Borrow<Q> + Ord,
+            Q: ?Sized + Ord,
+        {
+            self.map.get(value).copied().unwrap_or(0)
+        }
+        pub fn contains<Q>(&self, value: &Q) -> bool
+        where
+            T: Borrow<Q> + Ord,
+            Q: ?Sized + Ord,
+        {
+            self.map.contains_key(value)
+        }
+    }
+    impl<T: Ord> FromIterator<T> for BTreeMultiSet<T> {
+        fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> BTreeMultiSet<T> {
+            let mut set = BTreeMultiSet::new();
+            for x in iter {
+                set.insert(x);
+            }
+            set
+        }
+    }
+}

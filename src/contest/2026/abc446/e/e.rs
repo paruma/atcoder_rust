@@ -2,10 +2,46 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        m: usize,
+        a: usize,
+        b: usize,
     }
-    let ans: i64 = -2_i64;
+
+    let mut adj: Vec<Vec<Vec<(usize, usize)>>> = vec![vec![vec![]; m]; m];
+
+    for x in 0..m {
+        for y in 0..m {
+            // (x, y) → (y, a*y + b*x)
+            let next_x = y;
+            let next_y = (a * y + b * x) % m;
+
+            // (next_x, next_y) → (x,y) の辺を貼る
+            adj[next_x][next_y].push((x, y));
+        }
+    }
+
+    let mut visited = vec![vec![false; m]; m];
+    let mut open: Queue<(usize, usize)> = Queue::new();
+    open.push((0, 0));
+    visited[0][0] = true;
+    for x in 1..m {
+        open.push((x, 0));
+        visited[x][0] = true;
+    }
+    for y in 1..m {
+        open.push((0, y));
+        visited[0][y] = true;
+    }
+    while let Some((cur_x, cur_y)) = open.pop() {
+        for &(next_x, next_y) in &adj[cur_x][cur_y] {
+            if !visited[next_x][next_y] {
+                visited[next_x][next_y] = true;
+                open.push((next_x, next_y));
+            }
+        }
+    }
+
+    let ans: i64 = visited.iter().flatten().copied().filter(|p| !*p).count() as i64;
     println!("{}", ans);
 }
 
@@ -136,3 +172,38 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use mod_queue::*;
+pub mod mod_queue {
+    use std::collections::VecDeque;
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct Queue<T> {
+        raw: VecDeque<T>,
+    }
+    impl<T> Queue<T> {
+        pub fn new() -> Self {
+            Queue {
+                raw: VecDeque::new(),
+            }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push_back(value)
+        }
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop_front()
+        }
+        pub fn peek(&self) -> Option<&T> {
+            self.raw.front()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.raw.is_empty()
+        }
+        pub fn len(&self) -> usize {
+            self.raw.len()
+        }
+    }
+    impl<T> Default for Queue<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+}

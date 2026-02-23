@@ -2,11 +2,58 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        nv: usize,
+        ne: usize,
+        es: [(Usize1, Usize1); ne],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    let adj = es
+        .iter()
+        .copied()
+        .fold(vec![vec![]; nv], |mut acc, (from, to)| {
+            acc[from].push(to);
+            acc
+        });
+
+    let mut removed_vs: HashSet<usize> = HashSet::new();
+    let mut ans: Vec<Option<usize>> = vec![];
+    let mut visited = vec![false; nv];
+    let mut visited_cnt = 0;
+    for k in 0..nv {
+        removed_vs.remove(&k);
+
+        let mut open: Queue<usize> = Queue::new();
+        open.push(k);
+        visited[k] = true;
+        visited_cnt += 1;
+
+        while let Some(current) = open.pop() {
+            for &to in &adj[current] {
+                if !visited[to] {
+                    if to > k {
+                        removed_vs.insert(to);
+                    } else {
+                        visited[to] = true;
+                        visited_cnt += 1;
+                        open.push(to);
+                    }
+                }
+            }
+        }
+
+        if visited_cnt == k + 1 {
+            ans.push(Some(removed_vs.len()));
+        } else {
+            ans.push(None);
+        }
+    }
+    for x in &ans {
+        if let Some(x) = x {
+            println!("{}", x);
+        } else {
+            println!("{}", -1);
+        }
+    }
 }
 
 #[cfg(test)]
@@ -136,3 +183,38 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use mod_queue::*;
+pub mod mod_queue {
+    use std::collections::VecDeque;
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct Queue<T> {
+        raw: VecDeque<T>,
+    }
+    impl<T> Queue<T> {
+        pub fn new() -> Self {
+            Queue {
+                raw: VecDeque::new(),
+            }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push_back(value)
+        }
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop_front()
+        }
+        pub fn peek(&self) -> Option<&T> {
+            self.raw.front()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.raw.is_empty()
+        }
+        pub fn len(&self) -> usize {
+            self.raw.len()
+        }
+    }
+    impl<T> Default for Queue<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+}
