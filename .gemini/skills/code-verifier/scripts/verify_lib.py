@@ -108,16 +108,109 @@ def verify_unit_tests(module_path: str) -> StepResult:
     return StepResult(name, VerificationStatus.FAIL, "", output)
 
 
+def normalize_module_path(path: str) -> str:
+    """ファイルパス（src/mylib/...）をモジュールパス（...::...）に変換する。
+    既にモジュールパス形式の場合はそのまま返す。
+    """
+    if "::" in path:
+        return path
+
+    # パスを正規化
+    p = Path(path)
+    if not p.exists():
+        return path  # 存在しない場合はそのまま返す（エラーは呼び出し側で処理）
+
+    # src/mylib からの相対パスを取得
+    try:
+        # プロジェクトルートからの相対パスかチェック
+        if p.is_absolute():
+            rel_p = p.relative_to(Path.cwd() / "src/mylib")
+        else:
+            # 相対パスの場合、src/mylib からの相対パスか、ルートからの相対パスか判断
+            if str(p).startswith("src/mylib/"):
+                rel_p = p.relative_to("src/mylib")
+            else:
+                rel_p = p
+    except ValueError:
+        return path
+
+    # 拡張子を除去し、mod.rs なら親ディレクトリ名を、それ以外ならファイル名をモジュール名とする
+    parts = list(rel_p.parts)
+    if parts[-1] == "mod.rs":
+        parts.pop()
+    elif parts[-1].endswith(".rs"):
+        parts[-1] = parts[-1][:-3]
+
+    return "::".join(parts)
+
+
+def get_source_context(file_path: str, missed_lines: str) -> str:
+    """未実行行とその周辺のソースコードを取得する。
+    missed_lines は "10, 15-20" のような形式を想定。
+    """
+    if not missed_lines or missed_lines == "0":
+        return ""
+
+    try:
+        with open(file_path, "r") as f:
+            lines = f.readlines()
+    except Exception as e:
+        return f"   [Error reading source: {e}]"
+
+    # 行番号をリストに変換
+    targets = set()
+    for part in missed_lines.split(","):
+        part = part.strip()
+        if "-" in part:
+            start, end = map(int, part.split("-"))
+            for i in range(start, end + 1):
+                targets.add(i)
+        else:
+            try:
+                targets.add(int(part))
+            except ValueError:
+                continue
+
+    if not targets:
+        return ""
+
+    output = ["   --- Missed Lines Context ---"]
+    sorted_targets = sorted(list(targets))
+
+    # 連続する行をグループ化して表示
+    processed = set()
+    for t in sorted_targets:
+        if t in processed:
+            continue
+
+        # 前後2行のコンテキストを表示
+        start_view = max(1, t - 2)
+        end_view = min(len(lines), t + 2)
+
+        # 直前のグループとの境界線
+        if output[-1] != "   --- Missed Lines Context ---":
+            output.append("   ...")
+
+        for i in range(start_view, end_view + 1):
+            marker = ">>" if i in targets else "  "
+            line_content = lines[i - 1].rstrip()
+            output.append(f"   {marker} {i:4}: {line_content}")
+            if i in targets:
+                processed.add(i)
+
+    return "\n".join(output)
+
+
 def verify_coverage(module_path: str) -> StepResult:
     """
     カバレッジを計測し、指定されたモジュールに関連する結果のみを表示・抽出する。
 
-    1. cargo llvm-cov を実行してプロジェクト全ファイルのカバレッジを取得。
-    2. 出力結果から、指定されたモジュールパス（例: a::b）に関連するファイル行だけを抽出。
-    3. 抽出した結果から、そのモジュールの代表ファイル（a/b.rs 等）のカバレッジ率を確認。
+    1. cargo llvm-cov を実行してカバレッジを取得。
+    2. 出力結果から、指定されたモジュールパスに関連するファイル行だけを抽出して表示（ノイズ削減）。
+    3. 未実行行がある場合、該当するソースコードのコンテキストを表示。
     """
     name = "Coverage"
-    # 全量が出ると見づらいため、結果をキャプチャしてフィルタリングする
+    # llvm-cov を実行
     ok, output = run_command(
         [
             "cargo",
@@ -143,44 +236,126 @@ def verify_coverage(module_path: str) -> StepResult:
     target_basename = module_path.split("::")[-1]
 
     lines = output.splitlines()
-    # ヘッダー行を保持
-    header_lines = [
-        line for line in lines if line.startswith("Filename") or line.startswith("---")
-    ]
-    # パス断片が含まれる行（データ行）を抽出
-    data_lines = [
-        line for line in lines if path_fragment in line and not line.startswith("TOTAL")
-    ]
+    header_lines = []
+    data_lines = []
+
+    # ヘッダーとターゲット行を抽出
+    in_summary = False
+    for line in lines:
+        if line.startswith("Filename"):
+            in_summary = True
+            header_lines.append(line)
+            continue
+        if in_summary:
+            if line.startswith("---"):
+                header_lines.append(line)
+                continue
+            if line.startswith("TOTAL"):
+                # TOTAL 行も一応保持するが、後で表示するか決める
+                continue
+            if path_fragment in line:
+                data_lines.append(line)
+                continue
+            if not line.strip():
+                in_summary = False
+                continue
 
     if not data_lines:
         msg = f"Could not find specific coverage data for {module_path} in the report."
         print(f"\n⚠️ {msg}")
         return StepResult(name, VerificationStatus.WARN, msg, "")
 
-    # 抽出された関連ファイルの結果を画面に表示
-    print("\n".join(header_lines + data_lines))
+    # 出力を表示（ノイズを排除したサマリー）
+    filtered_summary = "\n".join(header_lines + data_lines)
+    print("\n" + filtered_summary)
 
-    # モジュールの代表ファイル（ディレクトリ名.rs または ディレクトリ名/mod.rs）のカバレッジ概要を特定
-    target_patterns = [
-        f"{path_fragment}.rs",
-        f"{path_fragment}/mod.rs",
-    ]
-    summary_msg = ""
+    # 詳細なカバレッジ判定とソースコード提示
+    summary_msg_parts: list[str] = []
     status = VerificationStatus.PASS
+    context_outputs: list[str] = []
+
+    # 出力全体から "path/to/file.rs: 1, 2, 3" のような形式を探す
+    missed_lines_map: dict[str, str] = {}
+    for line in lines:
+        if ":" in line and not line.startswith("  "):
+            # /path/to/src/mylib/algorithm/math.rs: 10, 15-20 形式を想定
+            parts = line.split(":", 1)
+            if len(parts) == 2:
+                fpath = parts[0].strip()
+                m_lines = parts[1].strip()
+                if not fpath.endswith(".rs"):
+                    continue
+                # 代表ファイル名 (例: algorithm/math.rs) に変換してマッチング
+                for d_line in data_lines:
+                    target_file = d_line.split()[0]
+                    if fpath.endswith(target_file):
+                        missed_lines_map[target_file] = m_lines
 
     for line in data_lines:
-        if any(pattern in line for pattern in target_patterns):
-            # 行内から数値（%表示）をすべて抽出
-            if percentages := re.findall(r"(\d+\.\d+)%", line):
-                # 100% でない項目があればサマリーに表示するメッセージを作成
-                if any(p != "100.00" for p in percentages):
-                    summary_msg = (
-                        f"{target_basename}.rs coverage summary: {percentages}"
-                    )
-                    status = VerificationStatus.WARN
-            break  # 最初に見つかった代表ファイルで判定終了
+        cols = line.split()
+        if len(cols) < 5:
+            continue
 
-    return StepResult(name, status, summary_msg, output)
+        filename = cols[0]
+        # ファイル名が期待するもの（target_basename）を含むかチェックする等の用途に使えるが、
+        # 現状は filename をそのまま使用。ruff 指摘に基づき target_basename を消すか活用するか判断。
+        # ここではサマリーの可読性のため活用する。
+        display_name = (
+            target_basename if filename.endswith(f"{target_basename}.rs") else filename
+        )
+
+        # 行内から全ての百分率を抽出
+        percentages = re.findall(r"(\d+\.\d+)%", line)
+        if not percentages:
+            continue
+
+        # 最後の百分率を Lines Coverage とみなす
+        coverage_pct = percentages[-1]
+
+        # Missed Lines Count を取得 (通常、Lines % の1つ前)
+        pct_indices = [i for i, col in enumerate(cols) if "%" in col]
+        missed_count = "0"
+        if len(pct_indices) >= 3:
+            lines_pct_idx = pct_indices[-1]
+            if lines_pct_idx > 0:
+                missed_count = cols[lines_pct_idx - 1]
+
+        # 行番号リストを取得 (Mapから優先、なければ行末から)
+        missed_lines_str = missed_lines_map.get(filename)
+        if not missed_lines_str:
+            # テーブル形式の末尾にあるかチェック (件数と等しい場合は件数とみなす)
+            missed_lines_candidate = cols[-1]
+            if (
+                "%" not in missed_lines_candidate
+                and any(c.isdigit() for c in missed_lines_candidate)
+                and missed_lines_candidate != missed_count
+            ):
+                missed_lines_str = missed_lines_candidate
+            else:
+                missed_lines_str = "0"
+
+        if coverage_pct != "100.00":
+            status = VerificationStatus.WARN
+            summary_msg_parts.append(f"{display_name}: {coverage_pct}%")
+
+            # ソースコードのコンテキストを取得
+            actual_file_path = os.path.join("src/mylib", filename)
+            if context := get_source_context(actual_file_path, missed_lines_str):
+                context_outputs.append(f"File: {filename}\n{context}")
+            else:
+                # 行番号が不明な場合は件数のみ表示
+                msg = f"File: {filename}\n   [Missed Lines: {missed_count} (specific line numbers not found in report)]"
+                context_outputs.append(msg)
+
+    summary_msg = (
+        "Coverage: " + ", ".join(summary_msg_parts) if summary_msg_parts else ""
+    )
+    full_output = filtered_summary + "\n\n" + "\n".join(context_outputs)
+
+    if context_outputs:
+        print("\n" + "\n".join(context_outputs))
+
+    return StepResult(name, status, summary_msg, full_output)
 
 
 def verify_static_analysis() -> list[StepResult]:
@@ -190,7 +365,9 @@ def verify_static_analysis() -> list[StepResult]:
     # Format
     ok, _ = run_command(["cargo", "fmt"])
     results.append(
-        StepResult("Format", VerificationStatus.PASS if ok else VerificationStatus.FAIL)
+        StepResult(
+            "Format", VerificationStatus.PASS if ok else VerificationStatus.FAIL, ""
+        )
     )
 
     # Clippy
@@ -240,16 +417,25 @@ def record_status(module_path: str, no_status: bool) -> None:
 
 def main():
     parser = argparse.ArgumentParser(description="Unified library verification script.")
-    parser.add_argument("module_path")
+    parser.add_argument(
+        "module_path",
+        help="Module path (e.g. math::gcd) or file path (e.g. src/mylib/math/gcd.rs)",
+    )
     parser.add_argument("--skip-cov", action="store_true")
     parser.add_argument("--no-status", action="store_true")
 
     args = parser.parse_args()
+
+    # パスを正規化 (file path -> module path)
+    normalized_path = normalize_module_path(args.module_path)
+    if normalized_path != args.module_path:
+        print(f"Normalized path: {args.module_path} -> {normalized_path}")
+
     report = VerificationReport()
 
     # 1. Test
     print("\n>>> Step: Test")
-    test_res = verify_unit_tests(args.module_path)
+    test_res = verify_unit_tests(normalized_path)
     report.add(test_res)
     if test_res.status == VerificationStatus.FAIL:
         print(f"\n❌ Test failed:\n{test_res.output}")
@@ -257,7 +443,7 @@ def main():
     # 2. Coverage
     if not args.skip_cov:
         print("\n>>> Step: Coverage")
-        cov_res = verify_coverage(args.module_path)
+        cov_res = verify_coverage(normalized_path)
         report.add(cov_res)
         if cov_res.status == VerificationStatus.FAIL:
             print(f"\n❌ Coverage check failed:\n{cov_res.output}")
@@ -276,7 +462,7 @@ def main():
     report.print_summary()
 
     if not report.has_failure:
-        record_status(args.module_path, args.no_status)
+        record_status(normalized_path, args.no_status)
     else:
         sys.exit(1)
 

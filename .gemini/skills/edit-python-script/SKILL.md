@@ -1,6 +1,6 @@
 ---
 name: edit-python-script
-description: Python スクリプト（ツール、ユーティリティ）の作成・修正・リファクタリングを行うためのスキル。プロジェクトの品質基準（argparse, PEP 723, 型ヒント, ruff）を遵守し、保守性の高いコードを保証する。
+description: Python スクリプト（.py）の作成・修正・リファクタリングを行うための専門スキル。Python ファイルを編集・作成する際に発動すること。
 ---
 
 # Edit Python Script

@@ -16,14 +16,16 @@ description: src/mylib 配下の Rust ライブラリ編集時に、テスト・
 何らかの修正（ロジックの変更、コメントの修正、テストの追加）を行った後、統合検証スクリプトを実行してください。
 
 1.  **統合検証スクリプトの実行**
-    - コマンド: `python3 .gemini/skills/code-verifier/scripts/verify_lib.py <モジュールパス>`
-    - 例: `python3 .gemini/skills/code-verifier/scripts/verify_lib.py data_structure::segtree_lib::lazy_segtree`
+    - コマンド: `python3 .gemini/skills/code-verifier/scripts/verify_lib.py <モジュールパス または ファイルパス>`
+    - 例 (モジュールパス): `python3 .gemini/skills/code-verifier/scripts/verify_lib.py data_structure::segtree_lib::lazy_segtree`
+    - 例 (ファイルパス): `python3 .gemini/skills/code-verifier/scripts/verify_lib.py src/mylib/data_structure/segtree_lib/lazy_segtree.rs`
+    - **Note**: ファイルパスを指定すると自動的に内部でモジュールパスに変換されます。
 
 2.  **スクリプトによる検証内容**
     スクリプトは以下の項目を全て実行し、最後に結果をまとめて報告します。
-    - **Unit Tests**: 指定されたモジュールのテストを実行し、全てパスするか。
-    - **Coverage**: 行・関数カバレッジを測定します（100.00%を推奨しますが、異常系等の未実行は許容されます）。
-    - **Format**: `cargo fmt` によるフォーマットが適用されているか。
+    - **Unit Tests**: 指定されたモジュールのテストを実行。
+    - **Coverage**: 行カバレッジを測定。**100%でない場合、未実行行のソースコードが前後2行のコンテキスト付きで直接表示されます**。これを見て不足しているテストケースを特定してください。
+    - **Format**: `cargo fmt` を実行し、コードを自動整形します。
     - **Clippy**: `cargo clippy` の警告（`-D warnings`）がないか。
     - **Snippet Consistency**: `snippet_linter` による整合性チェック。
 
