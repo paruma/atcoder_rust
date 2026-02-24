@@ -22,12 +22,19 @@ pub mod btree_multiset {
     }
 
     impl<T> BTreeMultiSet<T> {
+        /// 新しい空のマルチセットを作成する。
+        ///
+        /// 計算量は $O(1)$。
         pub const fn new() -> BTreeMultiSet<T> {
             BTreeMultiSet {
                 map: BTreeMap::new(),
                 length: 0,
             }
         }
+
+        /// 指定した範囲の要素とその個数のイテレータを返す。
+        ///
+        /// 計算量は $O(\log K)$ ($K$ は種類数)。
         pub fn range<R>(&self, range: R) -> Range<'_, T, usize>
         where
             T: Ord,
@@ -45,7 +52,7 @@ pub mod btree_multiset {
 
         /// 最小の要素を返す。
         ///
-        /// 空の場合は `None` を返す。計算量は $O(\log K)$ ($K$ は要素の種類数)。
+        /// 空の場合は `None` を返す。計算量は $O(\log K)$ ($K$ は種類数)。
         pub fn min(&self) -> Option<&T>
         where
             T: Ord,
@@ -55,7 +62,7 @@ pub mod btree_multiset {
 
         /// 最大の要素を返す。
         ///
-        /// 空の場合は `None` を返す。計算量は $O(\log K)$ ($K$ は要素の種類数)。
+        /// 空の場合は `None` を返す。計算量は $O(\log K)$ ($K$ は種類数)。
         pub fn max(&self) -> Option<&T>
         where
             T: Ord,
@@ -159,6 +166,9 @@ pub mod btree_multiset {
             None
         }
 
+        /// 要素を1つ追加する。
+        ///
+        /// 計算量は $O(\log K)$ ($K$ は種類数)。
         pub fn insert(&mut self, value: T)
         where
             T: Ord,
@@ -167,6 +177,24 @@ pub mod btree_multiset {
             self.length += 1;
         }
 
+        /// 要素を指定した個数分追加する。
+        ///
+        /// 計算量は $O(\log K)$ ($K$ は種類数)。
+        pub fn insert_many(&mut self, value: T, count: usize)
+        where
+            T: Ord,
+        {
+            if count == 0 {
+                return;
+            }
+            *self.map.entry(value).or_insert(0) += count;
+            self.length += count;
+        }
+
+        /// 要素を1つ削除する。
+        ///
+        /// 要素が存在した場合は `true`、存在しなかった場合は `false` を返す。
+        /// 計算量は $O(\log K)$ ($K$ は種類数)。
         pub fn remove1<Q>(&mut self, value: &Q) -> bool
         where
             T: Borrow<Q> + Ord,
@@ -183,6 +211,34 @@ pub mod btree_multiset {
             false
         }
 
+        /// 要素を最大 `count` 個削除する。
+        ///
+        /// 実際に削除した個数を返す。計算量は $O(\log K)$ ($K$ は種類数)。
+        pub fn remove_up_to<Q>(&mut self, value: &Q, count: usize) -> usize
+        where
+            T: Borrow<Q> + Ord,
+            Q: ?Sized + Ord,
+        {
+            if count == 0 {
+                return 0;
+            }
+            if let Some(cnt) = self.map.get_mut(value) {
+                let removed = (*cnt).min(count);
+                *cnt -= removed;
+                if *cnt == 0 {
+                    self.map.remove(value);
+                }
+                self.length -= removed;
+                removed
+            } else {
+                0
+            }
+        }
+
+        /// 指定した要素をすべて削除する。
+        ///
+        /// 要素が存在した場合は `true`、存在しなかった場合は `false` を返す。
+        /// 計算量は $O(\log K)$ ($K$ は種類数)。
         pub fn remove_all<Q>(&mut self, value: &Q) -> bool
         where
             T: Borrow<Q> + Ord,
@@ -196,18 +252,74 @@ pub mod btree_multiset {
             false
         }
 
+        /// 最小の要素を1つ取り出して削除する。
+        ///
+        /// 空の場合は `None` を返す。計算量は $O(\log K)$ ($K$ は種類数)。
+        pub fn pop_min(&mut self) -> Option<T>
+        where
+            T: Ord + Clone,
+        {
+            let mut entry = self.map.first_entry()?;
+            self.length -= 1;
+            if *entry.get() > 1 {
+                *entry.get_mut() -= 1;
+                Some(entry.key().clone())
+            } else {
+                let (key, _) = entry.remove_entry();
+                Some(key)
+            }
+        }
+
+        /// 最大の要素を1つ取り出して削除する。
+        ///
+        /// 空の場合は `None` を返す。計算量は $O(\log K)$ ($K$ は種類数)。
+        pub fn pop_max(&mut self) -> Option<T>
+        where
+            T: Ord + Clone,
+        {
+            let mut entry = self.map.last_entry()?;
+            self.length -= 1;
+            if *entry.get() > 1 {
+                *entry.get_mut() -= 1;
+                Some(entry.key().clone())
+            } else {
+                let (key, _) = entry.remove_entry();
+                Some(key)
+            }
+        }
+
+        /// マルチセットの全要素を削除し、空にする。
+        ///
+        /// 計算量は $O(N)$ ($N$ は要素の種類数)。
+        pub fn clear(&mut self) {
+            self.map.clear();
+            self.length = 0;
+        }
+
+        /// マルチセットに含まれる全要素数（重複を含む）を返す。
+        ///
+        /// 計算量は $O(1)$。
         pub fn len(&self) -> usize {
             self.length
         }
 
+        /// マルチセットに含まれるユニークな要素の種類数を返す。
+        ///
+        /// 計算量は $O(1)$。
         pub fn set_len(&self) -> usize {
             self.map.len()
         }
 
+        /// マルチセットが空かどうかを返す。
+        ///
+        /// 計算量は $O(1)$。
         pub fn is_empty(&self) -> bool {
             self.length == 0
         }
 
+        /// 指定した要素の個数を返す。
+        ///
+        /// 計算量は $O(\log K)$ ($K$ は種類数)。
         pub fn count<Q>(&self, value: &Q) -> usize
         where
             T: Borrow<Q> + Ord,
@@ -216,12 +328,26 @@ pub mod btree_multiset {
             self.map.get(value).copied().unwrap_or(0)
         }
 
+        /// 指定した要素が含まれているかを返す。
+        ///
+        /// 計算量は $O(\log K)$ ($K$ は種類数)。
         pub fn contains<Q>(&self, value: &Q) -> bool
         where
             T: Borrow<Q> + Ord,
             Q: ?Sized + Ord,
         {
             self.map.contains_key(value)
+        }
+
+        /// 指定した範囲内に要素が含まれているかを返す。
+        ///
+        /// 計算量は $O(\log K)$ ($K$ は種類数)。
+        pub fn contains_in_range<R>(&self, range: R) -> bool
+        where
+            T: Ord,
+            R: RangeBounds<T>,
+        {
+            self.range(range).next().is_some()
         }
     }
     impl<T: Ord> FromIterator<T> for BTreeMultiSet<T> {
@@ -479,5 +605,106 @@ mod tests {
         set.insert(0);
         assert!(set.contains(&-1));
         assert!(set.contains(&0));
+    }
+
+    #[test]
+    fn test_insert_many() {
+        let mut set = BTreeMultiSet::new();
+        set.insert_many(1, 3);
+        assert_eq!(set.len(), 3);
+        assert_eq!(set.count(&1), 3);
+
+        set.insert_many(1, 0); // 既に存在する値を 0 個追加
+        assert_eq!(set.len(), 3);
+        assert_eq!(set.count(&1), 3);
+
+        set.insert_many(2, 0); // 存在しない値を 0 個追加（種類数が増えないことを確認）
+        assert_eq!(set.len(), 3);
+        assert_eq!(set.set_len(), 1);
+        assert_eq!(set.count(&2), 0);
+
+        set.insert_many(2, 2);
+        assert_eq!(set.len(), 5);
+        assert_eq!(set.count(&2), 2);
+    }
+
+    #[test]
+    fn test_remove_up_to() {
+        let mut set: BTreeMultiSet<_> = vec![1, 1, 1, 2, 2].into_iter().collect();
+
+        assert_eq!(set.remove_up_to(&1, 2), 2);
+        assert_eq!(set.len(), 3);
+        assert_eq!(set.count(&1), 1);
+
+        assert_eq!(set.remove_up_to(&1, 5), 1);
+        assert_eq!(set.len(), 2);
+        assert_eq!(set.count(&1), 0);
+        assert!(!set.contains(&1));
+
+        assert_eq!(set.remove_up_to(&3, 1), 0);
+        assert_eq!(set.remove_up_to(&2, 0), 0);
+        assert_eq!(set.remove_up_to(&3, 0), 0); // 存在しない値を 0 個削除
+        assert_eq!(set.len(), 2);
+        assert_eq!(set.set_len(), 1);
+    }
+
+    #[test]
+    fn test_pop_min_max() {
+        let mut set: BTreeMultiSet<_> = vec![10, 10, 20, 30, 30].into_iter().collect();
+
+        assert_eq!(set.pop_min(), Some(10));
+        assert_eq!(set.len(), 4);
+        assert_eq!(set.count(&10), 1);
+
+        assert_eq!(set.pop_max(), Some(30));
+        assert_eq!(set.len(), 3);
+        assert_eq!(set.count(&30), 1);
+
+        assert_eq!(set.pop_max(), Some(30));
+        assert_eq!(set.len(), 2);
+        assert_eq!(set.count(&30), 0);
+
+        assert_eq!(set.pop_min(), Some(10));
+        assert_eq!(set.pop_min(), Some(20));
+        assert_eq!(set.pop_min(), None);
+        assert_eq!(set.pop_max(), None);
+        assert!(set.is_empty());
+    }
+
+    #[test]
+    fn test_contains_in_range() {
+        let set: BTreeMultiSet<_> = vec![10, 20, 30].into_iter().collect();
+
+        // 存在する要素を含む範囲
+        assert!(set.contains_in_range(15..25));
+        assert!(set.contains_in_range(..15));
+        assert!(set.contains_in_range(25..));
+        assert!(set.contains_in_range(10..=10));
+        assert!(set.contains_in_range(30..=30));
+
+        // 存在しない要素の範囲
+        assert!(!set.contains_in_range(35..45));
+        assert!(!set.contains_in_range(5..10)); // 10 は exclusive end
+        assert!(!set.contains_in_range(10..10)); // 空の範囲
+        assert!(!set.contains_in_range(30..30)); // 空の範囲
+
+        // Excluded 境界
+        use std::ops::Bound::*;
+        assert!(set.contains_in_range((Excluded(10), Unbounded))); // 20, 30 が含まれる
+        assert!(!set.contains_in_range((Excluded(30), Unbounded))); // 30 より大きい要素はない
+        assert!(!set.contains_in_range((Excluded(10), Excluded(20)))); // 10 と 20 の間には要素がない
+
+        let empty_set: BTreeMultiSet<i32> = BTreeMultiSet::new();
+        assert!(!empty_set.contains_in_range(..));
+    }
+
+    #[test]
+    fn test_clear() {
+        let mut set: BTreeMultiSet<_> = vec![1, 2, 3].into_iter().collect();
+        set.clear();
+        assert!(set.is_empty());
+        assert_eq!(set.len(), 0);
+        assert_eq!(set.set_len(), 0);
+        assert!(!set.contains(&1));
     }
 }
