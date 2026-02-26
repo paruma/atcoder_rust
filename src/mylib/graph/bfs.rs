@@ -206,7 +206,7 @@ pub mod bfs {
 
 use crate::data_structure::ix::{Bounds, Ix, IxVec};
 
-#[snippet(prefix = "use bfs_ix::*;")]
+#[snippet(prefix = "use bfs_ix::*;", include = "bfs")]
 pub mod bfs_ix {
     use super::bfs::{bfs, bfs_order, bfs_reachable, bfs_with_restore};
     use super::{Bounds, Ix, IxVec};

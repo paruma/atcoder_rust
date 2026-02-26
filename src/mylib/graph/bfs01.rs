@@ -131,7 +131,7 @@ pub mod bfs01 {
     }
 }
 
-#[snippet(prefix = "use bfs01_ix::*;")]
+#[snippet(prefix = "use bfs01_ix::*;", include = "bfs01")]
 pub mod bfs01_ix {
     use super::bfs01::{bfs01, bfs01_with_restore};
     use super::{Bounds, Ix, IxVec};

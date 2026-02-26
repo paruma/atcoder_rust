@@ -126,7 +126,7 @@ pub mod dijkstra {
     }
 }
 
-#[snippet(prefix = "use dijkstra_ix::*;")]
+#[snippet(prefix = "use dijkstra_ix::*;", include = "dijkstra")]
 pub mod dijkstra_ix {
     use super::dijkstra::{dijkstra, dijkstra_with_restore};
     use super::{Bounds, Ix, IxVec};

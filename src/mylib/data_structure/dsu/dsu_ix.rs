@@ -3,7 +3,7 @@ use crate::data_structure::ix::{Bounds, Ix};
 use cargo_snippet::snippet;
 
 #[allow(clippy::module_inception)]
-#[snippet(prefix = "use dsu_ix::*;")]
+#[snippet(prefix = "use dsu_ix::*;", include = "dsu_core")]
 pub mod dsu_ix {
     use super::DsuCore;
     use super::{Bounds, Ix};

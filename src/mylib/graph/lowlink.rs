@@ -149,7 +149,7 @@ pub mod lowlink {
     }
 }
 
-#[snippet(prefix = "use lowlink_ix::*;")]
+#[snippet(prefix = "use lowlink_ix::*;", include = "lowlink")]
 pub mod lowlink_ix {
     use super::lowlink::LowLink;
     use super::{Bounds, Ix, IxVec};
