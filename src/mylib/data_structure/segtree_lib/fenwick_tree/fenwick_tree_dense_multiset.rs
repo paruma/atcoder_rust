@@ -311,16 +311,24 @@ pub mod fenwick_tree_dense_multiset {
             }
         }
 
+        /// 指定された範囲内の要素数（重複を含む）を返します。
+        ///
+        /// # 計算量
+        /// $O(\log N)$ ($N$ は `size`)
+        pub fn count_in_range<R: RangeBounds<usize>>(&self, range: R) -> usize {
+            let (l, r) = self.resolve_range(range);
+            if l >= r {
+                return 0;
+            }
+            self.ft.range_sum(l..r) as usize
+        }
+
         /// 指定した範囲内に要素が含まれているかを返します。
         ///
         /// # 計算量
         /// $O(\log N)$ ($N$ は `size`)
         pub fn contains_in_range<R: RangeBounds<usize>>(&self, range: R) -> bool {
-            let (l, r) = self.resolve_range(range);
-            if l >= r {
-                return false;
-            }
-            self.ft.range_sum(l..r) > 0
+            self.count_in_range(range) > 0
         }
     }
 
@@ -525,6 +533,10 @@ mod tests {
         assert_eq!(ms.nth_max_in_range(0, 6..16), Some(15));
         assert_eq!(ms.nth_max_in_range(2, 6..16), Some(10));
 
+        assert_eq!(ms.count_in_range(6..16), 5);
+        assert_eq!(ms.count_in_range(11..15), 0);
+        assert_eq!(ms.count_in_range(..), 7);
+
         assert!(ms.contains_in_range(14..16));
         assert!(!ms.contains_in_range(11..15));
 
@@ -669,6 +681,10 @@ mod tests {
                     assert_eq!(
                         ft_ms.max_in_range(range.clone()),
                         bt_ms.max_in_range(range.clone()).copied()
+                    );
+                    assert_eq!(
+                        ft_ms.count_in_range(range.clone()),
+                        bt_ms.range(range.clone()).map(|(_, &c)| c).sum::<usize>()
                     );
                     assert_eq!(
                         ft_ms.contains_in_range(range.clone()),

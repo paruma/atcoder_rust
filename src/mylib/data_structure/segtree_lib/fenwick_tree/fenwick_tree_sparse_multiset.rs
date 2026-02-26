@@ -338,16 +338,24 @@ pub mod fenwick_tree_sparse_multiset {
             }
         }
 
+        /// 指定された範囲内の要素数（重複を含む）を返します。
+        ///
+        /// # 計算量
+        /// $O(\log N)$ ($N$ は一意な要素数)
+        pub fn count_in_range<R: RangeBounds<i64>>(&self, range: R) -> usize {
+            let r_idx = self.cc.compress_range(range);
+            if r_idx.start >= r_idx.end {
+                return 0;
+            }
+            self.ft.range_sum(r_idx.start..r_idx.end) as usize
+        }
+
         /// 指定した範囲内に要素が含まれているかを返します。
         ///
         /// # 計算量
         /// $O(\log N)$ ($N$ は一意な要素数)
         pub fn contains_in_range<R: RangeBounds<i64>>(&self, range: R) -> bool {
-            let r_idx = self.cc.compress_range(range);
-            if r_idx.start >= r_idx.end {
-                return false;
-            }
-            self.ft.range_sum(r_idx.start..r_idx.end) > 0
+            self.count_in_range(range) > 0
         }
     }
 
@@ -583,6 +591,11 @@ mod tests {
         assert_eq!(ms.max_in_range(15..45), Some(40));
         assert_eq!(ms.nth_min_in_range(1, 15..45), Some(30));
         assert_eq!(ms.nth_max_in_range(1, 15..45), Some(30));
+
+        assert_eq!(ms.count_in_range(15..45), 3);
+        assert_eq!(ms.count_in_range(15..20), 0);
+        assert_eq!(ms.count_in_range(..), 5);
+
         assert!(ms.contains_in_range(15..25));
         assert!(!ms.contains_in_range(15..20));
 
@@ -719,6 +732,10 @@ mod tests {
                     assert_eq!(
                         ft_ms.max_in_range(range.clone()),
                         bt_ms.max_in_range(range.clone()).copied()
+                    );
+                    assert_eq!(
+                        ft_ms.count_in_range(range.clone()),
+                        bt_ms.range(range.clone()).map(|(_, &c)| c).sum::<usize>()
                     );
                     assert_eq!(
                         ft_ms.contains_in_range(range.clone()),
