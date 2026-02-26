@@ -7,6 +7,7 @@ pub mod fenwick_tree_dense_multiset {
     /// Fenwick Tree を基盤としたマルチセット。
     ///
     /// 要素は `0` から `size - 1` までの `usize` 値に限定されます。
+    /// BTreeMultiSet と違って、任意の値を挿入することはできませんが、そのかわりk番目の値が k に依らず $O(\log N)$ で取得できます。
     #[derive(Clone, Debug)]
     pub struct FenwickTreeDenseMultiset {
         ft: InternalFenwickTree,
@@ -173,7 +174,7 @@ pub mod fenwick_tree_dense_multiset {
         /// 指定した要素の個数を返します。
         ///
         /// # 計算量
-        /// $O(\log N)$ ($N$ は `size`)
+        /// $O(1)$
         pub fn count(&self, value: usize) -> usize {
             self.ft.get(value) as usize
         }
@@ -181,7 +182,7 @@ pub mod fenwick_tree_dense_multiset {
         /// 指定した要素が含まれているかを返します。
         ///
         /// # 計算量
-        /// $O(\log N)$ ($N$ は `size`)
+        /// $O(1)$
         pub fn contains(&self, value: usize) -> bool {
             self.count(value) > 0
         }
@@ -323,18 +324,23 @@ pub mod fenwick_tree_dense_multiset {
         }
     }
 
-    /// Fenwick Tree の基本操作を提供するプライベートな補助構造体。
+    /// Fenwick Tree の基本操作を提供する補助構造体。
     ///
     /// `range_sum_fenwick_tree.rs` に準拠した実装。
     #[derive(Clone, Debug)]
     struct InternalFenwickTree {
         n: usize,
         ary: Vec<i64>,
+        vals: Vec<i64>,
     }
 
     impl InternalFenwickTree {
         fn new(n: usize) -> Self {
-            Self { n, ary: vec![0; n] }
+            Self {
+                n,
+                ary: vec![0; n],
+                vals: vec![0; n],
+            }
         }
 
         fn prefix_sum(&self, mut idx: usize) -> i64 {
@@ -348,6 +354,7 @@ pub mod fenwick_tree_dense_multiset {
 
         fn add(&mut self, mut idx: usize, val: i64) {
             assert!(idx < self.n);
+            self.vals[idx] += val;
             idx += 1;
             while idx <= self.n {
                 self.ary[idx - 1] += val;
@@ -363,7 +370,8 @@ pub mod fenwick_tree_dense_multiset {
         }
 
         fn get(&self, idx: usize) -> i64 {
-            self.range_sum(idx..idx + 1)
+            assert!(idx < self.n);
+            self.vals[idx]
         }
 
         fn max_right<F: FnMut(&i64) -> bool>(&self, l: usize, mut f: F) -> usize {
@@ -608,7 +616,7 @@ mod tests {
         let mut bt_ms = BTreeMultiSet::new();
 
         for _ in 0..2000 {
-            match rng.random_range(0..15) {
+            match rng.random_range(0..14) {
                 0 => {
                     let v = rng.random_range(0..size);
                     ft_ms.insert(v);
@@ -696,7 +704,7 @@ mod tests {
                     ft_ms.clear();
                     bt_ms.clear();
                 }
-                _ => {}
+                _ => unreachable!(),
             }
         }
     }

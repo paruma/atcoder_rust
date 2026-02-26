@@ -4,9 +4,9 @@ use cargo_snippet::snippet;
 pub mod fenwick_tree_sparse_multiset {
     use std::ops::RangeBounds;
 
-    /// Fenwick Tree を基盤とした座標圧縮マルチセット。
+    /// Fenwick Tree を基盤とした座標圧縮付きマルチセット。
     ///
-    /// 指定された初期 `entries` に含まれる `i64` 値のみを格納できます。
+    /// BTreeMultiSet と違って、`entries`` として指定した値以外を挿入することはできませんが、そのかわりk番目の値が k に依らず $O(\log N)$ で取得できます。
     #[derive(Clone, Debug)]
     pub struct FenwickTreeSparseMultiset {
         ft: InternalFenwickTree,
@@ -16,7 +16,7 @@ pub mod fenwick_tree_sparse_multiset {
     }
 
     impl FenwickTreeSparseMultiset {
-        /// 初期 `entries` に基づいて座標圧縮空間を構築し、空のマルチセットを作成します。
+        /// 構築時に指定された `entries` に基づいて座標圧縮空間を構築し、空のマルチセットを作成します。
         ///
         /// # 計算量
         /// $O(N \log N)$ ($N$ は `entries.len()`)
@@ -34,7 +34,7 @@ pub mod fenwick_tree_sparse_multiset {
         /// 指定した値を追加します。
         ///
         /// # Panics
-        /// 初期 `entries` に含まれない値が渡された場合にパニックします。
+        /// 構築時に指定された `entries` に含まれない値が渡された場合にパニックします。
         ///
         /// # 計算量
         /// $O(\log N)$ ($N$ は一意な要素数)
@@ -45,7 +45,7 @@ pub mod fenwick_tree_sparse_multiset {
         /// 指定した値を `count` 個追加します。
         ///
         /// # Panics
-        /// 初期 `entries` に含まれない値が渡された場合にパニックします。
+        /// 構築時に指定された `entries` に含まれない値が渡された場合にパニックします。
         ///
         /// # 計算量
         /// $O(\log N)$ ($N$ は一意な要素数)
@@ -66,7 +66,7 @@ pub mod fenwick_tree_sparse_multiset {
         /// 要素が存在した場合は `true`、存在しなかった場合は `false` を返します。
         ///
         /// # Panics
-        /// 初期 `entries` に含まれない値が渡された場合にパニックします。
+        /// 構築時に指定された `entries` に含まれない値が渡された場合にパニックします。
         ///
         /// # 計算量
         /// $O(\log N)$ ($N$ は一意な要素数)
@@ -89,7 +89,7 @@ pub mod fenwick_tree_sparse_multiset {
         /// 実際に削除した個数を返します。
         ///
         /// # Panics
-        /// 初期 `entries` に含まれない値が渡された場合にパニックします。
+        /// 構築時に指定された `entries` に含まれない値が渡された場合にパニックします。
         ///
         /// # 計算量
         /// $O(\log N)$ ($N$ は一意な要素数)
@@ -112,7 +112,7 @@ pub mod fenwick_tree_sparse_multiset {
         /// 要素が存在した場合は `true`、存在しなかった場合は `false` を返します。
         ///
         /// # Panics
-        /// 初期 `entries` に含まれない値が渡された場合にパニックします。
+        /// 構築時に指定された `entries` に含まれない値が渡された場合にパニックします。
         ///
         /// # 計算量
         /// $O(\log N)$ ($N$ は一意な要素数)
@@ -190,10 +190,10 @@ pub mod fenwick_tree_sparse_multiset {
         /// 指定した要素の個数を返します。
         ///
         /// # Panics
-        /// 初期 `entries` に含まれない値が渡された場合にパニックします。
+        /// 構築時に指定された `entries` に含まれない値が渡された場合にパニックします。
         ///
         /// # 計算量
-        /// $O(\log N)$ ($N$ は一意な要素数)
+        /// $O(1)$
         pub fn count(&self, value: i64) -> usize {
             let idx = self.cc.compress(value);
             self.ft.get(idx) as usize
@@ -202,10 +202,10 @@ pub mod fenwick_tree_sparse_multiset {
         /// 指定した要素が含まれているかを返します。
         ///
         /// # Panics
-        /// 初期 `entries` に含まれない値が渡された場合にパニックします。
+        /// 構築時に指定された `entries` に含まれない値が渡された場合にパニックします。
         ///
         /// # 計算量
-        /// $O(\log N)$ ($N$ は一意な要素数)
+        /// $O(1)$
         pub fn contains(&self, value: i64) -> bool {
             self.count(value) > 0
         }
@@ -351,7 +351,7 @@ pub mod fenwick_tree_sparse_multiset {
         }
     }
 
-    /// プライベートな座標圧縮構造体。
+    /// 座標圧縮構造体。
     #[derive(Debug, Clone)]
     struct CoordinateCompression {
         space: Vec<i64>,
@@ -401,16 +401,23 @@ pub mod fenwick_tree_sparse_multiset {
         }
     }
 
-    /// Fenwick Tree の基本操作を提供するプライベートな補助構造体.
+    /// Fenwick Tree の基本操作を提供する補助構造体。
+    ///
+    /// `range_sum_fenwick_tree.rs` に準拠した実装。
     #[derive(Clone, Debug)]
     struct InternalFenwickTree {
         n: usize,
         ary: Vec<i64>,
+        vals: Vec<i64>,
     }
 
     impl InternalFenwickTree {
         fn new(n: usize) -> Self {
-            Self { n, ary: vec![0; n] }
+            Self {
+                n,
+                ary: vec![0; n],
+                vals: vec![0; n],
+            }
         }
 
         fn prefix_sum(&self, mut idx: usize) -> i64 {
@@ -424,6 +431,7 @@ pub mod fenwick_tree_sparse_multiset {
 
         fn add(&mut self, mut idx: usize, val: i64) {
             assert!(idx < self.n);
+            self.vals[idx] += val;
             idx += 1;
             while idx <= self.n {
                 self.ary[idx - 1] += val;
@@ -439,7 +447,8 @@ pub mod fenwick_tree_sparse_multiset {
         }
 
         fn get(&self, idx: usize) -> i64 {
-            self.range_sum(idx..idx + 1)
+            assert!(idx < self.n);
+            self.vals[idx]
         }
 
         fn max_right<F: FnMut(&i64) -> bool>(&self, l: usize, mut f: F) -> usize {
@@ -657,7 +666,7 @@ mod tests {
         entries.dedup();
 
         for _ in 0..2000 {
-            match rng.random_range(0..15) {
+            match rng.random_range(0..14) {
                 0 => {
                     let v = entries[rng.random_range(0..entries.len())];
                     ft_ms.insert(v);
@@ -745,7 +754,7 @@ mod tests {
                     ft_ms.clear();
                     bt_ms.clear();
                 }
-                _ => {}
+                _ => unreachable!(),
             }
         }
     }
