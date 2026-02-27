@@ -8,11 +8,21 @@ pub mod fenwick_tree_dense_multiset {
     ///
     /// 要素は `0` から `size - 1` までの `usize` 値に限定されます。
     /// BTreeMultiSet と違って、任意の値を挿入することはできませんが、そのかわりk番目の値が k に依らず $O(\log N)$ で取得できます。
-    #[derive(Clone, Debug)]
+    #[derive(Clone)]
     pub struct FenwickTreeDenseMultiset {
         ft: InternalFenwickTree,
         length: usize,
         set_length: usize,
+    }
+
+    impl std::fmt::Debug for FenwickTreeDenseMultiset {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            f.debug_struct("FenwickTreeDenseMultiset")
+                .field("length", &self.length)
+                .field("set_length", &self.set_length)
+                .field("counts", &self.counts_vec())
+                .finish()
+        }
     }
 
     impl FenwickTreeDenseMultiset {
@@ -142,7 +152,7 @@ pub mod fenwick_tree_dense_multiset {
         /// # 計算量
         /// $O(N)$ ($N$ は `size`)
         pub fn clear(&mut self) {
-            self.ft = InternalFenwickTree::new(self.ft.len());
+            self.ft.clear();
             self.length = 0;
             self.set_length = 0;
         }
@@ -330,12 +340,20 @@ pub mod fenwick_tree_dense_multiset {
         pub fn contains_in_range<R: RangeBounds<usize>>(&self, range: R) -> bool {
             self.count_in_range(range) > 0
         }
+
+        /// 各要素の出現回数を Vec で返します。
+        ///
+        /// # 計算量
+        /// $O(N)$ ($N$ は `size`)
+        pub fn counts_vec(&self) -> Vec<usize> {
+            self.ft.vals.iter().map(|&v| v as usize).collect()
+        }
     }
 
     /// Fenwick Tree の基本操作を提供する補助構造体。
     ///
     /// `range_sum_fenwick_tree.rs` に準拠した実装。
-    #[derive(Clone, Debug)]
+    #[derive(Clone)]
     struct InternalFenwickTree {
         n: usize,
         ary: Vec<i64>,
@@ -349,6 +367,11 @@ pub mod fenwick_tree_dense_multiset {
                 ary: vec![0; n],
                 vals: vec![0; n],
             }
+        }
+
+        fn clear(&mut self) {
+            self.ary.fill(0);
+            self.vals.fill(0);
         }
 
         fn prefix_sum(&self, mut idx: usize) -> i64 {
@@ -489,6 +512,27 @@ mod tests {
     }
 
     #[test]
+    fn test_counts_vec() {
+        let mut ms = FenwickTreeDenseMultiset::new(10);
+        assert_eq!(ms.counts_vec(), vec![0; 10]);
+
+        ms.insert(3);
+        ms.insert(3);
+        ms.insert(5);
+        ms.insert_many(1, 2);
+        ms.insert(0);
+        ms.insert(9);
+
+        let mut expected = vec![0; 10];
+        expected[0] = 1;
+        expected[1] = 2;
+        expected[3] = 2;
+        expected[5] = 1;
+        expected[9] = 1;
+        assert_eq!(ms.counts_vec(), expected);
+    }
+
+    #[test]
     fn test_remove() {
         let mut ms = FenwickTreeDenseMultiset::new(10);
         ms.insert_many(3, 3);
@@ -499,9 +543,14 @@ mod tests {
         assert_eq!(ms.len(), 2);
         assert_eq!(ms.set_len(), 2);
 
-        assert!(ms.remove1(3));
+        // Test remove_up_to all
+        assert_eq!(ms.remove_up_to(3, 1), 1);
         assert_eq!(ms.count(3), 0);
         assert_eq!(ms.set_len(), 1);
+
+        assert!(ms.remove1(5));
+        assert_eq!(ms.count(5), 0);
+        assert_eq!(ms.set_len(), 0);
 
         assert!(!ms.remove1(3));
         assert_eq!(ms.remove_up_to(3, 1), 0);
@@ -510,7 +559,7 @@ mod tests {
         ms.insert_many(7, 5);
         assert!(ms.remove_all(7));
         assert_eq!(ms.count(7), 0);
-        assert_eq!(ms.len(), 1); // only 5 remains
+        assert_eq!(ms.len(), 0);
     }
 
     #[test]
@@ -562,6 +611,19 @@ mod tests {
     }
 
     #[test]
+    fn test_debug_output() {
+        let mut ms = FenwickTreeDenseMultiset::new(3);
+        ms.insert(0);
+        ms.insert(2);
+        ms.insert(2);
+        let debug_str = format!("{:?}", ms);
+        assert_eq!(
+            debug_str,
+            "FenwickTreeDenseMultiset { length: 3, set_length: 2, counts: [1, 0, 2] }"
+        );
+    }
+
+    #[test]
     fn test_clear_and_empty() {
         let mut ms = FenwickTreeDenseMultiset::new(10);
         ms.insert(1);
@@ -610,6 +672,7 @@ mod tests {
         let ms_zero = FenwickTreeDenseMultiset::new(0);
         assert_eq!(ms_zero.min(), None);
         assert_eq!(ms_zero.max(), None);
+        assert_eq!(ms_zero.counts_vec(), Vec::<usize>::new());
     }
 
     #[test]

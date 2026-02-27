@@ -6,7 +6,7 @@ pub mod fenwick_tree_sparse_multiset {
 
     /// Fenwick Tree を基盤とした座標圧縮付きマルチセット。
     ///
-    /// BTreeMultiSet と違って、`entries`` として指定した値以外を挿入することはできませんが、そのかわりk番目の値が k に依らず $O(\log N)$ で取得できます。
+    /// BTreeMultiSet と違って、`entries` として指定した値以外を挿入することはできませんが、そのかわりk番目の値が k に依らず $O(\log N)$ で取得できます。
     #[derive(Clone, Debug)]
     pub struct FenwickTreeSparseMultiset {
         ft: InternalFenwickTree,
@@ -158,7 +158,7 @@ pub mod fenwick_tree_sparse_multiset {
         /// # 計算量
         /// $O(N)$ ($N$ は一意な要素数)
         pub fn clear(&mut self) {
-            self.ft = InternalFenwickTree::new(self.cc.space_size());
+            self.ft.clear();
             self.length = 0;
             self.set_length = 0;
         }
@@ -426,6 +426,11 @@ pub mod fenwick_tree_sparse_multiset {
                 ary: vec![0; n],
                 vals: vec![0; n],
             }
+        }
+
+        fn clear(&mut self) {
+            self.ary.fill(0);
+            self.vals.fill(0);
         }
 
         fn prefix_sum(&self, mut idx: usize) -> i64 {
