@@ -1,41 +1,4 @@
-// 全体から1つだけ消したらどうなるかというのを考えていく
-// top2 を管理するとうまくいく
-
-/// 大きい方から2つを管理する
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-struct Top2<T> {
-    t1: T,
-    t2: T,
-}
-
-impl<T: Ord> Top2<T> {
-    fn new(t1: T, t2: T) -> Self {
-        Self { t1, t2 }
-    }
-    fn first(self) -> T {
-        self.t1
-    }
-    fn second(self) -> T {
-        self.t2
-    }
-
-    fn inserted(self, x: T) -> Self {
-        if x >= self.t1 {
-            Self { t1: x, t2: self.t1 }
-        } else if x >= self.t2 {
-            Self { t1: self.t1, t2: x }
-        } else {
-            self
-        }
-    }
-    fn insert(&mut self, x: T)
-    where
-        T: Copy,
-    {
-        *self = self.inserted(x);
-    }
-}
-
+// 差分管理で LCM を求める
 fn main() {
     input! {
         t: usize
@@ -57,42 +20,63 @@ fn main() {
             .map(|x| sieve.prime_factorize(x))
             .collect_vec();
 
-        let mut prime_to_exps = HashMap::<usize, Top2<usize>>::new();
+        // 変化する部分は一部だから差分管理できそう？
 
-        for f in &xs_f {
-            for &(p, exp) in f {
-                prime_to_exps
-                    .entry(p)
-                    .or_insert(Top2::new(0, 0))
-                    .insert(exp);
+        // {{ . }} を多重集合を表すとするとき、
+        // prime_to_exps[p] = {{x の素因数 p の指数 | x in xs}}
+        let mut prime_to_exps = HashMap::<usize, BTreeMultiSet<usize>>::new();
+
+        let mut lcm = Mint::new(1);
+
+        for i in (0..n).rev() {
+            // dbg!(lcm);
+            for &(p, exp) in &xs_f[i] {
+                let max_exp = prime_to_exps
+                    .get(&p)
+                    .and_then(|bag| bag.max())
+                    .copied()
+                    .unwrap_or(0);
+                if exp > max_exp {
+                    lcm *= Mint::new(p).pow((exp - max_exp) as u64);
+                }
+                prime_to_exps.entry(p).or_default().insert(exp);
             }
         }
-
-        let lcm: Mint = prime_to_exps
-            .iter()
-            .map(|(p, cnts)| Mint::new(*p).pow(cnts.first() as u64))
-            .product();
 
         // dbg!(lcm);
         let mut ans = vec![];
 
-        for f in &xs_f {
-            let div = f
-                .iter()
-                .copied()
-                .map(|(p, cnt)| {
-                    let exps_top2 = prime_to_exps[&p];
-                    if exps_top2.first() == cnt {
-                        Mint::new(p).pow((exps_top2.first() - exps_top2.second()) as u64)
-                    } else {
-                        Mint::new(1)
-                    }
-                })
-                .product::<Mint>();
+        for i in 0..n {
+            // right から i を取る
+            // dbg!(lcm);
+            for &(p, exp) in &xs_f[i] {
+                prime_to_exps.entry(p).or_default().remove1(&exp);
+                let max_exp = prime_to_exps
+                    .get(&p)
+                    .and_then(|bag| bag.max())
+                    .copied()
+                    .unwrap_or(0);
+                if exp > max_exp {
+                    lcm /= Mint::new(p).pow((exp - max_exp) as u64);
+                }
+            }
+            // dbg!(lcm);
 
-            ans.push(lcm / div);
+            ans.push(lcm);
+            // left に i を追加する
+
+            for &(p, exp) in &xs_f[i] {
+                let max_exp = prime_to_exps
+                    .get(&p)
+                    .and_then(|bag| bag.max())
+                    .copied()
+                    .unwrap_or(0);
+                if exp > max_exp {
+                    lcm *= Mint::new(p).pow((exp - max_exp) as u64);
+                }
+                prime_to_exps.entry(p).or_default().insert(exp);
+            }
         }
-
         print_vec_1line(&ans);
     }
 }
@@ -106,13 +90,6 @@ mod tests {
 
     #[test]
     fn test_problem() {
-        let t = Top2::new(0, 0);
-
-        let t = t.inserted(3);
-        dbg!(t);
-        let t = t.inserted(2);
-        dbg!(t);
-
         assert_eq!(1 + 1, 2);
     }
 
