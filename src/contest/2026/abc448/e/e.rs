@@ -1,42 +1,16 @@
-fn zero<Mint: ModIntBase>() -> [[Mint; 2]; 2] {
-    [[Mint::new(0), Mint::new(0)], [Mint::new(0), Mint::new(0)]]
-}
-
-fn mul<Mint: ModIntBase>(a: [[Mint; 2]; 2], b: [[Mint; 2]; 2]) -> [[Mint; 2]; 2] {
-    let mut result = zero();
-    for i in 0..2 {
-        for j in 0..2 {
-            for l in 0..2 {
-                result[i][j] += a[i][l] * b[l][j];
-            }
-        }
-    }
-    result
-}
-fn pow<Mint: ModIntBase>(a: [[Mint; 2]; 2], mut n: u64) -> [[Mint; 2]; 2] {
-    let mut res = [[Mint::new(1), Mint::new(0)], [Mint::new(0), Mint::new(1)]];
-    let mut base = a;
-    while n > 0 {
-        if n % 2 == 1 {
-            res = mul(res, base);
-        }
-        base = mul(base, base);
-        n /= 2;
-    }
-    res
-}
-
 // 11...11 (l個) を Mint で計算
-fn repu<Mint: ModIntBase>(l: i64) -> Mint {
-    let mat = [[Mint::new(1), Mint::new(1)], [Mint::new(0), Mint::new(10)]];
-    let mat_l = pow(mat, l as u64);
-    mat_l[0][1]
+fn repu<Mint: ModIntBase + Sum + Product>(l: i64) -> Mint {
+    let mat = Matrix22::from_array([[Mint::new(1), Mint::new(1)], [Mint::new(0), Mint::new(10)]]);
+    let mat_l = mat.pow(l as u64);
+    mat_l.data[0][1]
 }
-fn calc<Mint: ModIntBase>(cls: &[(i64, i64)]) -> Mint {
+fn calc<Mint: ModIntBase + Sum + Product>(cls: &[(i64, i64)]) -> Mint {
     cls.iter().copied().fold(Mint::new(0), |acc, (c, l)| {
         acc * Mint::new(10).pow(l as u64) + repu::<Mint>(l) * Mint::new(c)
     })
 }
+
+use std::iter::{Product, Sum};
 
 use static_mod_int::*;
 pub mod static_mod_int {
@@ -63,9 +37,6 @@ fn main() {
         m: u32,
         cls: [(i64, i64); k],
     }
-
-    let p = 10007_u32;
-
     use ac_library::ModInt as Mint1;
     Mint1::set_modulus(m);
 
