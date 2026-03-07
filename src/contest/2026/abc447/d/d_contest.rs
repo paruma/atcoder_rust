@@ -1,34 +1,61 @@
-// 解説解法
+// コンテスト中の解法
+// 真ん中(B)を固定して、そのBに対応するAとCを選んだ。Cはできるだけ左から選んだ。
+// AとCについて選んだかどうかは BTreeSet で管理した。
 // #[fastout]
 fn main() {
     input! {
         xs: Chars,
     }
 
-    let mut a = 0; // a の数
-    let mut b = 0; // ab の数
-    let mut c = 0; // abc の数
+    // let inda = xs
+    //     .iter()
+    //     .copied()
+    //     .map(|ch| (ch == 'A') as i64)
+    //     .collect_vec();
 
-    for x in xs {
-        match x {
-            'A' => {
-                a += 1;
-            }
-            'B' => {
-                if a > b {
-                    b += 1;
+    // let indc = xs
+    //     .iter()
+    //     .copied()
+    //     .map(|ch| (ch == 'C') as i64)
+    //     .collect_vec();
+
+    // let inda_cs = CumSum::new(&inda);
+    // let indc_cs = CumSum::new(&indc);
+
+    let mut set_a = xs
+        .iter()
+        .copied()
+        .positions(|ch| ch == 'A')
+        .collect::<BTreeSet<_>>();
+
+    let mut set_c = xs
+        .iter()
+        .copied()
+        .positions(|ch| ch == 'C')
+        .collect::<BTreeSet<_>>();
+
+    let mut ans: i64 = 0;
+
+    for i in 0..xs.len() {
+        if xs[i] == 'B' {
+            let ai = set_a.range(..i).min().copied();
+            let ci = set_c.range(i..).min().copied();
+
+            if let Some(ai) = ai {
+                if let Some(ci) = ci {
+                    set_a.remove(&ai);
+                    set_c.remove(&ci);
+                    ans += 1;
                 }
             }
-            'C' => {
-                if b > c {
-                    c += 1;
-                }
-            }
-            _ => panic!(),
+
+            // ↓こう書ける
+
+            // if let (Some(ai), Some(ci)) = (ai, ci) {
+            //     //
+            // }
         }
     }
-
-    let ans = c;
 
     println!("{}", ans);
 }

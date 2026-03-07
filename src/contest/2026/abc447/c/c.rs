@@ -1,6 +1,7 @@
 // 問題文と制約は読みましたか？
 
 fn a_cnts(xs: &[char]) -> Vec<usize> {
+    // xs.split(|&c| c != 'A').map(|s| s.len()).collect() でも良かった
     let mut acc = vec![];
     let mut cnt = 0;
 

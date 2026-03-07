@@ -19,6 +19,7 @@ impl<T: Ord> Top2<T> {
         self.t2
     }
 
+    #[must_use]
     fn inserted(self, x: T) -> Self {
         if x >= self.t1 {
             Self { t1: x, t2: self.t1 }
