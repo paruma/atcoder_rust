@@ -1,5 +1,29 @@
 #![allow(dead_code)]
 
+fn tree_children_and_order(adj: &[Vec<usize>], root: usize) -> (Vec<Vec<usize>>, Vec<usize>) {
+    fn rec(
+        adj: &[Vec<usize>],
+        cur: usize,
+        parent: usize,
+        children: &mut [Vec<usize>],
+        order: &mut Vec<usize>,
+    ) {
+        for &next in &adj[cur] {
+            if next != parent {
+                children[cur].push(next);
+                rec(adj, next, cur, children, order);
+            }
+        }
+        order.push(cur);
+    }
+    let nv = adj.len();
+    let mut children = vec![vec![]; nv];
+    let mut order = vec![];
+    rec(adj, root, root, &mut children, &mut order);
+
+    (children, order)
+}
+
 /// 根付き木において、各頂点を根とする部分木の頂点重みの総和を計算します。
 ///
 /// - `adj`: 隣接リスト
@@ -8,32 +32,47 @@
 ///
 /// 返り値: 各頂点 `i` について、その部分木の頂点重みの総和を `dp[i]` に格納したベクタ
 fn tree_dp_vertex(adj: &[Vec<usize>], xs: &[i64], root: usize) -> Vec<i64> {
-    fn rec(
-        adj: &[Vec<usize>],
-        xs: &[i64],
-        cur: usize,
-        visited: &mut Vec<bool>,
-        dp: &mut Vec<i64>,
-    ) -> i64 {
-        visited[cur] = true;
-        let mut sum = 0;
-        for &next in &adj[cur] {
-            if !visited[next] {
-                let next_sum = rec(adj, xs, next, visited, dp);
-                sum += next_sum;
-            }
-        }
-        sum += xs[cur];
-        dp[cur] = sum;
-        sum
-    }
+    let (children, order) = tree_children_and_order(adj, root);
 
     let nv = adj.len();
 
     let mut dp = vec![0; nv];
-    let mut visited = vec![false; nv];
-    rec(adj, xs, root, &mut visited, &mut dp);
+    for cur in order {
+        let children_sum = children[cur]
+            .iter()
+            .copied()
+            .map(|child| dp[child])
+            .sum::<i64>();
+        dp[cur] = children_sum + xs[cur];
+    }
     dp
+}
+
+fn tree_children_cost_and_order(
+    adj: &[Vec<(usize, i64)>],
+    root: usize,
+) -> (Vec<Vec<(usize, i64)>>, Vec<usize>) {
+    fn rec(
+        adj: &[Vec<(usize, i64)>],
+        cur: usize,
+        parent: usize,
+        children: &mut [Vec<(usize, i64)>],
+        order: &mut Vec<usize>,
+    ) {
+        for &(next, edge_cost) in &adj[cur] {
+            if next != parent {
+                children[cur].push((next, edge_cost));
+                rec(adj, next, cur, children, order);
+            }
+        }
+        order.push(cur);
+    }
+    let nv = adj.len();
+    let mut children = vec![vec![]; nv];
+    let mut order = vec![];
+    rec(adj, root, root, &mut children, &mut order);
+
+    (children, order)
 }
 
 /// 根付き木において、各頂点を根とする部分木の辺重みの総和を計算します。
@@ -43,29 +82,18 @@ fn tree_dp_vertex(adj: &[Vec<usize>], xs: &[i64], root: usize) -> Vec<i64> {
 ///
 /// 返り値: 各頂点 `i` について、その部分木の重みの総和を `dp[i]` に格納したベクタ
 fn tree_dp_edge(adj: &[Vec<(usize, i64)>], root: usize) -> Vec<i64> {
-    fn rec(
-        adj: &[Vec<(usize, i64)>],
-        cur: usize,
-        visited: &mut Vec<bool>,
-        dp: &mut Vec<i64>,
-    ) -> i64 {
-        visited[cur] = true;
-        let mut sum = 0;
-        for &(next, w) in &adj[cur] {
-            if !visited[next] {
-                let next_sum = rec(adj, next, visited, dp);
-                sum += next_sum + w;
-            }
-        }
-        dp[cur] = sum;
-        sum
-    }
+    let (children, order) = tree_children_cost_and_order(adj, root);
 
     let nv = adj.len();
 
     let mut dp = vec![0; nv];
-    let mut visited = vec![false; nv];
-    rec(adj, root, &mut visited, &mut dp);
+    for cur in order {
+        dp[cur] = children[cur]
+            .iter()
+            .copied()
+            .map(|(child, edge_cost)| dp[child] + edge_cost)
+            .sum::<i64>();
+    }
     dp
 }
 #[cfg(test)]
@@ -99,6 +127,7 @@ mod tests {
         assert_eq!(dp[0], 10 + 11 + 3);
     }
 
+    #[allow(clippy::identity_op)]
     #[test]
     fn test_tree_dp_edge() {
         // 木構造 (辺の重み):
