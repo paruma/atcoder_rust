@@ -5,7 +5,7 @@ use cargo_snippet::snippet;
 pub mod define_queries {
     /// クエリ形式の入力を proconio::input! で読み込める enum を定義するマクロ。
     ///
-    /// 出典： https://zenn.dev/magurofly/articles/6ee845bd5e385e
+    /// 出典： <https://zenn.dev/magurofly/articles/6ee845bd5e385e>
     ///
     /// # 利用例
     ///

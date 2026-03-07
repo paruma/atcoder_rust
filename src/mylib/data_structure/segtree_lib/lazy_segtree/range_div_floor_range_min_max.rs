@@ -133,12 +133,12 @@ pub mod range_div_floor_range_min_max {
             self.segtree.all_prod().max
         }
 
-        /// A[p] <- A[p] / x  を計算する
+        /// `A[p]` <- `A[p]` / x  を計算する
         pub fn div_floor(&mut self, p: usize, x: i64) {
             self.segtree.apply(p, x)
         }
 
-        /// p in range に対して A[p] <- A[p] / x  を計算する
+        /// p in range に対して `A[p]` <- `A[p]` / x  を計算する
         pub fn range_div_floor<R>(&mut self, range: R, x: i64)
         where
             R: RangeBounds<usize>,
