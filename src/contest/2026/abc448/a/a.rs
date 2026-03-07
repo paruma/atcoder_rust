@@ -3,10 +3,18 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        mut x: i64,
+        a_s: [i64; n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    for a in a_s {
+        if a < x {
+            x = a;
+            println!("{}", 1);
+        } else {
+            println!("{}", 0);
+        }
+    }
 }
 
 #[cfg(test)]

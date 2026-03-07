@@ -1,11 +1,85 @@
+fn zero<Mint: ModIntBase>() -> [[Mint; 2]; 2] {
+    [[Mint::new(0), Mint::new(0)], [Mint::new(0), Mint::new(0)]]
+}
+
+fn mul<Mint: ModIntBase>(a: [[Mint; 2]; 2], b: [[Mint; 2]; 2]) -> [[Mint; 2]; 2] {
+    let mut result = zero();
+    for i in 0..2 {
+        for j in 0..2 {
+            for l in 0..2 {
+                result[i][j] += a[i][l] * b[l][j];
+            }
+        }
+    }
+    result
+}
+fn pow<Mint: ModIntBase>(a: [[Mint; 2]; 2], mut n: u64) -> [[Mint; 2]; 2] {
+    let mut res = [[Mint::new(1), Mint::new(0)], [Mint::new(0), Mint::new(1)]];
+    let mut base = a;
+    while n > 0 {
+        if n % 2 == 1 {
+            res = mul(res, base);
+        }
+        base = mul(base, base);
+        n /= 2;
+    }
+    res
+}
+
+// 11...11 (l個) を Mint で計算
+fn repu<Mint: ModIntBase>(l: i64) -> Mint {
+    let mat = [[Mint::new(1), Mint::new(1)], [Mint::new(0), Mint::new(10)]];
+    let mat_l = pow(mat, l as u64);
+    mat_l[0][1]
+}
+fn calc<Mint: ModIntBase>(cls: &[(i64, i64)]) -> Mint {
+    cls.iter().copied().fold(Mint::new(0), |acc, (c, l)| {
+        acc * Mint::new(10).pow(l as u64) + repu::<Mint>(l) * Mint::new(c)
+    })
+}
+
+use static_mod_int::*;
+pub mod static_mod_int {
+    use ac_library::{ButterflyCache, Modulus, StaticModInt};
+    use std::{cell::RefCell, thread::LocalKey};
+    #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
+    pub enum Mod10007 {}
+    impl Modulus for Mod10007 {
+        const VALUE: u32 = 10007;
+        const HINT_VALUE_IS_PRIME: bool = true;
+        fn butterfly_cache() -> &'static LocalKey<RefCell<Option<ButterflyCache<Self>>>> {
+            thread_local! {static BUTTERFLY_CACHE : RefCell < Option < ButterflyCache < Mod10007 >>> = RefCell :: default () ; }
+            &BUTTERFLY_CACHE
+        }
+    }
+    pub type ModInt10007 = StaticModInt<Mod10007>;
+}
+
 // 問題文と制約は読みましたか？
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        k: usize,
+        m: u32,
+        cls: [(i64, i64); k],
     }
-    let ans: i64 = -2_i64;
+
+    let p = 10007_u32;
+
+    use ac_library::ModInt as Mint1;
+    Mint1::set_modulus(m);
+
+    use ModInt10007 as Mint2;
+
+    let x1 = calc::<Mint1>(&cls);
+    let x2 = calc::<Mint2>(&cls);
+
+    // dbg!(x1);
+    // dbg!(x2);
+    // dbg!(Mint1::modulus());
+    // dbg!(Mint2::modulus());
+
+    let ans: Mint2 = (x2 - Mint2::new(x1.val())) / Mint2::new(m);
     println!("{}", ans);
 }
 
@@ -18,6 +92,11 @@ mod tests {
 
     #[test]
     fn test_problem() {
+        let p = 10007_u32;
+
+        use ac_library::ModInt as Mint2;
+        Mint2::set_modulus(p);
+        // dbg!(repu::<Mint2>(4));
         assert_eq!(1 + 1, 2);
     }
 
@@ -67,6 +146,7 @@ mod tests {
     }
 }
 
+use ac_library::modint::ModIntBase;
 // ====== import ======
 #[allow(unused_imports)]
 use {
@@ -136,3 +216,279 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use matrix::*;
+#[allow(clippy::module_inception)]
+pub mod matrix {
+    use std::iter::{Product, Sum};
+    use std::ops::{Add, AddAssign, Index, IndexMut, Mul, Neg, Sub, SubAssign};
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub struct Matrix<T, const R: usize, const C: usize> {
+        pub data: [[T; C]; R],
+    }
+    fn t_zero<T>() -> T
+    where
+        T: Sum,
+    {
+        std::iter::empty().sum()
+    }
+    fn t_one<T>() -> T
+    where
+        T: Product,
+    {
+        std::iter::empty().product()
+    }
+    impl<T, const R: usize, const C: usize> Matrix<T, R, C>
+    where
+        T: Copy + Sum + Product + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        /// 指定された値で埋められた新しい行列を作成します。
+        pub fn new(initial_value: T) -> Self {
+            Self {
+                data: [[initial_value; C]; R],
+            }
+        }
+        /// 配列から行列を作成します。
+        pub fn from_array(data: [[T; C]; R]) -> Self {
+            Self { data }
+        }
+        /// スカラ倍 (Matrix * T)
+        pub fn scalar_mul(self, rhs: T) -> Self {
+            let mut result = Self::new(t_zero());
+            for i in 0..R {
+                for j in 0..C {
+                    result.data[i][j] = self.data[i][j] * rhs;
+                }
+            }
+            result
+        }
+        /// ベクトルを行列に適用します (行列-ベクトル積)。
+        /// `self`はR行C列の行列、`x`はC要素の列ベクトルです。
+        /// 結果はR要素の列ベクトルになります。
+        pub fn apply(self, x: [T; C]) -> [T; R] {
+            let mut result = [t_zero(); R];
+            for i in 0..R {
+                for j in 0..C {
+                    result[i] = result[i] + self.data[i][j] * x[j];
+                }
+            }
+            result
+        }
+    }
+    impl<T, const R: usize, const C: usize> Index<(usize, usize)> for Matrix<T, R, C> {
+        type Output = T;
+        fn index(&self, index: (usize, usize)) -> &Self::Output {
+            &self.data[index.0][index.1]
+        }
+    }
+    impl<T, const R: usize, const C: usize> IndexMut<(usize, usize)> for Matrix<T, R, C> {
+        fn index_mut(&mut self, index: (usize, usize)) -> &mut Self::Output {
+            &mut self.data[index.0][index.1]
+        }
+    }
+    impl<T, const R: usize, const C: usize> Add for Matrix<T, R, C>
+    where
+        T: Copy + Sum + Product + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        type Output = Self;
+        fn add(self, rhs: Self) -> Self::Output {
+            let mut result = Self::new(t_zero());
+            for i in 0..R {
+                for j in 0..C {
+                    result.data[i][j] = self.data[i][j] + rhs.data[i][j];
+                }
+            }
+            result
+        }
+    }
+    impl<T, const R: usize, const C: usize> AddAssign for Matrix<T, R, C>
+    where
+        T: Copy + Sum + Product + AddAssign + Sub<Output = T> + Mul<Output = T>,
+    {
+        fn add_assign(&mut self, rhs: Self) {
+            for i in 0..R {
+                for j in 0..C {
+                    self.data[i][j] += rhs.data[i][j];
+                }
+            }
+        }
+    }
+    impl<T, const R: usize, const C: usize> Sub for Matrix<T, R, C>
+    where
+        T: Copy + Sum + Product + Sub<Output = T> + Add<Output = T> + Mul<Output = T>,
+    {
+        type Output = Self;
+        fn sub(self, rhs: Self) -> Self::Output {
+            let mut result = Self::new(t_zero());
+            for i in 0..R {
+                for j in 0..C {
+                    result.data[i][j] = self.data[i][j] - rhs.data[i][j];
+                }
+            }
+            result
+        }
+    }
+    impl<T, const R: usize, const C: usize> SubAssign for Matrix<T, R, C>
+    where
+        T: Copy + Sum + Product + SubAssign + Add<Output = T> + Mul<Output = T>,
+    {
+        fn sub_assign(&mut self, rhs: Self) {
+            for i in 0..R {
+                for j in 0..C {
+                    self.data[i][j] -= rhs.data[i][j];
+                }
+            }
+        }
+    }
+    impl<T, const R: usize, const C: usize> Neg for Matrix<T, R, C>
+    where
+        T: Copy
+            + Sum
+            + Product
+            + Add<Output = T>
+            + Sub<Output = T>
+            + Mul<Output = T>
+            + Neg<Output = T>,
+    {
+        type Output = Self;
+        fn neg(self) -> Self::Output {
+            let mut data = self.data;
+            for row in &mut data {
+                for x in row {
+                    *x = -*x;
+                }
+            }
+            Self { data }
+        }
+    }
+    impl<T, const R: usize, const C: usize> Sum for Matrix<T, R, C>
+    where
+        T: Copy + Sum + Product + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+            iter.fold(Self::new(t_zero()), |acc, x| acc + x)
+        }
+    }
+    impl<T, const R: usize, const C: usize, const K: usize> Mul<Matrix<T, C, K>> for Matrix<T, R, C>
+    where
+        T: Copy + Sum + Product + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        type Output = Matrix<T, R, K>;
+        fn mul(self, rhs: Matrix<T, C, K>) -> Self::Output {
+            let mut result = Matrix::<T, R, K>::new(t_zero());
+            for i in 0..R {
+                for j in 0..K {
+                    for l in 0..C {
+                        result.data[i][j] = result.data[i][j] + self.data[i][l] * rhs.data[l][j];
+                    }
+                }
+            }
+            result
+        }
+    }
+    impl<T, const R: usize, const C: usize> Mul<i64> for Matrix<T, R, C>
+    where
+        T: Copy
+            + Sum
+            + Product
+            + Mul<i64, Output = T>
+            + Add<Output = T>
+            + Sub<Output = T>
+            + Mul<Output = T>,
+    {
+        type Output = Self;
+        fn mul(self, rhs: i64) -> Self::Output {
+            let mut result = Self::new(t_zero());
+            for i in 0..R {
+                for j in 0..C {
+                    result.data[i][j] = self.data[i][j] * rhs;
+                }
+            }
+            result
+        }
+    }
+    impl<T, const N: usize> Matrix<T, N, N>
+    where
+        T: Copy + Sum + Product + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        pub fn pow(self, mut n: u64) -> Self {
+            let mut res = Matrix::<T, N, N>::identity();
+            let mut base = self;
+            while n > 0 {
+                if n % 2 == 1 {
+                    res = res * base;
+                }
+                base = base * base;
+                n /= 2;
+            }
+            res
+        }
+        /// 単位行列を作成します。正方行列の場合のみ有効です。
+        pub fn identity() -> Self {
+            let mut matrix = Self::new(t_zero());
+            for i in 0..N {
+                matrix.data[i][i] = t_one();
+            }
+            matrix
+        }
+    }
+    impl<T> Matrix<T, 2, 2>
+    where
+        T: Copy + Sum + Product + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        /// 2x2行列の行列式を計算します。
+        pub fn det(self) -> T {
+            self.data[0][0] * self.data[1][1] - self.data[0][1] * self.data[1][0]
+        }
+    }
+    impl<T> Matrix<T, 3, 3>
+    where
+        T: Copy + Sum + Product + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        /// 3x3行列の行列式を計算します。
+        pub fn det(self) -> T {
+            let a = self.data[0][0];
+            let b = self.data[0][1];
+            let c = self.data[0][2];
+            let d = self.data[1][0];
+            let e = self.data[1][1];
+            let f = self.data[1][2];
+            let g = self.data[2][0];
+            let h = self.data[2][1];
+            let i = self.data[2][2];
+            a * (e * i - f * h) - b * (d * i - f * g) + c * (d * h - e * g)
+        }
+    }
+    impl<T> Matrix<T, 4, 4>
+    where
+        T: Copy + Sum + Product + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        /// 4x4行列の行列式を計算します。
+        pub fn det(self) -> T {
+            let m = self.data;
+            let m11 = Matrix::<T, 3, 3>::from_array([
+                [m[1][1], m[1][2], m[1][3]],
+                [m[2][1], m[2][2], m[2][3]],
+                [m[3][1], m[3][2], m[3][3]],
+            ]);
+            let m12 = Matrix::<T, 3, 3>::from_array([
+                [m[1][0], m[1][2], m[1][3]],
+                [m[2][0], m[2][2], m[2][3]],
+                [m[3][0], m[3][2], m[3][3]],
+            ]);
+            let m13 = Matrix::<T, 3, 3>::from_array([
+                [m[1][0], m[1][1], m[1][3]],
+                [m[2][0], m[2][1], m[2][3]],
+                [m[3][0], m[3][1], m[3][3]],
+            ]);
+            let m14 = Matrix::<T, 3, 3>::from_array([
+                [m[1][0], m[1][1], m[1][2]],
+                [m[2][0], m[2][1], m[2][2]],
+                [m[3][0], m[3][1], m[3][2]],
+            ]);
+            m[0][0] * m11.det() - m[0][1] * m12.det() + m[0][2] * m13.det() - m[0][3] * m14.det()
+        }
+    }
+    pub type Matrix22<T> = Matrix<T, 2, 2>;
+    pub type Matrix33<T> = Matrix<T, 3, 3>;
+    pub type Matrix44<T> = Matrix<T, 4, 4>;
+}

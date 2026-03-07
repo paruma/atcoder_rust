@@ -3,9 +3,17 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        m: usize,
+        cs: [i64; m],
+        abs: [(Usize1, i64); n],
     }
-    let ans: i64 = -2_i64;
+
+    let mut sums = vec![0; m];
+
+    for (a, b) in abs {
+        sums[a] += b;
+    }
+    let ans: i64 = (0..m).map(|i| i64::min(cs[i], sums[i])).sum::<i64>();
     println!("{}", ans);
 }
 

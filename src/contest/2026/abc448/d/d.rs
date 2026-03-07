@@ -1,12 +1,39 @@
 // 問題文と制約は読みましたか？
-// #[fastout]
+fn dfs(xs: &[i64], children: &[Vec<usize>], bag: &mut HashBag<i64>, ans: &mut [bool], cur: usize) {
+    bag.insert(xs[cur]);
+
+    ans[cur] = bag.len() != bag.set_len();
+
+    for &c in &children[cur] {
+        dfs(xs, children, bag, ans, c);
+    }
+
+    bag.remove(&xs[cur]);
+}
+
+#[fastout]
 fn main() {
     input! {
         n: usize,
         xs: [i64; n],
+        es: [(Usize1, Usize1); n-1],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    let adj = es.iter().copied().fold(vec![vec![]; n], |mut acc, (u, v)| {
+        acc[u].push(v);
+        acc[v].push(u);
+        acc
+    });
+
+    let children = make_tree_children(&adj, 0);
+    let mut bag: HashBag<i64> = HashBag::new();
+    let mut ans = vec![false; n];
+
+    dfs(&xs, &children, &mut bag, &mut ans, 0);
+
+    for p in ans {
+        println!("{}", if p { "Yes" } else { "No" });
+    }
 }
 
 #[cfg(test)]
@@ -67,6 +94,7 @@ mod tests {
     }
 }
 
+use hashbag::HashBag;
 // ====== import ======
 #[allow(unused_imports)]
 use {
@@ -136,3 +164,24 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+/// 根付き木の隣接リスト `adj` と根 `root` から、各頂点の子頂点リストを求めます。
+/// # 計算量
+/// O(V + E)
+pub fn make_tree_children(adj: &[Vec<usize>], root: usize) -> Vec<Vec<usize>> {
+    let n = adj.len();
+    let mut children = vec![vec![]; n];
+    let mut visited = vec![false; n];
+    let mut queue = std::collections::VecDeque::new();
+    visited[root] = true;
+    queue.push_back(root);
+    while let Some(v) = queue.pop_front() {
+        for &u in &adj[v] {
+            if !visited[u] {
+                visited[u] = true;
+                children[v].push(u);
+                queue.push_back(u);
+            }
+        }
+    }
+    children
+}
