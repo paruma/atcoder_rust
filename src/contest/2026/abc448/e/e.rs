@@ -1,8 +1,9 @@
 // 11...11 (l個) を Mint で計算
+// ModIntBase には Sum と Product がなぜか実装されていないので、自前で追加する必要がある
 fn repu<Mint: ModIntBase + Sum + Product>(l: i64) -> Mint {
     let mat = Matrix22::from_array([[Mint::new(1), Mint::new(1)], [Mint::new(0), Mint::new(10)]]);
     let mat_l = mat.pow(l as u64);
-    mat_l.data[0][1]
+    mat_l.apply([Mint::new(0), Mint::new(1)])[0]
 }
 fn calc<Mint: ModIntBase + Sum + Product>(cls: &[(i64, i64)]) -> Mint {
     cls.iter().copied().fold(Mint::new(0), |acc, (c, l)| {
