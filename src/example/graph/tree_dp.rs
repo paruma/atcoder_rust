@@ -1,5 +1,11 @@
 #![allow(dead_code)]
 
+/// 根付き木の隣接リストから、各頂点の子頂点リストと帰りがけ順（post-order）の訪問順序を求めます。
+///
+/// - `adj`: 隣接リスト
+/// - `root`: 根となる頂点番号
+///
+/// 返り値: (各頂点の子頂点リスト, 帰りがけ順の頂点番号リスト)
 fn tree_children_and_order(adj: &[Vec<usize>], root: usize) -> (Vec<Vec<usize>>, Vec<usize>) {
     fn rec(
         adj: &[Vec<usize>],
@@ -48,6 +54,12 @@ fn tree_dp_vertex(adj: &[Vec<usize>], xs: &[i64], root: usize) -> Vec<i64> {
     dp
 }
 
+/// 重み付き根付き木の隣接リストから、各頂点の子頂点リスト（子頂点と辺の重み）と帰りがけ順（post-order）の訪問順序を求めます。
+///
+/// - `adj`: 隣接リスト（隣接頂点と辺の重み）
+/// - `root`: 根となる頂点番号
+///
+/// 返り値: (各頂点の子頂点リスト, 帰りがけ順の頂点番号リスト)
 fn tree_children_cost_and_order(
     adj: &[Vec<(usize, i64)>],
     root: usize,
