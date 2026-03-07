@@ -397,21 +397,6 @@ def verify_static_analysis() -> list[StepResult]:
     return results
 
 
-def record_status(module_path: str, no_status: bool) -> None:
-    """検証成功時にステータスファイルを更新"""
-    if not no_status:
-        status_file = Path(".gemini/.verification_status.json")
-        status_data = {
-            "module": module_path,
-            "timestamp": datetime.now().isoformat(),
-            "status": "passed",
-        }
-        os.makedirs(".gemini", exist_ok=True)
-        with open(status_file, "w") as f:
-            json.dump(status_data, f, indent=2)
-        print(f"Status recorded in {status_file}")
-
-
 # --- メインフロー ---
 
 
@@ -422,7 +407,6 @@ def main():
         help="Module path (e.g. math::gcd) or file path (e.g. src/mylib/math/gcd.rs)",
     )
     parser.add_argument("--skip-cov", action="store_true")
-    parser.add_argument("--no-status", action="store_true")
 
     args = parser.parse_args()
 
@@ -461,9 +445,7 @@ def main():
     # 4. Finalize
     report.print_summary()
 
-    if not report.has_failure:
-        record_status(normalized_path, args.no_status)
-    else:
+    if report.has_failure:
         sys.exit(1)
 
 

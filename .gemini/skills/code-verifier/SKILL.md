@@ -31,7 +31,6 @@ description: src/mylib 配下の Rust ライブラリ編集時に、テスト・
 
 3.  **検証ステータスの確認**
     - スクリプト末尾の `VERIFICATION SUMMARY` を確認し、全ての項目が `PASS` または `WARN`（カバレッジ）であることを確認してください。
-    - 成功時、`.gemini/.verification_status.json` が自動更新されます。
 
 4.  **最終確認 (Git Diff)**
     - 意図しないファイルや箇所に変更が及んでいないか、`git diff` で最終確認してください。
