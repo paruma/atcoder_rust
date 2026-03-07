@@ -73,11 +73,13 @@ pub mod bitset {
         }
 
         /// 要素 `x` を追加した新しい `BitSet` を返します。
+        #[must_use]
         pub fn inserted(self, x: usize) -> BitSet {
             BitSet::new(self.bit | (1 << x))
         }
 
         /// 要素 `x` を削除した新しい `BitSet` を返します。
+        #[must_use]
         pub fn removed(self, x: usize) -> BitSet {
             BitSet::new(self.bit & !(1 << x))
         }
@@ -94,12 +96,14 @@ pub mod bitset {
         }
 
         /// 全体集合を [0, size) としたときの補集合を返します。
+        #[must_use]
         pub fn complement(self, size: usize) -> BitSet {
             // size = 64 のときオーバーフローするため注意
             BitSet::new(self.bit ^ ((1 << size) - 1))
         }
 
         /// 差集合 `self \ other` を返します。
+        #[must_use]
         pub fn set_minus(self, other: BitSet) -> BitSet {
             BitSet::new(self.bit & !other.bit)
         }
