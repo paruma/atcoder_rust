@@ -1,4 +1,6 @@
-use cargo_snippet::snippet;
+// 安全性やパフォーマンスに懸念点があるので使わないことにする
+
+// use cargo_snippet::snippet;
 
 /// `FnMut` クロージャーを再帰的に呼び出すためのユーティリティ。
 ///
@@ -16,30 +18,38 @@ use cargo_snippet::snippet;
 ///
 /// ## 1引数再帰（階乗）
 /// ```ignore
-/// let mut fact = recurse_mut(|f, n: u64| {
+/// let mut fact = unsafe { recurse_mut(|f, n: u64| {
 ///     if n == 0 { 1 } else { n * f(n - 1) }
-/// });
+/// }) };
 /// assert_eq!(fact(5), 120);
 /// ```
 ///
 /// ## 戻り値なし（副作用ベースの再帰）
 /// ```ignore
 /// let mut visited = vec![false; 4];
-/// let mut dfs = recurse_mut(|dfs, v: usize| {
-///     visited[v] = true;
-///     // 子頂点への再帰呼び出し
-///     for &child in &children[v] {
-///         if !visited[child] {
-///             dfs(child);
+/// let mut dfs = unsafe {
+///     recurse_mut(|dfs, v: usize| {
+///         visited[v] = true;
+///         // 子頂点への再帰呼び出し
+///         for &child in &children[v] {
+///             if !visited[child] {
+///                 dfs(child);
+///             }
 ///         }
-///     }
-/// });
+///     })
+/// };
 /// dfs(0);
 /// drop(dfs);  // クロージャーで使った visited に再度アクセスするため、クロージャーを明示的にドロップ
 /// println!("{:?}", visited);  // これで visited にアクセス可能
 /// ```
-#[snippet]
-pub fn recurse_mut<Arg, R, F>(mut f: F) -> impl FnMut(Arg) -> R
+///
+/// # Safety
+///
+/// 再帰呼び出し中にキャプチャ変数を drop してはいけない。
+/// 具体的には以下の操作が危険：
+/// - 参照（`&T`）を保持したまま再帰呼び出しをして、再帰後にその参照を使う
+/// - `Option::take()`, `drop()` など、キャプチャ変数内の値を無効化する操作を再帰中に行う
+pub unsafe fn recurse_mut<Arg, R, F>(mut f: F) -> impl FnMut(Arg) -> R
 where
     F: FnMut(&mut dyn FnMut(Arg) -> R, Arg) -> R,
 {
@@ -49,10 +59,6 @@ where
     ) -> R {
         let f_ptr = f; // *mut F は Copy なのでポインタ値をコピー
         let mut self_: Box<dyn FnMut(Arg) -> R> = Box::new(move |a| call_recursive(f_ptr, a));
-        // Safety: `self_` だけが `f_ptr` のコピーを保持する。
-        // `(*f)` は 1 回の `call_recursive` 呼び出しにつき 1 回だけ呼ばれ、
-        // `self_` はその呼び出しの内側からのみ使われる（シングルスレッドの逐次呼び出し）。
-        // よって `*f` への同時可変アクセスは発生しない。
         unsafe { (*f)(&mut *self_, arg) }
     }
     move |arg| call_recursive(&mut f, arg)
@@ -64,7 +70,7 @@ mod tests {
 
     #[test]
     fn test_factorial() {
-        let mut fact = recurse_mut(|f, n: u64| if n == 0 { 1 } else { n * f(n - 1) });
+        let mut fact = unsafe { recurse_mut(|f, n: u64| if n == 0 { 1 } else { n * f(n - 1) }) };
         assert_eq!(fact(0), 1);
         assert_eq!(fact(5), 120);
         assert_eq!(fact(10), 3628800);
@@ -75,14 +81,16 @@ mod tests {
         // 木の各頂点の深さを計算する DFS
         let adj = [vec![1, 2], vec![0, 3], vec![0], vec![1]]; // 根=0
         let mut depth = vec![0usize; 4];
-        let mut dfs = recurse_mut(|dfs, (v, d): (usize, usize)| {
-            depth[v] = d;
-            for &u in &adj[v] {
-                if depth[u] == 0 && u != 0 {
-                    dfs((u, d + 1));
+        let mut dfs = unsafe {
+            recurse_mut(|dfs, (v, d): (usize, usize)| {
+                depth[v] = d;
+                for &u in &adj[v] {
+                    if depth[u] == 0 && u != 0 {
+                        dfs((u, d + 1));
+                    }
                 }
-            }
-        });
+            })
+        };
         dfs((0, 0));
         drop(dfs);
         assert_eq!(depth, [0, 1, 1, 2]);
@@ -95,16 +103,18 @@ mod tests {
         let mut visited = [false; 4];
         let mut subtree_size = [0usize; 4];
 
-        let mut dfs = recurse_mut(|dfs, v: usize| -> usize {
-            visited[v] = true;
-            subtree_size[v] = 1;
-            for &u in &adj[v] {
-                if !visited[u] {
-                    subtree_size[v] += dfs(u);
+        let mut dfs = unsafe {
+            recurse_mut(|dfs, v: usize| -> usize {
+                visited[v] = true;
+                subtree_size[v] = 1;
+                for &u in &adj[v] {
+                    if !visited[u] {
+                        subtree_size[v] += dfs(u);
+                    }
                 }
-            }
-            subtree_size[v]
-        });
+                subtree_size[v]
+            })
+        };
 
         dfs(0);
         drop(dfs);
@@ -124,14 +134,16 @@ mod tests {
         let mut bag: HashBag<i64> = HashBag::new();
         let mut has_dup = vec![false; 4];
 
-        let mut dfs = recurse_mut(|dfs, v: usize| {
-            bag.insert(xs[v]);
-            has_dup[v] = bag.len() != bag.set_len();
-            for &c in &children[v] {
-                dfs(c);
-            }
-            bag.remove(&xs[v]);
-        });
+        let mut dfs = unsafe {
+            recurse_mut(|dfs, v: usize| {
+                bag.insert(xs[v]);
+                has_dup[v] = bag.len() != bag.set_len();
+                for &c in &children[v] {
+                    dfs(c);
+                }
+                bag.remove(&xs[v]);
+            })
+        };
         dfs(0);
         drop(dfs);
         assert_eq!(has_dup, [false, false, true, true]);
@@ -143,19 +155,21 @@ mod tests {
         // C(n, k) = C(n-1, k-1) + C(n-1, k)
         let mut memo = vec![vec![None; 7]; 7];
 
-        let mut binomial = recurse_mut(|binom, (n, k): (usize, usize)| -> u64 {
-            if let Some(result) = memo[n][k] {
-                return result;
-            }
-            let result = match (n, k) {
-                (_, 0) => 1,
-                (n, k) if k > n => 0,
-                (n, k) if k == n => 1,
-                _ => binom((n - 1, k - 1)) + binom((n - 1, k)),
-            };
-            memo[n][k] = Some(result);
-            result
-        });
+        let mut binomial = unsafe {
+            recurse_mut(|binom, (n, k): (usize, usize)| -> u64 {
+                if let Some(result) = memo[n][k] {
+                    return result;
+                }
+                let result = match (n, k) {
+                    (_, 0) => 1,
+                    (n, k) if k > n => 0,
+                    (n, k) if k == n => 1,
+                    _ => binom((n - 1, k - 1)) + binom((n - 1, k)),
+                };
+                memo[n][k] = Some(result);
+                result
+            })
+        };
 
         assert_eq!(binomial((4, 2)), 6); // C(4, 2) = 6
         assert_eq!(binomial((5, 2)), 10); // C(5, 2) = 10
