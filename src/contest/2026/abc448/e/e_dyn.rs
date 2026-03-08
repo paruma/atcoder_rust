@@ -12,23 +12,6 @@ fn calc<Mint: ModIntBase + Sum + Product>(cls: &[(i64, i64)]) -> Mint {
 }
 
 use std::iter::{Product, Sum};
-
-use static_mod_int::*;
-pub mod static_mod_int {
-    use ac_library::{ButterflyCache, Modulus, StaticModInt};
-    use std::{cell::RefCell, thread::LocalKey};
-    #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
-    pub enum Mod10007 {}
-    impl Modulus for Mod10007 {
-        const VALUE: u32 = 10007;
-        const HINT_VALUE_IS_PRIME: bool = true;
-        fn butterfly_cache() -> &'static LocalKey<RefCell<Option<ButterflyCache<Self>>>> {
-            thread_local! {static BUTTERFLY_CACHE : RefCell < Option < ButterflyCache < Mod10007 >>> = RefCell :: default () ; }
-            &BUTTERFLY_CACHE
-        }
-    }
-    pub type ModInt10007 = StaticModInt<Mod10007>;
-}
 // 問題文と制約は読みましたか？
 // #[fastout]
 fn main() {
