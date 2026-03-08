@@ -75,6 +75,80 @@ pub mod modint_to_rational {
     }
 }
 
+#[snippet(prefix = "use dynamic_mod_int::*;")]
+pub mod dynamic_mod_int {
+    use ac_library::{Barrett, modint::DynamicModInt, modint::Id};
+
+    /// 複数の DynamicModInt を同時に使用するための Id 実装群。
+    ///
+    /// `DynamicModInt<DefaultId>` は全てのインスタンスで同じ static `BARRETT` を共有するため、
+    /// 複数の異なるモジュラスを同時に使用できない。このモジュールでは、各々が独立した
+    /// `companion_barrett()` を持つ複数の `Id` 実装を提供し、複数の modint type を同時利用可能にする。
+    ///
+    /// # 使用例
+    ///
+    /// ```ignore
+    /// use dynamic_mod_int::*;
+    ///
+    /// DynMint1::set_modulus(998244353);
+    /// DynMint2::set_modulus(1000000007);
+    ///
+    /// let x = DynMint1::new(5);
+    /// let y = DynMint2::new(3);
+    /// // x と y は異なるモジュラスで独立に動作
+    /// ```
+
+    #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
+    pub enum Id1 {}
+    impl Id for Id1 {
+        fn companion_barrett() -> &'static Barrett {
+            static BARRETT: Barrett = Barrett::new(998244353);
+            &BARRETT
+        }
+    }
+    pub type DynMint1 = DynamicModInt<Id1>;
+
+    #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
+    pub enum Id2 {}
+    impl Id for Id2 {
+        fn companion_barrett() -> &'static Barrett {
+            static BARRETT: Barrett = Barrett::new(1000000007);
+            &BARRETT
+        }
+    }
+    pub type DynMint2 = DynamicModInt<Id2>;
+
+    #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
+    pub enum Id3 {}
+    impl Id for Id3 {
+        fn companion_barrett() -> &'static Barrett {
+            static BARRETT: Barrett = Barrett::new(998244353);
+            &BARRETT
+        }
+    }
+    pub type DynMint3 = DynamicModInt<Id3>;
+
+    #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
+    pub enum Id4 {}
+    impl Id for Id4 {
+        fn companion_barrett() -> &'static Barrett {
+            static BARRETT: Barrett = Barrett::new(998244353);
+            &BARRETT
+        }
+    }
+    pub type DynMint4 = DynamicModInt<Id4>;
+
+    #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
+    pub enum Id5 {}
+    impl Id for Id5 {
+        fn companion_barrett() -> &'static Barrett {
+            static BARRETT: Barrett = Barrett::new(998244353);
+            &BARRETT
+        }
+    }
+    pub type DynMint5 = DynamicModInt<Id5>;
+}
+
 #[cfg(test)]
 mod tests {
 
@@ -114,5 +188,39 @@ mod tests {
             None,
             "cannot reconstruct".to_string(),
         );
+    }
+
+    #[test]
+    fn test_dynamic_mod_int_independence() {
+        use super::dynamic_mod_int::{DynMint1, DynMint2};
+
+        // 異なるモジュラスで独立に設定
+        DynMint1::set_modulus(7);
+        DynMint2::set_modulus(11);
+
+        // 各々が正しく計算できることを確認
+        let x1 = DynMint1::new(5) + DynMint1::new(3); // (5 + 3) % 7 = 1
+        let x2 = DynMint2::new(5) + DynMint2::new(3); // (5 + 3) % 11 = 8
+
+        assert_eq!(x1.val(), 1);
+        assert_eq!(x2.val(), 8);
+
+        // 片方のモジュラスを変更しても、もう一方に影響しないことを確認
+        DynMint1::set_modulus(13);
+        let y1 = DynMint1::new(10) + DynMint1::new(5); // (10 + 5) % 13 = 2
+        let y2 = DynMint2::new(10) + DynMint2::new(5); // (10 + 5) % 11 = 4
+
+        assert_eq!(y1.val(), 2);
+        assert_eq!(y2.val(), 4); // DynMint2 のモジュラスは依然として 11
+    }
+
+    #[test]
+    fn test_dynamic_mod_int_many_ids() {
+        use super::dynamic_mod_int::DynMint3;
+
+        // DynMint3 も独立したモジュラスを持つことを確認
+        DynMint3::set_modulus(5);
+        let z = DynMint3::new(2) + DynMint3::new(4); // (2 + 4) % 5 = 1
+        assert_eq!(z.val(), 1);
     }
 }

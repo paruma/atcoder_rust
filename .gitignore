@@ -7,5 +7,5 @@ lcov.info
 
 .env
 
-.gemini/.verification_status.json
 .gemini/tmp
+.claude/tmp
