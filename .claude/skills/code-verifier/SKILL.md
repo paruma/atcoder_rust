@@ -1,6 +1,6 @@
 ---
 name: code-verifier
-description: src/mylib 配下の Rust ライブラリ編集時に、テスト・カバレッジ・静的解析・フォーマットを一貫して自動検証する標準プロトコル。
+description: src/mylib 編集後に実行すること。このスキルでは、テスト、リンターなどのコード品質を検証する
 ---
 
 # code-verifier
