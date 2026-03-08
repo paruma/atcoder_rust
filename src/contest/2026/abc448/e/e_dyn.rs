@@ -29,7 +29,6 @@ pub mod static_mod_int {
     }
     pub type ModInt10007 = StaticModInt<Mod10007>;
 }
-
 // 問題文と制約は読みましたか？
 // #[fastout]
 fn main() {
@@ -38,20 +37,18 @@ fn main() {
         m: u32,
         cls: [(i64, i64); k],
     }
-    use ac_library::ModInt as Mint1;
-    Mint1::set_modulus(m);
+    DynMint1::set_modulus(m);
+    DynMint2::set_modulus(10007);
 
-    use ModInt10007 as Mint2;
-
-    let x1 = calc::<Mint1>(&cls);
-    let x2 = calc::<Mint2>(&cls);
+    let x1 = calc::<DynMint1>(&cls);
+    let x2 = calc::<DynMint2>(&cls);
 
     // dbg!(x1);
     // dbg!(x2);
     // dbg!(Mint1::modulus());
     // dbg!(Mint2::modulus());
 
-    let ans: Mint2 = (x2 - Mint2::new(x1.val())) / Mint2::new(m);
+    let ans: DynMint2 = (x2 - DynMint2::new(x1.val())) / DynMint2::new(m);
     println!("{}", ans);
 }
 
@@ -118,7 +115,7 @@ mod tests {
     }
 }
 
-use ac_library::modint::ModIntBase;
+use ac_library::{Barrett, Id, modint::ModIntBase};
 // ====== import ======
 #[allow(unused_imports)]
 use {
@@ -463,4 +460,67 @@ pub mod matrix {
     pub type Matrix22<T> = Matrix<T, 2, 2>;
     pub type Matrix33<T> = Matrix<T, 3, 3>;
     pub type Matrix44<T> = Matrix<T, 4, 4>;
+}
+
+use dynamic_mod_int::*;
+pub mod dynamic_mod_int {
+    use ac_library::{Barrett, modint::DynamicModInt, modint::Id};
+    /// 複数の DynamicModInt を同時に使用するための Id 実装群。
+    /// `DynamicModInt<DefaultId>` は全てのインスタンスで同じ static `BARRETT` を共有するため、
+    /// 複数の異なるモジュラスを同時に使用できない。このモジュールでは、各々が独立した
+    /// `companion_barrett()` を持つ複数の `Id` 実装を提供し、複数の modint type を同時利用可能にする。
+    /// # 使用例
+    /// ```ignore
+    /// use dynamic_mod_int::*;
+    /// DynMint1::set_modulus(998244353);
+    /// DynMint2::set_modulus(1000000007);
+    /// let x = DynMint1::new(5);
+    /// let y = DynMint2::new(3);
+    /// // x と y は異なるモジュラスで独立に動作
+    /// ```
+    #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
+    pub enum Id1 {}
+    impl Id for Id1 {
+        fn companion_barrett() -> &'static Barrett {
+            static BARRETT: Barrett = Barrett::new(998244353);
+            &BARRETT
+        }
+    }
+    pub type DynMint1 = DynamicModInt<Id1>;
+    #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
+    pub enum Id2 {}
+    impl Id for Id2 {
+        fn companion_barrett() -> &'static Barrett {
+            static BARRETT: Barrett = Barrett::new(1000000007);
+            &BARRETT
+        }
+    }
+    pub type DynMint2 = DynamicModInt<Id2>;
+    #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
+    pub enum Id3 {}
+    impl Id for Id3 {
+        fn companion_barrett() -> &'static Barrett {
+            static BARRETT: Barrett = Barrett::new(998244353);
+            &BARRETT
+        }
+    }
+    pub type DynMint3 = DynamicModInt<Id3>;
+    #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
+    pub enum Id4 {}
+    impl Id for Id4 {
+        fn companion_barrett() -> &'static Barrett {
+            static BARRETT: Barrett = Barrett::new(998244353);
+            &BARRETT
+        }
+    }
+    pub type DynMint4 = DynamicModInt<Id4>;
+    #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
+    pub enum Id5 {}
+    impl Id for Id5 {
+        fn companion_barrett() -> &'static Barrett {
+            static BARRETT: Barrett = Barrett::new(998244353);
+            &BARRETT
+        }
+    }
+    pub type DynMint5 = DynamicModInt<Id5>;
 }
