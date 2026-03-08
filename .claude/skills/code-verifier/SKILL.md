@@ -16,9 +16,9 @@ description: src/mylib 配下の Rust ライブラリ編集時に、テスト・
 何らかの修正（ロジックの変更、コメントの修正、テストの追加）を行った後、統合検証スクリプトを実行してください。
 
 1.  **統合検証スクリプトの実行**
-    - コマンド: `mkdir -p .gemini/tmp && python3 .gemini/skills/code-verifier/scripts/verify_lib.py <パス> > .gemini/tmp/verify_<名前>_$(TZ=Asia/Tokyo date +%Y%m%d_%H%M%S).log 2>&1`
-    - 例 (ファイルパス): `mkdir -p .gemini/tmp && python3 .gemini/skills/code-verifier/scripts/verify_lib.py src/mylib/data_structure/segtree_lib/lazy_segtree.rs > .gemini/tmp/verify_lazy_segtree_$(TZ=Asia/Tokyo date +%Y%m%d_%H%M%S).log 2>&1`
-    - **Note**: 結果を必ず `.gemini/tmp/` 配下のログファイルにリダイレクトしてください。ファイル名には必ず `$(TZ=Asia/Tokyo date +%Y%m%d_%H%M%S)` を含めてください。
+    - コマンド: `mkdir -p .claude/tmp && python3 .claude/skills/code-verifier/scripts/verify_lib.py <パス> > .claude/tmp/verify_<名前>_$(TZ=Asia/Tokyo date +%Y%m%d_%H%M%S).log 2>&1`
+    - 例 (ファイルパス): `mkdir -p .claude/tmp && python3 .claude/skills/code-verifier/scripts/verify_lib.py src/mylib/data_structure/segtree_lib/lazy_segtree.rs > .claude/tmp/verify_lazy_segtree_$(TZ=Asia/Tokyo date +%Y%m%d_%H%M%S).log 2>&1`
+    - **Note**: 結果を必ず `.claude/tmp/` 配下のログファイルにリダイレクトしてください。ファイル名には必ず `$(TZ=Asia/Tokyo date +%Y%m%d_%H%M%S)` を含めてください。
     - **Note**: ファイルパスを指定すると自動的に内部でモジュールパスに変換されます。
 
 2.  **スクリプトによる検証内容**

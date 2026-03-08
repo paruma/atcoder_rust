@@ -10,24 +10,23 @@ This skill retrieves problem statements and editorials from AtCoder URLs and for
 ## Usage
 
 Execute the corresponding Python script using `uv run`.
-**Important:** You must set the correct environment variables for the sandbox environment.
 
 ### Fetching a Problem Statement
 
 ```bash
-HOME=/home/node UV_CACHE_DIR=/home/node/.cache/uv PATH="/home/node/.local/bin:$PATH" uv run .gemini/skills/atcoder-fetcher/scripts/fetch_problem.py <URL>
+uv run .claude/skills/atcoder-fetcher/scripts/fetch_problem.py <URL>
 ```
 
 ### Fetching an Editorial
 
 ```bash
-HOME=/home/node UV_CACHE_DIR=/home/node/.cache/uv PATH="/home/node/.local/bin:$PATH" uv run .gemini/skills/atcoder-fetcher/scripts/fetch_editorial.py <URL>
+uv run .claude/skills/atcoder-fetcher/scripts/fetch_editorial.py <URL>
 ```
 
 ### Listing Editorials for a Problem
 
 ```bash
-HOME=/home/node UV_CACHE_DIR=/home/node/.cache/uv PATH="/home/node/.local/bin:$PATH" uv run .gemini/skills/atcoder-fetcher/scripts/list_editorials.py <URL>
+uv run .claude/skills/atcoder-fetcher/scripts/list_editorials.py <URL>
 ```
 
 ## URL Construction Rules
@@ -50,10 +49,3 @@ If the user provides a contest name and problem letter instead of a full URL, co
 - `<contest_id>`: Lowercase contest name (e.g., `abc432`, `arc150`, `agc001`).
 - `<problem_letter>`: Lowercase problem label (e.g., `a`, `b`, `c`, `d`).
 - `<editorial_id>`: A unique numeric identifier for a specific editorial (found in the editorial list).
-
-## Environment Variables
-
-The following variables are required in the sandbox:
-- `HOME=/home/node`
-- `UV_CACHE_DIR=/home/node/.cache/uv`
-- `PATH="/home/node/.local/bin:$PATH"`
