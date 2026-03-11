@@ -38,6 +38,25 @@
 - `mutable` な変数よりも `immutable` な変数を優先する
   - ただし、可読性や計算量の観点で手続き的・`mutable` な実装が勝る場合はその限りではない
 
+### `fold` における計算の分離
+
+`fold` は畳み込み演算に専念させ、データ変換処理は `map` / `filter` に移譲する。
+
+**避けるべき例**：
+```rust
+let xor_result = arr.iter().fold(0, |acc, &x| {
+    let processed = x & mask;
+    acc ^ processed
+});
+```
+
+**改善した例**：
+```rust
+let xor_result = arr.iter().map(|&x| x & mask).fold(0, |acc, x| acc ^ x);
+```
+
+このようにすることで、`fold` クロージャは純粋な畳み込みロジックに集中でき、可読性が向上する。
+
 ## ドキュメントコメント (Doc comments)
 
 ### 形式
