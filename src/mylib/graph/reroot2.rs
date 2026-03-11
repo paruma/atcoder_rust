@@ -89,13 +89,12 @@ pub mod reroot2 {
             // 各頂点 u について、その子方向からの値を集約して親への値を確定させます。
             for &u in bfs_order.iter().rev() {
                 if let Some((p, _u_to_p, p_to_u)) = parent_info[u] {
-                    let edge_values: Vec<_> = children[u]
+                    let res = children[u]
                         .iter()
                         .map(|&(_v, u_to_v, _v_to_u)| self.add_edge(&dp[u][u_to_v], u, u_to_v))
-                        .collect();
-                    let res = edge_values.iter().fold(Self::M::identity(), |acc, val| {
-                        Self::M::binary_operation(&acc, val)
-                    });
+                        .fold(Self::M::identity(), |acc, val| {
+                            Self::M::binary_operation(&acc, &val)
+                        });
                     // u から親 p 方向への値を dp[p] に書き込みます。
                     dp[p][p_to_u] = self.add_vertex(&res, u);
                 }
