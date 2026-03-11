@@ -8,7 +8,7 @@ pub mod reroot2 {
 
     /// 全方位木DPを行うためのトレイトです。
     pub trait Reroot {
-        type M: Monoid; // モノイド（可換でなくても良い）
+        type M: Monoid; // 可換モノイド
 
         /// 頂点 `v` の値を集約結果 `x` に加えます（頂点自身の重みなどを処理します）。
         fn add_vertex(&self, x: &<Self::M as Monoid>::S, v: usize) -> <Self::M as Monoid>::S;
@@ -23,11 +23,19 @@ pub mod reroot2 {
 
         /// 全方位木DPを実行し、各頂点を根としたときの値を求めます。
         ///
+        /// 具体的には、頂点 `u` を根とした根付き木において、
+        /// 各頂点 `v` の値 `f_u(v)` を以下で再帰的に定義します：
+        /// ```text
+        /// f_u(v) = add_vertex(⊕_{c ∈ ch_u(v)} add_edge(f_u(c), v, index(v, c)), v)
+        /// ```
+        /// ここで `ch_u(v)` は `u` を根とした時の `v` の子頂点の集合、
+        /// `index(v, c)` は `adj[v]` における `c` のインデックス、
+        /// ⊕ はモノイドの二項演算です。
+        ///
+        /// 返り値を `result` とすると、`result[u] = f_u(u)` です。
+        ///
         /// # Arguments
         /// * `adj` - 木の隣接リスト
-        ///
-        /// # Returns
-        /// 各頂点を根としたときの計算結果の `Vec`
         ///
         /// # 計算量
         /// O(V) (V は頂点数)
@@ -41,7 +49,7 @@ pub mod reroot2 {
             }
 
             // 1. 木の構造を整理（根を 0 とする）
-            // children[u]: (子の頂点番号 v, uからvへのインデックス, vからuへのインデックス)
+            // children[u]: vec![(子の頂点番号 v, uからvへのインデックス, vからuへのインデックス)]
             // parent_info[u]: Some((親の頂点番号 p, uからpへのインデックス, pからuへのインデックス))
             let (children, parent_info, bfs_order) = {
                 let mut children = vec![vec![]; n];
@@ -81,13 +89,13 @@ pub mod reroot2 {
             // 各頂点 u について、その子方向からの値を集約して親への値を確定させます。
             for &u in bfs_order.iter().rev() {
                 if let Some((p, _u_to_p, p_to_u)) = parent_info[u] {
-                    let res = children[u].iter().fold(
-                        Self::M::identity(),
-                        |acc, &(_v, u_to_v, _v_to_u)| {
-                            let val = self.add_edge(&dp[u][u_to_v], u, u_to_v);
-                            Self::M::binary_operation(&acc, &val)
-                        },
-                    );
+                    let edge_values: Vec<_> = children[u]
+                        .iter()
+                        .map(|&(_v, u_to_v, _v_to_u)| self.add_edge(&dp[u][u_to_v], u, u_to_v))
+                        .collect();
+                    let res = edge_values.iter().fold(Self::M::identity(), |acc, val| {
+                        Self::M::binary_operation(&acc, val)
+                    });
                     // u から親 p 方向への値を dp[p] に書き込みます。
                     dp[p][p_to_u] = self.add_vertex(&res, u);
                 }
@@ -121,8 +129,8 @@ pub mod reroot2 {
                     let res = dp[u]
                         .iter()
                         .enumerate()
-                        .fold(Self::M::identity(), |acc, (i, x)| {
-                            let val = self.add_edge(x, u, i);
+                        .map(|(i, x)| self.add_edge(x, u, i))
+                        .fold(Self::M::identity(), |acc, val| {
                             Self::M::binary_operation(&acc, &val)
                         });
                     self.add_vertex(&res, u)
