@@ -10,10 +10,25 @@ pub mod reroot2 {
     pub trait Reroot {
         type M: Monoid; // 可換モノイド
 
-        /// 頂点 `v` の値を集約結果 `x` に加えます（頂点自身の重みなどを処理します）。
+        /// 子部分木+辺の集約結果に頂点の値を加えます。
+        ///
+        /// # Arguments
+        /// * `x` - 頂点 `v` の各子の「部分木+辺」の集約値
+        /// * `v` - 対象の頂点
+        ///
+        /// # Returns
+        /// `x` に頂点 `v` 自身の値を加えた結果
         fn add_vertex(&self, x: &<Self::M as Monoid>::S, v: usize) -> <Self::M as Monoid>::S;
 
-        /// 頂点 `v` から `ei` 番目のエッジ（隣接頂点 `adj[v][ei]`）方向から来る部分木の集約結果 `x` を加工します。
+        /// 部分木の集約結果にエッジの値を加えます。
+        ///
+        /// # Arguments
+        /// * `x` - 隣接頂点 `adj[v][ei]` を根とする部分木の集約値
+        /// * `v` - エッジの始点
+        /// * `ei` - 頂点 `v` の `ei` 番目のエッジ（隣接頂点 `adj[v][ei]`）
+        ///
+        /// # Returns
+        /// `x` にエッジ `v--adj[v][ei]` に関する値を加えた結果
         fn add_edge(
             &self,
             x: &<Self::M as Monoid>::S,
@@ -50,10 +65,10 @@ pub mod reroot2 {
 
             // 1. 木の構造を整理（根を 0 とする）
             // children[u]: vec![(子の頂点番号 v, uからvへのインデックス, vからuへのインデックス)]
-            // parent_info[u]: Some((親の頂点番号 p, uからpへのインデックス, pからuへのインデックス))
-            let (children, parent_info, bfs_order) = {
+            // parent[u]: Some((親の頂点番号 p, uからpへのインデックス, pからuへのインデックス))
+            let (children, parent, bfs_order) = {
                 let mut children = vec![vec![]; n];
-                let mut parent_info = vec![None; n];
+                let mut parent = vec![None; n];
                 let mut bfs_order = Vec::with_capacity(n);
                 let mut queue = Queue::new();
 
@@ -61,22 +76,22 @@ pub mod reroot2 {
                 visited[0] = true;
                 queue.push(0);
 
-                while let Some(u) = queue.pop() {
-                    bfs_order.push(u);
-                    for (u_to_v, &v) in adj[u].iter().enumerate() {
-                        if !visited[v] {
-                            visited[v] = true;
-                            let v_to_u = adj[v]
+                while let Some(cur) = queue.pop() {
+                    bfs_order.push(cur);
+                    for (cur_to_next, &next) in adj[cur].iter().enumerate() {
+                        if !visited[next] {
+                            visited[next] = true;
+                            let next_to_cur = adj[next]
                                 .iter()
-                                .position(|&back| back == u)
+                                .position(|&back| back == cur)
                                 .expect("Edge must be bidirectional");
-                            children[u].push((v, u_to_v, v_to_u));
-                            parent_info[v] = Some((u, v_to_u, u_to_v));
-                            queue.push(v);
+                            children[cur].push((next, cur_to_next, next_to_cur));
+                            parent[next] = Some((cur, next_to_cur, cur_to_next));
+                            queue.push(next);
                         }
                     }
                 }
-                (children, parent_info, bfs_order)
+                (children, parent, bfs_order)
             };
 
             // dp[u][i]: u から見て i 番目の隣接頂点方向にある部分木の集約値
@@ -85,23 +100,23 @@ pub mod reroot2 {
                 .map(|next_list| vec![Self::M::identity(); next_list.len()])
                 .collect();
 
-            // 2. ボトムアップパス（葉から根へ）
-            // 各頂点 u について、その子方向からの値を集約して親への値を確定させます。
+            // 2. 下向きの部分木の集約値を決定
+            // 各頂点 u とその親 p に対して、p → u の方向の u を根とする部分木の集約値を計算する
             for &u in bfs_order.iter().rev() {
-                if let Some((p, _u_to_p, p_to_u)) = parent_info[u] {
+                if let Some((p, _u_to_p, p_to_u)) = parent[u] {
                     let res = children[u]
                         .iter()
-                        .map(|&(_v, u_to_v, _v_to_u)| self.add_edge(&dp[u][u_to_v], u, u_to_v))
+                        .map(|&(_c, u_to_c, _c_to_u)| self.add_edge(&dp[u][u_to_c], u, u_to_c))
                         .fold(Self::M::identity(), |acc, val| {
                             Self::M::binary_operation(&acc, &val)
                         });
-                    // u から親 p 方向への値を dp[p] に書き込みます。
+                    // p → u の方向の u を根とする部分木の集約値
                     dp[p][p_to_u] = self.add_vertex(&res, u);
                 }
             }
 
-            // 3. トップダウンパス（根から葉へ）
-            // 各頂点 u について、親と兄弟からの値を集約して各子への値を確定させます。
+            // 3. 上向きの部分木の集約値を決定
+            // 各頂点 u とその子 c に対して、c → p 方向の u を根とする部分木の集約値を計算する
             for &u in &bfs_order {
                 if children[u].is_empty() {
                     continue;
@@ -115,10 +130,10 @@ pub mod reroot2 {
 
                 let cum = CumMonoid::<Self::M>::new(&edge_values);
 
-                for &(v, u_to_v, v_to_u) in &children[u] {
-                    // v 以外のすべての兄弟と親からの値を合成して子 v へ送ります。
-                    let res_without_v = cum.prod_without1(u_to_v);
-                    dp[v][v_to_u] = self.add_vertex(&res_without_v, u);
+                for &(c, u_to_c, c_to_u) in &children[u] {
+                    let res_without_c = cum.prod_without1(u_to_c);
+                    // c → p 方向の u を根とする部分木の集約値
+                    dp[c][c_to_u] = self.add_vertex(&res_without_c, u);
                 }
             }
 
@@ -139,13 +154,13 @@ pub mod reroot2 {
     }
 
     /// 累積積を効率的に計算するための構造体です。
-    pub struct CumMonoid<M: Monoid> {
+    struct CumMonoid<M: Monoid> {
         prefix: Vec<M::S>,
         suffix: Vec<M::S>,
     }
 
     impl<M: Monoid> CumMonoid<M> {
-        pub fn new(xs: &[M::S]) -> Self {
+        fn new(xs: &[M::S]) -> Self {
             let n = xs.len();
             let mut prefix = vec![M::identity(); n + 1];
             let mut suffix = vec![M::identity(); n + 1];
@@ -159,8 +174,30 @@ pub mod reroot2 {
         }
 
         /// インデックス `i` の要素を除いた全体の積を求めます。
-        pub fn prod_without1(&self, i: usize) -> M::S {
+        fn prod_without1(&self, i: usize) -> M::S {
             M::binary_operation(&self.prefix[i], &self.suffix[i + 1])
+        }
+    }
+
+    mod mod_queue {
+        use std::collections::VecDeque;
+        #[derive(Clone, Debug, PartialEq, Eq)]
+        pub struct Queue<T> {
+            raw: VecDeque<T>,
+        }
+        impl<T> Queue<T> {
+            #[allow(clippy::new_without_default)]
+            pub fn new() -> Self {
+                Queue {
+                    raw: VecDeque::new(),
+                }
+            }
+            pub fn push(&mut self, value: T) {
+                self.raw.push_back(value)
+            }
+            pub fn pop(&mut self) -> Option<T> {
+                self.raw.pop_front()
+            }
         }
     }
 
@@ -179,40 +216,19 @@ pub mod reroot2 {
             x + 1
         }
     }
-
-    pub mod mod_queue {
-        use std::collections::VecDeque;
-        #[derive(Clone, Debug, PartialEq, Eq)]
-        pub struct Queue<T> {
-            raw: VecDeque<T>,
-        }
-        impl<T> Queue<T> {
-            pub fn new() -> Self {
-                Queue {
-                    raw: VecDeque::new(),
-                }
-            }
-            pub fn push(&mut self, value: T) {
-                self.raw.push_back(value)
-            }
-            pub fn pop(&mut self) -> Option<T> {
-                self.raw.pop_front()
-            }
-            pub fn is_empty(&self) -> bool {
-                self.raw.is_empty()
-            }
-        }
-        impl<T> Default for Queue<T> {
-            fn default() -> Self {
-                Self::new()
-            }
-        }
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::reroot2::*;
+
+    #[test]
+    fn test_reroot_empty_graph() {
+        let adj: Vec<Vec<usize>> = vec![];
+        let reroot_solver = DistMaxReroot;
+        let result = reroot_solver.reroot(&adj);
+        assert_eq!(result, vec![]);
+    }
 
     #[test]
     fn test_reroot_path_graph() {
