@@ -254,7 +254,7 @@ mod tests {
 use ac_library::{Max, Monoid};
 // ====== import ======
 #[allow(unused_imports)]
-use itertools::{chain, iproduct, izip, Itertools};
+use itertools::{Itertools, chain, iproduct, izip};
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,
@@ -333,233 +333,156 @@ impl Reroot for DistMaxReroot {
         x + 1
     }
 }
-
 use reroot::*;
 #[allow(clippy::module_inception)]
 pub mod reroot {
-    use ac_library::Max;
-    struct DistMaxReroot();
-    impl Reroot for DistMaxReroot {
-        type M = Max<u64>;
-        fn add_vertex(&self, x: &<Self::M as Monoid>::S, _v: usize) -> <Self::M as Monoid>::S {
-            *x
-        }
-        fn add_edge(
-            &self,
-            x: &<Self::M as Monoid>::S,
-            _v: usize,
-            _ei: usize,
-        ) -> <Self::M as Monoid>::S {
-            x + 1
-        }
-    }
-    /// 全方位木DP
+    use ac_library::Monoid;
+    use mod_queue::*;
+    /// 全方位木DPを行うためのトレイトです。
     pub trait Reroot {
         type M: Monoid;
+        /// 子部分木+辺の集約結果に頂点の値を加えます。
+        /// # Arguments
+        /// * `x` - 頂点 `v` の各子の「部分木+辺」の集約値
+        /// * `v` - 対象の頂点
+        /// # Returns
+        /// `x` に頂点 `v` 自身の値を加えた結果
         fn add_vertex(&self, x: &<Self::M as Monoid>::S, v: usize) -> <Self::M as Monoid>::S;
+        /// 部分木の集約結果にエッジの値を加えます。
+        /// # Arguments
+        /// * `x` - 隣接頂点 `adj[v][ei]` を根とする部分木の集約値
+        /// * `v` - エッジの始点
+        /// * `ei` - 頂点 `v` の `ei` 番目のエッジ（隣接頂点 `adj[v][ei]`）
+        /// # Returns
+        /// `x` にエッジ `v--adj[v][ei]` に関する値を加えた結果
         fn add_edge(
             &self,
             x: &<Self::M as Monoid>::S,
             v: usize,
             ei: usize,
         ) -> <Self::M as Monoid>::S;
-        fn prod(xs: &[<Self::M as Monoid>::S]) -> <Self::M as Monoid>::S {
-            xs.iter().fold(Self::M::identity(), |acc, x| {
-                Self::M::binary_operation(&acc, x)
-            })
-        }
+        /// 全方位木DPを実行し、各頂点を根としたときの値を求めます。
+        /// 具体的には、頂点 `u` を根とした根付き木において、
+        /// 各頂点 `v` の値 `f_u(v)` を以下で再帰的に定義します：
+        /// ```text
+        /// f_u(v) = add_vertex(⊕_{c ∈ ch_u(v)} add_edge(f_u(c), v, index(v, c)), v)
+        /// ```
+        /// ここで `ch_u(v)` は `u` を根とした時の `v` の子頂点の集合、
+        /// `index(v, c)` は `adj[v]` における `c` のインデックス、
+        /// ⊕ はモノイドの二項演算です。
+        /// 返り値を `result` とすると、`result[u] = f_u(u)` です。
+        /// # Arguments
+        /// * `adj` - 木の隣接リスト
+        /// # 計算量
+        /// O(V) (V は頂点数)
         fn reroot(&self, adj: &[Vec<usize>]) -> Vec<<Self::M as Monoid>::S> {
-            let nv = adj.len();
+            let n = adj.len();
+            if n == 0 {
+                return vec![];
+            }
+            if n == 1 {
+                return vec![self.add_vertex(&Self::M::identity(), 0)];
+            }
+            let (children, parent, bfs_order) = {
+                let mut children = vec![vec![]; n];
+                let mut parent = vec![None; n];
+                let mut bfs_order = Vec::with_capacity(n);
+                let mut queue = Queue::new();
+                let mut visited = vec![false; n];
+                visited[0] = true;
+                queue.push(0);
+                while let Some(cur) = queue.pop() {
+                    bfs_order.push(cur);
+                    for (cur_to_next, &next) in adj[cur].iter().enumerate() {
+                        if !visited[next] {
+                            visited[next] = true;
+                            let next_to_cur = adj[next]
+                                .iter()
+                                .position(|&back| back == cur)
+                                .expect("Edge must be bidirectional");
+                            children[cur].push((next, cur_to_next, next_to_cur));
+                            parent[next] = Some((cur, next_to_cur, cur_to_next));
+                            queue.push(next);
+                        }
+                    }
+                }
+                (children, parent, bfs_order)
+            };
             let mut dp: Vec<Vec<<Self::M as Monoid>::S>> = adj
                 .iter()
-                .map(|next_list| {
-                    let degree = next_list.len();
-                    vec![Self::M::identity(); degree]
-                })
-                .collect_vec();
-            {
-                let dfs_post_order = dfs_post_order(adj, 0);
-                let mut visited = vec![false; nv];
-                for &current_v in &dfs_post_order {
-                    visited[current_v] = true;
-                    for (current_e, next_v) in adj[current_v].iter().copied().enumerate() {
-                        if !visited[next_v] {
-                            continue;
-                        }
-                        dp[current_v][current_e] = {
-                            let edge_dp_next = dp[next_v]
-                                .iter()
-                                .enumerate()
-                                .filter(|(next_e, _)| adj[next_v][*next_e] != current_v)
-                                .map(|(next_e, x)| self.add_edge(x, next_v, next_e))
-                                .collect_vec();
-                            let prod = Self::prod(&edge_dp_next);
-                            self.add_vertex(&prod, next_v)
-                        };
-                    }
+                .map(|next_list| vec![Self::M::identity(); next_list.len()])
+                .collect();
+            for &u in bfs_order.iter().rev() {
+                if let Some((p, _u_to_p, p_to_u)) = parent[u] {
+                    let res = children[u]
+                        .iter()
+                        .map(|&(_c, u_to_c, _c_to_u)| self.add_edge(&dp[u][u_to_c], u, u_to_c))
+                        .fold(Self::M::identity(), |acc, val| {
+                            Self::M::binary_operation(&acc, &val)
+                        });
+                    dp[p][p_to_u] = self.add_vertex(&res, u);
                 }
             }
-            {
-                let bfs_order = bfs_order(adj, 0);
-                let mut visited = vec![false; nv];
-                for &current_v in &bfs_order {
-                    visited[current_v] = true;
-                    let edge_dp_current = dp[current_v]
+            for &u in &bfs_order {
+                if children[u].is_empty() {
+                    continue;
+                }
+                let edge_values: Vec<_> = dp[u]
+                    .iter()
+                    .enumerate()
+                    .map(|(i, x)| self.add_edge(x, u, i))
+                    .collect();
+                let cum = CumMonoid::<Self::M>::new(&edge_values);
+                for &(c, u_to_c, c_to_u) in &children[u] {
+                    let res_without_c = cum.prod_without1(u_to_c);
+                    dp[c][c_to_u] = self.add_vertex(&res_without_c, u);
+                }
+            }
+            (0..n)
+                .map(|u| {
+                    let res = dp[u]
                         .iter()
                         .enumerate()
-                        .map(|(current_e, x)| self.add_edge(x, current_v, current_e))
-                        .collect_vec();
-                    let cum_monoid = CumMonoid::<Self::M>::new(&edge_dp_current);
-                    for (current_e, next_v) in adj[current_v].iter().copied().enumerate() {
-                        if visited[next_v] {
-                            continue;
-                        }
-                        let rev_current_e =
-                            adj[next_v].iter().position(|&v| v == current_v).unwrap();
-                        dp[next_v][rev_current_e] = {
-                            let prod = cum_monoid.prod_without1(current_e);
-                            self.add_vertex(&prod, current_v)
-                        };
-                    }
-                }
-            }
-            dp.iter()
-                .enumerate()
-                .map(|(current_v, dp_current)| {
-                    let edge_dp_current = dp_current
-                        .iter()
-                        .enumerate()
-                        .map(|(current_e, x)| self.add_edge(x, current_v, current_e))
-                        .collect_vec();
-                    self.add_vertex(&Self::prod(&edge_dp_current), current_v)
+                        .map(|(i, x)| self.add_edge(x, u, i))
+                        .fold(Self::M::identity(), |acc, val| {
+                            Self::M::binary_operation(&acc, &val)
+                        });
+                    self.add_vertex(&res, u)
                 })
-                .collect_vec()
+                .collect()
         }
     }
-    fn bfs_order(adj: &[Vec<usize>], init: usize) -> Vec<usize> {
-        let nv = adj.len();
-        let mut order = vec![];
-        let mut visited = vec![false; nv];
-        let mut open = Queue::new();
-        open.push(init);
-        order.push(init);
-        visited[init] = true;
-        while let Some(current) = open.pop() {
-            for &next in &adj[current] {
-                if !visited[next] {
-                    order.push(next);
-                    visited[next] = true;
-                    open.push(next);
-                }
-            }
-        }
-        order
+    /// 累積積を効率的に計算するための構造体です。
+    struct CumMonoid<M: Monoid> {
+        prefix: Vec<M::S>,
+        suffix: Vec<M::S>,
     }
-    fn dfs_post_order(adj: &[Vec<usize>], init: usize) -> Vec<usize> {
-        enum State {
-            Pre(usize),
-            Post(usize),
-        }
-        let nv = adj.len();
-        let mut order = vec![];
-        let mut visited = vec![false; nv];
-        let mut open = Stack::new();
-        open.push(State::Post(init));
-        open.push(State::Pre(init));
-        while let Some(current) = open.pop() {
-            match current {
-                State::Pre(v) => {
-                    visited[v] = true;
-                    for &edge in &adj[v] {
-                        if !visited[edge] {
-                            open.push(State::Post(edge));
-                            open.push(State::Pre(edge));
-                        }
-                    }
-                }
-                State::Post(v) => {
-                    order.push(v);
-                }
+    impl<M: Monoid> CumMonoid<M> {
+        fn new(xs: &[M::S]) -> Self {
+            let n = xs.len();
+            let mut prefix = vec![M::identity(); n + 1];
+            let mut suffix = vec![M::identity(); n + 1];
+            for i in 0..n {
+                prefix[i + 1] = M::binary_operation(&prefix[i], &xs[i]);
             }
-        }
-        order
-    }
-    use ac_library::Monoid;
-    use cum_monoid::*;
-    pub mod cum_monoid {
-        use ac_library::Monoid;
-        pub struct CumMonoid<M>
-        where
-            M: Monoid,
-        {
-            prefix_prod: Vec<M::S>,
-            suffix_prod: Vec<M::S>,
-        }
-        impl<M> CumMonoid<M>
-        where
-            M: Monoid,
-        {
-            pub fn new(xs: &[M::S]) -> CumMonoid<M> {
-                let mut prefix_prod = vec![M::identity(); xs.len() + 1];
-                let mut suffix_prod = vec![M::identity(); xs.len() + 1];
-                for i in 0..xs.len() {
-                    prefix_prod[i + 1] = M::binary_operation(&prefix_prod[i], &xs[i]);
-                }
-                for i in (0..xs.len()).rev() {
-                    suffix_prod[i] = M::binary_operation(&xs[i], &suffix_prod[i + 1]);
-                }
-                CumMonoid {
-                    prefix_prod,
-                    suffix_prod,
-                }
+            for i in (0..n).rev() {
+                suffix[i] = M::binary_operation(&xs[i], &suffix[i + 1]);
             }
-            /// [0, i), [i + 1, n) の区間で総積を取る
-            pub fn prod_without1(&self, i: usize) -> M::S {
-                M::binary_operation(&self.prefix_prod[i], &self.suffix_prod[i + 1])
-            }
+            Self { prefix, suffix }
+        }
+        /// インデックス `i` の要素を除いた全体の積を求めます。
+        fn prod_without1(&self, i: usize) -> M::S {
+            M::binary_operation(&self.prefix[i], &self.suffix[i + 1])
         }
     }
-    use itertools::Itertools;
-    use mod_stack::*;
-    pub mod mod_stack {
-        #[derive(Clone, Debug, PartialEq, Eq)]
-        pub struct Stack<T> {
-            raw: Vec<T>,
-        }
-        impl<T> Stack<T> {
-            pub fn new() -> Self {
-                Stack { raw: Vec::new() }
-            }
-            pub fn push(&mut self, value: T) {
-                self.raw.push(value)
-            }
-            pub fn pop(&mut self) -> Option<T> {
-                self.raw.pop()
-            }
-            pub fn peek(&self) -> Option<&T> {
-                self.raw.last()
-            }
-            pub fn is_empty(&self) -> bool {
-                self.raw.is_empty()
-            }
-            pub fn len(&self) -> usize {
-                self.raw.len()
-            }
-        }
-        impl<T> Default for Stack<T> {
-            fn default() -> Self {
-                Self::new()
-            }
-        }
-    }
-    use mod_queue::*;
-    pub mod mod_queue {
+    mod mod_queue {
         use std::collections::VecDeque;
         #[derive(Clone, Debug, PartialEq, Eq)]
         pub struct Queue<T> {
             raw: VecDeque<T>,
         }
         impl<T> Queue<T> {
+            #[allow(clippy::new_without_default)]
             pub fn new() -> Self {
                 Queue {
                     raw: VecDeque::new(),
@@ -571,25 +494,23 @@ pub mod reroot {
             pub fn pop(&mut self) -> Option<T> {
                 self.raw.pop_front()
             }
-            pub fn peek(&self) -> Option<&T> {
-                self.raw.front()
-            }
-            pub fn is_empty(&self) -> bool {
-                self.raw.is_empty()
-            }
-            pub fn len(&self) -> usize {
-                self.raw.len()
-            }
         }
-        impl<T> Default for Queue<T> {
-            fn default() -> Self {
-                Self::new()
-            }
+    }
+    use ac_library::Max;
+    #[derive(Clone, Copy, Debug)]
+    pub struct DistMaxReroot;
+    impl Reroot for DistMaxReroot {
+        type M = Max<u64>;
+        fn add_vertex(&self, x: &u64, _v: usize) -> u64 {
+            *x
+        }
+        fn add_edge(&self, x: &u64, _v: usize, _ei: usize) -> u64 {
+            x + 1
         }
     }
 }
-
 use cumsum::*;
+#[allow(clippy::module_inception)]
 pub mod cumsum {
     pub fn prefix_sum(xs: &[i64]) -> Vec<i64> {
         let mut prefix_sum = vec![0; xs.len() + 1];
@@ -604,7 +525,8 @@ pub mod cumsum {
         pub cumsum: Vec<i64>,
     }
     impl CumSum {
-        /// 計算量: O(|xs|)
+        /// # 計算量
+        /// O(|xs|)
         pub fn new(xs: &[i64]) -> CumSum {
             let mut cumsum = vec![0; xs.len() + 1];
             for i in 1..xs.len() + 1 {
@@ -628,16 +550,82 @@ pub mod cumsum {
             };
             begin..end
         }
-        /// 計算量: O(1)
+        /// 区間 `[begin, end)` の要素の和を計算します。
+        /// # 計算量
+        /// O(1)
         pub fn range_sum(&self, range: impl RangeBounds<usize>) -> i64 {
             let range = self.open(range);
             self.cumsum[range.end] - self.cumsum[range.start]
         }
+        /// 区間 `[0, end)` での和を計算します。
+        /// # 計算量
+        /// O(1)
         pub fn prefix_sum(&self, end: usize) -> i64 {
             self.cumsum[end]
         }
+        /// 区間 `[begin, n)` の要素の和を計算します。（`n` は元の配列の長さ）
+        /// # 計算量
+        /// O(1)
         pub fn suffix_sum(&self, begin: usize) -> i64 {
             self.cumsum[self.cumsum.len() - 1] - self.cumsum[begin]
+        }
+        /// `f(sum(l..r))` が `true` となる最大の `r in [l, n]` を見つける。
+        /// `n` は元の配列の長さ。
+        /// `f` は単調でなければならない。
+        /// `f(sum(l..i))` が `true` => `f(sum(l..j))` が `true` for all `l <= j <= i`.
+        /// # Panics
+        /// `l > n` の場合にパニックする。
+        /// # 計算量
+        /// O(log n)
+        pub fn max_right<F>(&self, l: usize, mut f: F) -> usize
+        where
+            F: FnMut(i64) -> bool,
+        {
+            let n = self.cumsum.len() - 1;
+            assert!(l <= n);
+            assert!(f(0), "f(0) must be true");
+            if f(self.range_sum(l..n)) {
+                return n;
+            }
+            let mut ok = l;
+            let mut ng = n + 1;
+            while ng - ok > 1 {
+                let mid = ok + (ng - ok) / 2;
+                if f(self.range_sum(l..mid)) {
+                    ok = mid;
+                } else {
+                    ng = mid;
+                }
+            }
+            ok
+        }
+        /// `f(sum(l..r))` が `true` となる最小の `l in [0, r]` を見つける。
+        /// `f` は単調でなければならない。
+        /// `f(sum(i..r))` が `true` => `f(sum(j..r))` が `true` for all `i <= j <= r`.
+        /// `r > n` の場合にパニックする。
+        /// # 計算量
+        /// O(log r)
+        pub fn min_left<F>(&self, r: usize, mut f: F) -> usize
+        where
+            F: FnMut(i64) -> bool,
+        {
+            let n = self.cumsum.len() - 1;
+            assert!(r <= n);
+            assert!(f(0), "f(0) must be true");
+            if f(self.range_sum(0..r)) {
+                return 0;
+            }
+            let mut ok = r;
+            let mut ng = 0;
+            while ok - ng > 1 {
+                let mid = ng + (ok - ng) / 2;
+                if f(self.range_sum(mid..r)) {
+                    ok = mid;
+                } else {
+                    ng = mid;
+                }
+            }
+            ok
         }
     }
 }

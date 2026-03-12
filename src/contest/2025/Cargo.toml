@@ -1596,3 +1596,8 @@ path = "abc433/g/g.rs"
 # [[bin]]
 # name = "arc208_g"
 # path = "arc208/g/g.rs"
+
+
+[[bin]]
+name = "abc401_f"
+path = "abc401/f/f.rs"

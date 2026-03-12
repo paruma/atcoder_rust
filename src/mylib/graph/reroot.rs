@@ -1,8 +1,8 @@
-// use cargo_snippet::snippet;
+use cargo_snippet::snippet;
 
 #[allow(clippy::module_inception)]
-// #[snippet(prefix = "use reroot2::*;")]
-pub mod reroot2 {
+#[snippet(prefix = "use reroot::*;")]
+pub mod reroot {
     use ac_library::Monoid;
     use mod_queue::*;
 
@@ -220,7 +220,7 @@ pub mod reroot2 {
 
 #[cfg(test)]
 mod tests {
-    use super::reroot2::*;
+    use super::reroot::*;
 
     #[test]
     fn test_reroot_empty_graph() {
