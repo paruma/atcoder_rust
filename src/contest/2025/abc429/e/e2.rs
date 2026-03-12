@@ -1,52 +1,59 @@
 //! 【実装方針】
 //! マルチソース BFS で複数の安全点から同時に探索し、
-//! 各ノードに「到着順で最初と2番目に到達した安全点」と「その距離」を記録。
+//! EarliestTop2 構造体で「到着順で最初と2番目に到達した安全点」を管理。
+//! 距離は別途 dist1, dist2 配列で管理。
 //!
-//! 複雑な状態管理（到着順 Top2 + 距離）を EarliestTop2Map<K, V> に隔離することで、
-//! BFS ロジックを単純に保つ。
+//! 到着順の管理と距離の管理が分離しているため、
+//! ロジックはやや分散される。
 
-#[derive(Clone, Copy, Debug)]
-/// 到着順で最初と2番目の異なるキーとその値を格納する Key/Value 構造体。
-/// 同じキーの重複挿入は無視される。
-struct EarliestTop2Map<K: Clone + Copy + PartialEq, V: Clone + Copy> {
-    first: Option<(K, V)>,
-    second: Option<(K, V)>,
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct EarliestTop2 {
+    t1: usize,
+    t2: usize,
 }
 
-impl<K: Clone + Copy + PartialEq, V: Clone + Copy> EarliestTop2Map<K, V> {
-    fn new() -> Self {
-        EarliestTop2Map {
-            first: None,
-            second: None,
+impl EarliestTop2 {
+    fn new() -> EarliestTop2 {
+        EarliestTop2 {
+            t1: usize::MAX,
+            t2: usize::MAX,
         }
     }
 
-    fn insert(&mut self, key: K, value: V) {
-        if self.contains_key(key) {
-            return;
+    #[must_use]
+    fn inserted(mut self, x: usize) -> EarliestTop2 {
+        assert!(x != usize::MAX);
+        if self.contains(x) {
+            return self;
         }
 
-        if self.first.is_none() {
-            self.first = Some((key, value));
-        } else if self.second.is_none() {
-            self.second = Some((key, value));
+        if self.t1 == usize::MAX {
+            self.t1 = x;
+        } else if self.t2 == usize::MAX {
+            self.t2 = x;
         }
+        self
     }
 
-    fn contains_key(&self, key: K) -> bool {
-        (self.first.is_some_and(|(k, _)| k == key)) || (self.second.is_some_and(|(k, _)| k == key))
+    fn insert(&mut self, x: usize) {
+        *self = self.inserted(x);
     }
 
-    fn is_full(self) -> bool {
-        self.first.is_some() && self.second.is_some()
+    fn contains(self, x: usize) -> bool {
+        assert!(x != usize::MAX);
+        self.t1 == x || self.t2 == x
     }
 
-    fn value_first(self) -> Option<V> {
-        self.first.map(|(_k, v)| v)
+    fn first(self) -> Option<usize> {
+        (self.t1 != usize::MAX).then_some(self.t1)
     }
 
-    fn value_second(self) -> Option<V> {
-        self.second.map(|(_k, v)| v)
+    fn second(self) -> Option<usize> {
+        (self.t2 != usize::MAX).then_some(self.t2)
+    }
+
+    fn counts(self) -> usize {
+        (self.t1 != usize::MAX) as usize + (self.t2 != usize::MAX) as usize
     }
 }
 
@@ -70,31 +77,43 @@ fn main() {
 
     // (初期点, 現在の点, 距離)
     let mut open: Queue<(usize, usize, i64)> = Queue::new();
-    // dist[v]: ノードvに訪問した最初と2番目の安全点（キー）とそれぞれの距離（値）
-    let mut dist = vec![EarliestTop2Map::new(); nv];
+    // visited[v]: vに訪問した安全点(初期点)の順番 top2
+    let mut visited = vec![EarliestTop2::new(); nv];
+
+    let mut dist1 = vec![i64::MAX; nv];
+    let mut dist2 = vec![i64::MAX; nv];
 
     for v in 0..nv {
         if is_safe[v] {
             open.push((v, v, 0));
-            dist[v].insert(v, 0);
+            visited[v].insert(v);
+            dist1[v] = 0;
         }
     }
 
     while let Some((init, current, d)) = open.pop() {
         for &next in &adj[current] {
-            if dist[next].is_full() || dist[next].contains_key(init) {
+            let cnt = visited[next].counts();
+            if cnt >= 2 || visited[next].contains(init) {
                 continue;
             }
-            dist[next].insert(init, d + 1);
+
+            visited[next].insert(init);
+
+            if cnt == 0 {
+                // 最初の訪問者なので、dist1 にいれる
+                dist1[next] = d + 1;
+            } else if cnt == 1 {
+                // 2番めの訪問者なので、dist2 にいれる
+                dist2[next] = d + 1;
+            }
             open.push((init, next, d + 1));
         }
     }
+
     let ans: Vec<i64> = (0..nv)
         .filter(|v| !is_safe[*v])
-        .map(|v| {
-            let map = dist[v];
-            map.value_first().unwrap() + map.value_second().unwrap()
-        })
+        .map(|v| dist1[v] + dist2[v])
         .collect_vec();
     print_vec(&ans);
 }

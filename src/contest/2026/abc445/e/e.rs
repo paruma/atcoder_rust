@@ -83,6 +83,7 @@ fn main() {
                 .copied()
                 .map(|(p, cnt)| {
                     let exps_top2 = prime_to_exps[&p];
+                    // exps_top2 から cnt を除いた場合の差分を計算する
                     if exps_top2.first() == cnt {
                         Mint::new(p).pow((exps_top2.first() - exps_top2.second()) as u64)
                     } else {
