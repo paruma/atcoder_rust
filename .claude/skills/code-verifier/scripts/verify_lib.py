@@ -12,6 +12,7 @@ from datetime import datetime
 from pathlib import Path
 from dataclasses import dataclass
 from enum import Enum, auto
+import shutil
 
 
 class VerificationStatus(Enum):
@@ -38,11 +39,16 @@ class VerificationReport:
     def __init__(self):
         self.results: list[StepResult] = []
         self.has_failure = False
+        self.output_buffer: list[str] = []
 
     def add(self, result: StepResult):
         self.results.append(result)
         if result.status == VerificationStatus.FAIL:
             self.has_failure = True
+
+    def _buffer(self, text: str):
+        """出力をバッファに追加（ログ保存用）"""
+        self.output_buffer.append(text)
 
     def print_summary(self):
         # 状態に応じた表示用ラベルの定義
@@ -52,21 +58,54 @@ class VerificationReport:
             VerificationStatus.FAIL: "❌ FAIL",
         }
 
-        print("\n" + "=" * 40)
-        print(" VERIFICATION SUMMARY")
-        print("=" * 40)
+        summary_lines = []
+        summary_lines.append("\n" + "=" * 40)
+        summary_lines.append(" VERIFICATION SUMMARY")
+        summary_lines.append("=" * 40)
         for r in self.results:
             label = labels.get(r.status, "???")
-            print(f"{label} | {r.name}")
+            summary_lines.append(f"{label} | {r.name}")
             if r.message:
                 for line in r.message.splitlines():
-                    print(f"   > {line}")
-        print("=" * 40)
+                    summary_lines.append(f"   > {line}")
+        summary_lines.append("=" * 40)
+
+        summary_text = "\n".join(summary_lines)
+        print(summary_text)
+        self._buffer(summary_text)
+
+    def save_log(self, base_dir: str = ".claude/tmp"):
+        """ログファイルを自動生成・保存し、ファイルパスを返す"""
+        # ディレクトリ作成
+        os.makedirs(base_dir, exist_ok=True)
+
+        # タイムスタンプ付きファイル名を生成
+        tz_aware_now = datetime.now()
+        timestamp = tz_aware_now.strftime("%Y%m%d_%H%M%S")
+        log_file = os.path.join(base_dir, f"verify_lib_{timestamp}.log")
+
+        # バッファ内容をファイルに書き込み
+        with open(log_file, "w") as f:
+            f.write("\n".join(self.output_buffer))
+
+        return log_file
+
+
+_global_report: "VerificationReport | None" = None
+
+
+def set_global_report(report: "VerificationReport"):
+    """グローバル report を設定"""
+    global _global_report
+    _global_report = report
 
 
 def run_command(cmd: list[str], capture: bool = True) -> tuple[bool, str]:
     """外部コマンドを実行し、成功判定と標準出力を取得する補助関数"""
-    print(f"Executing: {' '.join(cmd)}")
+    msg = f"Executing: {' '.join(cmd)}"
+    print(msg)
+    if _global_report:
+        _global_report._buffer(msg)
     try:
         result = subprocess.run(cmd, check=True, text=True, capture_output=capture)
         return True, result.stdout if capture else ""
@@ -406,7 +445,12 @@ def main():
         "module_path",
         help="Module path (e.g. math::gcd) or file path (e.g. src/mylib/math/gcd.rs)",
     )
-    parser.add_argument("--skip-cov", action="store_true")
+    parser.add_argument("--skip-cov", action="store_true", help="Skip coverage check")
+    parser.add_argument(
+        "--save-log",
+        action="store_true",
+        help="Automatically save verification results to a timestamped log file in .claude/tmp/",
+    )
 
     args = parser.parse_args()
 
@@ -416,6 +460,7 @@ def main():
         print(f"Normalized path: {args.module_path} -> {normalized_path}")
 
     report = VerificationReport()
+    set_global_report(report)
 
     # 1. Test
     print("\n>>> Step: Test")
@@ -444,6 +489,11 @@ def main():
 
     # 4. Finalize
     report.print_summary()
+
+    # 5. Log saving
+    if args.save_log:
+        log_file = report.save_log()
+        print(f"\n📝 Log saved to: {log_file}")
 
     if report.has_failure:
         sys.exit(1)

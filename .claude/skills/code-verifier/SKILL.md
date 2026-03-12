@@ -16,10 +16,10 @@ description: src/mylib 編集後に実行すること。このスキルでは、
 何らかの修正（ロジックの変更、コメントの修正、テストの追加）を行った後、統合検証スクリプトを実行してください。
 
 1.  **統合検証スクリプトの実行**
-    - コマンド: `mkdir -p .claude/tmp && python3 .claude/skills/code-verifier/scripts/verify_lib.py <パス> > .claude/tmp/verify_<名前>_$(TZ=Asia/Tokyo date +%Y%m%d_%H%M%S).log 2>&1`
-    - 例 (ファイルパス): `mkdir -p .claude/tmp && python3 .claude/skills/code-verifier/scripts/verify_lib.py src/mylib/data_structure/segtree_lib/lazy_segtree.rs > .claude/tmp/verify_lazy_segtree_$(TZ=Asia/Tokyo date +%Y%m%d_%H%M%S).log 2>&1`
-    - **Note**: 結果を必ず `.claude/tmp/` 配下のログファイルにリダイレクトしてください。ファイル名には必ず `$(TZ=Asia/Tokyo date +%Y%m%d_%H%M%S)` を含めてください。
+    - コマンド: `python3 .claude/skills/code-verifier/scripts/verify_lib.py <パス> --save-log`
+    - 例 (ファイルパス): `python3 .claude/skills/code-verifier/scripts/verify_lib.py src/mylib/data_structure/segtree_lib/lazy_segtree.rs --save-log`
     - **Note**: ファイルパスを指定すると自動的に内部でモジュールパスに変換されます。
+    - **Note**: `--save-log` オプションを指定すると、結果が自動的に `.claude/tmp/` にタイムスタンプ付きログとして保存されます。
 
 2.  **スクリプトによる検証内容**
     スクリプトは以下の項目を全て実行し、最後に結果をまとめて報告します。
@@ -30,7 +30,7 @@ description: src/mylib 編集後に実行すること。このスキルでは、
     - **Snippet Consistency**: `snippet_linter` による整合性チェック。
 
 3.  **検証ステータスの確認**
-    - スクリプト末尾の `VERIFICATION SUMMARY` を確認し、全ての項目が `PASS` または `WARN`（カバレッジ）であることを確認してください。
+    - 出力末尾の `VERIFICATION SUMMARY` を確認し、全ての項目が `PASS` または `WARN`（カバレッジ）であることを確認してください。
 
 4.  **最終確認 (Git Diff)**
     - 意図しないファイルや箇所に変更が及んでいないか、`git diff` で最終確認してください。
