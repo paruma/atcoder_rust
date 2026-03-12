@@ -64,3 +64,7 @@
 
 `mylib` のコードは、`cargo-snippet` を用いてスニペットにして、コンテスト問題のソースファイル（`q.rs` 等）にライブラリをスニペットとして展開して使用します。
 これにより、提出時には全てのコードが単一のクレート（ファイル）内に収まります。
+
+### 2.4. コーディング規約
+
+**Queue の使用について**: Queue の機能が必要な場合は、`std::collections::VecDeque` ではなく、`src/mylib/data_structure/queue.rs` で定義されている `mod_queue::Queue` を使用してください。
