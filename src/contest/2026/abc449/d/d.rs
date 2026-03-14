@@ -1,11 +1,123 @@
 // 問題文と制約は読みましたか？
 // #[fastout]
+
+// [1, x] * [1, y] にいくつ黒点ある？
+fn sub1(mut x: i64, mut y: i64) -> i64 {
+    // x <= y を仮定しておく
+    if x > y {
+        std::mem::swap(&mut x, &mut y);
+    }
+
+    assert!(x <= y);
+
+    std::iter::successors(Some(3_i64), |acc| Some(acc + 2))
+        .take_while(|&r| r <= y + 1)
+        .map(|r| {
+            //
+            if r <= x + 1 {
+                // r = 3, x=2 OK, x=1 NG
+                2 * r - 3
+            } else {
+                x
+            }
+        })
+        .sum::<i64>()
+}
+
+// [x1, x2] * [y1, y2] にいくつ黒点ある？, x1, y1 >=1
+fn sub2(x1: i64, x2: i64, y1: i64, y2: i64) -> i64 {
+    // dbg!(x1, x2, y1, y2);
+    assert!(x1 >= 1);
+    assert!(x2 >= 1);
+    assert!(y1 >= 1);
+    assert!(y2 >= 1);
+    sub1(x2, y2) - sub1(x2, y1 - 1) - sub1(x1 - 1, y2) + sub1(x1 - 1, y1 - 1)
+}
+
+fn sub3(mut x1: i64, mut x2: i64, mut y1: i64, mut y2: i64) -> i64 {
+    if x1 < 0 && x2 < 0 {
+        x1 *= -1;
+        x2 *= -1;
+        swap(&mut x1, &mut x2);
+    }
+
+    if y1 < 0 && y2 < 0 {
+        y1 *= -1;
+        y2 *= -1;
+        swap(&mut y1, &mut y2);
+    }
+    sub2(x1, x2, y1, y2)
+}
+
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        l: i64,
+        r: i64,
+        d: i64,
+        u: i64,
     }
-    let ans: i64 = -2_i64;
+    // l = r = 0 のケースがいや
+
+    let mut x_ranges = vec![];
+    if l == 0 && r == 0 {
+    } else if l < 0 && r == 0 {
+        x_ranges.push((l, -1));
+    } else if l < 0 && r < 0 {
+        x_ranges.push((l, r));
+    } else if l < 0 && r > 0 {
+        x_ranges.push((l, -1));
+        x_ranges.push((1, r));
+    } else if l == 0 && r > 0 {
+        x_ranges.push((1, r));
+    } else {
+        x_ranges.push((l, r));
+    }
+
+    let mut y_ranges = vec![];
+    if d == 0 && u == 0 {
+    } else if d < 0 && u == 0 {
+        y_ranges.push((d, -1));
+    } else if d < 0 && u < 0 {
+        y_ranges.push((d, u));
+    } else if d < 0 && u > 0 {
+        y_ranges.push((d, -1));
+        y_ranges.push((1, u));
+    } else if d == 0 && u > 0 {
+        y_ranges.push((1, u));
+    } else {
+        y_ranges.push((d, u));
+    }
+    // dbg!(&x_ranges);
+    // dbg!(&y_ranges);
+
+    let term1 = iproduct!(x_ranges, y_ranges)
+        .map(|((x1, x2), (y1, y2))| {
+            //
+            sub3(x1, x2, y1, y2)
+        })
+        .sum::<i64>();
+
+    // dbg!(term1);
+    //if
+
+    // 軸上
+    let term2 = {
+        //
+        let mut cnt = 0;
+        if (l..=r).contains(&0) {
+            cnt += (d..=u).filter(|y| y % 2 == 0).count() as i64;
+        }
+
+        if (d..=u).contains(&0) {
+            cnt += (l..=r).filter(|x| x % 2 == 0).count() as i64;
+        }
+
+        if (l..=r).contains(&0) && (d..=u).contains(&0) {
+            cnt -= 1;
+        }
+        cnt
+    };
+    let ans: i64 = term1 + term2;
     println!("{}", ans);
 }
 
@@ -18,6 +130,17 @@ mod tests {
 
     #[test]
     fn test_problem() {
+        assert_eq!(sub1(4, 5), 10);
+        assert_eq!(sub1(3, 5), 6);
+        assert_eq!(sub1(3, 4), 6);
+        assert_eq!(sub1(3, 3), 3);
+        assert_eq!(sub1(2, 5), 5);
+        assert_eq!(sub1(5, 2), 5);
+        assert_eq!(sub1(5, 0), 0);
+        assert_eq!(sub1(4, 0), 0);
+        assert_eq!(sub1(3, 0), 0);
+        assert_eq!(sub1(2, 0), 0);
+        assert_eq!(sub1(1, 0), 0);
         assert_eq!(1 + 1, 2);
     }
 
@@ -68,6 +191,7 @@ mod tests {
 }
 
 // ====== import ======
+use std::mem::swap;
 #[allow(unused_imports)]
 use {
     itertools::{Itertools, chain, iproduct, izip},

@@ -2,10 +2,10 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        d: f64,
     }
-    let ans: i64 = -2_i64;
+    let r = d / 2.0;
+    let ans: f64 = r * r * PI;
     println!("{}", ans);
 }
 
@@ -68,6 +68,7 @@ mod tests {
 }
 
 // ====== import ======
+use std::f64::consts::PI;
 #[allow(unused_imports)]
 use {
     itertools::{Itertools, chain, iproduct, izip},

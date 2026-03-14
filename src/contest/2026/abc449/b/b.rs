@@ -1,12 +1,26 @@
 // 問題文と制約は読みましたか？
-// #[fastout]
+#[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        mut h: usize,
+        mut w: usize,
+        q: usize,
+        qs: [(usize, usize); q],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    for (t, l) in qs {
+        if t == 1 {
+            // 行
+            let ans = l * w;
+            h -= l;
+            println!("{}", ans);
+        } else {
+            // 列
+            let ans = l * h;
+            w -= l;
+            println!("{}", ans);
+        }
+    }
 }
 
 #[cfg(test)]

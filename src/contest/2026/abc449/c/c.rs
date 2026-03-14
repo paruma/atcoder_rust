@@ -3,9 +3,31 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        l: usize,
+        r: usize,
+        xs: Chars,
     }
-    let ans: i64 = -2_i64;
+
+    let ans = ('a'..='z')
+        .map(|target| {
+            let pos = xs
+                .iter()
+                .copied()
+                .positions(|ch| ch == target)
+                .map(|x| x as i64)
+                .collect_vec();
+            //
+            (0..pos.len())
+                .map(|j| {
+                    let i_begin = pos[j] - (r as i64);
+                    let i_end = pos[j] - (l as i64);
+                    let begin = pos.lower_bound(&i_begin);
+                    let end = pos.upper_bound(&i_end);
+                    (end - begin) as i64
+                })
+                .sum::<i64>()
+        })
+        .sum::<i64>();
     println!("{}", ans);
 }
 
@@ -68,6 +90,7 @@ mod tests {
 }
 
 // ====== import ======
+use superslice::Ext;
 #[allow(unused_imports)]
 use {
     itertools::{Itertools, chain, iproduct, izip},
