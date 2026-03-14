@@ -1,38 +1,33 @@
-fn tree_diam(adj: &[Vec<usize>]) -> i64 {
-    fn bfs(adj: &[Vec<usize>], init: usize) -> (i64, Vec<usize>) {
-        let n = adj.len();
-        let mut dist = vec![0; n];
-        let mut prev = vec![None; n];
-        let mut visited = vec![false; n];
-        let mut open = Queue::new();
-        open.push(init);
-        visited[init] = true;
-        while let Some(current) = open.pop() {
-            for &next in &adj[current] {
-                if !visited[next] {
-                    dist[next] = dist[current] + 1;
-                    prev[next] = Some(current);
-                    visited[next] = true;
-                    open.push(next);
-                }
+// 解法: 木DP をする
+
+/// 根付き木の隣接リストから、各頂点の子頂点リストと帰りがけ順（post-order）の訪問順序を求めます。
+///
+/// - `adj`: 隣接リスト
+/// - `root`: 根となる頂点番号
+///
+/// 返り値: (各頂点の子頂点リスト, 帰りがけ順の頂点番号リスト)
+fn tree_children_and_order(adj: &[Vec<usize>], root: usize) -> (Vec<Vec<usize>>, Vec<usize>) {
+    fn rec(
+        adj: &[Vec<usize>],
+        cur: usize,
+        parent: usize,
+        children: &mut [Vec<usize>],
+        order: &mut Vec<usize>,
+    ) {
+        for &next in &adj[cur] {
+            if next != parent {
+                children[cur].push(next);
+                rec(adj, next, cur, children, order);
             }
         }
-        let (furthest, max_dist) = dist
-            .iter()
-            .copied()
-            .enumerate()
-            .max_by_key(|(_, d)| *d)
-            .unwrap();
-        let path: Vec<usize> = {
-            let mut path: Vec<usize> =
-                std::iter::successors(Some(furthest), |&i| prev[i]).collect();
-            path.reverse();
-            path
-        };
-        (max_dist, path)
+        order.push(cur);
     }
-    let x = *bfs(&adj, 0).1.last().unwrap();
-    bfs(&adj, x).0
+    let nv = adj.len();
+    let mut children = vec![vec![]; nv];
+    let mut order = vec![];
+    rec(adj, root, root, &mut children, &mut order);
+
+    (children, order)
 }
 
 #[fastout]
@@ -57,70 +52,63 @@ fn main() {
             });
 
         let degs = adj.iter().map(|nexts| nexts.len()).collect_vec();
-        let mut dsu = DsuCore::new(nv);
+        let (children, order) = tree_children_and_order(&adj, 0);
 
-        for &(u, v) in &es {
-            if degs[u] >= 4 && degs[v] >= 4 {
-                dsu.merge(u, v);
+        let cand1: i64 = {
+            type Top2 = Top2Multiset<i64>;
+
+            let mut dp_34星3 = vec![0; nv];
+            let mut dp_34星4 = vec![Top2::new(); nv];
+            let mut dp_34星 = vec![0; nv];
+            let mut dp = vec![0; nv];
+            for cur in order {
+                dp_34星[cur] = if degs[cur] < 3 {
+                    0
+                } else if degs[cur] == 3 {
+                    1
+                } else {
+                    children[cur]
+                        .iter()
+                        .copied()
+                        .map(|child| dp_34星[child] + 1)
+                        .max()
+                        .unwrap_or(1) // ここ 0 と間違えた
+                };
+                dp_34星3[cur] = if degs[cur] < 3 {
+                    0
+                } else {
+                    children[cur]
+                        .iter()
+                        .copied()
+                        .map(|child| dp_34星[child] + 1)
+                        .max()
+                        .unwrap_or(0)
+                };
+
+                dp_34星4[cur] = if degs[cur] < 4 {
+                    Top2::new()
+                } else {
+                    children[cur]
+                        .iter()
+                        .copied()
+                        .map(|child| dp_34星[child] + 1)
+                        .fold(Top2::new(), |acc, x| acc.inserted(x))
+                };
+                dp[cur] = std::cmp::max(
+                    dp_34星3[cur],
+                    if dp_34星4[cur].len() == 2 {
+                        dp_34星4[cur].iter().sum::<i64>() - 1 // - 1 忘れ: 頂点ベースの木の直径の罠
+                    } else {
+                        0
+                    },
+                )
             }
-        }
-        let cand1: i64 = dsu
-            .groups()
-            .iter()
-            .filter(|g| degs[g[0]] >= 4)
-            .map(|g| {
-                let mut g2 = g.clone();
-                // gの隣にある次数3を追加する
-                for &v in g {
-                    for &next in &adj[v] {
-                        if degs[next] == 3 {
-                            g2.push(next);
-                        }
-                    }
-                }
-                g2.sort();
-                // g2 圧縮する
-                // adj_g2
-
-                let mut adj_g2 = vec![vec![]; g2.len()];
-
-                for &v in &g2 {
-                    let v_cc = g2.binary_search(&v).unwrap();
-
-                    for &next in &adj[v] {
-                        if let Ok(next_cc) = g2.binary_search(&next) {
-                            adj_g2[v_cc].push(next_cc);
-                            // 逆方向はいらないはず。別のループで生える
-                        }
-                    }
-                }
-
-                tree_diam(&adj_g2) + 1
-            })
-            .max()
-            .unwrap_or(0);
-
-        // 長さ2のムカデグラフ
-        let cand2 = {
-            let mut dsu = DsuCore::new(nv);
-            for &(u, v) in &es {
-                if degs[u] >= 3 && degs[v] >= 3 {
-                    dsu.merge(u, v);
-                }
-            }
-            if dsu.groups().iter().any(|g| g.len() >= 2) {
-                2
-            } else {
-                0
-            }
+            dp.iter().copied().max().unwrap()
         };
 
         // 長さ1のムカデグラフ
-        let cand3 = {
-            //
-            if nv >= 3 { 1 } else { 0 }
-        };
-        let ans = [cand1, cand2, cand3].iter().copied().max().unwrap();
+        let cand2 = if nv >= 3 { 1 } else { 0 };
+        let ans = std::cmp::max(cand1, cand2);
         println!("{}", ans);
     }
 }
@@ -252,215 +240,150 @@ pub mod print_util {
 }
 
 // ====== snippet ======
-use dsu_core::*;
+use topk_multiset::*;
 #[allow(clippy::module_inception)]
-/// ac_library::Dsu の merge のみ実装を変えたもの
-pub mod dsu_core {
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-    /// DSU 内の各要素の状態（親のインデックスまたは集合のサイズ）を保持する構造体。
-    /// メモリ効率（32ビット整数 1 つ分）を維持したまま、以下の 2 つの状態を表現します。
-    /// 1. **Root (根)**:
-    ///    - 値が負の場合、その要素は集合の代表元（リーダー）です。
-    ///    - 値の絶対値 `|v|` は、その集合に属する要素の数（サイズ）を表します。
-    ///    - 例: `-1` はサイズ 1 の集合の根、`-5` はサイズ 5 の集合の根。
-    /// 2. **Child (子)**:
-    ///    - 値が 0 以上の場合、その要素は他の要素を親に持っています。
-    ///    - 値 `v` は、親要素のインデックスを表します。
-    struct Node(i32);
-    impl Node {
-        fn root(size: usize) -> Self {
-            Self(-(size as i32))
-        }
-        fn child(parent: usize) -> Self {
-            Self(parent as i32)
-        }
-        fn is_root(&self) -> bool {
-            self.0 < 0
-        }
-        fn parent(&self) -> usize {
-            self.0 as usize
-        }
-        fn size(&self) -> usize {
-            (-self.0) as usize
-        }
+pub mod topk_multiset {
+    use std::fmt;
+    /// 値が大きい方から最大 K 個を保持するマルチセット（同一値の重複あり）。
+    /// ヒープを使用せず、スタック上の固定長配列で動作する。
+    #[derive(Clone, Copy, PartialEq, Eq, Hash)]
+    pub struct TopKMultiset<T, const K: usize> {
+        buf: [T; K],
+        len: usize,
     }
-    #[derive(Clone, Debug)]
-    pub struct DsuCore {
-        n: usize,
-        nodes: Vec<Node>,
-        cnt_groups: usize,
-    }
-    impl DsuCore {
-        pub fn new(size: usize) -> Self {
-            Self {
-                n: size,
-                nodes: vec![Node::root(1); size],
-                cnt_groups: size,
-            }
-        }
-        /// 2 つの要素 `a` と `b` が属する集合を統合する
-        /// # 戻り値
-        /// - `Some((leader, merged))`:
-        ///   - `leader` は統合後の集合の代表元（リーダー）
-        ///   - `merged` は統合されて消える側の旧代表元
-        /// - `None`:
-        ///   - `a` と `b` がすでに同じ集合に属していた場合
-        pub fn merge(&mut self, a: usize, b: usize) -> Option<(usize, usize)> {
-            assert!(a < self.n);
-            assert!(b < self.n);
-            let (mut x, mut y) = (self.leader(a), self.leader(b));
-            if x == y {
-                return None;
-            }
-            if self.nodes[x].size() < self.nodes[y].size() {
-                std::mem::swap(&mut x, &mut y);
-            }
-            let size_x = self.nodes[x].size();
-            let size_y = self.nodes[y].size();
-            self.nodes[x] = Node::root(size_x + size_y);
-            self.nodes[y] = Node::child(x);
-            self.cnt_groups -= 1;
-            Some((x, y))
-        }
-        pub fn same(&mut self, a: usize, b: usize) -> bool {
-            assert!(a < self.n);
-            assert!(b < self.n);
-            self.leader(a) == self.leader(b)
-        }
-        pub fn leader(&mut self, a: usize) -> usize {
-            assert!(a < self.n);
-            if self.nodes[a].is_root() {
-                return a;
-            }
-            let parent = self.nodes[a].parent();
-            let new_parent = self.leader(parent);
-            self.nodes[a] = Node::child(new_parent);
-            new_parent
-        }
-        pub fn size(&mut self, a: usize) -> usize {
-            assert!(a < self.n);
-            let x = self.leader(a);
-            self.nodes[x].size()
-        }
-        pub fn count_group(&self) -> usize {
-            self.cnt_groups
-        }
-        pub fn groups(&mut self) -> Vec<Vec<usize>> {
-            let mut leader_buf = vec![0; self.n];
-            let mut group_size = vec![0; self.n];
-            for i in 0..self.n {
-                leader_buf[i] = self.leader(i);
-                group_size[leader_buf[i]] += 1;
-            }
-            let mut result = vec![Vec::new(); self.n];
-            for i in 0..self.n {
-                result[i].reserve(group_size[i]);
-            }
-            for i in 0..self.n {
-                result[leader_buf[i]].push(i);
-            }
-            result
-                .into_iter()
-                .filter(|x| !x.is_empty())
-                .collect::<Vec<Vec<usize>>>()
-        }
-    }
-}
-use mod_queue::*;
-/// 木の直径を求める(直径の長さと直径を構成する頂点のリストを返す)
-/// # Arguments
-/// * `edges` - 辺の情報 (頂点, 頂点, コスト) のリスト
-/// # Returns
-/// `(直径の長さ, 直径を構成する頂点のリスト)`
-/// # 計算量
-/// O(V) (V は頂点数)
-pub fn tree_diameter(edges: &[(usize, usize, i64)]) -> (i64, Vec<usize>) {
-    let nv = edges.len() + 1;
-    let adj = edges
-        .iter()
-        .copied()
-        .fold(vec![vec![]; nv], |mut acc, (u, v, cost)| {
-            acc[u].push((v, cost));
-            acc[v].push((u, cost));
-            acc
-        });
-    fn bfs(adj: &[Vec<(usize, i64)>], init: usize) -> (i64, Vec<usize>) {
-        let n = adj.len();
-        let mut dist = vec![0; n];
-        let mut prev = vec![None; n];
-        let mut visited = vec![false; n];
-        let mut open = Queue::new();
-        open.push(init);
-        visited[init] = true;
-        while let Some(current) = open.pop() {
-            for &(next, cost) in &adj[current] {
-                if !visited[next] {
-                    dist[next] = dist[current] + cost;
-                    prev[next] = Some(current);
-                    visited[next] = true;
-                    open.push(next);
-                }
-            }
-        }
-        let (furthest, max_dist) = dist
-            .iter()
-            .copied()
-            .enumerate()
-            .max_by_key(|(_, d)| *d)
-            .unwrap();
-        let path: Vec<usize> = {
-            let mut path: Vec<usize> =
-                std::iter::successors(Some(furthest), |&i| prev[i]).collect();
-            path.reverse();
-            path
-        };
-        (max_dist, path)
-    }
-    let x = *bfs(&adj, 0).1.last().unwrap();
-    bfs(&adj, x)
-}
-pub mod mod_queue {
-    use std::collections::VecDeque;
-    #[derive(Clone, Debug, PartialEq, Eq)]
-    pub struct Queue<T> {
-        raw: VecDeque<T>,
-    }
-    impl<T> Queue<T> {
+    /// 値が大きい方から最大 2 個を保持するマルチセット。
+    pub type Top2Multiset<T> = TopKMultiset<T, 2>;
+    /// 値が大きい方から最大 3 個を保持するマルチセット。
+    pub type Top3Multiset<T> = TopKMultiset<T, 3>;
+    /// 値が大きい方から最大 4 個を保持するマルチセット。
+    pub type Top4Multiset<T> = TopKMultiset<T, 4>;
+    /// 値が大きい方から最大 5 個を保持するマルチセット。
+    pub type Top5Multiset<T> = TopKMultiset<T, 5>;
+    impl<T, const K: usize> TopKMultiset<T, K>
+    where
+        T: Ord + Copy + Default,
+    {
+        /// 空の TopKMultiset を作成する。
+        /// 計算量は $O(1)$。
         pub fn new() -> Self {
-            Queue {
-                raw: VecDeque::new(),
+            Self {
+                buf: [T::default(); K],
+                len: 0,
             }
         }
-        pub fn push(&mut self, value: T) {
-            self.raw.push_back(value)
+        /// 要素を 1 つだけ含む TopKMultiset を作成する。
+        /// 計算量は $O(K)$。
+        pub fn unit(value: T) -> Self {
+            Self::new().inserted(value)
         }
-        pub fn pop(&mut self) -> Option<T> {
-            self.raw.pop_front()
+        /// 要素を 1 つ追加する。
+        /// 計算量は $O(K)$。
+        pub fn insert(&mut self, value: T) {
+            let pos = self.buf[..self.len]
+                .iter()
+                .position(|&x| value >= x)
+                .unwrap_or(self.len);
+            if self.len < K {
+                self.len += 1;
+            } else if pos < K {
+            } else {
+                return;
+            }
+            let end = self.len.min(K);
+            self.buf.copy_within(pos..end - 1, pos + 1);
+            self.buf[pos] = value;
         }
-        pub fn peek(&self) -> Option<&T> {
-            self.raw.front()
+        /// 要素を 1 つ追加した新しい TopKMultiset を返す。
+        /// 計算量は $O(K)$。
+        #[must_use]
+        pub fn inserted(self, value: T) -> Self {
+            let mut result = self;
+            result.insert(value);
+            result
         }
-        pub fn is_empty(&self) -> bool {
-            self.raw.is_empty()
+        /// other の全要素を追加した新しい TopKMultiset を返す。
+        /// 計算量は $O(K^2)$。
+        #[must_use]
+        pub fn merged(self, other: Self) -> Self {
+            let mut result = self;
+            result.merge(other);
+            result
         }
+        /// other の全要素を追加する。
+        /// 計算量は $O(K^2)$。
+        pub fn merge(&mut self, other: Self) {
+            for x in other.iter() {
+                self.insert(x);
+            }
+        }
+        /// i 番目に大きい要素を返す（0-indexed）。
+        /// i >= len の場合は None を返す。計算量は $O(1)$。
+        pub fn nth(&self, i: usize) -> Option<T> {
+            if i < self.len {
+                Some(self.buf[i])
+            } else {
+                None
+            }
+        }
+        /// 保持している最大の要素を返す。
+        /// `nth(0)` と同じ。計算量は $O(1)$。
+        pub fn max(&self) -> Option<T> {
+            self.nth(0)
+        }
+        /// 保持している要素数を返す。
+        /// 計算量は $O(1)$。
         pub fn len(&self) -> usize {
-            self.raw.len()
+            self.len
+        }
+        /// 空かどうかを返す。
+        /// 計算量は $O(1)$。
+        pub fn is_empty(&self) -> bool {
+            self.len == 0
+        }
+        /// 保持している要素のイテレータを返す（T 降順）。
+        pub fn iter(&self) -> impl Iterator<Item = T> + '_ {
+            self.buf[..self.len].iter().copied()
         }
     }
-    impl<T> Default for Queue<T> {
+    impl<T, const K: usize> Default for TopKMultiset<T, K>
+    where
+        T: Ord + Copy + Default,
+    {
         fn default() -> Self {
             Self::new()
         }
     }
-}
-/// 重みなし木の直径を求める(直径の長さと直径を構成する頂点のリストを返す)
-/// # Arguments
-/// * `edges` - 辺の情報 (頂点, 頂点) のリスト
-/// # Returns
-/// `(直径の長さ, 直径を構成する頂点のリスト)`
-/// # 計算量
-/// O(V) (V は頂点数)
-pub fn tree_diameter_no_weight(edges: &[(usize, usize)]) -> (i64, Vec<usize>) {
-    let edges: Vec<(usize, usize, i64)> = edges.iter().copied().map(|(u, v)| (u, v, 1)).collect();
-    tree_diameter(&edges)
+    impl<T, const K: usize> FromIterator<T> for TopKMultiset<T, K>
+    where
+        T: Ord + Copy + Default,
+    {
+        /// イテレータの各要素を順に insert した結果と等価。
+        /// 計算量は $O(NK)$（N はイテレータの要素数）。
+        fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
+            let mut result = Self::new();
+            for x in iter {
+                result.insert(x);
+            }
+            result
+        }
+    }
+    impl<T: Copy, const K: usize> IntoIterator for TopKMultiset<T, K> {
+        type Item = T;
+        type IntoIter = std::iter::Take<std::array::IntoIter<T, K>>;
+        fn into_iter(self) -> Self::IntoIter {
+            self.buf.into_iter().take(self.len)
+        }
+    }
+    impl<T: fmt::Debug, const K: usize> fmt::Debug for TopKMultiset<T, K> {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(f, "{{")?;
+            for (i, x) in self.buf[..self.len].iter().enumerate() {
+                if i > 0 {
+                    write!(f, ", ")?;
+                }
+                write!(f, "{:?}", x)?;
+            }
+            write!(f, "}}")
+        }
+    }
 }
