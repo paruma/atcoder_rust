@@ -16,4 +16,5 @@ pub mod lca_path_aggregate;
 pub mod lowlink;
 pub mod reroot;
 pub mod topo_sort;
+pub mod tree;
 pub mod tree_diameter;
