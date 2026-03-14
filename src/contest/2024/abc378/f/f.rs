@@ -1,3 +1,5 @@
+// 解法: 木DP
+
 //#[derive_readable]
 #[derive(Debug, Clone)]
 struct Problem {
@@ -23,180 +25,70 @@ impl Problem {
             acc
         });
 
-        // 連結成分が3同士
-        let mut uf = UnionFind::new(n);
+        let degs = adj.iter().map(|nexts| nexts.len()).collect_vec();
 
-        for current in 0..n {
-            if adj[current].len() == 3 {
-                for &next in &adj[current] {
-                    if adj[next].len() == 3 {
-                        uf.unite(current, next);
-                    }
-                }
-            }
+        let children = make_tree_children(&adj, 0);
+        let ord = dfs_post_order(&adj, 0);
+
+        // 次数列が 23* のもの (葉から見て)
+        let mut dp = vec![0; n];
+
+        for v in ord {
+            dp[v] = if degs[v] == 2 {
+                1
+            } else if degs[v] == 3 {
+                children[v].iter().copied().map(|child| dp[child]).sum()
+            } else {
+                0
+            };
         }
 
-        let ans = uf
-            .groups()
-            .iter()
-            .filter(|group| adj[group[0]].len() == 3)
-            .map(|group| {
-                // group の隣にある頂点で次数が2のもの
-                let cnt_next_deg2 = group
-                    .iter()
-                    .copied()
-                    .map(|current| {
-                        adj[current]
-                            .iter()
-                            .copied()
-                            .filter(|&next| adj[next].len() == 2)
-                            .count()
-                    })
-                    .sum::<usize>() as i64;
-                cnt_next_deg2 * (cnt_next_deg2 - 1) / 2
+        // 単純でないグラフを含める(頂点数 2)
+        let ans_include_nonsimple = (0..n)
+            .map(|v| {
+                // v を LCA としたときの場合の数
+
+                // 端点が LCA の場合
+                let term1 = if degs[v] == 2 {
+                    children[v]
+                        .iter()
+                        .copied()
+                        .map(|child| dp[child])
+                        .sum::<i64>()
+                } else {
+                    0
+                };
+
+                // 端点が LCA でない場合（LCA で折り返す）
+
+                let term2 = if degs[v] == 3 {
+                    let sum = children[v]
+                        .iter()
+                        .copied()
+                        .map(|child| dp[child])
+                        .sum::<i64>();
+                    let sq_sum = children[v]
+                        .iter()
+                        .copied()
+                        .map(|child| dp[child] * dp[child])
+                        .sum::<i64>();
+                    (sum * sum - sq_sum) / 2
+                } else {
+                    0
+                };
+                term1 + term2
             })
             .sum::<i64>();
-        Answer { ans }
-    }
 
-    fn solve2(&self) -> Answer {
-        // 木 DP
-
-        let n = self.n;
-        let adj = self.es.iter().copied().fold(vec![vec![]; n], |mut acc, e| {
-            acc[e.0].push(e.1);
-            acc[e.1].push(e.0);
-            acc
-        });
-
-        // dp0[v] = vを根とする部分木での条件をみたす個数 (v がパスの LCA となるもの)
-        // dp1[v] = vから下に下がるパスで次数列が 3 3 ... 2 となるものの個数
-        fn dfs(
-            n: usize,
-            adj: &[Vec<usize>],
-            parent: Option<usize>,
-            current: usize,
-            dp0: &mut Vec<i64>,
-            dp1: &mut Vec<i64>,
-        ) {
-            let children = adj[current]
-                .iter()
-                .copied()
-                .filter(|next| Some(*next) != parent)
-                .collect_vec();
-
-            for &next in &children {
-                dfs(n, adj, Some(current), next, dp0, dp1);
-            }
-
-            let dp1_children = children
-                .iter()
-                .copied()
-                .map(|child| dp1[child])
-                .collect_vec();
-            let dp1_children_sum = dp1_children.iter().copied().sum::<i64>();
-
-            let current_deg = adj[current].len();
-
-            dp0[current] = match current_deg {
-                2 => dp1_children_sum,
-                3 => {
-                    let dp1_children_sq_sum =
-                        dp1_children.iter().copied().map(|x| x * x).sum::<i64>();
-                    (dp1_children_sum * dp1_children_sum - dp1_children_sq_sum) / 2
-                }
-                _ => 0,
-            };
-
-            dp1[current] = match current_deg {
-                2 => 1,
-                3 => dp1_children_sum,
-                _ => 0,
-            };
-        }
-
-        let mut dp0 = vec![0; n];
-        let mut dp1 = vec![0; n];
-
-        dfs(n, &adj, None, 0, &mut dp0, &mut dp1);
-
-        // deg(2) - deg(2) みたいな辺を追加すると多重辺になるパターンを除く
-        let mult_edges = self
+        // [deg 2] - [deg 2] みたいなパスを除く
+        let nonsimple = self
             .es
             .iter()
             .copied()
-            .filter(|e| adj[e.0].len() == 2 && adj[e.1].len() == 2)
+            .filter(|&(u, v)| degs[u] == 2 && degs[v] == 2)
             .count() as i64;
 
-        let ans = dp0.iter().sum::<i64>() - mult_edges;
-        Answer { ans }
-    }
-
-    fn solve3(&self) -> Answer {
-        // 木 DP (for ループ)
-        // 再帰で書くと変なところに処理を書いてしまう可能性がある。再帰を外に出すことである程度実装がやりやすくなる？
-
-        let n = self.n;
-        let adj = self.es.iter().copied().fold(vec![vec![]; n], |mut acc, e| {
-            acc[e.0].push(e.1);
-            acc[e.1].push(e.0);
-            acc
-        });
-
-        let mut visited = vec![false; n];
-
-        // dp0[v] = vを根とする部分木での条件をみたす個数 (v がパスの LCA となるもの)
-        // dp1[v] = vから下に下がるパスで次数列が 3 3 ... 2 となるものの個数
-        let mut dp0 = vec![0; n];
-        let mut dp1 = vec![0; n];
-
-        for current in dfs_post_order(&adj, 0) {
-            if visited[current] {
-                continue;
-            }
-            visited[current] = true;
-
-            let children = adj[current]
-                .iter()
-                .copied()
-                .filter(|next| visited[*next])
-                .collect_vec();
-
-            let dp1_children = children
-                .iter()
-                .copied()
-                .map(|child| dp1[child])
-                .collect_vec();
-            let dp1_children_sum = dp1_children.iter().copied().sum::<i64>();
-
-            let current_deg = adj[current].len();
-
-            dp0[current] = match current_deg {
-                2 => dp1_children_sum,
-                3 => {
-                    let dp1_children_sq_sum =
-                        dp1_children.iter().copied().map(|x| x * x).sum::<i64>();
-                    (dp1_children_sum * dp1_children_sum - dp1_children_sq_sum) / 2
-                }
-                _ => 0,
-            };
-
-            dp1[current] = match current_deg {
-                2 => 1,
-                3 => dp1_children_sum,
-                _ => 0,
-            };
-        }
-
-        // deg(2) - deg(2) みたいな辺を追加すると多重辺になるパターンを除く
-        let mult_edges = self
-            .es
-            .iter()
-            .copied()
-            .filter(|e| adj[e.0].len() == 2 && adj[e.1].len() == 2)
-            .count() as i64;
-
-        let ans = dp0.iter().sum::<i64>() - mult_edges;
+        let ans = ans_include_nonsimple - nonsimple;
         Answer { ans }
     }
 
@@ -220,7 +112,7 @@ impl Answer {
 }
 
 fn main() {
-    Problem::read().solve3().print();
+    Problem::read().solve().print();
 }
 
 #[cfg(test)]
@@ -301,7 +193,7 @@ mod tests {
 
 // ====== import ======
 #[allow(unused_imports)]
-use itertools::{chain, iproduct, izip, Itertools};
+use itertools::{Itertools, chain, iproduct, izip};
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,
@@ -361,111 +253,26 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
-use simple_union_find::*;
-pub mod simple_union_find {
-    use itertools::Itertools;
-    #[derive(Clone, Debug)]
-    struct RootInfo {
-        count: usize,
-    }
-    #[derive(Clone, Debug)]
-    struct NonRootInfo {
-        parent: usize,
-    }
-    #[derive(Clone, Debug)]
-    enum Node {
-        Root(RootInfo),
-        NonRoot(NonRootInfo),
-    }
-    impl Node {
-        fn root(count: usize) -> Node {
-            Node::Root(RootInfo { count })
-        }
-        fn non_root(parent: usize) -> Node {
-            Node::NonRoot(NonRootInfo { parent })
-        }
-        fn as_root(&self) -> &RootInfo {
-            match self {
-                Node::Root(info) => info,
-                Node::NonRoot(_) => panic!(),
+/// 根付き木の隣接リスト `adj` と根 `root` から、各頂点の子頂点リストを求めます。
+/// # 計算量
+/// O(V + E)
+pub fn make_tree_children(adj: &[Vec<usize>], root: usize) -> Vec<Vec<usize>> {
+    let n = adj.len();
+    let mut children = vec![vec![]; n];
+    let mut visited = vec![false; n];
+    let mut queue = std::collections::VecDeque::new();
+    visited[root] = true;
+    queue.push_back(root);
+    while let Some(v) = queue.pop_front() {
+        for &u in &adj[v] {
+            if !visited[u] {
+                visited[u] = true;
+                children[v].push(u);
+                queue.push_back(u);
             }
         }
     }
-    #[derive(Clone, Debug)]
-    pub struct UnionFind {
-        nodes: Vec<Node>,
-        cnt_groups: usize,
-    }
-    impl UnionFind {
-        pub fn new(n: usize) -> UnionFind {
-            let nodes = (0..n).map(|_| Node::root(1)).collect_vec();
-            UnionFind {
-                nodes,
-                cnt_groups: n,
-            }
-        }
-        pub fn root(&mut self, index: usize) -> usize {
-            match &self.nodes[index] {
-                Node::Root(_) => index,
-                Node::NonRoot(info) => {
-                    let root = self.root(info.parent);
-                    self.nodes[index] = Node::non_root(root);
-                    root
-                }
-            }
-        }
-        pub fn same_count(&mut self, index: usize) -> usize {
-            let root_index = self.root(index);
-            self.nodes[root_index].as_root().count
-        }
-        pub fn same(&mut self, x: usize, y: usize) -> bool {
-            self.root(x) == self.root(y)
-        }
-        pub fn num_groups(&self) -> usize {
-            self.cnt_groups
-        }
-        pub fn unite(&mut self, x: usize, y: usize) -> bool {
-            if self.same(x, y) {
-                return false;
-            }
-            self.cnt_groups -= 1;
-            let (smaller_root, larger_root) = {
-                let x_root = self.root(x);
-                let y_root = self.root(y);
-                let x_count = self.nodes[x_root].as_root().count;
-                let y_count = self.nodes[y_root].as_root().count;
-                if x_count < y_count {
-                    (x_root, y_root)
-                } else {
-                    (y_root, x_root)
-                }
-            };
-            let count_sum =
-                self.nodes[smaller_root].as_root().count + self.nodes[larger_root].as_root().count;
-            self.nodes[smaller_root] = Node::non_root(larger_root);
-            self.nodes[larger_root] = Node::root(count_sum);
-            true
-        }
-        pub fn groups(&mut self) -> Vec<Vec<usize>> {
-            let n = self.nodes.len();
-            let roots = (0..n).map(|i| self.root(i)).collect_vec();
-            let group_size = (0..n).map(|i| roots[i]).fold(vec![0; n], |mut acc, x| {
-                acc[x] += 1;
-                acc
-            });
-            let result = {
-                let mut result = vec![Vec::new(); n];
-                for i in 0..n {
-                    result[i].reserve(group_size[i]);
-                }
-                for i in 0..n {
-                    result[roots[i]].push(i);
-                }
-                result
-            };
-            result.into_iter().filter(|x| !x.is_empty()).collect_vec()
-        }
-    }
+    children
 }
 use mod_stack::*;
 pub mod mod_stack {
@@ -499,6 +306,9 @@ pub mod mod_stack {
         }
     }
 }
+/// 深さ優先探索 (DFS) を行い、帰りがけ順 (post-order) での頂点順序を返します。
+/// # 計算量
+/// O(V + E)
 pub fn dfs_post_order(adj: &[Vec<usize>], init: usize) -> Vec<usize> {
     fn dfs(
         adj: &[Vec<usize>],
