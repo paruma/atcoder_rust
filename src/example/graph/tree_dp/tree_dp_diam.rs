@@ -1,34 +1,7 @@
 #![allow(dead_code)]
 // 木DPで木の直径を求める
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-struct Top2<T> {
-    t1: T,
-    t2: T,
-}
-
-impl<T: Ord> Top2<T> {
-    fn new(t1: T, t2: T) -> Self {
-        Self { t1, t2 }
-    }
-    fn first(self) -> T {
-        self.t1
-    }
-    fn second(self) -> T {
-        self.t2
-    }
-
-    #[must_use]
-    fn inserted(self, x: T) -> Self {
-        if x >= self.t1 {
-            Self { t1: x, t2: self.t1 }
-        } else if x >= self.t2 {
-            Self { t1: self.t1, t2: x }
-        } else {
-            self
-        }
-    }
-}
+use mylib::data_structure::topk::topk_multiset::topk_multiset::Top2Multiset;
 
 /// 根付き木の隣接リストから、各頂点の子頂点リストと帰りがけ順（post-order）の訪問順序を求めます。
 ///
@@ -66,19 +39,18 @@ fn tree_diam(adj: &[Vec<usize>]) -> usize {
     let nv = adj.len();
 
     // dp[v] = v から葉へのパスの長さの top2
-    let mut dp = vec![Top2::new(0, 0); nv];
+    let mut dp = vec![Top2Multiset::<usize>::new(); nv];
 
     for &cur in &order {
         dp[cur] = children[cur]
             .iter()
             .copied()
-            .map(|child| dp[child])
-            .fold(Top2::new(0, 0), |acc, x| acc.inserted(x.first() + 1));
+            .map(|child| dp[child].max().unwrap_or(0))
+            .fold(Top2Multiset::new(), |acc, x| acc.inserted(x + 1));
     }
-
     dp.iter()
         .copied()
-        .map(|top2| top2.first() + top2.second())
+        .map(|top2| top2.iter().sum::<usize>())
         .max()
         .unwrap()
 }
