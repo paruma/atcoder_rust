@@ -6,15 +6,10 @@ pub mod bfs01;
 pub mod cycle_detection_directed;
 pub mod dijkstra;
 pub mod doubling;
-pub mod euler_tour;
 pub mod functional_graph;
 #[allow(clippy::module_inception)]
 pub mod graph;
-pub mod lca;
-pub mod lca_doubling;
-pub mod lca_path_aggregate;
 pub mod lowlink;
-pub mod reroot;
 pub mod topo_sort;
 pub mod tree;
 pub mod tree_diameter;

@@ -1,7 +1,7 @@
 // 根付き木の根からのパスの集約値を求めるサンプルコード
 
 #![allow(dead_code)]
-use mylib::graph::tree::make_tree_children;
+use mylib::graph::tree::tree::make_tree_children;
 
 fn tree_length_from_root(adj: &[Vec<usize>], root: usize) -> Vec<usize> {
     let children = make_tree_children(adj, root);

@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 // src/mylib/graph/reroot.rs を使って木の直径を求める
 
-use mylib::graph::reroot::reroot::*;
+use mylib::graph::tree::reroot::reroot::*;
 
 fn tree_diam(adj: &[Vec<usize>]) -> u64 {
     if adj.is_empty() {
