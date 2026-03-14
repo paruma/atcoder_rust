@@ -1,42 +1,6 @@
 // 全体から1つだけ消したらどうなるかというのを考えていく
 // top2 を管理するとうまくいく
 
-/// 大きい方から2つを管理する
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-struct Top2<T> {
-    t1: T,
-    t2: T,
-}
-
-impl<T: Ord> Top2<T> {
-    fn new(t1: T, t2: T) -> Self {
-        Self { t1, t2 }
-    }
-    fn first(self) -> T {
-        self.t1
-    }
-    fn second(self) -> T {
-        self.t2
-    }
-
-    #[must_use]
-    fn inserted(self, x: T) -> Self {
-        if x >= self.t1 {
-            Self { t1: x, t2: self.t1 }
-        } else if x >= self.t2 {
-            Self { t1: self.t1, t2: x }
-        } else {
-            self
-        }
-    }
-    fn insert(&mut self, x: T)
-    where
-        T: Copy,
-    {
-        *self = self.inserted(x);
-    }
-}
-
 fn main() {
     input! {
         t: usize
@@ -58,20 +22,17 @@ fn main() {
             .map(|x| sieve.prime_factorize(x))
             .collect_vec();
 
-        let mut prime_to_exps = HashMap::<usize, Top2<usize>>::new();
+        let mut prime_to_exps = HashMap::<usize, Top2Multiset<usize>>::new();
 
         for f in &xs_f {
             for &(p, exp) in f {
-                prime_to_exps
-                    .entry(p)
-                    .or_insert(Top2::new(0, 0))
-                    .insert(exp);
+                prime_to_exps.entry(p).or_default().insert(exp);
             }
         }
 
         let lcm: Mint = prime_to_exps
             .iter()
-            .map(|(p, cnts)| Mint::new(*p).pow(cnts.first() as u64))
+            .map(|(p, cnts)| Mint::new(*p).pow(cnts.nth(0).unwrap_or(0) as u64))
             .product();
 
         // dbg!(lcm);
@@ -84,8 +45,10 @@ fn main() {
                 .map(|(p, cnt)| {
                     let exps_top2 = prime_to_exps[&p];
                     // exps_top2 から cnt を除いた場合の差分を計算する
-                    if exps_top2.first() == cnt {
-                        Mint::new(p).pow((exps_top2.first() - exps_top2.second()) as u64)
+                    if exps_top2.nth(0) == Some(cnt) {
+                        let first = exps_top2.nth(0).unwrap_or(0);
+                        let second = exps_top2.nth(1).unwrap_or(0);
+                        Mint::new(p).pow((first - second) as u64)
                     } else {
                         Mint::new(1)
                     }
@@ -108,13 +71,6 @@ mod tests {
 
     #[test]
     fn test_problem() {
-        let t = Top2::new(0, 0);
-
-        let t = t.inserted(3);
-        dbg!(t);
-        let t = t.inserted(2);
-        dbg!(t);
-
         assert_eq!(1 + 1, 2);
     }
 
@@ -308,208 +264,150 @@ pub mod eratosthenes_sieve {
         }
     }
 }
-use btree_multiset::*;
+use topk_multiset::*;
 #[allow(clippy::module_inception)]
-pub mod btree_multiset {
-    use std::{
-        borrow::Borrow,
-        collections::{BTreeMap, btree_map::Range},
-        ops::RangeBounds,
-    };
-    #[derive(Clone, Debug, PartialEq, Eq)]
-    pub struct BTreeMultiSet<T> {
-        map: BTreeMap<T, usize>,
-        length: usize,
+pub mod topk_multiset {
+    use std::fmt;
+    /// 値が大きい方から最大 K 個を保持するマルチセット（同一値の重複あり）。
+    /// ヒープを使用せず、スタック上の固定長配列で動作する。
+    #[derive(Clone, Copy, PartialEq, Eq, Hash)]
+    pub struct TopKMultiset<T, const K: usize> {
+        buf: [T; K],
+        len: usize,
     }
-    impl<T> Default for BTreeMultiSet<T> {
+    /// 値が大きい方から最大 2 個を保持するマルチセット。
+    pub type Top2Multiset<T> = TopKMultiset<T, 2>;
+    /// 値が大きい方から最大 3 個を保持するマルチセット。
+    pub type Top3Multiset<T> = TopKMultiset<T, 3>;
+    /// 値が大きい方から最大 4 個を保持するマルチセット。
+    pub type Top4Multiset<T> = TopKMultiset<T, 4>;
+    /// 値が大きい方から最大 5 個を保持するマルチセット。
+    pub type Top5Multiset<T> = TopKMultiset<T, 5>;
+    impl<T, const K: usize> TopKMultiset<T, K>
+    where
+        T: Ord + Copy + Default,
+    {
+        /// 空の TopKMultiset を作成する。
+        /// 計算量は $O(1)$。
+        pub fn new() -> Self {
+            Self {
+                buf: [T::default(); K],
+                len: 0,
+            }
+        }
+        /// 要素を 1 つだけ含む TopKMultiset を作成する。
+        /// 計算量は $O(K)$。
+        pub fn unit(value: T) -> Self {
+            Self::new().inserted(value)
+        }
+        /// 要素を 1 つ追加する。
+        /// 計算量は $O(K)$。
+        pub fn insert(&mut self, value: T) {
+            let pos = self.buf[..self.len]
+                .iter()
+                .position(|&x| value >= x)
+                .unwrap_or(self.len);
+            if self.len < K {
+                self.len += 1;
+            } else if pos < K {
+            } else {
+                return;
+            }
+            let end = self.len.min(K);
+            self.buf.copy_within(pos..end - 1, pos + 1);
+            self.buf[pos] = value;
+        }
+        /// 要素を 1 つ追加した新しい TopKMultiset を返す。
+        /// 計算量は $O(K)$。
+        #[must_use]
+        pub fn inserted(self, value: T) -> Self {
+            let mut result = self;
+            result.insert(value);
+            result
+        }
+        /// other の全要素を追加した新しい TopKMultiset を返す。
+        /// 計算量は $O(K^2)$。
+        #[must_use]
+        pub fn merged(self, other: Self) -> Self {
+            let mut result = self;
+            result.merge(other);
+            result
+        }
+        /// other の全要素を追加する。
+        /// 計算量は $O(K^2)$。
+        pub fn merge(&mut self, other: Self) {
+            for x in other.iter() {
+                self.insert(x);
+            }
+        }
+        /// i 番目に大きい要素を返す（0-indexed）。
+        /// i >= len の場合は None を返す。計算量は $O(1)$。
+        pub fn nth(&self, i: usize) -> Option<T> {
+            if i < self.len {
+                Some(self.buf[i])
+            } else {
+                None
+            }
+        }
+        /// 保持している最大の要素を返す。
+        /// `nth(0)` と同じ。計算量は $O(1)$。
+        pub fn max(&self) -> Option<T> {
+            self.nth(0)
+        }
+        /// 保持している要素数を返す。
+        /// 計算量は $O(1)$。
+        pub fn len(&self) -> usize {
+            self.len
+        }
+        /// 空かどうかを返す。
+        /// 計算量は $O(1)$。
+        pub fn is_empty(&self) -> bool {
+            self.len == 0
+        }
+        /// 保持している要素のイテレータを返す（T 降順）。
+        pub fn iter(&self) -> impl Iterator<Item = T> + '_ {
+            self.buf[..self.len].iter().copied()
+        }
+    }
+    impl<T, const K: usize> Default for TopKMultiset<T, K>
+    where
+        T: Ord + Copy + Default,
+    {
         fn default() -> Self {
             Self::new()
         }
     }
-    impl<T> BTreeMultiSet<T> {
-        pub const fn new() -> BTreeMultiSet<T> {
-            BTreeMultiSet {
-                map: BTreeMap::new(),
-                length: 0,
+    impl<T, const K: usize> FromIterator<T> for TopKMultiset<T, K>
+    where
+        T: Ord + Copy + Default,
+    {
+        /// イテレータの各要素を順に insert した結果と等価。
+        /// 計算量は $O(NK)$（N はイテレータの要素数）。
+        fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
+            let mut result = Self::new();
+            for x in iter {
+                result.insert(x);
             }
-        }
-        pub fn range<R>(&self, range: R) -> Range<'_, T, usize>
-        where
-            T: Ord,
-            R: RangeBounds<T>,
-        {
-            self.map.range(range)
-        }
-        /// 内部の BTreeMap のイテレータを返す。
-        /// 要素とその個数のペア `(&T, &usize)` を巡回する。
-        pub fn iter(&self) -> std::collections::btree_map::Iter<'_, T, usize> {
-            self.map.iter()
-        }
-        /// 最小の要素を返す。
-        /// 空の場合は `None` を返す。計算量は $O(\log K)$ ($K$ は要素の種類数)。
-        pub fn min(&self) -> Option<&T>
-        where
-            T: Ord,
-        {
-            self.map.first_key_value().map(|(k, _)| k)
-        }
-        /// 最大の要素を返す。
-        /// 空の場合は `None` を返す。計算量は $O(\log K)$ ($K$ は要素の種類数)。
-        pub fn max(&self) -> Option<&T>
-        where
-            T: Ord,
-        {
-            self.map.last_key_value().map(|(k, _)| k)
-        }
-        /// 重複を考慮して、$n$ 番目に小さい要素を返す（0-indexed）。
-        /// $n$ が全体の要素数（`len()`）以上の場合は `None` を返す。
-        /// 計算量は $O(\log K + \min(m, K))$ ($m$ は走査したユニークな要素数、$K$ は種類数)。
-        pub fn nth_min(&self, n: usize) -> Option<&T>
-        where
-            T: Ord,
-        {
-            let mut sum = 0;
-            for (val, &cnt) in self.iter() {
-                if sum + cnt > n {
-                    return Some(val);
-                }
-                sum += cnt;
-            }
-            None
-        }
-        /// 重複を考慮して、$n$ 番目に大きい要素を返す（0-indexed）。
-        /// $n$ が全体の要素数（`len()`）以上の場合は `None` を返す。
-        /// 計算量は $O(\log K + \min(m, K))$ ($m$ は走査したユニークな要素数、$K$ は種類数)。
-        pub fn nth_max(&self, n: usize) -> Option<&T>
-        where
-            T: Ord,
-        {
-            let mut sum = 0;
-            for (val, &cnt) in self.iter().rev() {
-                if sum + cnt > n {
-                    return Some(val);
-                }
-                sum += cnt;
-            }
-            None
-        }
-        /// 指定した範囲内での最小の要素を返す。
-        /// 範囲内に要素がない場合は `None` を返す。計算量は $O(\log K)$ ($K$ は種類数)。
-        pub fn min_in_range<R>(&self, range: R) -> Option<&T>
-        where
-            T: Ord,
-            R: RangeBounds<T>,
-        {
-            self.range(range).next().map(|(k, _)| k)
-        }
-        /// 指定した範囲内での最大の要素を返す。
-        /// 範囲内に要素がない場合は `None` を返す。計算量は $O(\log K)$ ($K$ は種類数)。
-        pub fn max_in_range<R>(&self, range: R) -> Option<&T>
-        where
-            T: Ord,
-            R: RangeBounds<T>,
-        {
-            self.range(range).next_back().map(|(k, _)| k)
-        }
-        /// 指定した範囲内で、重複を考慮して $n$ 番目に小さい要素を返す（0-indexed）。
-        /// $n$ が範囲内の要素数以上の場合は `None` を返す。
-        /// 計算量は $O(\log K + \min(m, K))$ ($m$ は範囲内で走査したユニークな要素数、$K$ は種類数)。
-        pub fn nth_min_in_range<R>(&self, n: usize, range: R) -> Option<&T>
-        where
-            T: Ord,
-            R: RangeBounds<T>,
-        {
-            let mut sum = 0;
-            for (val, &cnt) in self.range(range) {
-                if sum + cnt > n {
-                    return Some(val);
-                }
-                sum += cnt;
-            }
-            None
-        }
-        /// 指定した範囲内で、重複を考慮して $n$ 番目に大きい要素を返す（0-indexed）。
-        /// $n$ が範囲内の要素数以上の場合は `None` を返す。
-        /// 計算量は $O(\log K + \min(m, K))$ ($m$ は範囲内で走査したユニークな要素数、$K$ は種類数)。
-        pub fn nth_max_in_range<R>(&self, n: usize, range: R) -> Option<&T>
-        where
-            T: Ord,
-            R: RangeBounds<T>,
-        {
-            let mut sum = 0;
-            for (val, &cnt) in self.range(range).rev() {
-                if sum + cnt > n {
-                    return Some(val);
-                }
-                sum += cnt;
-            }
-            None
-        }
-        pub fn insert(&mut self, value: T)
-        where
-            T: Ord,
-        {
-            *self.map.entry(value).or_insert(0) += 1;
-            self.length += 1;
-        }
-        pub fn remove1<Q>(&mut self, value: &Q) -> bool
-        where
-            T: Borrow<Q> + Ord,
-            Q: ?Sized + Ord,
-        {
-            if let Some(cnt) = self.map.get_mut(value) {
-                *cnt -= 1;
-                if *cnt == 0 {
-                    self.map.remove(value);
-                }
-                self.length -= 1;
-                return true;
-            }
-            false
-        }
-        pub fn remove_all<Q>(&mut self, value: &Q) -> bool
-        where
-            T: Borrow<Q> + Ord,
-            Q: ?Sized + Ord,
-        {
-            if let Some(cnt) = self.map.get(value) {
-                self.length -= cnt;
-                self.map.remove(value);
-                return true;
-            }
-            false
-        }
-        pub fn len(&self) -> usize {
-            self.length
-        }
-        pub fn set_len(&self) -> usize {
-            self.map.len()
-        }
-        pub fn is_empty(&self) -> bool {
-            self.length == 0
-        }
-        pub fn count<Q>(&self, value: &Q) -> usize
-        where
-            T: Borrow<Q> + Ord,
-            Q: ?Sized + Ord,
-        {
-            self.map.get(value).copied().unwrap_or(0)
-        }
-        pub fn contains<Q>(&self, value: &Q) -> bool
-        where
-            T: Borrow<Q> + Ord,
-            Q: ?Sized + Ord,
-        {
-            self.map.contains_key(value)
+            result
         }
     }
-    impl<T: Ord> FromIterator<T> for BTreeMultiSet<T> {
-        fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> BTreeMultiSet<T> {
-            let mut set = BTreeMultiSet::new();
-            for x in iter {
-                set.insert(x);
+    impl<T: Copy, const K: usize> IntoIterator for TopKMultiset<T, K> {
+        type Item = T;
+        type IntoIter = std::iter::Take<std::array::IntoIter<T, K>>;
+        fn into_iter(self) -> Self::IntoIter {
+            self.buf.into_iter().take(self.len)
+        }
+    }
+    impl<T: fmt::Debug, const K: usize> fmt::Debug for TopKMultiset<T, K> {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(f, "{{")?;
+            for (i, x) in self.buf[..self.len].iter().enumerate() {
+                if i > 0 {
+                    write!(f, ", ")?;
+                }
+                write!(f, "{:?}", x)?;
             }
-            set
+            write!(f, "}}")
         }
     }
 }
