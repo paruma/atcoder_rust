@@ -104,10 +104,6 @@ _oj_test_common() {
     local contest=$(_get_contest)
     local task=$(_get_task)
 
-    if [ ! -d 'test' ]; then
-        oj_download
-    fi
-
     local bin_path=$1
     local extra_arg=$2
 
@@ -142,7 +138,7 @@ oj_test() {
     local is_release=false
     local contest=$(_get_contest)
     local task=$(_get_task)
-    
+
     while getopts "fr" opt; do
         case $opt in
             f)
@@ -155,6 +151,10 @@ oj_test() {
                 ;;
         esac
     done
+
+    if [ ! -d 'test' ]; then
+        oj_download
+    fi
 
     if [ "$is_release" = true ]; then
         if ! cargo build --release --bin "${contest}_${task}"; then
