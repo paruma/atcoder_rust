@@ -37,8 +37,8 @@ description: Python スクリプト（.py）の作成・修正・リファクタ
 ### 2.3. 品質検証 (ruff)
 - スクリプトの修正後は必ず以下のコマンドを実行し、エラーがないことを確認すること。
   ```bash
-  HOME=/home/node uvx ruff check --fix <script_path>
-  HOME=/home/node uvx ruff format <script_path>
+  uvx ruff check --fix <script_path>
+  uvx ruff format <script_path>
   ```
 
 ### 2.4. 単一責務の原則 (SRP)
