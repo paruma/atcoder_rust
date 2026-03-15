@@ -61,7 +61,7 @@ pub mod range_linear_add_range_sum {
     }
 
     // x ↦ x + intercept + slope * i, 等差数列
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Default, Hash)]
     pub struct Linear<T> {
         intercept: T,
         slope: T,

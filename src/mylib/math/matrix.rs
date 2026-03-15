@@ -6,9 +6,20 @@ pub mod matrix {
     use std::iter::{Product, Sum};
     use std::ops::{Add, AddAssign, Index, IndexMut, Mul, Neg, Sub, SubAssign};
 
-    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct Matrix<T, const R: usize, const C: usize> {
         pub data: [[T; C]; R],
+    }
+
+    impl<T, const R: usize, const C: usize> Default for Matrix<T, R, C>
+    where
+        T: Copy + Default,
+    {
+        fn default() -> Self {
+            Self {
+                data: [[T::default(); C]; R],
+            }
+        }
     }
 
     fn t_zero<T>() -> T

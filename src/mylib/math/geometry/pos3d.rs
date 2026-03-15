@@ -9,7 +9,7 @@ pub mod pos3d {
     use std::iter::Sum;
     use std::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
-    #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
     pub struct Pos3d {
         pub x: i64,
         pub y: i64,

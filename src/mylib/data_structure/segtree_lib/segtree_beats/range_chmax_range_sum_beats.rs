@@ -17,7 +17,7 @@ pub mod range_chmax_range_sum {
         ops::RangeBounds,
     };
 
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeSum {
         pub sum: i64,
         pub len: usize,
@@ -87,7 +87,7 @@ pub mod range_chmax_range_sum {
         }
     }
 
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct ChmaxFunc {
         pub chmax_val: i64,
     }

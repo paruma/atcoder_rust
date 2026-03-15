@@ -10,7 +10,7 @@ pub mod pos {
     use std::iter::Sum;
     use std::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
-    #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
     pub struct Pos {
         pub x: i64,
         pub y: i64,

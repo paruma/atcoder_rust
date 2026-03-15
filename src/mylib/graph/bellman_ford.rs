@@ -16,7 +16,7 @@ pub mod bellman_ford {
         };
     }
 
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     /// 最短路問題の解。双対問題を考える場合は非有界と非許容が逆になるので注意
     pub enum Solution {
         /// 非有界 (負閉路を経由することでいくらでもパスを短くできる。-∞ 扱い)

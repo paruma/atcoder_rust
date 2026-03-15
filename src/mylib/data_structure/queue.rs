@@ -4,7 +4,7 @@ use cargo_snippet::snippet;
 pub mod mod_queue {
     use std::collections::VecDeque;
 
-    #[derive(Clone, Debug, PartialEq, Eq)]
+    #[derive(Clone, Debug, PartialEq, Eq, Hash)]
     pub struct Queue<T> {
         raw: VecDeque<T>,
     }

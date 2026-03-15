@@ -6,7 +6,7 @@ use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Neg, Rem, Shl, Shr, Sub, Sub
 
 /// 形式的冪級数を表す構造体。
 /// 係数を`Vec<StaticModInt<M>>`で保持する。
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Default, Hash)]
 pub struct FormalPowerSeries<M: Modulus> {
     pub coeffs: Vec<StaticModInt<M>>,
 }

@@ -31,7 +31,7 @@ pub mod range_add_range_min {
     }
 
     // Action for RangeAddRangeMin
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Default)]
     pub struct AddAction<T> {
         add_val: T,
     }

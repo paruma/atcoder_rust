@@ -65,7 +65,7 @@ pub mod range_quadratic_add_range_sum {
     }
 
     // x ↦ x + coef0 + coef1 * i + coef2 * i * i
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Default, Hash)]
     pub struct Quadratic<T> {
         coef0: T,
         coef1: T,

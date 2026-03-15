@@ -2,7 +2,7 @@ use cargo_snippet::snippet;
 
 #[snippet(prefix = "use mod_stack::*;")]
 pub mod mod_stack {
-    #[derive(Clone, Debug, PartialEq, Eq)]
+    #[derive(Clone, Debug, PartialEq, Eq, Hash)]
     pub struct Stack<T> {
         raw: Vec<T>,
     }

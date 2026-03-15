@@ -8,7 +8,7 @@ pub mod range_div_floor_range_min_max {
     use std::convert::Infallible;
     use std::ops::RangeBounds;
 
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeMinMax {
         pub min: i64,
         pub max: i64,

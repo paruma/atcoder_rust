@@ -229,7 +229,7 @@ pub mod monoid_affine {
 
     use ac_library::Monoid;
 
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Default)]
     pub struct AffineTransform<T> {
         slope: T,
         intercept: T,

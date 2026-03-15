@@ -21,7 +21,7 @@ pub mod range_chmin_chmax_add_range_sum_beats {
     const INF: i64 = i64::MAX;
     const NEG_INF: i64 = i64::MIN;
 
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RangeSum {
         pub sum: i64,
         pub len: usize,
@@ -133,7 +133,7 @@ pub mod range_chmin_chmax_add_range_sum_beats {
         }
     }
 
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct Func {
         pub add: i64,
         pub upper: i64,
