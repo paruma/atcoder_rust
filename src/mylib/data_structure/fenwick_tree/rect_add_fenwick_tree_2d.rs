@@ -1,4 +1,4 @@
-use crate::data_structure::segtree_lib::fenwick_tree::rect_sum_fenwick_tree_2d::rect_sum_fenwick_tree_2d::RectSumFenwickTree2DArbitrary;
+use crate::data_structure::fenwick_tree::rect_sum_fenwick_tree_2d::rect_sum_fenwick_tree_2d::RectSumFenwickTree2DArbitrary;
 use crate::math::algebra::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
 use cargo_snippet::snippet;
 

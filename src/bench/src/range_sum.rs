@@ -1,6 +1,6 @@
 mod bench_util;
 
-use mylib::data_structure::segtree_lib::fenwick_tree::range_sum_fenwick_tree::range_sum_fenwick_tree::RangeSumFenwickTree;
+use mylib::data_structure::fenwick_tree::range_sum_fenwick_tree::range_sum_fenwick_tree::RangeSumFenwickTree;
 use mylib::data_structure::segtree_lib::segtree::range_sum_segtree::range_sum_segtree::RangeSumSegtree;
 use rand::{Rng, SeedableRng, rngs::StdRng};
 

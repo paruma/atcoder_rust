@@ -1,4 +1,4 @@
-use crate::data_structure::segtree_lib::fenwick_tree::range_sum_fenwick_tree::range_sum_fenwick_tree::RangeSumFenwickTree;
+use crate::data_structure::fenwick_tree::range_sum_fenwick_tree::range_sum_fenwick_tree::RangeSumFenwickTree;
 use cargo_snippet::snippet;
 
 #[snippet(
