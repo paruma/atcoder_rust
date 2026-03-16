@@ -1,11 +1,55 @@
-// 解法: max(|x| ,|y|) について |x| > |y| と |x| <= |y| で場合分け
+// 軸で長方形を4領域に分けて考える。対称性から第一象限に移して考えればよい。
+// 第一象限の長方形にある黒点の数を2次元累積和の要領で計算
 
-// こういう関数を作るのもありだったかも
-// fn common_len((lo1, hi1): (i64, i64), (lo2, hi2): (i64, i64)) -> i64 {
-//     let lo = lo1.max(lo2);
-//     let hi = hi1.min(hi2);
-//     (hi - lo + 1).max(0)
-// }
+// [1, x] * [1, y] にいくつ黒点ある？
+fn sub1(mut x: i64, mut y: i64) -> i64 {
+    // x <= y を仮定しておく
+    if x > y {
+        std::mem::swap(&mut x, &mut y);
+    }
+
+    assert!(x <= y);
+
+    // 3, 5, 7 ... と回しているが、半径は 2, 4, 6... と変化しているので、2, 4, 6, ... とするほうが良かった
+    std::iter::successors(Some(3_i64), |acc| Some(acc + 2))
+        .take_while(|&r| r <= y + 1)
+        .map(|r| {
+            //
+            if r <= x + 1 {
+                // r = 3, x=2 OK, x=1 NG
+                2 * r - 3
+            } else {
+                x
+            }
+        })
+        .sum::<i64>()
+}
+
+// [x1, x2] * [y1, y2] にいくつ黒点ある？, x1, y1 >=1
+fn sub2(x1: i64, x2: i64, y1: i64, y2: i64) -> i64 {
+    // dbg!(x1, x2, y1, y2);
+    assert!(x1 >= 1);
+    assert!(x2 >= 1);
+    assert!(y1 >= 1);
+    assert!(y2 >= 1);
+    sub1(x2, y2) - sub1(x2, y1 - 1) - sub1(x1 - 1, y2) + sub1(x1 - 1, y1 - 1)
+}
+
+fn sub3(mut x1: i64, mut x2: i64, mut y1: i64, mut y2: i64) -> i64 {
+    if x1 < 0 && x2 < 0 {
+        x1 *= -1;
+        x2 *= -1;
+        swap(&mut x1, &mut x2);
+    }
+
+    if y1 < 0 && y2 < 0 {
+        y1 *= -1;
+        y2 *= -1;
+        swap(&mut y1, &mut y2);
+    }
+    sub2(x1, x2, y1, y2)
+}
+
 fn main() {
     input! {
         l: i64,
@@ -13,36 +57,67 @@ fn main() {
         d: i64,
         u: i64,
     }
+    // l = r = 0 のケースがいや
 
-    // |y| < |x|
-    let term1 = (l..=r)
-        .filter(|x| x % 2 == 0)
-        .map(|x| {
-            // y in (-|x|, |x|)
-            // y in [-|x| + 1, |x| - 1]
-            // これと [d, u] の共通部分
-            // [max(d, -|x| + 1), min(u, |x| - 1)] の長さを考えればよい
-            // [5, 2] みたいにねじれていることがある（こういう場合は空集合扱い）
-            let lo = i64::max(d, -x.abs() + 1);
-            let hi = i64::min(u, x.abs() - 1);
-            (hi - lo + 1).max(0)
+    let mut x_ranges = vec![];
+    if l == 0 && r == 0 {
+    } else if l < 0 && r == 0 {
+        x_ranges.push((l, -1));
+    } else if l < 0 && r < 0 {
+        x_ranges.push((l, r));
+    } else if l < 0 && r > 0 {
+        x_ranges.push((l, -1));
+        x_ranges.push((1, r));
+    } else if l == 0 && r > 0 {
+        x_ranges.push((1, r));
+    } else {
+        x_ranges.push((l, r));
+    }
+
+    let mut y_ranges = vec![];
+    if d == 0 && u == 0 {
+    } else if d < 0 && u == 0 {
+        y_ranges.push((d, -1));
+    } else if d < 0 && u < 0 {
+        y_ranges.push((d, u));
+    } else if d < 0 && u > 0 {
+        y_ranges.push((d, -1));
+        y_ranges.push((1, u));
+    } else if d == 0 && u > 0 {
+        y_ranges.push((1, u));
+    } else {
+        y_ranges.push((d, u));
+    }
+    // dbg!(&x_ranges);
+    // dbg!(&y_ranges);
+
+    let term1 = iproduct!(x_ranges, y_ranges)
+        .map(|((x1, x2), (y1, y2))| {
+            //
+            sub3(x1, x2, y1, y2)
         })
         .sum::<i64>();
 
-    // |x| <= |y|
-    let term2 = (d..=u)
-        .filter(|y| y % 2 == 0)
-        .map(|y| {
-            // -|y| <= x <= |y|
-            // x in [-|y|, |y|]
-            // これと [l, r] の共通部分
-            // [max(l, -|y|), min(r, |y|)] の長さを考えればよい
-            let lo = i64::max(l, -y.abs());
-            let hi = i64::min(r, y.abs());
-            (hi - lo + 1).max(0)
-        })
-        .sum::<i64>();
+    // dbg!(term1);
+    //if
 
+    // 軸上
+    let term2 = {
+        //
+        let mut cnt = 0;
+        if (l..=r).contains(&0) {
+            cnt += (d..=u).filter(|y| y % 2 == 0).count() as i64;
+        }
+
+        if (d..=u).contains(&0) {
+            cnt += (l..=r).filter(|x| x % 2 == 0).count() as i64;
+        }
+
+        if (l..=r).contains(&0) && (d..=u).contains(&0) {
+            cnt -= 1;
+        }
+        cnt
+    };
     let ans: i64 = term1 + term2;
     println!("{}", ans);
 }
@@ -56,6 +131,17 @@ mod tests {
 
     #[test]
     fn test_problem() {
+        assert_eq!(sub1(4, 5), 10);
+        assert_eq!(sub1(3, 5), 6);
+        assert_eq!(sub1(3, 4), 6);
+        assert_eq!(sub1(3, 3), 3);
+        assert_eq!(sub1(2, 5), 5);
+        assert_eq!(sub1(5, 2), 5);
+        assert_eq!(sub1(5, 0), 0);
+        assert_eq!(sub1(4, 0), 0);
+        assert_eq!(sub1(3, 0), 0);
+        assert_eq!(sub1(2, 0), 0);
+        assert_eq!(sub1(1, 0), 0);
         assert_eq!(1 + 1, 2);
     }
 
@@ -106,6 +192,7 @@ mod tests {
 }
 
 // ====== import ======
+use std::mem::swap;
 #[allow(unused_imports)]
 use {
     itertools::{Itertools, chain, iproduct, izip},

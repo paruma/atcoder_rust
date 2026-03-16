@@ -9,64 +9,80 @@ fn main() {
         xs: [Usize1; q],
     }
 
-    let mut ans_map = BTreeMap::new();
+    // フェーズ0: 前処理
 
+    let mut ans_map = BTreeMap::new();
+    // クエリの内容だけ先に ans_map に入れる。後で答えを入れる
     for &x in &xs {
         ans_map.insert(x, usize::MAX - 1);
     }
 
+    // a_s の頻度分布
     let mut cnts = vec![0; m];
-
     for &a in &a_s {
         cnts[a] += 1_i64;
     }
 
+    // a_s の最大の頻度と最小の頻度
     let min_cnt = cnts.iter().copied().min().unwrap();
     let max_cnt = cnts.iter().copied().max().unwrap();
 
-    // cnt → value
+    // a_s の頻度 → a の値たち
     let mut cnt_to_a = vec![vec![]; (max_cnt + 1) as usize];
-
     for a in 0..m {
         cnt_to_a[cnts[a] as usize].push(a);
     }
 
+    // フェーズ1: 操作前からある値に対するクエリの処理
     for i in 0..a_s.len() {
         if ans_map.contains_key(&i) {
             *ans_map.get_mut(&i).unwrap() = a_s[i];
         }
     }
 
+    // フェーズ2: すべての値の頻度が同じになるまで、末尾に最小頻度の値を追加する操作をする段階でのクエリの処理
+
+    // 末尾に追加するときの追加場所
     let mut cur = a_s.len();
+    // 最小頻度の値の集合
     let mut a_list = FenwickTreeDenseMultiset::new(m);
 
     for cnt in min_cnt..=max_cnt {
+        // 最小頻度が cnt の状態
         for &a in &cnt_to_a[cnt as usize] {
             a_list.insert(a);
         }
 
-        // [cur, cur + a_list.len())
+        // 更新対象のクエリ
         let x_list = ans_map
             .range(cur..cur + a_list.len())
             .map(|(x, _)| *x)
             .collect_vec();
 
         for x in x_list {
+            // 最小頻度の値の集合の x - cur 番目を取得
             let sub_ans = a_list.nth_min(x - cur).unwrap();
             *ans_map.get_mut(&x).unwrap() = sub_ans;
         }
 
+        // range_mut を使うとこう書ける。key/vakue の value の方を書き換えられる。
+
+        // for (x, ans) in ans_map.range_mut(cur..cur + a_list.len()) {
+        //     *ans = a_list.nth_min(*x - cur).unwrap();
+        // }
+
         cur += a_list.len();
-
-        //
     }
-    let x_list = ans_map.range(cur..).map(|(x, _)| *x).collect_vec();
 
+    // フェーズ3: すべての値の頻度が同じになった後のクエリの処理
+    // 0,1,2,...,m-1 を繰り返す
+    let x_list = ans_map.range(cur..).map(|(x, _)| *x).collect_vec();
     for x in x_list {
         let sub_ans = (x - cur) % m;
         *ans_map.get_mut(&x).unwrap() = sub_ans;
     }
 
+    // ans_map が揃ったので答えを作る。1オリジンにするために +1 をする。
     let ans: Vec<usize> = xs.iter().copied().map(|x| ans_map[&x] + 1).collect_vec();
     print_vec(&ans);
 }
