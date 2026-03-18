@@ -45,41 +45,27 @@ fn main() {
     // 末尾に追加するときの追加場所
     let mut cur = a_s.len();
     // 最小頻度の値の集合
-    let mut a_list = FenwickTreeDenseMultiset::new(m);
+    let mut min_freq_as = FenwickTreeDenseMultiset::new(m);
 
     for cnt in min_cnt..=max_cnt {
         // 最小頻度が cnt の状態
         for &a in &cnt_to_a[cnt as usize] {
-            a_list.insert(a);
+            min_freq_as.insert(a);
         }
 
         // 更新対象のクエリ
-        let x_list = ans_map
-            .range(cur..cur + a_list.len())
-            .map(|(x, _)| *x)
-            .collect_vec();
-
-        for x in x_list {
+        for (x, ans) in ans_map.range_mut(cur..cur + min_freq_as.len()) {
             // 最小頻度の値の集合の x - cur 番目を取得
-            let sub_ans = a_list.nth_min(x - cur).unwrap();
-            *ans_map.get_mut(&x).unwrap() = sub_ans;
+            *ans = min_freq_as.nth_min(x - cur).unwrap();
         }
 
-        // range_mut を使うとこう書ける。key/vakue の value の方を書き換えられる。
-
-        // for (x, ans) in ans_map.range_mut(cur..cur + a_list.len()) {
-        //     *ans = a_list.nth_min(*x - cur).unwrap();
-        // }
-
-        cur += a_list.len();
+        cur += min_freq_as.len();
     }
 
     // フェーズ3: すべての値の頻度が同じになった後のクエリの処理
     // 0,1,2,...,m-1 を繰り返す
-    let x_list = ans_map.range(cur..).map(|(x, _)| *x).collect_vec();
-    for x in x_list {
-        let sub_ans = (x - cur) % m;
-        *ans_map.get_mut(&x).unwrap() = sub_ans;
+    for (x, ans) in ans_map.range_mut(cur..) {
+        *ans = (x - cur) % m;
     }
 
     // ans_map が揃ったので答えを作る。1オリジンにするために +1 をする。
