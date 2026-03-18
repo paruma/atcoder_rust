@@ -74,6 +74,12 @@ pub mod mod_combinatorics {
         }
 
         pub fn comb(&self, n: usize, k: usize) -> Mint {
+            assert!(
+                n < self.fac.len(),
+                "index out of range (n={}, max_val={})",
+                n,
+                self.fac.len() - 1
+            );
             if n < k {
                 0.into()
             } else {
@@ -82,6 +88,12 @@ pub mod mod_combinatorics {
         }
 
         pub fn perm(&self, n: usize, k: usize) -> Mint {
+            assert!(
+                n < self.fac.len(),
+                "index out of range (n={}, max_val={})",
+                n,
+                self.fac.len() - 1
+            );
             if n < k {
                 0.into()
             } else {
@@ -90,10 +102,22 @@ pub mod mod_combinatorics {
         }
 
         pub fn factorial(&self, n: usize) -> Mint {
+            assert!(
+                n < self.fac.len(),
+                "index out of range (n={}, max_val={})",
+                n,
+                self.fac.len() - 1
+            );
             self.fac[n]
         }
 
         pub fn inv_factorial(&self, n: usize) -> Mint {
+            assert!(
+                n < self.invfac.len(),
+                "index out of range (n={}, max_val={})",
+                n,
+                self.invfac.len() - 1
+            );
             self.invfac[n]
         }
     }
@@ -199,5 +223,33 @@ mod tests_mod_combinatorics {
             let comb = Comb::<Mint>::new(10000);
             assert_eq!(comb.inv_factorial(10000), Mint::new(777990065).inv());
         }
+    }
+
+    #[test]
+    #[should_panic(expected = "index out of range (n=10, max_val=5)")]
+    fn test_comb_out_of_bounds() {
+        let comb = Comb::<Mint>::new(5);
+        comb.comb(10, 3);
+    }
+
+    #[test]
+    #[should_panic(expected = "index out of range (n=10, max_val=5)")]
+    fn test_perm_out_of_bounds() {
+        let comb = Comb::<Mint>::new(5);
+        comb.perm(10, 3);
+    }
+
+    #[test]
+    #[should_panic(expected = "index out of range (n=10, max_val=5)")]
+    fn test_factorial_out_of_bounds() {
+        let comb = Comb::<Mint>::new(5);
+        comb.factorial(10);
+    }
+
+    #[test]
+    #[should_panic(expected = "index out of range (n=10, max_val=5)")]
+    fn test_inv_factorial_out_of_bounds() {
+        let comb = Comb::<Mint>::new(5);
+        comb.inv_factorial(10);
     }
 }

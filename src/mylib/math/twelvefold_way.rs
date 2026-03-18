@@ -330,7 +330,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "index out of range (n=10, k=5, max_n=3)")]
     fn test_stirling_s2_out_of_bounds() {
         let st = mod_stirling::Stirling::<Mint>::new(3);
         st.stirling_s2(10, 5);
@@ -426,21 +426,21 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "n out of range (n=10, max_n=3)")]
     fn test_bell_out_of_bounds() {
         let st = mod_stirling::Stirling::<Mint>::new(3);
         st.bell(10, 5);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "n out of range (n=10, max_n=3)")]
     fn test_bell1_out_of_bounds() {
         let st = mod_stirling::Stirling::<Mint>::new(3);
         st.bell1(10);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "k out of range (k=10, max_k=3)")]
     fn test_surjections_out_of_bounds() {
         let st = mod_stirling::Stirling::<Mint>::new(3);
         st.surjections(2, 10);
@@ -455,14 +455,14 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "n out of range (n=10, max_n=3)")]
     fn test_partition_out_of_bounds() {
         let p = mod_partition::Partition::<Mint>::new(3);
         p.partition(10, 5);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "n out of range (n=10, max_n=3)")]
     fn test_partition1_out_of_bounds() {
         let p = mod_partition::Partition::<Mint>::new(3);
         p.partition1(10);
