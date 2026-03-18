@@ -177,6 +177,146 @@ mod tests {
     use super::*;
     use ac_library::ModInt998244353 as Mint;
 
+    // ---------------------------------------------------------------
+    // 愚直実装 (小さい n, k での網羅テスト用)
+    // ---------------------------------------------------------------
+
+    /// 全射の数 (n=k=0 のとき 1、n=0 かつ k>0 のとき 0)
+    fn brute_surjections(n: usize, k: usize) -> u64 {
+        if n == 0 && k == 0 {
+            return 1;
+        }
+        if n == 0 || k == 0 {
+            return 0;
+        }
+        // {0..n-1} -> {0..k-1} の全関数を列挙し、全射のものを数える
+        (0..k.pow(n as u32))
+            .filter(|&mask| {
+                let mut m = mask;
+                let mut used = vec![false; k];
+                for _ in 0..n {
+                    used[m % k] = true;
+                    m /= k;
+                }
+                used.iter().all(|&u| u)
+            })
+            .count() as u64
+    }
+
+    /// 第二種スターリング数 S(n, k)
+    ///
+    /// surjections(n, k) はラベル付きグループへの全射の数なので、
+    /// k! で割ってグループの順序を除去することで S(n, k) を得る。
+    fn brute_stirling_s2(n: usize, k: usize) -> u64 {
+        if n == 0 && k == 0 {
+            return 1;
+        }
+        if n == 0 || k == 0 {
+            return 0;
+        }
+        let factorial_k: u64 = (1..=k as u64).product();
+        brute_surjections(n, k) / factorial_k
+    }
+
+    /// ベル数 (2変数) B(n, k) = sum_{i=0}^{k} S(n, i)
+    fn brute_bell(n: usize, k: usize) -> u64 {
+        (0..=k).map(|i| brute_stirling_s2(n, i)).sum()
+    }
+
+    /// 分割数 P(n, k): n を各パーツが k 以下の正整数の和として書く方法の数
+    fn brute_partition(n: usize, k: usize) -> u64 {
+        fn count(remaining: usize, max_part: usize, min_part: usize) -> u64 {
+            if remaining == 0 {
+                return 1;
+            }
+            if max_part == 0 || max_part < min_part {
+                return 0;
+            }
+            (min_part..=max_part.min(remaining))
+                .map(|part| count(remaining - part, max_part, part))
+                .sum()
+        }
+        count(n, k, 1)
+    }
+
+    // ---------------------------------------------------------------
+    // 網羅テスト
+    // ---------------------------------------------------------------
+
+    #[test]
+    fn test_stirling_s2_exhaustive() {
+        let max_n = 7;
+        let st = mod_stirling::Stirling::<Mint>::new(max_n);
+        for n in 0..=max_n {
+            for k in 0..=max_n {
+                let expected = brute_stirling_s2(n, k);
+                let actual = st.stirling_s2(n, k).val() as u64;
+                assert_eq!(actual, expected, "stirling_s2({n}, {k})");
+            }
+        }
+    }
+
+    #[test]
+    fn test_surjections_exhaustive() {
+        let max_n = 7;
+        let st = mod_stirling::Stirling::<Mint>::new(max_n);
+        for n in 0..=max_n {
+            for k in 0..=max_n {
+                let expected = brute_surjections(n, k);
+                let actual = st.surjections(n, k).val() as u64;
+                assert_eq!(actual, expected, "surjections({n}, {k})");
+            }
+        }
+    }
+
+    #[test]
+    fn test_bell_exhaustive() {
+        let max_n = 7;
+        let st = mod_stirling::Stirling::<Mint>::new(max_n);
+        for n in 0..=max_n {
+            for k in 0..=max_n {
+                let expected = brute_bell(n, k);
+                let actual = st.bell(n, k).val() as u64;
+                assert_eq!(actual, expected, "bell({n}, {k})");
+            }
+        }
+    }
+
+    #[test]
+    fn test_bell1_exhaustive() {
+        let max_n = 7;
+        let st = mod_stirling::Stirling::<Mint>::new(max_n);
+        for n in 0..=max_n {
+            let expected = brute_bell(n, n);
+            let actual = st.bell1(n).val() as u64;
+            assert_eq!(actual, expected, "bell1({n})");
+        }
+    }
+
+    #[test]
+    fn test_partition_exhaustive() {
+        let max_n = 10;
+        let p = mod_partition::Partition::<Mint>::new(max_n);
+        for n in 0..=max_n {
+            for k in 0..=max_n {
+                let expected = brute_partition(n, k);
+                let actual = p.partition(n, k).val() as u64;
+                assert_eq!(actual, expected, "partition({n}, {k})");
+            }
+        }
+    }
+
+    #[test]
+    fn test_partition1_exhaustive() {
+        let max_n = 10;
+        let p = mod_partition::Partition::<Mint>::new(max_n);
+        for n in 0..=max_n {
+            let expected = brute_partition(n, n);
+            let actual = p.partition1(n).val() as u64;
+            assert_eq!(actual, expected, "partition1({n})");
+        }
+    }
+
     #[test]
     fn test_stirling_s2() {
         let st = mod_stirling::Stirling::<Mint>::new(5);
