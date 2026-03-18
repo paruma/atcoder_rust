@@ -98,6 +98,7 @@ _on_after_test() {
 # 引数:
 #   $1 (必須): 実行ファイルのパス。
 #   $2 (任意): oj test に渡す追加の引数 (例: "-e 1e-6")。
+#   $3 (任意): ハイライト対象のソースファイル名 (拡張子なし)。省略時はタスク名。
 # 出力:
 #   oj test の実行結果を標準出力に表示します。
 _oj_test_common() {
@@ -106,6 +107,7 @@ _oj_test_common() {
 
     local bin_path=$1
     local extra_arg=$2
+    local src_name=${3:-$task}
 
     # ANSI エスケープシーケンス (黄色)
     local yellow=$(printf '\033[33m')
@@ -119,7 +121,7 @@ _oj_test_common() {
 
     # script コマンドを使って TTY をシミュレートし、パイプ時も oj の色を維持する。
     # sed で ./a.rs:3:12 のようなソースコードの場所を黄色にハイライトする。
-    script -q -e -c "$cmd" /dev/null | sed -u "s|\(\./${task}\.rs:[0-9]\{1,\}:[0-9]\{1,\}\)|${yellow}\1${reset}|g"
+    script -q -e -c "$cmd" /dev/null | sed -u "s|\(\./${src_name}\.rs:[0-9]\{1,\}:[0-9]\{1,\}\)|${yellow}\1${reset}|g"
 
     _on_after_test
 }
@@ -129,6 +131,9 @@ _oj_test_common() {
 # 引数:
 #   -f: 浮動小数点数向けの許容誤差 (1e-6) を設定してテストを実行します。
 #   -r: リリースビルドでテストを実行します。指定しない場合はデバッグビルドになります。
+#   -b <suffix>: バイナリ名のサフィックスを指定します (例: -b e_minleft_ft)。
+#                省略時はタスク名 (ディレクトリ名) を使用します。
+#                振り返り実装など、同一問題の別バイナリをテストする際に使用します。
 #
 # 出力:
 #   ビルドとテストの実行結果を標準出力に表示します。
@@ -138,14 +143,18 @@ oj_test() {
     local is_release=false
     local contest=$(_get_contest)
     local task=$(_get_task)
+    local bin_suffix=$task
 
-    while getopts "fr" opt; do
+    while getopts "frb:" opt; do
         case $opt in
             f)
                 extra_args="-e 1e-6"
                 ;;
             r)
                 is_release=true
+                ;;
+            b)
+                bin_suffix=$OPTARG
                 ;;
             *)
                 ;;
@@ -156,19 +165,20 @@ oj_test() {
         oj_download
     fi
 
+    local root=$(git rev-parse --show-toplevel)
     if [ "$is_release" = true ]; then
-        if ! cargo build --release --bin "${contest}_${task}"; then
+        if ! cargo build --release --bin "${contest}_${bin_suffix}"; then
             return 1
         fi
-        bin_path="$(_get_release_path)"
+        bin_path="${root}/target/release/${contest}_${bin_suffix}"
     else
-        if ! cargo build --bin "${contest}_${task}"; then
+        if ! cargo build --bin "${contest}_${bin_suffix}"; then
             return 1
         fi
-        bin_path="$(_get_executable_path)"
+        bin_path="${root}/target/debug/${contest}_${bin_suffix}"
     fi
 
-    _oj_test_common "$bin_path" "$extra_args"
+    _oj_test_common "$bin_path" "$extra_args" "$bin_suffix"
 }
 
 # コードをビルドして実行するための共通ロジックです。
