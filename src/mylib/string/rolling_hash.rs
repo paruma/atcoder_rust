@@ -88,7 +88,7 @@ pub mod monoid_rolling_hash {
         rng.random_range(2..Mint::modulus() as i64)
     }
 
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct RollingHash {
         hash: Mint,
         base: Mint,
@@ -260,6 +260,90 @@ pub mod rolling_hash_2d {
         }
     }
 }
+#[snippet(
+    prefix = "use range_rolling_hash_segtree::*;",
+    include = "monoid_rolling_hash"
+)]
+pub mod range_rolling_hash_segtree {
+    use super::monoid_rolling_hash::{RollingHash, RollingHashConcat};
+    use ac_library::Segtree;
+    use itertools::Itertools;
+    use std::ops::RangeBounds;
+
+    /// ACL の Segtree を使用した区間ローリングハッシュセグメント木。
+    /// 点更新・区間ハッシュ取得を O(log n) で行う。
+    pub struct RangeRollingHashSegtree {
+        segtree: Segtree<RollingHashConcat>,
+        base: i64,
+        len: usize,
+    }
+
+    impl RangeRollingHashSegtree {
+        /// 単位元で初期化されたセグメント木を構築する
+        pub fn new(n: usize, base: i64) -> Self {
+            Self {
+                segtree: Segtree::<RollingHashConcat>::new(n),
+                base,
+                len: n,
+            }
+        }
+
+        /// 配列からセグメント木を構築する
+        pub fn from_slice(xs: &[i64], base: i64) -> Self {
+            let unit = RollingHash::unit(base);
+            let rhs: Vec<RollingHash> = xs.iter().map(|&x| unit(x)).collect();
+            let len = xs.len();
+            Self {
+                segtree: Segtree::<RollingHashConcat>::from(rhs),
+                base,
+                len,
+            }
+        }
+
+        #[allow(clippy::len_without_is_empty)]
+        pub fn len(&self) -> usize {
+            self.len
+        }
+
+        /// p 番目の要素を x に更新する
+        pub fn set(&mut self, p: usize, x: i64) {
+            self.segtree.set(p, RollingHash::unit(self.base)(x));
+        }
+
+        /// p 番目の要素の RollingHash を取得する
+        pub fn get(&self, p: usize) -> RollingHash {
+            self.segtree.get(p)
+        }
+
+        /// 指定した範囲のハッシュを取得する
+        pub fn range_hash<R: RangeBounds<usize>>(&self, range: R) -> RollingHash {
+            self.segtree.prod(range)
+        }
+
+        /// 全体のハッシュを取得する
+        pub fn all_hash(&self) -> RollingHash {
+            self.segtree.all_prod()
+        }
+
+        /// セグメント木上の二分探索。
+        /// [l, r) のハッシュ h について f(&h) が true となる最大の r を返す。
+        pub fn max_right<F: Fn(&RollingHash) -> bool>(&self, l: usize, f: F) -> usize {
+            self.segtree.max_right(l, f)
+        }
+
+        /// セグメント木上の二分探索。
+        /// [l, r) のハッシュ h について f(&h) が true となる最小の l を返す。
+        pub fn min_left<F: Fn(&RollingHash) -> bool>(&self, r: usize, f: F) -> usize {
+            self.segtree.min_left(r, f)
+        }
+
+        /// 現在の状態を Vec として返す
+        pub fn to_vec(&self) -> Vec<RollingHash> {
+            (0..self.len).map(|i| self.get(i)).collect_vec()
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests_rolling_hash {
     use super::rolling_hash::*;
@@ -456,6 +540,113 @@ mod tests_rolling_hash_2d {
                 hash2, hash_modified,
                 "Hash should change after modification"
             );
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests_range_rolling_hash_segtree {
+    use super::monoid_rolling_hash::generate_random_base;
+    use super::range_rolling_hash_segtree::*;
+
+    #[test]
+    fn test_new() {
+        let n = 5;
+        let base = 100;
+        let seg = RangeRollingHashSegtree::new(n, base);
+        assert_eq!(seg.len(), n);
+        assert_eq!(seg.all_hash().get_hash(), 0);
+    }
+
+    #[test]
+    fn test_from_slice_range_hash() {
+        let xs = vec![1i64, 2, 3, 4, 1, 2, 3];
+        let base = 100;
+        let seg = RangeRollingHashSegtree::from_slice(&xs, base);
+        let rh = super::rolling_hash::RollingHash::new(&xs, base);
+
+        assert_eq!(seg.range_hash(0..3).get_hash(), rh.hash(0, 3));
+        assert_eq!(seg.range_hash(4..7).get_hash(), rh.hash(4, 7));
+        assert_eq!(seg.range_hash(0..7).get_hash(), rh.hash(0, 7));
+        assert_eq!(seg.all_hash().get_hash(), rh.hash(0, 7));
+        // 同じ内容の区間は同じハッシュ
+        assert_eq!(
+            seg.range_hash(0..3).get_hash(),
+            seg.range_hash(4..7).get_hash()
+        );
+    }
+
+    #[test]
+    fn test_set() {
+        let xs = vec![1i64, 2, 3, 4, 5];
+        let base = 100;
+        let mut seg = RangeRollingHashSegtree::from_slice(&xs, base);
+
+        let hash_before = seg.range_hash(0..3).get_hash();
+        seg.set(1, 99);
+        let hash_after = seg.range_hash(0..3).get_hash();
+        assert_ne!(hash_before, hash_after);
+
+        // rolling_hash と比較して正しいことを確認
+        let xs_modified = vec![1i64, 99, 3, 4, 5];
+        let rh = super::rolling_hash::RollingHash::new(&xs_modified, base);
+        assert_eq!(seg.range_hash(0..3).get_hash(), rh.hash(0, 3));
+        assert_eq!(seg.range_hash(1..5).get_hash(), rh.hash(1, 5));
+
+        // get / to_vec
+        let unit = super::monoid_rolling_hash::RollingHash::unit(base);
+        assert_eq!(seg.get(1), unit(99));
+        assert_eq!(
+            seg.to_vec(),
+            xs_modified.iter().map(|&x| unit(x)).collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn test_max_right_min_left() {
+        // [1, 1, 1, 2, 2, 2] at base 10
+        // hash(0..1)=1, hash(0..2)=11, hash(0..3)=111, hash(0..4)=1112
+        let xs = vec![1i64, 1, 1, 2, 2, 2];
+        let base = 10;
+        let seg = RangeRollingHashSegtree::from_slice(&xs, base);
+
+        // hash(0..3) = 111 < 200, hash(0..4) = 1112 >= 200
+        assert_eq!(seg.max_right(0, |rh| rh.get_hash() < 200), 3);
+        // hash(4..6) = 22 < 200, hash(3..6) = 222 >= 200
+        assert_eq!(seg.min_left(6, |rh| rh.get_hash() < 200), 4);
+    }
+
+    #[ignore]
+    #[test]
+    fn test_random() {
+        use rand::{Rng, SeedableRng, rngs::SmallRng};
+        let mut rng = SmallRng::from_os_rng();
+
+        for _ in 0..100 {
+            let n = rng.random_range(1..=30);
+            let base = generate_random_base();
+            let mut xs: Vec<i64> = (0..n).map(|_| rng.random_range(1..=1000)).collect();
+            let mut seg = RangeRollingHashSegtree::from_slice(&xs, base);
+
+            for _ in 0..100 {
+                let op = rng.random_range(0..2);
+                match op {
+                    0 => {
+                        let p = rng.random_range(0..n);
+                        let v = rng.random_range(1..=1000);
+                        xs[p] = v;
+                        seg.set(p, v);
+                    }
+                    1 => {
+                        let l = rng.random_range(0..=n);
+                        let r = rng.random_range(l..=n);
+                        let rh = super::rolling_hash::RollingHash::new(&xs, base);
+                        let expected = if l < r { rh.hash(l, r) } else { 0 };
+                        assert_eq!(seg.range_hash(l..r).get_hash(), expected);
+                    }
+                    _ => unreachable!(),
+                }
+            }
         }
     }
 }
