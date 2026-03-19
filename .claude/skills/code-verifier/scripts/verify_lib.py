@@ -402,7 +402,7 @@ def verify_static_analysis() -> list[StepResult]:
     results = []
 
     # Format
-    ok, _ = run_command(["cargo", "fmt"])
+    ok, _ = run_command(["cargo", "fmt", "-p", "mylib"])
     results.append(
         StepResult(
             "Format", VerificationStatus.PASS if ok else VerificationStatus.FAIL, ""
