@@ -35,7 +35,8 @@
 
 ### 1.4. 環境
 
-- Rust toolchain: `rust-toolchain` ファイルを参照してください。
+- `rust-toolchain` ファイルに Rust のバージョンが記載されています。
+- `Cargo.toml` に利用可能なライブラリが記載されています
 
 ### 1.5. 本リポジトリにおける生成AIの役割
 
