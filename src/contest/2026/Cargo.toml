@@ -189,6 +189,10 @@ name = "abc443_d"
 path = "abc443/d/d.rs"
 
 [[bin]]
+name = "abc443_d2"
+path = "abc443/d/d2.rs"
+
+[[bin]]
 name = "abc443_e"
 path = "abc443/e/e.rs"
 

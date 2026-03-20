@@ -1,63 +1,36 @@
-// コンテスト中の解法
+// コンテスト中の解法のリファクタリング
+// PriorityQueue に多くの要素を入れるので、コンテスト中の方が2倍以上速いが、こっちのほうが実装しやすい。
 fn solve(n: usize, rs: &[usize]) -> i64 {
-    let min = rs.iter().copied().min().unwrap();
-    let mut row_to_cols =
-        rs.iter()
-            .copied()
-            .enumerate()
-            .fold(vec![vec![]; n], |mut acc, (c, r)| {
-                acc[r].push(c);
-                acc
-            });
-    // (Reverse(row), col) を格納する
     let mut pq = BinaryHeap::<(Reverse<usize>, usize)>::new();
-    let mut visited = vec![false; n];
     let mut target_rows = vec![usize::MAX; n];
 
     for (c, r) in rs.iter().copied().enumerate() {
-        if r == min {
-            pq.push((Reverse(r), c));
-            visited[c] = true;
-            target_rows[c] = r;
-        }
+        pq.push((Reverse(r), c));
+        target_rows[c] = r;
     }
 
-    row_to_cols[min].clear();
-
     while let Some((Reverse(cur_r), cur_c)) = pq.pop() {
-        for &c in &row_to_cols[cur_r] {
-            if visited[c] {
-                continue;
-            }
-
-            pq.push((Reverse(cur_r), c));
-            visited[c] = true;
-            target_rows[c] = cur_r;
+        if target_rows[cur_c] < cur_r {
+            continue;
         }
 
-        row_to_cols[cur_r].clear();
         for &next_c in [
+            // cur_c - 1, cur_c + 1
             cur_c.checked_sub(1),
-            if cur_c == n - 1 {
-                None
-            } else {
-                Some(cur_c + 1)
-            },
+            (cur_c < n - 1).then_some(cur_c + 1),
         ]
         .iter()
         .flatten()
         {
-            if visited[next_c] {
-                continue;
-            }
             let next_r = if cur_r == rs[next_c] {
                 cur_r
             } else {
                 cur_r + 1
             };
-            pq.push((Reverse(next_r), next_c));
-            visited[next_c] = true;
-            target_rows[next_c] = next_r;
+            if target_rows[next_c] > next_r {
+                pq.push((Reverse(next_r), next_c));
+                target_rows[next_c] = next_r;
+            }
         }
     }
 
