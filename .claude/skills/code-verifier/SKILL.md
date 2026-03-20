@@ -16,10 +16,9 @@ description: src/mylib 編集後に実行すること。このスキルでは、
 何らかの修正（ロジックの変更、コメントの修正、テストの追加）を行った後、統合検証スクリプトを実行してください。
 
 1.  **統合検証スクリプトの実行**
-    - コマンド: `python3 .claude/skills/code-verifier/scripts/verify_lib.py <パス> --save-log`
-    - 例 (ファイルパス): `python3 .claude/skills/code-verifier/scripts/verify_lib.py src/mylib/data_structure/segtree_lib/lazy_segtree.rs --save-log`
+    - コマンド: `python3 .claude/skills/code-verifier/scripts/verify_lib.py <パス>`
+    - 例 (ファイルパス): `python3 .claude/skills/code-verifier/scripts/verify_lib.py src/mylib/data_structure/segtree_lib/lazy_segtree.rs`
     - **Note**: ファイルパスを指定すると自動的に内部でモジュールパスに変換されます。
-    - **Note**: `--save-log` オプションを指定すると、結果が自動的に `.claude/tmp/` にタイムスタンプ付きログとして保存されます。
 
 2.  **スクリプトによる検証内容**
     スクリプトは以下の項目を全て実行し、最後に結果をまとめて報告します。
@@ -30,10 +29,7 @@ description: src/mylib 編集後に実行すること。このスキルでは、
     - **Snippet Consistency**: `snippet_linter` による整合性チェック。
 
 3.  **検証ステータスの確認**
-    - 出力末尾の `VERIFICATION SUMMARY` を確認し、全ての項目が `PASS` または `WARN`（カバレッジ）であることを確認してください。
-
-4.  **最終確認 (Git Diff)**
-    - 意図しないファイルや箇所に変更が及んでいないか、`git diff` で最終確認してください。
+    - 出力末尾の `VERIFICATION SUMMARY` を確認し、全ての項目が `PASS` であることを確認してください。
 
 ## Critical Rules
 - **自動化の徹底**: 手動で個別のコマンドを実行するのではなく、必ず上記スクリプトを使用して一括検証してください。
