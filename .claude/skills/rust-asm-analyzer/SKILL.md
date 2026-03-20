@@ -1,6 +1,6 @@
 ---
 name: rust-asm-analyzer
-description: Rust の最適化結果（アセンブリ）を調査・比較するための専門的な手順。black_box や '#[inline(never)]' を用いた正確な解析環境の構築と、emit asm による出力の解析をサポートする。
+description: Rust の最適化結果（アセンブリ）を調査・比較するための手順。
 ---
 
 # Rust Assembly Analyzer
