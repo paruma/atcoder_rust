@@ -11,16 +11,21 @@ def find_std_lib_root() -> Path | None:
     # Use rustc to find the sysroot
     try:
         import subprocess
-        sysroot = subprocess.check_output(["rustc", "--print", "sysroot"], text=True).strip()
+
+        sysroot = subprocess.check_output(
+            ["rustc", "--print", "sysroot"], text=True
+        ).strip()
         base_path = Path(sysroot) / "lib/rustlib/src/rust/library"
         if base_path.exists():
             return base_path
     except Exception:
         pass
 
-    # Fallback to hardcoded path
-    rustup_home = "/home/node/.rustup/toolchains"
-    if not os.path.exists(rustup_home):
+    # Fallback to RUSTUP_HOME env var or default ~/.rustup
+    rustup_home = (
+        Path(os.environ.get("RUSTUP_HOME", Path.home() / ".rustup")) / "toolchains"
+    )
+    if not rustup_home.exists():
         return None
 
     toolchains = os.listdir(rustup_home)
@@ -28,21 +33,23 @@ def find_std_lib_root() -> Path | None:
         return None
 
     toolchains.sort()
-    base_path = Path(rustup_home) / toolchains[0] / "lib/rustlib/src/rust/library"
+    base_path = rustup_home / toolchains[0] / "lib/rustlib/src/rust/library"
     if base_path.exists():
         return base_path
     return None
 
 
 def find_cargo_registries() -> list[str]:
-    cargo_home = "/home/node/.cargo/registry/src"
-    if not os.path.exists(cargo_home):
+    """~/.cargo/registry/src 以下のレジストリディレクトリ一覧を返す。"""
+    cargo_home = Path(os.environ.get("CARGO_HOME", Path.home() / ".cargo"))
+    registry_src = cargo_home / "registry/src"
+    if not registry_src.exists():
         return []
 
     return [
-        str(Path(cargo_home) / d)
-        for d in os.listdir(cargo_home)
-        if os.path.isdir(Path(cargo_home) / d)
+        str(registry_src / d)
+        for d in os.listdir(registry_src)
+        if os.path.isdir(registry_src / d)
     ]
 
 
