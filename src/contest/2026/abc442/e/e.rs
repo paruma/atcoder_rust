@@ -1,4 +1,5 @@
-// #[fastout]
+// コンテスト中の解法: dense rank を使う
+
 /// x軸正の向きを0度として、反時計回りを正とする偏角で順序を決める。
 /// (0, 0) は未考慮。
 pub fn argcmp((x0, y0): (i64, i64), (x1, y1): (i64, i64)) -> Ordering {
@@ -28,6 +29,7 @@ fn main() {
         .map(|(i, _)| i)
         .collect_vec();
 
+    // dense rank
     let rank = {
         let mut rank = vec![usize::MAX; n];
         let mut counter = 0;
@@ -44,7 +46,19 @@ fn main() {
         }
         rank
     };
-
+    // こう書けた (for ループに i=0 を含めない。if 文では counter のみ扱う)
+    // let rank = {
+    //     let mut rank = vec![usize::MAX; n];
+    //     let mut counter = 0;
+    //     rank[sorted[0]] = 0;
+    //     for i in 1..n {
+    //         if ps[sorted[i]] != ps[sorted[i - 1]] {
+    //             counter += 1;
+    //         }
+    //         rank[sorted[i]] = counter;
+    //     }
+    //     rank
+    // };
     let rank_max = rank.iter().copied().max().unwrap();
 
     let mut cnts = FenwickTreeI64::new((rank_max + 1) * 2);

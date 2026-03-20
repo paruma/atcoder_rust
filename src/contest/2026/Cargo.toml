@@ -165,6 +165,9 @@ name = "abc442_e"
 path = "abc442/e/e.rs"
 
 [[bin]]
+name = "abc442_e2"
+path = "abc442/e/e2.rs"
+[[bin]]
 name = "abc442_f"
 path = "abc442/f/f.rs"
 
