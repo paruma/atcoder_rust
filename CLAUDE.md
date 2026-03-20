@@ -76,3 +76,7 @@
 
 * `.claude/docs/math-writing-guide.md`: 数学的な内容を含むノートや解説を書くときに読む
 * `.claude/docs/NOTION-EDITING.md`: Notion を編集するときに読む
+
+## 4. ルール
+
+* /tmp ディレクトリは使わない。プロジェクトディレクトリを使う
