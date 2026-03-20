@@ -2,6 +2,15 @@
 
 ## 重要なポイント
 
+### `page_id` は UUID 形式で渡す
+
+`notion-fetch` は URL を受け付けるが、`notion-update-page` の `page_id` は UUID 形式でなければならない。UUID は URL 末尾の英数字部分から直接取得できる（fetch 不要）。
+
+- ❌ `https://www.notion.so/ABC443-2f997aaeaceb8070a960dcf274afa1c7`
+- ✅ `2f997aaeaceb8070a960dcf274afa1c7`（URL末尾の英数字部分）
+
+### `content_updates` のパラメータ名
+
 `notion-update-page` の `content_updates` パラメータの正しい形式:
 
 ```json
