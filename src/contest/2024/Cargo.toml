@@ -1086,6 +1086,14 @@ path = "abc386/a/a.rs"
 # name = "abc381_e"
 # path = "abc381/e/e.rs"
 
+[[bin]]
+name = "abc381_e2"
+path = "abc381/e/e2.rs"
+
+[[bin]]
+name = "abc381_e3"
+path = "abc381/e/e3.rs"
+
 # [[bin]]
 # name = "abc381_f"
 # path = "abc381/f/f.rs"
