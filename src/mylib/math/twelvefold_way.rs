@@ -126,7 +126,7 @@ pub mod mod_partition {
             let mut table = vec![vec![Mint::new(0); max_n + 1]; max_n + 1];
 
             // 分割数: P(n, k) = P(n, k-1) + P(n-k, k)
-            // ベースケース: P(0, k) = 1 (全てのk)
+            // ベースケース: P(0, k) = 1 (全ての k で空の和が 1 通り)
             for k in 0..=max_n {
                 table[0][k] = Mint::new(1);
             }
@@ -145,7 +145,8 @@ pub mod mod_partition {
 
         /// 分割数 P(n, k)
         ///
-        /// n を k 以下のパーツへの整数分割の数
+        /// n を k 個以下の正整数の和として表す方法の数。
+        /// n を k 以下の正整数の和として表す方法の数とも等しい。
         pub fn partition(&self, n: usize, k: usize) -> Mint {
             assert!(
                 n < self.table.len(),
@@ -214,22 +215,24 @@ mod tests {
         brute_surjections(n, k) / factorial_k
     }
 
-    /// ベル数 (2変数) B(n, k) = sum_{i=0}^{k} S(n, i)
+    /// ベル数（2変数） B(n, k)
+    ///
+    /// B(n, k) = sum_{i=0}^{k} S(n, i) として計算する
     fn brute_bell(n: usize, k: usize) -> u64 {
         (0..=k).map(|i| brute_stirling_s2(n, i)).sum()
     }
 
-    /// 分割数 P(n, k): n を各パーツが k 以下の正整数の和として書く方法の数
+    /// 分割数 P(n, k): n を k 個以下の正整数の和として表す方法の数
     fn brute_partition(n: usize, k: usize) -> u64 {
-        fn count(remaining: usize, max_part: usize, min_part: usize) -> u64 {
+        fn count(remaining: usize, terms_left: usize, min_val: usize) -> u64 {
             if remaining == 0 {
                 return 1;
             }
-            if max_part == 0 || max_part < min_part {
+            if terms_left == 0 {
                 return 0;
             }
-            (min_part..=max_part.min(remaining))
-                .map(|part| count(remaining - part, max_part, part))
+            (min_val..=remaining)
+                .map(|val| count(remaining - val, terms_left - 1, val))
                 .sum()
         }
         count(n, k, 1)
@@ -402,11 +405,10 @@ mod tests {
     fn test_partition() {
         let p = mod_partition::Partition::<Mint>::new(6);
 
-        // P(5, 3) = 5: 3+2, 3+1+1, 2+2+1, 2+1+1+1, 1+1+1+1+1
+        // P(5, 3) = 5: 5, 4+1, 3+2, 3+1+1, 2+2+1
         assert_eq!(p.partition(5, 3), Mint::new(5));
 
-        // P(5, 5) = P(5) = 7
-        // 5 = 5, 4+1, 3+2, 3+1+1, 2+2+1, 2+1+1+1, 1+1+1+1+1
+        // P(5, 5) = P(5) = 7: 5, 4+1, 3+2, 3+1+1, 2+2+1, 2+1+1+1, 1+1+1+1+1
         assert_eq!(p.partition1(5), Mint::new(7));
 
         // P(0, k) = 1 for all k
