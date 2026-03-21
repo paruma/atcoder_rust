@@ -93,6 +93,10 @@ name = "abc440_e"
 path = "abc440/e/e.rs"
 
 [[bin]]
+name = "abc440_e2"
+path = "abc440/e/e2.rs"
+
+[[bin]]
 name = "abc440_e_wa"
 path = "abc440/e/e_wa.rs"
 

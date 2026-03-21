@@ -1,5 +1,4 @@
-// #[fastout]
-
+// 重複組合せ全探索で、同じ頂点を2回辿らないように変更
 fn calc_score(a_s: &[i64], cnts: &[i64]) -> i64 {
     a_s.iter()
         .copied()
@@ -20,34 +19,28 @@ fn main() {
     let mut init = vec![0; n];
     init[0] = k;
 
-    let mut visited = HashSet::new();
-    visited.insert(init.clone());
-
-    // (スコア, 各クッキーの個数) を管理する
-    let mut pq: BinaryHeap<(i64, Vec<i64>)> = BinaryHeap::new();
+    // (スコア, 今見ている場所, 各クッキーの個数) を管理する
+    let mut pq: BinaryHeap<(i64, usize, Vec<i64>)> = BinaryHeap::new();
     let init_score = calc_score(&a_s, &init);
-    pq.push((init_score, init));
+    pq.push((init_score, 0, init));
 
     let mut ans = vec![];
 
-    while let Some((score, cnts)) = pq.pop() {
+    while let Some((score, cur, cnts)) = pq.pop() {
         ans.push(score);
         if ans.len() >= x {
             // top x 個が手に入ったら終わり
             break;
         }
 
-        for i in 0..n - 1 {
-            if cnts[i] != 0 {
-                // 次のクッキーの組み合わせ: i番目のクッキーの代わりにi+1番目のクッキーに変更する
+        for next in [cur, cur + 1] {
+            if cnts[next] != 0 && next < n - 1 {
+                // 次のクッキーの組み合わせ: next 番目のクッキーの代わりに next + 1 番目のクッキーに変更する
                 let mut next_cnts = cnts.clone();
-                next_cnts[i] -= 1;
-                next_cnts[i + 1] += 1;
-                if !visited.contains(&next_cnts) {
-                    // todo: calc_score は差分計算でサボれる。
-                    pq.push((calc_score(&a_s, &next_cnts), next_cnts.clone()));
-                    visited.insert(next_cnts);
-                }
+                next_cnts[next] -= 1;
+                next_cnts[next + 1] += 1;
+                // todo: calc_score は差分計算でサボれる。
+                pq.push((calc_score(&a_s, &next_cnts), next, next_cnts.clone()));
             }
         }
     }
