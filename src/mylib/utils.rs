@@ -7,3 +7,4 @@ pub mod random;
 pub mod recur;
 pub mod slice_ext;
 pub mod time;
+pub mod try_opt;

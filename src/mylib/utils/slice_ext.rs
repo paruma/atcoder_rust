@@ -1,9 +1,8 @@
 use cargo_snippet::snippet;
 
-#[allow(clippy::module_inception)]
-#[snippet(prefix = "use get_by_i64::*;")]
-pub mod get_by_i64 {
-    pub trait SliceExt<T> {
+#[snippet(prefix = "use slice_at::*;")]
+pub mod slice_at {
+    pub trait SliceAt<T> {
         /// `i64` 型のインデックスで要素を取得する。範囲外の場合はパニックする。
         fn at(&self, index: i64) -> &T;
 
@@ -11,7 +10,7 @@ pub mod get_by_i64 {
         fn at_mut(&mut self, index: i64) -> &mut T;
     }
 
-    impl<T> SliceExt<T> for [T] {
+    impl<T> SliceAt<T> for [T] {
         fn at(&self, index: i64) -> &T {
             match usize::try_from(index) {
                 Ok(i) => &self[i],
@@ -37,7 +36,7 @@ pub mod get_by_i64 {
 
 #[cfg(test)]
 mod test {
-    use super::get_by_i64::*;
+    use super::slice_at::*;
 
     #[test]
     fn test_at() {
