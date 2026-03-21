@@ -4,16 +4,6 @@ use cargo_snippet::snippet;
 #[snippet(prefix = "use get_by_i64::*;")]
 pub mod get_by_i64 {
     pub trait SliceExt<T> {
-        /// `i64` 型のインデックスで要素を取得する。
-        ///
-        /// インデックスが負または範囲外の場合は `None` を返す。
-        fn get_by_i64(&self, index: i64) -> Option<&T>;
-
-        /// `i64` 型のインデックスで要素を可変参照で取得する。
-        ///
-        /// インデックスが負または範囲外の場合は `None` を返す。
-        fn get_mut_by_i64(&mut self, index: i64) -> Option<&mut T>;
-
         /// `i64` 型のインデックスで要素を取得する。範囲外の場合はパニックする。
         fn at(&self, index: i64) -> &T;
 
@@ -22,12 +12,6 @@ pub mod get_by_i64 {
     }
 
     impl<T> SliceExt<T> for [T] {
-        fn get_by_i64(&self, index: i64) -> Option<&T> {
-            usize::try_from(index).ok().and_then(|i| self.get(i))
-        }
-        fn get_mut_by_i64(&mut self, index: i64) -> Option<&mut T> {
-            usize::try_from(index).ok().and_then(|i| self.get_mut(i))
-        }
         fn at(&self, index: i64) -> &T {
             match usize::try_from(index) {
                 Ok(i) => &self[i],
@@ -54,29 +38,6 @@ pub mod get_by_i64 {
 #[cfg(test)]
 mod test {
     use super::get_by_i64::*;
-
-    #[test]
-    fn test_get_by_i64() {
-        let xs = [10, 20, 30, 40, 50];
-        // 有効インデックス
-        assert_eq!(xs.get_by_i64(0), Some(&10));
-        assert_eq!(xs.get_by_i64(4), Some(&50));
-        assert_eq!(xs.get_by_i64(2), Some(&30));
-        // 負インデックス
-        assert_eq!(xs.get_by_i64(-1), None);
-        // 範囲外
-        assert_eq!(xs.get_by_i64(5), None);
-    }
-
-    #[test]
-    fn test_get_mut_by_i64() {
-        let mut xs = [10, 20, 30];
-        // 有効インデックスで値を書き換え
-        *xs.get_mut_by_i64(1).unwrap() = 99;
-        assert_eq!(xs, [10, 99, 30]);
-        // 負インデックス
-        assert_eq!(xs.get_mut_by_i64(-1), None);
-    }
 
     #[test]
     fn test_at() {
