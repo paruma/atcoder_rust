@@ -1,44 +1,27 @@
-// 二分探索1回の解法
-// 値で二分探索する代わりに添字で二分探索をする
+// コンテスト中の解法
+// 二分探索を2回するため、計算量に log が2つついて TL ギリギリ
+// super_slice ではなく、標準ライブラリの二分探索のラッパーを利用
 fn main() {
     input! {
         n: usize,
         q: usize,
         mut a_s: [i64; n],
     }
-    a_s.push(i64::MIN / 10); // MIN そのものだとオーバーフローする
+
     a_s.sort();
 
-    // 解法は解説とほとんど同じ
     for _ in 0..q {
         input! {
             x: i64,
             y: i64,
         }
-        // o はリストに含まれていないことを表す
-        //
-        //      i           j
-        //      ↓           ↓
-        // ooooo ooo ooo ooo oooo
-        //  ↑             ↑
-        //  x             ans
-
-        // i: x以上でリスト a_s に含まれている値の添字
-        let i = a_s.lower_bound(&x);
-        // j: 答えより大きい値のうち、リスト a_s に含まれている最小値の添字
-        let j = bin_search(a_s.len() as i64, -1, |j| {
-            // 左辺: 区間[x, a_s[j]]でリストに含まれていない個数
-            // 区間[x, a_s[j]] の長さが all
-            let all = a_s[j as usize] - x + 1;
-            // // 区間[x, a_s[j]] のうち、リストに含まれるものが sub
-            let sub = j - (i as i64) + 1;
-            all - sub >= y
+        // x..=cand で a_s に含まれている数を cnt とする。
+        // x..=cand で a_s に含まれていない数は cand - x + 1 - cnt である。
+        // cand - x + 1 - cnt >= y となる最小の cand を求める
+        let ans = bin_search(10_000_000_000, x - 1, |cand| {
+            let cnt = a_s.range_count(x..=cand) as i64;
+            cand - x + 1 - cnt >= y
         });
-
-        // [x, ans] の中にリストに含まれているものが j - i 個ある
-        // つまり、(ans - x + 1) - (j - i) = k である。
-        // ここから ans の値が求まる
-        let ans = y + x - 1 + j - (i as i64);
         println!("{}", ans);
     }
 }
@@ -211,4 +194,62 @@ where
         }
     }
     ok
+}
+use sorted_slice::*;
+#[allow(clippy::module_inception)]
+pub mod sorted_slice {
+    use std::ops::{Bound::*, Range, RangeBounds};
+    /// ソート済みスライスに対する区間クエリを提供するトレイト。
+    pub trait SortedSliceExt<T: Ord> {
+        fn range_indices<R: RangeBounds<T>>(&self, range: R) -> Range<usize>;
+        fn range_count<R: RangeBounds<T>>(&self, range: R) -> usize;
+        fn range_min_index<R: RangeBounds<T>>(&self, range: R) -> Option<usize>;
+        fn range_max_index<R: RangeBounds<T>>(&self, range: R) -> Option<usize>;
+    }
+    impl<T: Ord> SortedSliceExt<T> for [T] {
+        /// `range` に含まれる要素のインデックス範囲 `[begin, end)` を返す。
+        /// # 前提条件
+        /// * `self`: 広義単調増加（ソート済み）であること
+        /// # 計算量
+        /// $O(\log N)$（$N$ は `self` の長さ）
+        fn range_indices<R: RangeBounds<T>>(&self, range: R) -> Range<usize> {
+            let begin = match range.start_bound() {
+                Included(lo) => self.partition_point(|x| x < lo),
+                Excluded(lo) => self.partition_point(|x| x <= lo),
+                Unbounded => 0,
+            };
+            let end = match range.end_bound() {
+                Included(hi) => self.partition_point(|x| x <= hi),
+                Excluded(hi) => self.partition_point(|x| x < hi),
+                Unbounded => self.len(),
+            };
+            begin..end.max(begin)
+        }
+        /// `range` に含まれる要素の個数を返す。
+        /// # 前提条件
+        /// * `self`: 広義単調増加（ソート済み）であること
+        /// # 計算量
+        /// $O(\log N)$（$N$ は `self` の長さ）
+        fn range_count<R: RangeBounds<T>>(&self, range: R) -> usize {
+            self.range_indices(range).len()
+        }
+        /// `self[i] ∈ range` を満たす最小の `i` を返す。存在しない場合は `None`。
+        /// # 前提条件
+        /// * `self`: 広義単調増加（ソート済み）であること
+        /// # 計算量
+        /// $O(\log N)$（$N$ は `self` の長さ）
+        fn range_min_index<R: RangeBounds<T>>(&self, range: R) -> Option<usize> {
+            let r = self.range_indices(range);
+            if r.is_empty() { None } else { Some(r.start) }
+        }
+        /// `self[i] ∈ range` を満たす最大の `i` を返す。存在しない場合は `None`。
+        /// # 前提条件
+        /// * `self`: 広義単調増加（ソート済み）であること
+        /// # 計算量
+        /// $O(\log N)$（$N$ は `self` の長さ）
+        fn range_max_index<R: RangeBounds<T>>(&self, range: R) -> Option<usize> {
+            let r = self.range_indices(range);
+            if r.is_empty() { None } else { Some(r.end - 1) }
+        }
+    }
 }

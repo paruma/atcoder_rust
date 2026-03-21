@@ -85,6 +85,10 @@ name = "abc440_d_log2つ"
 path = "abc440/d/d_log2つ.rs"
 
 [[bin]]
+name = "abc440_d_log2つ2"
+path = "abc440/d/d_log2つ2.rs"
+
+[[bin]]
 name = "abc440_e"
 path = "abc440/e/e.rs"
 
