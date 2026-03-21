@@ -5,101 +5,80 @@ fn main() {
         m: usize, // 金額の上限
         pvs: [(usize, i64); n],
     }
-
-    let mut dp1 = vec![[NEG_INF; 2]; m + 1];
-
+    // dp1[i][p] = [0, i) での商品をp円以下で選ぶときの価値最大値
+    let mut dp1 = vec![vec![NEG_INF; m + 1]; n + 1];
     for p in 0..=m {
-        dp1[p][0] = fin(0);
-        dp1[p][1] = fin(0);
+        dp1[0][p] = fin(0);
     }
-    for i in 0..n {
-        let dp1_prev = dp1.clone();
-        let (pi, vi) = pvs[i];
+
+    for (i, (item_p, item_v)) in pvs.iter().copied().enumerate() {
         for p in 0..=m {
             // 現在のアイテムを選択する/しない
-            let choose = if p < pi {
-                NEG_INF
-            } else {
-                std::cmp::max(dp1_prev[p - pi][0], dp1_prev[p - pi][1]) + fin(vi)
-            };
-            let no_choose = std::cmp::max(dp1_prev[p][0], dp1_prev[p][1]);
+            let choose = try_opt!(dp1[i][p.checked_sub(item_p)?]).unwrap_or(NEG_INF) + item_v;
+            let no_choose = dp1[i][p];
 
-            dp1[p][0] = no_choose;
-            dp1[p][1] = choose;
+            dp1[i + 1][p] = choose.max(no_choose);
         }
     }
 
-    let max_dp = dp1[m][0].max(dp1[m][1]);
-
-    let mut dp1 = vec![[NEG_INF; 2]; m + 1];
-    let mut dp2 = vec![[NEG_INF; 2]; m + 1];
-    let mut ans: Vec<char> = vec![];
-
+    // dp2[i][p] = [n-i, n) での商品をp円以下で選ぶときの価値最大値
+    let mut dp2 = vec![vec![NEG_INF; m + 1]; n + 1];
     for p in 0..=m {
-        dp1[p][0] = fin(0);
-        dp1[p][1] = fin(0);
-        dp2[p][0] = fin(0);
-        dp2[p][1] = fin(0);
+        dp2[0][p] = fin(0);
     }
-    for i in 0..n {
-        let dp1_prev = dp1.clone();
-        let dp2_prev = dp2.clone();
-        let j = n - i - 1;
-        let (pi, vi) = pvs[i];
-        let (pj, vj) = pvs[j];
+
+    for (i, (item_p, item_v)) in pvs.iter().copied().rev().enumerate() {
         for p in 0..=m {
             // 現在のアイテムを選択する/しない
-            let choose = if p < pi {
-                NEG_INF
-            } else {
-                std::cmp::max(dp1_prev[p - pi][0], dp1_prev[p - pi][1]) + fin(vi)
-            };
-            let no_choose = std::cmp::max(dp1_prev[p][0], dp1_prev[p][1]);
+            let choose = try_opt!(dp2[i][p.checked_sub(item_p)?]).unwrap_or(NEG_INF) + item_v;
+            let no_choose = dp2[i][p];
 
-            dp1[p][0] = no_choose;
-            dp1[p][1] = choose;
-        }
-
-        let val1 = (0..=m)
-            .map(|p| {
-                // dp1 から p
-                // dp2 から m - p
-                dp1[p][0] + std::cmp::max(dp2[m - p][0], dp2[m - p][1])
-            })
-            .max()
-            .unwrap();
-        // 含む
-        let val2 = (0..=m)
-            .map(|p| {
-                // dp1 から p
-                // dp2 から m - p
-                dp1[p][1] + std::cmp::max(dp2[m - p][0], dp2[m - p][1])
-            })
-            .max()
-            .unwrap();
-
-        let ch = if val1 != max_dp {
-            'A'
-        } else if val2 == max_dp {
-            'B'
-        } else {
-            'C'
-        };
-        ans.push(ch);
-
-        for p in 0..=m {
-            // 現在のアイテムを選択する/しない
-            let choose = if p < pj {
-                NEG_INF
-            } else {
-                std::cmp::max(dp2_prev[p - pj][0], dp2_prev[p - pj][1]) + fin(vj)
-            };
-            let no_choose = std::cmp::max(dp2_prev[p][0], dp2_prev[p][1]);
-
-            dp2[p][0] = no_choose;
-            dp2[p][1] = choose;
+            dp2[i + 1][p] = no_choose.max(choose);
         }
     }
+    let max_dp = dp1[n][m];
+
+    let ans = (0..n)
+        .map(|i| {
+            let (item_p_i, item_v_i) = pvs[i];
+            let dir1 = &dp1[i]; //[0, i)
+            let dir2 = &dp2[n - i - 1]; // [i + 1, n)
+
+            // i を含まない
+            let val_exclude_i = (0..=m)
+                .map(|p| {
+                    // dir1 から p
+                    // dir2 から m - p
+                    dir1[p] + dir2[m - p]
+                })
+                .max()
+                .unwrap();
+            // i を含む
+            let val_include_i = (0..=m)
+                .map(|p| {
+                    // dir1 から p
+                    // i から item_p_i
+                    // dir2 から m - p - item_p_i
+
+                    let prefix = dir1[p];
+                    let suffix = try_opt!(dir2[m.checked_sub(p + item_p_i)?]).unwrap_or(NEG_INF);
+                    prefix + item_v_i + suffix
+                })
+                .max()
+                .unwrap();
+
+            if val_exclude_i != max_dp {
+                // i は選ばないといけない
+                'A'
+            } else if val_include_i == max_dp {
+                // i は選んでも選ばなくてもよい
+                'B'
+            } else {
+                // i は選んではいけない
+                'C'
+            }
+        })
+        .collect_vec();
 
     print_chars(&ans);
 }
@@ -230,7 +209,7 @@ pub mod print_util {
 }
 
 // ====== snippet ======
-use mod_neg_ext_int::*;
+use {mod_neg_ext_int::*, rand::distr::slice::Choose};
 pub mod mod_neg_ext_int {
     use ac_library::Monoid;
     use std::{
@@ -385,4 +364,43 @@ pub mod mod_neg_ext_int {
             *a.max(b)
         }
     }
+}
+
+#[allow(clippy::module_inception)]
+#[macro_use]
+pub mod try_opt {
+    /// `?` 演算子を式・ブロックの中で使うためのマクロ。
+    /// IIFE `(|| Some(...))()` の代替として用いる。
+    /// 複文ブロックは `try` ブロックと同様に書け、最後の式が自動的に `Some` で包まれる。
+    /// # Example
+    /// ```
+    /// # use mylib::try_opt;
+    /// let dp = [[10_i64, 20, 30]];
+    /// let neg_inf = i64::MIN / 2;
+    /// // 単一式
+    /// let item_p = 1_usize;
+    /// let p = 2_usize;
+    /// let val = try_opt!(dp[0][p.checked_sub(item_p)?]).unwrap_or(neg_inf);
+    /// assert_eq!(val, 20);
+    /// let p = 0_usize;
+    /// let val = try_opt!(dp[0][p.checked_sub(item_p)?]).unwrap_or(neg_inf);
+    /// assert_eq!(val, neg_inf);
+    /// // 複文ブロック（try ブロックと同様に書ける）
+    /// let f = |n: i32| if n > 0 { Some(n * 10) } else { None };
+    /// let result = try_opt! {
+    ///     let a = f(1)?;
+    ///     let b = f(2)?;
+    ///     a + b
+    /// };
+    /// assert_eq!(result, Some(30));
+    /// let result = try_opt! {
+    ///     let a = f(1)?;
+    ///     let b = f(-1)?;
+    ///     a + b
+    /// };
+    /// assert_eq!(result, None);
+    /// ```
+    #[allow(unused_macros)]
+    #[macro_export]
+    macro_rules ! try_opt {($ e : expr ) => {(|| Some ($ e ) ) () } ; ($ ($ t : tt ) * ) => {(|| Some ({$ ($ t ) * } ) ) () } ; }
 }
