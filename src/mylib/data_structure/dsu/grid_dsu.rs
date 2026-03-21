@@ -3,7 +3,7 @@ use cargo_snippet::snippet;
 use crate::{data_structure::dsu::dsu_core::dsu_core::DsuCore, math::geometry::pos::pos::Pos};
 
 #[allow(clippy::module_inception)]
-#[snippet(prefix = "use grid_dsu::*;")]
+#[snippet(prefix = "use grid_dsu::*;", include = "dsu_core")]
 pub mod grid_dsu {
     use super::{DsuCore, Pos};
     use itertools::Itertools;
