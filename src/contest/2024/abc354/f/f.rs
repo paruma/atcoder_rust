@@ -72,7 +72,7 @@ impl SubProblem {
         let cc = CoordinateCompression::new(xs);
         let xs_cc = cc.compress_vec(xs);
 
-        // lis_len[i] = xs[0..=i] での LIS の長さ
+        // lis_len[i] = xs[0..=i] で末尾 (i番目) を使う場合 LIS の長さ
         let mut dp = vec![0; n];
 
         let mut seg = Segtree::<Max<usize>>::from(vec![0; cc.space_size() + 1]);
@@ -246,7 +246,7 @@ mod tests {
 use ac_library::{FenwickTree, Max, Segtree};
 // ====== import ======
 #[allow(unused_imports)]
-use itertools::{chain, iproduct, izip, Itertools};
+use itertools::{Itertools, chain, iproduct, izip};
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,

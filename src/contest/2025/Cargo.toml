@@ -229,6 +229,10 @@ name = "abc393_e"
 path = "abc393/e/e.rs"
 
 [[bin]]
+name = "abc393_e2"
+path = "abc393/e/e2.rs"
+
+[[bin]]
 name = "abc393_f"
 path = "abc393/f/f.rs"
 
