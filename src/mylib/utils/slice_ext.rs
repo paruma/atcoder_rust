@@ -29,10 +29,24 @@ pub mod get_by_i64 {
             usize::try_from(index).ok().and_then(|i| self.get_mut(i))
         }
         fn at(&self, index: i64) -> &T {
-            &self[index as usize]
+            match usize::try_from(index) {
+                Ok(i) => &self[i],
+                Err(_) => panic!(
+                    "index out of bounds: the len is {} but the index is {}",
+                    self.len(),
+                    index
+                ),
+            }
         }
         fn at_mut(&mut self, index: i64) -> &mut T {
-            &mut self[index as usize]
+            match usize::try_from(index) {
+                Ok(i) => &mut self[i],
+                Err(_) => panic!(
+                    "index out of bounds: the len is {} but the index is {}",
+                    self.len(),
+                    index
+                ),
+            }
         }
     }
 }
@@ -82,5 +96,19 @@ mod test {
         let mut xs = [1, 2, 3, 4, 5];
         *xs.at_mut(2) = 100;
         assert_eq!(xs, [1, 2, 100, 4, 5]);
+    }
+
+    #[test]
+    #[should_panic(expected = "index out of bounds: the len is 3 but the index is -1")]
+    fn test_at_negative_panics() {
+        let xs = [1, 2, 3];
+        let _ = xs.at(-1);
+    }
+
+    #[test]
+    #[should_panic(expected = "index out of bounds: the len is 3 but the index is -1")]
+    fn test_at_mut_negative_panics() {
+        let mut xs = [1, 2, 3];
+        let _ = xs.at_mut(-1);
     }
 }
