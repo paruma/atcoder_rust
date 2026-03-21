@@ -1,12 +1,100 @@
+fn ctoi(ch: char) -> usize {
+    (ch as u8 - b'a') as usize
+}
+
+// こうの方がいいかも
+// fn ctoi(ch: char) -> usize {
+//     ch as usize - 'a' as usize
+// }
+
+struct Rec<'a> {
+    dp: &'a [usize],
+    dp2: &'a [Vec<i64>],
+    yx_counts: &'a [CumSum],
+    y_len: usize,
+    yx_len: usize,
+}
+
+impl<'a> Rec<'a> {
+    fn rec(&self, ch: usize, n: usize) -> i64 {
+        if n == 0 {
+            return 0;
+        }
+        if n <= self.yx_len {
+            return self.yx_counts[ch].range_sum(0..n);
+        }
+        // todo: 基底
+        // dp が 2 3 5 8 ..
+        // 9 だったら8がほしい
+        // 8 だったら8がほしい
+        let prefix_i = self.dp.range_max_index(..=n).unwrap();
+        let suffix = n - self.dp[prefix_i];
+
+        let prefix_ans = self.dp2[ch][prefix_i];
+        let suffix_ans = self.rec(ch, suffix);
+
+        prefix_ans + suffix_ans
+    }
+}
+
 // 問題文と制約は読みましたか？
-// #[fastout]
+#[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        x: Chars,
+        y: Chars,
+        q: usize,
+        qs: [(Usize1, Usize1, char); q],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let yx = chain!(&y, &x).copied().collect_vec();
+    let yx_counts = ('a'..='z')
+        .map(|target| {
+            CumSum::new(
+                &yx.iter()
+                    .copied()
+                    .map(|ch| (ch == target) as i64)
+                    .collect_vec(),
+            )
+        })
+        .collect_vec();
+    // y + x をベースにして考える
+    let dp = {
+        let mut dp = vec![yx.len(), y.len() + yx.len()];
+        for i in 2..100 {
+            let added = dp[i - 1].saturating_add(dp[i - 2]);
+            if added > 1_000_000_000_000_000_001 {
+                break;
+            }
+            dp.push(added);
+        }
+        dp
+    };
+
+    // dp2[ch][i] = f(ch, dp[i])) つまり [0, dp[i]) までにある ch の数
+
+    let mut dp2 = vec![vec![i64::MIN; dp.len()]; 26];
+
+    for ch in 0..26 {
+        dp2[ch][0] = yx_counts[ch].range_sum(..);
+        dp2[ch][1] = dp2[ch][0] + yx_counts[ch].range_sum(..y.len());
+        for i in 2..dp.len() {
+            dp2[ch][i] = dp2[ch][i - 1] + dp2[ch][i - 2];
+        }
+    }
+    let rec = Rec {
+        dp: &dp,
+        dp2: &dp2,
+        y_len: y.len(),
+        yx_counts: &yx_counts,
+        yx_len: yx.len(),
+    };
+
+    for (l, r, ch) in qs {
+        let ch = ctoi(ch);
+        // [l, r] = [l, r + 1)
+        let sub_ans = rec.rec(ch, r + 1) - rec.rec(ch, l);
+        println!("{}", sub_ans);
+    }
 }
 
 #[cfg(test)]
@@ -136,3 +224,181 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use cumsum::*;
+#[allow(clippy::module_inception)]
+pub mod cumsum {
+    pub fn prefix_sum(xs: &[i64]) -> Vec<i64> {
+        let mut prefix_sum = vec![0; xs.len() + 1];
+        for i in 1..xs.len() + 1 {
+            prefix_sum[i] = prefix_sum[i - 1] + xs[i - 1];
+        }
+        prefix_sum
+    }
+    use std::ops::{Bound, Range, RangeBounds};
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct CumSum {
+        pub cumsum: Vec<i64>,
+    }
+    impl CumSum {
+        /// # 計算量
+        /// O(|xs|)
+        pub fn new(xs: &[i64]) -> CumSum {
+            let mut cumsum = vec![0; xs.len() + 1];
+            for i in 1..xs.len() + 1 {
+                cumsum[i] = cumsum[i - 1] + xs[i - 1];
+            }
+            CumSum { cumsum }
+        }
+        fn open(&self, range: impl RangeBounds<usize>) -> Range<usize> {
+            use Bound::Excluded;
+            use Bound::Included;
+            use Bound::Unbounded;
+            let begin = match range.start_bound() {
+                Unbounded => 0,
+                Included(&x) => x,
+                Excluded(&x) => x + 1,
+            };
+            let end = match range.end_bound() {
+                Excluded(&x) => x,
+                Included(&x) => x + 1,
+                Unbounded => self.cumsum.len() - 1,
+            };
+            begin..end
+        }
+        /// 区間 `[begin, end)` の要素の和を計算します。
+        /// # 計算量
+        /// O(1)
+        pub fn range_sum(&self, range: impl RangeBounds<usize>) -> i64 {
+            let range = self.open(range);
+            self.cumsum[range.end] - self.cumsum[range.start]
+        }
+        /// 区間 `[0, end)` での和を計算します。
+        /// # 計算量
+        /// O(1)
+        pub fn prefix_sum(&self, end: usize) -> i64 {
+            self.cumsum[end]
+        }
+        /// 区間 `[begin, n)` の要素の和を計算します。（`n` は元の配列の長さ）
+        /// # 計算量
+        /// O(1)
+        pub fn suffix_sum(&self, begin: usize) -> i64 {
+            self.cumsum[self.cumsum.len() - 1] - self.cumsum[begin]
+        }
+        /// `f(sum(l..r))` が `true` となる最大の `r in [l, n]` を見つける。
+        /// `n` は元の配列の長さ。
+        /// `f` は単調でなければならない。
+        /// `f(sum(l..i))` が `true` => `f(sum(l..j))` が `true` for all `l <= j <= i`.
+        /// # Panics
+        /// `l > n` の場合にパニックする。
+        /// # 計算量
+        /// O(log n)
+        pub fn max_right<F>(&self, l: usize, mut f: F) -> usize
+        where
+            F: FnMut(i64) -> bool,
+        {
+            let n = self.cumsum.len() - 1;
+            assert!(l <= n);
+            assert!(f(0), "f(0) must be true");
+            if f(self.range_sum(l..n)) {
+                return n;
+            }
+            let mut ok = l;
+            let mut ng = n + 1;
+            while ng - ok > 1 {
+                let mid = ok + (ng - ok) / 2;
+                if f(self.range_sum(l..mid)) {
+                    ok = mid;
+                } else {
+                    ng = mid;
+                }
+            }
+            ok
+        }
+        /// `f(sum(l..r))` が `true` となる最小の `l in [0, r]` を見つける。
+        /// `f` は単調でなければならない。
+        /// `f(sum(i..r))` が `true` => `f(sum(j..r))` が `true` for all `i <= j <= r`.
+        /// `r > n` の場合にパニックする。
+        /// # 計算量
+        /// O(log r)
+        pub fn min_left<F>(&self, r: usize, mut f: F) -> usize
+        where
+            F: FnMut(i64) -> bool,
+        {
+            let n = self.cumsum.len() - 1;
+            assert!(r <= n);
+            assert!(f(0), "f(0) must be true");
+            if f(self.range_sum(0..r)) {
+                return 0;
+            }
+            let mut ok = r;
+            let mut ng = 0;
+            while ok - ng > 1 {
+                let mid = ng + (ok - ng) / 2;
+                if f(self.range_sum(mid..r)) {
+                    ok = mid;
+                } else {
+                    ng = mid;
+                }
+            }
+            ok
+        }
+    }
+}
+use sorted_slice::*;
+#[allow(clippy::module_inception)]
+pub mod sorted_slice {
+    use std::ops::{Bound::*, Range, RangeBounds};
+    /// ソート済みスライスに対する区間クエリを提供するトレイト。
+    pub trait SortedSliceExt<T: Ord> {
+        fn range_indices<R: RangeBounds<T>>(&self, range: R) -> Range<usize>;
+        fn range_count<R: RangeBounds<T>>(&self, range: R) -> usize;
+        fn range_min_index<R: RangeBounds<T>>(&self, range: R) -> Option<usize>;
+        fn range_max_index<R: RangeBounds<T>>(&self, range: R) -> Option<usize>;
+    }
+    impl<T: Ord> SortedSliceExt<T> for [T] {
+        /// `range` に含まれる要素のインデックス範囲 `[begin, end)` を返す。
+        /// # 前提条件
+        /// * `self`: 広義単調増加（ソート済み）であること
+        /// # 計算量
+        /// $O(\log N)$（$N$ は `self` の長さ）
+        fn range_indices<R: RangeBounds<T>>(&self, range: R) -> Range<usize> {
+            let begin = match range.start_bound() {
+                Included(lo) => self.partition_point(|x| x < lo),
+                Excluded(lo) => self.partition_point(|x| x <= lo),
+                Unbounded => 0,
+            };
+            let end = match range.end_bound() {
+                Included(hi) => self.partition_point(|x| x <= hi),
+                Excluded(hi) => self.partition_point(|x| x < hi),
+                Unbounded => self.len(),
+            };
+            begin..end.max(begin)
+        }
+        /// `range` に含まれる要素の個数を返す。
+        /// # 前提条件
+        /// * `self`: 広義単調増加（ソート済み）であること
+        /// # 計算量
+        /// $O(\log N)$（$N$ は `self` の長さ）
+        fn range_count<R: RangeBounds<T>>(&self, range: R) -> usize {
+            self.range_indices(range).len()
+        }
+        /// `self[i] ∈ range` を満たす最小の `i` を返す。存在しない場合は `None`。
+        /// # 前提条件
+        /// * `self`: 広義単調増加（ソート済み）であること
+        /// # 計算量
+        /// $O(\log N)$（$N$ は `self` の長さ）
+        fn range_min_index<R: RangeBounds<T>>(&self, range: R) -> Option<usize> {
+            let r = self.range_indices(range);
+            if r.is_empty() { None } else { Some(r.start) }
+        }
+        /// `self[i] ∈ range` を満たす最大の `i` を返す。存在しない場合は `None`。
+        /// # 前提条件
+        /// * `self`: 広義単調増加（ソート済み）であること
+        /// # 計算量
+        /// $O(\log N)$（$N$ は `self` の長さ）
+        fn range_max_index<R: RangeBounds<T>>(&self, range: R) -> Option<usize> {
+            let r = self.range_indices(range);
+            if r.is_empty() { None } else { Some(r.end - 1) }
+        }
+    }
+}

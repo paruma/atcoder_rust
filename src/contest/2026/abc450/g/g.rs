@@ -5,7 +5,14 @@ fn main() {
         n: usize,
         xs: [i64; n],
     }
-    let ans: i64 = -2_i64;
+    use ac_library::ModInt998244353 as Mint;
+
+    let xs = xs.iter().copied().map(Mint::new).collect_vec();
+    let sum = xs.iter().copied().sum::<Mint>();
+    let sq_sum = xs.iter().copied().map(|x| x * x).sum::<Mint>();
+    let cross = (sum * sum - sq_sum) / 2;
+
+    let ans = sq_sum - cross / n * 2;
     println!("{}", ans);
 }
 

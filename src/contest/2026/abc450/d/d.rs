@@ -3,9 +3,20 @@
 fn main() {
     input! {
         n: usize,
+        k: i64,
         xs: [i64; n],
     }
-    let ans: i64 = -2_i64;
+
+    let ys = xs.iter().copied().map(|x| x % k).sorted().collect_vec();
+    let max_gap = ys
+        .iter()
+        .copied()
+        .circular_tuple_windows()
+        .map(|(a, b)| (b - a).rem_euclid(k))
+        .max()
+        .unwrap();
+    let ans: i64 = (k - max_gap) % k;
+
     println!("{}", ans);
 }
 

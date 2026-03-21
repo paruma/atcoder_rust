@@ -3,10 +3,22 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let mut costs = vec![vec![i64::MAX; n]; n];
+
+    for i in 0..n - 1 {
+        for j in (i + 1)..n {
+            input! {
+                x: i64,
+            }
+            costs[i][j] = x;
+        }
+    }
+
+    let ans: bool = (0..n)
+        .tuple_combinations()
+        .any(|(a, b, c)| costs[a][b] + costs[b][c] < costs[a][c]);
+    print_yesno(ans);
 }
 
 #[cfg(test)]

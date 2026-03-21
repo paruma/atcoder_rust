@@ -3,10 +3,9 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let msg = (1..=n).rev().join(",");
+    println!("{}", msg);
 }
 
 #[cfg(test)]
