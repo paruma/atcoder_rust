@@ -5,5 +5,5 @@ pub mod io;
 pub mod myiter;
 pub mod random;
 pub mod recur;
+pub mod slice_ext;
 pub mod time;
-pub mod vec_at;

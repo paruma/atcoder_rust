@@ -7400,6 +7400,42 @@
       "}"
     ]
   },
+  "get_by_i64": {
+    "scope": "rust",
+    "prefix": "get_by_i64",
+    "body": [
+      "use get_by_i64::*;",
+      "#[allow(clippy::module_inception)]",
+      "pub mod get_by_i64 {",
+      "    pub trait SliceExt<T> {",
+      "        /// `i64` 型のインデックスで要素を取得する。",
+      "        /// インデックスが負または範囲外の場合は `None` を返す。",
+      "        fn get_by_i64(&self, index: i64) -> Option<&T>;",
+      "        /// `i64` 型のインデックスで要素を可変参照で取得する。",
+      "        /// インデックスが負または範囲外の場合は `None` を返す。",
+      "        fn get_mut_by_i64(&mut self, index: i64) -> Option<&mut T>;",
+      "        /// `i64` 型のインデックスで要素を取得する。範囲外の場合はパニックする。",
+      "        fn at(&self, index: i64) -> &T;",
+      "        /// `i64` 型のインデックスで要素を可変参照で取得する。範囲外の場合はパニックする。",
+      "        fn at_mut(&mut self, index: i64) -> &mut T;",
+      "    }",
+      "    impl<T> SliceExt<T> for [T] {",
+      "        fn get_by_i64(&self, index: i64) -> Option<&T> {",
+      "            usize::try_from(index).ok().and_then(|i| self.get(i))",
+      "        }",
+      "        fn get_mut_by_i64(&mut self, index: i64) -> Option<&mut T> {",
+      "            usize::try_from(index).ok().and_then(|i| self.get_mut(i))",
+      "        }",
+      "        fn at(&self, index: i64) -> &T {",
+      "            &self[index as usize]",
+      "        }",
+      "        fn at_mut(&mut self, index: i64) -> &mut T {",
+      "            &mut self[index as usize]",
+      "        }",
+      "    }",
+      "}"
+    ]
+  },
   "grid_dsu": {
     "scope": "rust",
     "prefix": "grid_dsu",
@@ -27460,26 +27496,6 @@
       "pub fn upper_bound_dec<T: PartialOrd>(xs: &[T], key: T) -> usize {",
       "    let pred = |i: i64| xs[i as usize] < key;",
       "    bin_search(xs.len() as i64, -1_i64, pred) as usize",
-      "}"
-    ]
-  },
-  "vec_at": {
-    "scope": "rust",
-    "prefix": "vec_at",
-    "body": [
-      "use vec_at::*;",
-      "#[allow(clippy::module_inception)]",
-      "pub mod vec_at {",
-      "    use easy_ext::ext;",
-      "    #[ext(VecAt)]",
-      "    impl<T> Vec<T> {",
-      "        pub fn at(&self, index: i64) -> &T {",
-      "            &self[index as usize]",
-      "        }",
-      "        pub fn at_mut(&mut self, index: i64) -> &mut T {",
-      "            &mut self[index as usize]",
-      "        }",
-      "    }",
       "}"
     ]
   },
