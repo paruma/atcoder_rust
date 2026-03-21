@@ -1,33 +1,24 @@
 #![allow(dead_code)]
 
-struct DfsGraph<'a> {
-    adj: &'a [Vec<usize>],
-}
-
-impl DfsGraph<'_> {
-    fn new(adj: &[Vec<usize>]) -> DfsGraph<'_> {
-        // adj.len() は グラフの頂点の数
-        DfsGraph { adj }
-    }
-
-    fn exec_init(&self, v: usize) -> Vec<bool> {
-        let n_vertex = self.adj.len();
-        let mut visited = vec![false; n_vertex];
-        self.exec(v, &mut visited);
-        visited
-    }
-    /// 計算量: O(頂点の数 + 辺の数)
-    fn exec(&self, v: usize, visited: &mut Vec<bool>) {
+/// 計算量: O(頂点の数 + 辺の数)
+fn dfs_graph(adj: &[Vec<usize>], v: usize) -> Vec<bool> {
+    // adj.len() は グラフの頂点の数
+    fn rec(adj: &[Vec<usize>], v: usize, visited: &mut Vec<bool>) {
         // 行きがけ
         visited[v] = true;
 
-        for &next in &self.adj[v] {
+        for &next in &adj[v] {
             if !visited[next] {
-                self.exec(next, visited);
+                rec(adj, next, visited);
             }
         }
         // 帰りがけ
     }
+
+    let n_vertex = adj.len();
+    let mut visited = vec![false; n_vertex];
+    rec(adj, v, &mut visited);
+    visited
 }
 
 fn dfs_order_by_stack(adj: &[Vec<usize>], start: usize) -> (Vec<usize>, Vec<usize>) {
@@ -81,8 +72,7 @@ mod tests {
         let n_vertex = 5;
         let edges = [(0, 1), (1, 2), (2, 0), (3, 4)];
         let adj = make_adj_from_directed(n_vertex, &edges);
-        let dfs = DfsGraph::new(&adj);
-        let visited = dfs.exec_init(0);
+        let visited = dfs_graph(&adj, 0);
         assert_eq!(visited[0], true);
         assert_eq!(visited[1], true);
         assert_eq!(visited[2], true);
