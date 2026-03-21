@@ -361,8 +361,20 @@ def verify_coverage(module_path: str) -> StepResult:
     return StepResult(name, status, summary_msg, full_output)
 
 
+def verify_doc_tests() -> StepResult:
+    """doctest の実行"""
+    name = "Doc Test"
+    ok, output = run_command(["cargo", "test", "--doc", "-p", "mylib"])
+    return StepResult(
+        name,
+        VerificationStatus.PASS if ok else VerificationStatus.FAIL,
+        "",
+        output,
+    )
+
+
 def verify_static_analysis() -> list[StepResult]:
-    """静的解析（Format, Clippy, Snippet Linter）の一括実行"""
+    """静的解析（Format, Clippy, Doc Lint, Snippet Linter）の一括実行"""
     results = []
 
     # Format
@@ -380,6 +392,19 @@ def verify_static_analysis() -> list[StepResult]:
     results.append(
         StepResult(
             "Clippy",
+            VerificationStatus.PASS if ok else VerificationStatus.FAIL,
+            "",
+            out,
+        )
+    )
+
+    # Doc Lint (rustdoc の警告をエラーとして扱う)
+    ok, out = run_command(
+        ["cargo", "rustdoc", "-p", "mylib", "--", "-D", "warnings"]
+    )
+    results.append(
+        StepResult(
+            "Doc Lint",
             VerificationStatus.PASS if ok else VerificationStatus.FAIL,
             "",
             out,
@@ -438,7 +463,14 @@ def main():
         print("\n>>> Step: Coverage (SKIPPED)")
         report.add(StepResult("Coverage", VerificationStatus.PASS, "Skipped"))
 
-    # 3. Static Analysis
+    # 3. Doc Test
+    print("\n>>> Step: Doc Test")
+    doc_test_res = verify_doc_tests()
+    report.add(doc_test_res)
+    if doc_test_res.status == VerificationStatus.FAIL:
+        print(f"\n❌ Doc Test failed:\n{doc_test_res.output}")
+
+    # 4. Static Analysis
     print("\n>>> Step: Static Analysis")
     for res in verify_static_analysis():
         report.add(res)
