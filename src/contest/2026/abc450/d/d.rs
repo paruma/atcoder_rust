@@ -12,7 +12,7 @@ fn main() {
         .iter()
         .copied()
         .circular_tuple_windows()
-        .map(|(a, b)| (b - a).rem_euclid(k))
+        .map(|(a, b)| (b - a).rem_euclid(k)) // ここは a==b なら k を返すべき。一応 AC できるが実装ミス
         .max()
         .unwrap();
     let ans: i64 = (k - max_gap) % k;

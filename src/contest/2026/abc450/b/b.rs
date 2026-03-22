@@ -7,7 +7,7 @@ fn main() {
     let mut costs = vec![vec![i64::MAX; n]; n];
 
     for i in 0..n - 1 {
-        for j in (i + 1)..n {
+        for j in (i + 1)..n { // 最初 
             input! {
                 x: i64,
             }

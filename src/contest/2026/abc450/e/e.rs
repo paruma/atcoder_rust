@@ -8,14 +8,14 @@ fn ctoi(ch: char) -> usize {
 // }
 
 struct Rec<'a> {
-    dp: &'a [usize],
+    fibs: &'a [usize],
     dp2: &'a [Vec<i64>],
     yx_counts: &'a [CumSum],
-    y_len: usize,
     yx_len: usize,
 }
 
 impl<'a> Rec<'a> {
+    // [0, n) での ch の個数を求める。
     fn rec(&self, ch: usize, n: usize) -> i64 {
         if n == 0 {
             return 0;
@@ -23,12 +23,11 @@ impl<'a> Rec<'a> {
         if n <= self.yx_len {
             return self.yx_counts[ch].range_sum(0..n);
         }
-        // todo: 基底
-        // dp が 2 3 5 8 ..
+        // fibs が 2 3 5 8 ..
         // 9 だったら8がほしい
         // 8 だったら8がほしい
-        let prefix_i = self.dp.range_max_index(..=n).unwrap();
-        let suffix = n - self.dp[prefix_i];
+        let prefix_i = self.fibs.range_max_index(..=n).unwrap();
+        let suffix = n - self.fibs[prefix_i];
 
         let prefix_ans = self.dp2[ch][prefix_i];
         let suffix_ans = self.rec(ch, suffix);
@@ -58,33 +57,32 @@ fn main() {
         })
         .collect_vec();
     // y + x をベースにして考える
-    let dp = {
-        let mut dp = vec![yx.len(), y.len() + yx.len()];
+    let fibs = {
+        let mut fibs = vec![yx.len(), y.len() + yx.len()];
         for i in 2..100 {
-            let added = dp[i - 1].saturating_add(dp[i - 2]);
+            let added = fibs[i - 1].saturating_add(fibs[i - 2]);
             if added > 1_000_000_000_000_000_001 {
                 break;
             }
-            dp.push(added);
+            fibs.push(added);
         }
-        dp
+        fibs
     };
 
-    // dp2[ch][i] = f(ch, dp[i])) つまり [0, dp[i]) までにある ch の数
+    // dp2[ch][i] = f(ch, fibs[i])) つまり [0, fibs[i]) までにある ch の数
 
-    let mut dp2 = vec![vec![i64::MIN; dp.len()]; 26];
+    let mut dp2 = vec![vec![i64::MIN; fibs.len()]; 26];
 
     for ch in 0..26 {
         dp2[ch][0] = yx_counts[ch].range_sum(..);
         dp2[ch][1] = dp2[ch][0] + yx_counts[ch].range_sum(..y.len());
-        for i in 2..dp.len() {
+        for i in 2..fibs.len() {
             dp2[ch][i] = dp2[ch][i - 1] + dp2[ch][i - 2];
         }
     }
     let rec = Rec {
-        dp: &dp,
+        fibs: &fibs,
         dp2: &dp2,
-        y_len: y.len(),
         yx_counts: &yx_counts,
         yx_len: yx.len(),
     };
