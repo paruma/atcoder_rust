@@ -1,0 +1,109 @@
+#![allow(dead_code)]
+
+/// n_balls 個の区別するボールを、n_boxes 個のグループ（区別しない）に分割する分割の仕方を全列挙する。
+/// 各グループは1個以上のボールが含まれるようにする。
+/// Vec<Vec<usize>> はグループの分割を表す
+fn stirling_s2(n_balls: usize, n_boxes: usize) -> Vec<Vec<Vec<usize>>> {
+    if n_boxes > n_balls {
+        // 各グループに1つ以上のボールを含めるようにできない
+        return vec![];
+    }
+
+    fn rec(
+        n_balls: usize,
+        n_boxes: usize,
+        cnt: usize,
+        groups: &mut Vec<Vec<usize>>,
+        groups_list: &mut Vec<Vec<Vec<usize>>>,
+    ) {
+        // スターリング数の漸化式
+        // S(n,k) = k S(n-1, k) + S(n-1, k-1)
+        // と同じ考え方をする
+
+        let n_remain_balls = n_balls - cnt;
+        let n_remain_boxes = n_boxes - groups.len();
+
+        // 残りのボールの数 = 残りの箱の数の場合は、残りの箱に1つずつボールを入れる。
+        if n_remain_balls == n_remain_boxes {
+            for i in cnt..n_balls {
+                groups.push(vec![i]);
+            }
+            groups_list.push(groups.clone());
+            for _ in (cnt..n_balls).rev() {
+                groups.pop();
+            }
+            return;
+        }
+
+        // すでにあるグループに追加
+        for group_i in 0..groups.len() {
+            groups[group_i].push(cnt);
+            rec(n_balls, n_boxes, cnt + 1, groups, groups_list);
+            groups[group_i].pop();
+        }
+
+        // 新しくグループを作成する
+        if groups.len() < n_boxes {
+            groups.push(vec![cnt]);
+            rec(n_balls, n_boxes, cnt + 1, groups, groups_list);
+            groups.pop();
+        }
+    }
+
+    let mut groups_list = vec![];
+    rec(n_balls, n_boxes, 0, &mut vec![], &mut groups_list);
+    groups_list
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn sort_groups_list(groups_list: &[Vec<Vec<usize>>]) -> Vec<Vec<Vec<usize>>> {
+        let mut groups_list = groups_list.to_vec();
+        for groups in groups_list.iter_mut() {
+            for group in groups.iter_mut() {
+                group.sort();
+            }
+            groups.sort();
+        }
+        groups_list
+    }
+
+    #[test]
+    fn test_stirling_s2() {
+        {
+            let actual = stirling_s2(4, 2);
+            let expected = vec![
+                vec![vec![0, 1, 2], vec![3]],
+                vec![vec![0, 1, 3], vec![2]],
+                vec![vec![0, 1], vec![2, 3]],
+                vec![vec![0, 2, 3], vec![1]],
+                vec![vec![0, 2], vec![1, 3]],
+                vec![vec![0, 3], vec![1, 2]],
+                vec![vec![0], vec![1, 2, 3]],
+            ];
+            assert_eq!(sort_groups_list(&expected), sort_groups_list(&actual));
+        }
+        {
+            let actual = stirling_s2(3, 3);
+            let expected = vec![vec![vec![0], vec![1], vec![2]]];
+            assert_eq!(sort_groups_list(&expected), sort_groups_list(&actual));
+        }
+        {
+            let actual = stirling_s2(4, 0);
+            let expected = vec![];
+            assert_eq!(sort_groups_list(&expected), sort_groups_list(&actual));
+        }
+        {
+            let actual = stirling_s2(2, 3);
+            let expected = vec![];
+            assert_eq!(sort_groups_list(&expected), sort_groups_list(&actual));
+        }
+        {
+            let actual = stirling_s2(0, 0);
+            let expected = vec![vec![]];
+            assert_eq!(sort_groups_list(&expected), sort_groups_list(&actual));
+        }
+    }
+}
