@@ -101,7 +101,7 @@ pub fn bfs_order(adj: &[Vec<usize>], init: usize) -> Vec<usize> {
     order
 }
 
-#[snippet(include = "mod_stack")]
+#[snippet]
 /// 深さ優先探索 (DFS) を行い、行きがけ順 (pre-order) での頂点順序を返します。
 ///
 /// # 計算量
@@ -131,7 +131,7 @@ pub fn dfs_pre_order(adj: &[Vec<usize>], init: usize) -> Vec<usize> {
     pre_order
 }
 
-#[snippet(include = "mod_stack")]
+#[snippet]
 /// 深さ優先探索 (DFS) を行い、帰りがけ順 (post-order) での頂点順序を返します。
 ///
 /// # 計算量
