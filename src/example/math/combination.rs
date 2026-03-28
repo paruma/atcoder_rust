@@ -25,9 +25,9 @@ fn combinations_with_replacement(n: usize, r: usize) -> Vec<Vec<usize>> {
     seq_list
 }
 
+/// n 個のものからr個取る組合せ nCr 個を全列挙する。
+/// 各組合せは長さ `r` の `Vec<usize>` で表し、組合せの全列挙を `Vec<Vec<usize>>` で返す。
 fn combinations(n: usize, r: usize) -> Vec<Vec<usize>> {
-    // n個のものからr個取る組合せ nCr
-
     // seq が現在の状態、seq_list が結果の蓄積物
     fn rec(n: usize, r: usize, seq: &mut Vec<usize>, seq_list: &mut Vec<Vec<usize>>) {
         if seq.len() == r {
@@ -37,9 +37,10 @@ fn combinations(n: usize, r: usize) -> Vec<Vec<usize>> {
         }
 
         let begin = seq.last().copied().map(|x| x + 1).unwrap_or(0);
-
-        // ループ範囲は具体例 (r=2 くらい) を考えるとわかる
-        for i in begin..n - r + 1 + seq.len() {
+        let left_to_choose = r - seq.len();
+        // i, i+1, ..., i + left_to_choose - 1 という選択はせめてできてほしい。
+        // それすら出来ない場合はここで i を選ぶ意味がない
+        for i in (begin..).take_while(|&i| i + left_to_choose - 1 < n) {
             seq.push(i);
             rec(n, r, seq, seq_list);
             seq.pop();
@@ -51,7 +52,9 @@ fn combinations(n: usize, r: usize) -> Vec<Vec<usize>> {
     seq_list
 }
 
-// 組合せ全列挙の別実装
+/// 組合せ全列挙の別実装。
+/// n 個のものからr個取る組合せ nCr 個を全列挙する。
+/// 各組合せは長さ `r` の `Vec<usize>` で表し、組合せの全列挙を `Vec<Vec<usize>>` で返す。
 fn combinations2(n: usize, r: usize) -> Vec<Vec<usize>> {
     // n個のものからr個取る組合せ nCr
 
@@ -103,6 +106,20 @@ mod tests {
 
     #[test]
     fn test_combinations() {
+        // n 個の中から r 個を選ぶ選び方
+        fn test(n: usize, r: usize) {
+            let actual = combinations(n, r);
+            let expected = (0..n).combinations(r).collect_vec();
+            assert_eq!(actual, expected);
+        }
+        test(5, 3);
+        test(5, 5);
+        test(5, 0);
+        test(0, 0);
+    }
+
+    #[test]
+    fn test_combinations2() {
         // n 個の中から r 個を選ぶ選び方
         fn test(n: usize, r: usize) {
             let actual = combinations2(n, r);
