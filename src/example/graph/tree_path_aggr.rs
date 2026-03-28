@@ -1,23 +1,21 @@
 // 根付き木の根からのパスの集約値を求めるサンプルコード
 
 #![allow(dead_code)]
-use mylib::graph::tree::tree::make_tree_children;
+use mylib::graph::{graph::dfs_pre_order, tree::tree::make_tree_children};
 
 fn tree_length_from_root(adj: &[Vec<usize>], root: usize) -> Vec<usize> {
+    let nv = adj.len();
     let children = make_tree_children(adj, root);
+    let ord = dfs_pre_order(adj, root);
+    let mut dp = vec![usize::MAX; nv];
+    dp[root] = 0;
 
-    fn dfs(cur: usize, children: &[Vec<usize>], len: usize, memo: &mut [usize]) {
-        memo[cur] = len;
+    for cur in ord {
         for &child in &children[cur] {
-            dfs(child, children, len + 1, memo);
+            dp[child] = dp[cur] + 1;
         }
     }
-
-    let nv = adj.len();
-
-    let mut memo = vec![usize::MAX; nv];
-    dfs(root, &children, 0, &mut memo);
-    memo
+    dp
 }
 
 #[cfg(test)]
