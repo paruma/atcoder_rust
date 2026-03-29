@@ -1,11 +1,48 @@
+// a と b を10進数の文字列として連結して得られる値
+fn concat(a: i64, b: i64) -> i64 {
+    a * 10_i64.pow(count_digits(b, 10) as u32) + b
+}
 // 問題文と制約は読みましたか？
 // #[fastout]
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
     }
-    let ans: i64 = -2_i64;
+    let mut pq: BinaryHeap<Reverse<i64>> = BinaryHeap::new();
+    let pow2 = (0..)
+        .map_while(|i| 2_i64.checked_pow(i as u32))
+        .take_while(|&k| k <= 1_000_000_000)
+        .collect_vec();
+    let mut visited: HashSet<i64> = HashSet::new();
+
+    for &p in &pow2 {
+        pq.push(Reverse(p));
+        visited.insert(p);
+    }
+
+    let mut cnt = 0;
+    let mut ans = i64::MAX;
+
+    while let Some(Reverse(cur)) = pq.pop() {
+        if cnt == n - 1 {
+            ans = cur;
+            break;
+        }
+
+        // 10^9 より大きい値は入れない
+
+        for &p in &pow2 {
+            let next = concat(cur, p);
+            if next <= 1_000_000_000 && !visited.contains(&next) {
+                pq.push(Reverse(next));
+                visited.insert(next);
+            }
+            //
+        }
+
+        cnt += 1;
+    }
+
     println!("{}", ans);
 }
 
@@ -18,6 +55,7 @@ mod tests {
 
     #[test]
     fn test_problem() {
+        dbg!(concat(13, 54));
         assert_eq!(1 + 1, 2);
     }
 
@@ -136,3 +174,65 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use digit::*;
+#[allow(clippy::module_inception)]
+pub mod digit {
+    /// n の base 進数を Little Endian で表す
+    /// 例: `to_digits_le_vec(123, 10) == vec![3, 2, 1]`
+    pub fn to_digits_le_vec(mut n: i64, base: i64) -> Vec<i64> {
+        assert!(n >= 0);
+        assert!(base >= 2);
+        if n == 0 {
+            return vec![];
+        }
+        let mut res = vec![];
+        while n > 0 {
+            res.push(n % base);
+            n /= base;
+        }
+        res
+    }
+    /// n の base 進数を Little Endian で生成するイテレータ
+    /// 例: `to_digits_le_iter(123, 10).collect::<Vec<_>>() == vec![3, 2, 1]`
+    pub fn to_digits_le_iter(n: i64, base: i64) -> impl Iterator<Item = i64> {
+        assert!(n >= 0);
+        assert!(base >= 2);
+        DigitsLeIterator { n, base }
+    }
+    struct DigitsLeIterator {
+        n: i64,
+        base: i64,
+    }
+    impl Iterator for DigitsLeIterator {
+        type Item = i64;
+        fn next(&mut self) -> Option<Self::Item> {
+            if self.n == 0 {
+                return None;
+            }
+            let digit = self.n % self.base;
+            self.n /= self.base;
+            Some(digit)
+        }
+    }
+    /// Little Endian で表された各桁から、数値を評価する
+    /// 例: `from_digits_le(&[3, 2, 1], 10) == 123`
+    pub fn from_digits_le(digits: &[i64], base: i64) -> i64 {
+        assert!(base >= 2);
+        digits.iter().rfold(0, |acc, &d| acc * base + d)
+    }
+    /// x を base 進数で表した際の桁数を返す
+    /// 例: `count_digits(123, 10) == 3`
+    pub fn count_digits(mut x: i64, base: i64) -> usize {
+        assert!(x >= 0);
+        assert!(base >= 2);
+        if x == 0 {
+            return 0;
+        }
+        let mut count = 0;
+        while x > 0 {
+            x /= base;
+            count += 1;
+        }
+        count
+    }
+}

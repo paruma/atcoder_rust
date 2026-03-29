@@ -2,11 +2,10 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        xs: Chars
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let ans: bool = xs.len() % 5 == 0;
+    print_yesno(ans);
 }
 
 #[cfg(test)]

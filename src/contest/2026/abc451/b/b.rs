@@ -3,10 +3,24 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        m: usize,
+        abs: [(Usize1, Usize1); n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    let mut before_cnts = vec![0; m];
+
+    for &(a, _) in &abs {
+        before_cnts[a] += 1;
+    }
+
+    let mut after_cnts = vec![0; m];
+
+    for &(_, b) in &abs {
+        after_cnts[b] += 1;
+    }
+
+    let ans: Vec<i64> = (0..m).map(|i| after_cnts[i] - before_cnts[i]).collect_vec();
+    print_vec(&ans);
 }
 
 #[cfg(test)]
