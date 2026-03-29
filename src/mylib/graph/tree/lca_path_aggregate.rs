@@ -8,7 +8,7 @@ pub mod lca_path_aggregate {
 
     #[derive(Clone, Debug)]
     pub struct LcaPathAggregate<M: Monoid> {
-        dist: Vec<i64>,                 // dist[v]: ルートから v までの距離 (深さ)
+        depth: Vec<i64>,                // depth[v]: ルートから v までの距離 (深さ)
         ancestor: Vec<Vec<usize>>,      // ancestor[i][v]: v の 2^i 先の祖先
         path_aggregate: Vec<Vec<M::S>>, // path_aggregate[i][v]: v から 2^i 先の祖先へのパス上の辺の重みの総和
     }
@@ -26,18 +26,18 @@ pub mod lca_path_aggregate {
         /// O(V log V) (V は頂点数)
         pub fn new(adj: &[Vec<(usize, M::S)>], root: usize) -> Self {
             let nv = adj.len();
-            let mut dist = vec![-1; nv];
+            let mut depth = vec![-1; nv];
             let mut parent = vec![root; nv];
             let mut parent_edge_weight = vec![M::identity(); nv];
 
             let mut q = std::collections::VecDeque::new();
             q.push_back(root);
-            dist[root] = 0;
+            depth[root] = 0;
 
             while let Some(u) = q.pop_front() {
                 for &(v, ref w) in &adj[u] {
                     if v != parent[u] {
-                        dist[v] = dist[u] + 1;
+                        depth[v] = depth[u] + 1;
                         parent[v] = u;
                         parent_edge_weight[v] = w.clone();
                         q.push_back(v);
@@ -69,7 +69,7 @@ pub mod lca_path_aggregate {
             }
 
             Self {
-                dist,
+                depth,
                 ancestor,
                 path_aggregate,
             }
@@ -82,11 +82,11 @@ pub mod lca_path_aggregate {
         pub fn lca(&self, u: usize, v: usize) -> usize {
             let mut u = u;
             let mut v = v;
-            if self.dist[u] < self.dist[v] {
+            if self.depth[u] < self.depth[v] {
                 swap(&mut u, &mut v);
             }
 
-            let dist_diff = self.dist[u] - self.dist[v];
+            let dist_diff = self.depth[u] - self.depth[v];
             for k in 0..self.ancestor.len() {
                 if (dist_diff >> k) & 1 == 1 {
                     u = self.ancestor[k][u];
@@ -114,8 +114,8 @@ pub mod lca_path_aggregate {
         /// O(log V)
         pub fn path_aggregate(&self, u: usize, v: usize) -> M::S {
             let lca = self.lca(u, v);
-            let agg_u = self.query_path_up(u, self.dist[u] - self.dist[lca]);
-            let agg_v = self.query_path_up(v, self.dist[v] - self.dist[lca]);
+            let agg_u = self.query_path_up(u, self.depth[u] - self.depth[lca]);
+            let agg_v = self.query_path_up(v, self.depth[v] - self.depth[lca]);
             M::binary_operation(&agg_u, &agg_v)
         }
 
@@ -138,7 +138,7 @@ pub mod lca_path_aggregate {
         /// O(log V)
         pub fn dist(&self, u: usize, v: usize) -> i64 {
             let lca = self.lca(u, v);
-            self.dist[u] + self.dist[v] - 2 * self.dist[lca]
+            self.depth[u] + self.depth[v] - 2 * self.depth[lca]
         }
     }
 }

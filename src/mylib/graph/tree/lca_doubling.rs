@@ -7,7 +7,7 @@ pub mod lca_doubling {
 
     #[derive(Clone, Debug)]
     pub struct Lca {
-        dist: Vec<i64>,            // dist[v]: ルートから v までの距離
+        depth: Vec<i64>,           // depth[v]: ルートから v までの距離
         ancestor: Vec<Vec<usize>>, // ancestor[i][v]: v の 2^i 先の祖先
     }
 
@@ -22,17 +22,17 @@ pub mod lca_doubling {
         /// O(V log V) (V は頂点数)
         pub fn new(adj: &[Vec<usize>], root: usize) -> Self {
             let nv = adj.len();
-            let mut dist = vec![-1; nv];
+            let mut depth = vec![-1; nv];
             let mut parent = vec![root; nv];
 
             let mut q = std::collections::VecDeque::new();
             q.push_back(root);
-            dist[root] = 0;
+            depth[root] = 0;
 
             while let Some(u) = q.pop_front() {
                 for &v in &adj[u] {
                     if v != parent[u] {
-                        dist[v] = dist[u] + 1;
+                        depth[v] = depth[u] + 1;
                         parent[v] = u;
                         q.push_back(v);
                     }
@@ -51,7 +51,7 @@ pub mod lca_doubling {
                 }
             }
 
-            Lca { dist, ancestor }
+            Lca { depth, ancestor }
         }
 
         /// u と v の LCA を求める
@@ -61,13 +61,13 @@ pub mod lca_doubling {
         pub fn lca(&self, u: usize, v: usize) -> usize {
             let mut u = u;
             let mut v = v;
-            // u のほうが深いとする (dist[u] >= dist[v] となるようにする)
-            if self.dist[u] < self.dist[v] {
+            // u のほうが深いとする (depth[u] >= depth[v] となるようにする)
+            if self.depth[u] < self.depth[v] {
                 swap(&mut u, &mut v);
             }
 
-            // 深さを揃える (u を dist[u] - dist[v] だけ根の方向に動かす)
-            let dist_diff = self.dist[u] - self.dist[v];
+            // 深さを揃える (u を depth[u] - depth[v] だけ根の方向に動かす)
+            let dist_diff = self.depth[u] - self.depth[v];
             u = self
                 .ancestor
                 .iter()
@@ -96,7 +96,7 @@ pub mod lca_doubling {
         /// # 計算量
         /// O(log V)
         pub fn dist(&self, u: usize, v: usize) -> i64 {
-            self.dist[u] + self.dist[v] - 2 * self.dist[self.lca(u, v)]
+            self.depth[u] + self.depth[v] - 2 * self.depth[self.lca(u, v)]
         }
 
         /// パス u-v 上に点 a があるかどうかを判定します。
@@ -112,7 +112,7 @@ pub mod lca_doubling {
         /// # 計算量
         /// O(log V)
         pub fn get_ancestor(&self, u: usize, k: usize) -> Option<usize> {
-            if self.dist[u] < k as i64 {
+            if self.depth[u] < k as i64 {
                 return None;
             }
             let mut current = u;
@@ -130,14 +130,14 @@ pub mod lca_doubling {
         /// O(log V)
         pub fn get_kth_on_path(&self, u: usize, v: usize, k: usize) -> Option<usize> {
             let l = self.lca(u, v);
-            let dist_u_l = self.dist[u] - self.dist[l];
+            let dist_u_l = self.depth[u] - self.depth[l];
 
             if k as i64 <= dist_u_l {
                 // The target is on the path from u to l
                 self.get_ancestor(u, k)
             } else {
                 // The target is on the path from l to v
-                let dist_l_v = self.dist[v] - self.dist[l];
+                let dist_l_v = self.depth[v] - self.depth[l];
                 let total_dist = dist_u_l + dist_l_v;
                 if k as i64 > total_dist {
                     return None; // k is out of bounds

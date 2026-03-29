@@ -21,11 +21,9 @@ pub mod lca {
 
     #[derive(Clone)]
     pub struct Lca {
-        dist: Vec<i64>,                        // dist[v]: ルートから v までの距離
+        depth: Vec<i64>,                       // depth[v]: ルートから v までの距離
         euler_tour_dist: Segtree<MinI64Usize>, // 根からの距離を euler tour の順に並べたもの
         euler_tour_in_time: Vec<usize>,
-        #[allow(dead_code)]
-        euler_tour_out_time: Vec<usize>,
     }
 
     impl Lca {
@@ -40,22 +38,22 @@ pub mod lca {
         pub fn new(adj: &[Vec<usize>], root: usize) -> Self {
             let nv = adj.len();
 
-            let dist = {
-                fn dfs(dist: &mut [i64], current: usize, adj: &[Vec<usize>], parent: usize) {
+            let depth = {
+                fn dfs(depth: &mut [i64], current: usize, adj: &[Vec<usize>], parent: usize) {
                     for &child in &adj[current] {
                         if child == parent {
                             continue;
                         }
-                        dist[child] = dist[current] + 1;
-                        dfs(dist, child, adj, current);
+                        depth[child] = depth[current] + 1;
+                        dfs(depth, child, adj, current);
                     }
                 }
-                let mut dist = vec![0; nv];
-                dfs(&mut dist, root, adj, root); // parent of root is root itself for this DFS
-                dist
+                let mut depth = vec![0; nv];
+                dfs(&mut depth, root, adj, root); // parent of root is root itself for this DFS
+                depth
             };
 
-            let (euler_tour, euler_tour_in_time, euler_tour_out_time) = {
+            let (euler_tour, euler_tour_in_time) = {
                 fn dfs(
                     tour: &mut Vec<usize>,
                     in_time: &mut [usize],
@@ -64,9 +62,7 @@ pub mod lca {
                     adj: &[Vec<usize>],
                     parent: usize,
                 ) {
-                    // 行きがけ
-                    in_time[current] = in_time[current].min(tour.len());
-                    out_time[current] = out_time[current].max(tour.len());
+                    in_time[current] = tour.len();
                     tour.push(current);
 
                     for &child in &adj[current] {
@@ -74,31 +70,30 @@ pub mod lca {
                             continue;
                         }
                         dfs(tour, in_time, out_time, child, adj, current);
-                        in_time[current] = in_time[current].min(tour.len());
-                        out_time[current] = out_time[current].max(tour.len());
                         tour.push(current);
                     }
+
+                    out_time[current] = tour.len() - 1;
                 }
                 let mut tour = vec![];
-                let mut in_time = vec![usize::MAX; nv];
-                let mut out_time = vec![usize::MIN; nv];
+                let mut in_time = vec![0; nv];
+                let mut out_time = vec![0; nv];
                 dfs(&mut tour, &mut in_time, &mut out_time, root, adj, root);
-                (tour, in_time, out_time)
+                (tour, in_time)
             };
 
             let euler_tour_dist = Segtree::<MinI64Usize>::from(
                 euler_tour
                     .iter()
                     .copied()
-                    .map(|v| (dist[v], v))
+                    .map(|v| (depth[v], v))
                     .collect::<Vec<(i64, usize)>>(),
             );
 
             Lca {
-                dist,
+                depth,
                 euler_tour_dist,
                 euler_tour_in_time,
-                euler_tour_out_time,
             }
         }
 
@@ -122,7 +117,7 @@ pub mod lca {
         /// # 計算量
         /// O(log V)
         pub fn dist(&self, u: usize, v: usize) -> i64 {
-            self.dist[u] + self.dist[v] - 2 * self.dist[self.lca(u, v)]
+            self.depth[u] + self.depth[v] - 2 * self.depth[self.lca(u, v)]
         }
 
         /// パス u-v 上に点 a があるかどうかを判定します。
