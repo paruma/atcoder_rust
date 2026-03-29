@@ -231,13 +231,13 @@ pub fn is_bipartite_graph(adj: &[Vec<usize>]) -> bool {
 /// # 計算量
 /// O(E α(V))
 pub fn is_bipartite_graph_by_uf(n_vertex: usize, edges: &[(usize, usize)]) -> bool {
-    use petgraph::unionfind::UnionFind;
-    let mut uf = UnionFind::new(2 * n_vertex);
+    use ac_library::Dsu;
+    let mut dsu = Dsu::new(2 * n_vertex);
     for &(from, to) in edges {
-        uf.union(from, to + n_vertex);
-        uf.union(from + n_vertex, to);
+        dsu.merge(from, to + n_vertex);
+        dsu.merge(from + n_vertex, to);
     }
-    (0..n_vertex).all(|i| !uf.equiv(i, i + n_vertex))
+    (0..n_vertex).all(|i| !dsu.same(i, i + n_vertex))
 }
 
 #[snippet]
@@ -246,13 +246,13 @@ pub fn is_bipartite_graph_by_uf(n_vertex: usize, edges: &[(usize, usize)]) -> bo
 /// # 計算量
 /// O(E α(V))
 pub fn has_cycle_undirected(n_vertex: usize, edges: &[(usize, usize)]) -> bool {
-    use petgraph::unionfind::UnionFind;
-    let mut uf = UnionFind::new(n_vertex);
+    use ac_library::Dsu;
+    let mut dsu = Dsu::new(n_vertex);
     for &(from, to) in edges {
-        if uf.equiv(from, to) {
+        if dsu.same(from, to) {
             return true;
         }
-        uf.union(from, to);
+        dsu.merge(from, to);
     }
     false
 }

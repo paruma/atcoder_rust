@@ -5,10 +5,10 @@ use cargo_snippet::snippet;
 pub mod random_test {
     use std::{collections::HashSet, hash::Hash};
 
+    use ac_library::Dsu;
     use itertools::Itertools;
     use num::Integer;
     use num_integer::Roots;
-    use petgraph::unionfind::UnionFind;
     use rand::Rng;
 
     /// 指定された個数のユニークな値を生成する。
@@ -93,12 +93,13 @@ pub mod random_test {
         R: Rng,
     {
         let mut edges: Vec<(usize, usize)> = Vec::new();
-        let mut uf: UnionFind<usize> = UnionFind::new(n_vertices);
+        let mut dsu = Dsu::new(n_vertices);
 
         while edges.len() != n_vertices - 1 {
             let x = rng.random_range(0..n_vertices);
             let y = rng.random_range(0..n_vertices);
-            if uf.union(x, y) {
+            if !dsu.same(x, y) {
+                dsu.merge(x, y);
                 edges.push((x, y));
             }
         }

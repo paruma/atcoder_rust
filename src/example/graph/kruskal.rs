@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use itertools::Itertools;
-use petgraph::unionfind::UnionFind;
+use mylib::data_structure::dsu::dsu_core::DsuCore;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct Edge {
@@ -12,7 +12,7 @@ struct Edge {
 
 // 最小全域木を求める
 fn kruskal(nv: usize, edges: &[Edge]) -> i64 {
-    let mut uf = UnionFind::new(nv);
+    let mut dsu = DsuCore::new(nv);
     let edges = edges
         .iter()
         .copied()
@@ -22,8 +22,8 @@ fn kruskal(nv: usize, edges: &[Edge]) -> i64 {
     let mut cost_sum = 0;
 
     for e in edges {
-        if !uf.equiv(e.u, e.v) {
-            uf.union(e.u, e.v);
+        if !dsu.same(e.u, e.v) {
+            dsu.merge(e.u, e.v);
             cost_sum += e.cost;
         }
     }
