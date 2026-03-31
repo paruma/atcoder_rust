@@ -29,18 +29,32 @@ pub mod bfs {
         }
     }
 
-    /// 標準的な usize インデックスを用いた幅優先探索 (BFS)
+    /// 標準的な usize インデックスを用いた幅優先探索 (BFS) で、各頂点への最短距離を求める
     ///
     /// # Arguments
     /// * `nv` - 頂点数
-    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返すクロージャー
-    /// * `init` - 始点となる頂点集合のイテレータ
+    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返す `usize -> impl IntoIterator<Item = usize>` のクロージャー
+    /// * `init` - 始点となる頂点集合のイテレータ。1点のみの場合は `[v]` のように指定する
     ///
     /// # Returns
     /// 始点集合 `init` からの最短距離を格納した `Vec<Option<i64>>`。到達不可能な頂点は `None`。
     ///
     /// # 計算量
     /// O(V + E)
+    ///
+    /// # Examples
+    /// ```ignore
+    /// let adj = vec![vec![1], vec![0, 2, 3], vec![1], vec![1]];
+    ///
+    /// // 1点を始点にする場合
+    /// let dist = bfs(4, |u| adj[u].iter().copied(), [0]);
+    /// assert_eq!(dist, vec![Some(0), Some(1), Some(2), Some(2)]);
+    ///
+    /// // 複数点を始点にする場合
+    /// let starts = vec![0, 3];
+    /// let dist = bfs(4, |u| adj[u].iter().copied(), starts.iter().copied());
+    /// assert_eq!(dist, vec![Some(0), Some(1), Some(2), Some(0)]);
+    /// ```
     pub fn bfs<F, It>(
         nv: usize,
         mut adj: F,
@@ -70,18 +84,29 @@ pub mod bfs {
         dist
     }
 
-    /// 経路復元可能な BFS
+    /// 標準的な usize インデックスを用いた幅優先探索 (BFS) で、各頂点への最短距離と経路復元情報を求める
     ///
     /// # Arguments
     /// * `nv` - 頂点数
-    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返すクロージャー
-    /// * `init` - 始点となる頂点集合のイテレータ
+    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返す `usize -> impl IntoIterator<Item = usize>` のクロージャー
+    /// * `init` - 始点となる頂点集合のイテレータ。1点のみの場合は `[v]` のように指定する
     ///
     /// # Returns
     /// 最短距離 `dist` と、復元用配列 `prev` を含む `BfsResult`。
     ///
     /// # 計算量
     /// O(V + E)
+    ///
+    /// # Examples
+    /// ```ignore
+    /// let adj = vec![vec![1, 3], vec![2], vec![], vec![]];
+    /// let res = bfs_with_restore(4, |u| adj[u].iter().copied(), [0]);
+    ///
+    /// assert_eq!(res.dist, vec![Some(0), Some(1), Some(2), Some(1)]);
+    /// assert_eq!(res.restore(2), Some(vec![0, 1, 2]));
+    /// assert_eq!(res.restore(3), Some(vec![0, 3]));
+    /// assert_eq!(res.restore(0), Some(vec![0]));
+    /// ```
     pub fn bfs_with_restore<F, It>(
         nv: usize,
         mut adj: F,
@@ -116,18 +141,25 @@ pub mod bfs {
         BfsResult { dist, prev }
     }
 
-    /// BFS での訪問順序（キューに入れた順）を返す
+    /// 標準的な usize インデックスを用いた幅優先探索 (BFS) での訪問順序（キューに入れた順）を求める
     ///
     /// # Arguments
     /// * `nv` - 頂点数
-    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返すクロージャー
-    /// * `init` - 始点となる頂点集合のイテレータ
+    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返す `usize -> impl IntoIterator<Item = usize>` のクロージャー
+    /// * `init` - 始点となる頂点集合のイテレータ。1点のみの場合は `[v]` のように指定する
     ///
     /// # Returns
     /// 到達可能な頂点を訪問順に格納した `Vec<usize>`
     ///
     /// # 計算量
     /// O(V + E)
+    ///
+    /// # Examples
+    /// ```ignore
+    /// let adj = vec![vec![1, 3], vec![2], vec![], vec![]];
+    /// let order = bfs_order(4, |u| adj[u].iter().copied(), [0]);
+    /// assert_eq!(order, vec![0, 1, 3, 2]);
+    /// ```
     pub fn bfs_order<F, It>(
         nv: usize,
         mut adj: F,
@@ -161,18 +193,25 @@ pub mod bfs {
         order
     }
 
-    /// 始点集合から各頂点への到達可能性を判定する
+    /// 標準的な usize インデックスを用いた幅優先探索 (BFS) で、各頂点への到達可能性を判定する
     ///
     /// # Arguments
     /// * `nv` - 頂点数
-    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返すクロージャー
-    /// * `init` - 始点となる頂点集合のイテレータ
+    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返す `usize -> impl IntoIterator<Item = usize>` のクロージャー
+    /// * `init` - 始点となる頂点集合のイテレータ。1点のみの場合は `[v]` のように指定する
     ///
     /// # Returns
     /// 各頂点への到達可能性を格納した `Vec<bool>`
     ///
     /// # 計算量
     /// O(V + E)
+    ///
+    /// # Examples
+    /// ```ignore
+    /// let adj = vec![vec![1], vec![2], vec![], vec![4], vec![]];
+    /// let reachable = bfs_reachable(5, |u| adj[u].iter().copied(), [0]);
+    /// assert_eq!(reachable, vec![true, true, true, false, false]);
+    /// ```
     pub fn bfs_reachable<F, It>(
         nv: usize,
         mut adj: F,
@@ -235,18 +274,38 @@ pub mod bfs_ix {
         }
     }
 
-    /// Bounds を用いた任意の型 I に対する BFS
+    /// Bounds を用いた任意の型 I に対する BFS で、各頂点への最短距離を求める
     ///
     /// # Arguments
     /// * `bounds` - 頂点のインデックス範囲
-    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返すクロージャー
-    /// * `init` - 始点となる頂点集合のイテレータ
+    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返す `I: Ix` に対して `I -> impl IntoIterator<Item = I>` のクロージャー
+    /// * `init` - 始点となる頂点集合のイテレータ。1点のみの場合は `[v]` のように指定する
     ///
     /// # Returns
     /// 始点集合 `init` からの最短距離を格納した `IxVec<I, Option<i64>>`。
     ///
     /// # 計算量
     /// O(V + E)
+    ///
+    /// # Examples
+    /// ```ignore
+    /// let bounds = Bounds::new((0, 0), (1, 1));
+    /// let res = bfs_arbitrary(
+    ///     bounds,
+    ///     |(r, c)| {
+    ///         if (r, c) == (0, 0) {
+    ///             vec![(0, 1), (1, 0)]
+    ///         } else {
+    ///             vec![]
+    ///         }
+    ///     },
+    ///     [(0, 0)],
+    /// );
+    /// assert_eq!(res[(0, 0)], Some(0));
+    /// assert_eq!(res[(0, 1)], Some(1));
+    /// assert_eq!(res[(1, 0)], Some(1));
+    /// assert_eq!(res[(1, 1)], None);
+    /// ```
     pub fn bfs_arbitrary<I, F, It>(
         bounds: Bounds<I>,
         mut adj: F,
@@ -267,18 +326,38 @@ pub mod bfs_ix {
         IxVec::from_vec(bounds, res_vec)
     }
 
-    /// Bounds を用いた任意の型 I に対する BFS (経路復元付き)
+    /// Bounds を用いた任意の型 I に対する BFS で、各頂点への最短距離と経路復元情報を求める
     ///
     /// # Arguments
     /// * `bounds` - 頂点のインデックス範囲
-    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返すクロージャー
-    /// * `init` - 始点となる頂点集合のイテレータ
+    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返す `I: Ix` に対して `I -> impl IntoIterator<Item = I>` のクロージャー
+    /// * `init` - 始点となる頂点集合のイテレータ。1点のみの場合は `[v]` のように指定する
     ///
     /// # Returns
     /// 最短距離 `dist` と、復元用配列 `prev` を含む `BfsIxResult`。
     ///
     /// # 計算量
     /// O(V + E)
+    ///
+    /// # Examples
+    /// ```ignore
+    /// let bounds = Bounds::new((0, 0), (1, 1));
+    /// let res = bfs_with_restore_arbitrary(
+    ///     bounds,
+    ///     |(r, c)| {
+    ///         let mut ret = vec![];
+    ///         if r + 1 <= 1 { ret.push((r + 1, c)); }
+    ///         if c + 1 <= 1 { ret.push((r, c + 1)); }
+    ///         ret
+    ///     },
+    ///     [(0, 0)],
+    /// );
+    /// assert_eq!(res.dist[(1, 1)], Some(2));
+    /// let path = res.restore((1, 1)).unwrap();
+    /// assert_eq!(path.first(), Some(&(0, 0)));
+    /// assert_eq!(path.last(), Some(&(1, 1)));
+    /// assert_eq!(path.len(), 3);
+    /// ```
     pub fn bfs_with_restore_arbitrary<I, F, It>(
         bounds: Bounds<I>,
         mut adj: F,
@@ -310,18 +389,26 @@ pub mod bfs_ix {
         }
     }
 
-    /// Bounds を用いた任意の型 I に対する BFS 訪問順序
+    /// Bounds を用いた任意の型 I に対する BFS で、訪問順序を求める
     ///
     /// # Arguments
     /// * `bounds` - 頂点のインデックス範囲
-    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返すクロージャー
-    /// * `init` - 始点となる頂点集合のイテレータ
+    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返す `I: Ix` に対して `I -> impl IntoIterator<Item = I>` のクロージャー
+    /// * `init` - 始点となる頂点集合のイテレータ。1点のみの場合は `[v]` のように指定する
     ///
     /// # Returns
     /// 到達可能な頂点を訪問順に格納した `Vec<I>`
     ///
     /// # 計算量
     /// O(V + E)
+    ///
+    /// # Examples
+    /// ```ignore
+    /// let bounds = Bounds::new(0, 3);
+    /// let adj = [vec![1, 2], vec![], vec![], vec![]];
+    /// let order = bfs_order_arbitrary(bounds, |u| adj[u].iter().copied(), [0]);
+    /// assert_eq!(order, vec![0, 1, 2]);
+    /// ```
     pub fn bfs_order_arbitrary<I, F, It>(
         bounds: Bounds<I>,
         mut adj: F,
@@ -345,18 +432,28 @@ pub mod bfs_ix {
             .collect()
     }
 
-    /// Bounds を用いた任意の型 I に対する到達可能性判定
+    /// Bounds を用いた任意の型 I に対する BFS で、各頂点への到達可能性を判定する
     ///
     /// # Arguments
     /// * `bounds` - 頂点のインデックス範囲
-    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返すクロージャー
-    /// * `init` - 始点となる頂点集合のイテレータ
+    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返す `I: Ix` に対して `I -> impl IntoIterator<Item = I>` のクロージャー
+    /// * `init` - 始点となる頂点集合のイテレータ。1点のみの場合は `[v]` のように指定する
     ///
     /// # Returns
     /// 各頂点への到達可能性を格納した `IxVec<I, bool>`
     ///
     /// # 計算量
     /// O(V + E)
+    ///
+    /// # Examples
+    /// ```ignore
+    /// let bounds = Bounds::new(0, 2);
+    /// let adj = [vec![1], vec![], vec![]];
+    /// let reachable = bfs_reachable_arbitrary(bounds, |u| adj[u].iter().copied(), [0]);
+    /// assert!(reachable[0]);
+    /// assert!(reachable[1]);
+    /// assert!(!reachable[2]);
+    /// ```
     pub fn bfs_reachable_arbitrary<I, F, It>(
         bounds: Bounds<I>,
         mut adj: F,
