@@ -274,11 +274,11 @@ pub mod bfs_ix {
         }
     }
 
-    /// Bounds を用いた任意の型 I に対する BFS で、各頂点への最短距離を求める
+    /// Bounds を用いた任意の型 I: Ix に対する BFS で、各頂点への最短距離を求める
     ///
     /// # Arguments
     /// * `bounds` - 頂点のインデックス範囲
-    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返す `I: Ix` に対して `I -> impl IntoIterator<Item = I>` のクロージャー
+    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返す `I -> impl IntoIterator<Item = I>` のクロージャー
     /// * `init` - 始点となる頂点集合のイテレータ。1点のみの場合は `[v]` のように指定する
     ///
     /// # Returns
@@ -289,22 +289,30 @@ pub mod bfs_ix {
     ///
     /// # Examples
     /// ```ignore
-    /// let bounds = Bounds::new((0, 0), (1, 1));
+    /// let grid: Vec<Vec<char>> = [
+    ///     "...",
+    ///     "##.",
+    ///     ".#.",
+    /// ]
+    ///     .iter()
+    ///     .map(|row| row.chars().collect())
+    ///     .collect();
+    /// let h = 3;
+    /// let w = 3;
+    ///
+    /// let bounds = Bounds::new(Pos::new(0, 0), Pos::new(w - 1, h - 1));
     /// let res = bfs_arbitrary(
     ///     bounds,
-    ///     |(r, c)| {
-    ///         if (r, c) == (0, 0) {
-    ///             vec![(0, 1), (1, 0)]
-    ///         } else {
-    ///             vec![]
-    ///         }
+    ///     |pos| {
+    ///         pos.around4_pos_iter()
+    ///             .filter(|&next| bounds.in_range(next) && grid[next] == '.')
     ///     },
-    ///     [(0, 0)],
+    ///     [Pos::new(0, 0)],
     /// );
-    /// assert_eq!(res[(0, 0)], Some(0));
-    /// assert_eq!(res[(0, 1)], Some(1));
-    /// assert_eq!(res[(1, 0)], Some(1));
-    /// assert_eq!(res[(1, 1)], None);
+    ///
+    /// assert_eq!(res[Pos::new(0, 0)], Some(0));
+    /// assert_eq!(res[Pos::new(0, 1)], Some(1));
+    /// assert_eq!(res[Pos::new(2, 2)], Some(4));
     /// ```
     pub fn bfs_arbitrary<I, F, It>(
         bounds: Bounds<I>,
@@ -326,11 +334,11 @@ pub mod bfs_ix {
         IxVec::from_vec(bounds, res_vec)
     }
 
-    /// Bounds を用いた任意の型 I に対する BFS で、各頂点への最短距離と経路復元情報を求める
+    /// Bounds を用いた任意の型 I: Ix に対する BFS で、各頂点への最短距離と経路復元情報を求める
     ///
     /// # Arguments
     /// * `bounds` - 頂点のインデックス範囲
-    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返す `I: Ix` に対して `I -> impl IntoIterator<Item = I>` のクロージャー
+    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返す `I -> impl IntoIterator<Item = I>` のクロージャー
     /// * `init` - 始点となる頂点集合のイテレータ。1点のみの場合は `[v]` のように指定する
     ///
     /// # Returns
@@ -341,22 +349,31 @@ pub mod bfs_ix {
     ///
     /// # Examples
     /// ```ignore
-    /// let bounds = Bounds::new((0, 0), (1, 1));
+    /// let grid: Vec<Vec<char>> = [
+    ///     "...",
+    ///     "##.",
+    ///     ".#.",
+    /// ]
+    ///     .iter()
+    ///     .map(|row| row.chars().collect())
+    ///     .collect();
+    /// let h = 3;
+    /// let w = 3;
+    ///
+    /// let bounds = Bounds::new(Pos::new(0, 0), Pos::new(w - 1, h - 1));
     /// let res = bfs_with_restore_arbitrary(
     ///     bounds,
-    ///     |(r, c)| {
-    ///         let mut ret = vec![];
-    ///         if r + 1 <= 1 { ret.push((r + 1, c)); }
-    ///         if c + 1 <= 1 { ret.push((r, c + 1)); }
-    ///         ret
+    ///     |pos| {
+    ///         pos.around4_pos_iter()
+    ///             .filter(|&next| bounds.in_range(next) && grid[next] == '.')
     ///     },
-    ///     [(0, 0)],
+    ///     [Pos::new(0, 0)],
     /// );
-    /// assert_eq!(res.dist[(1, 1)], Some(2));
-    /// let path = res.restore((1, 1)).unwrap();
-    /// assert_eq!(path.first(), Some(&(0, 0)));
-    /// assert_eq!(path.last(), Some(&(1, 1)));
-    /// assert_eq!(path.len(), 3);
+    ///
+    /// assert_eq!(res.dist[Pos::new(0, 1)], Some(1));
+    /// let path = res.restore(Pos::new(1, 2)).unwrap();
+    /// assert_eq!(path.first(), Some(&Pos::new(0, 0)));
+    /// assert_eq!(path.last(), Some(&Pos::new(1, 2)));
     /// ```
     pub fn bfs_with_restore_arbitrary<I, F, It>(
         bounds: Bounds<I>,
@@ -389,11 +406,11 @@ pub mod bfs_ix {
         }
     }
 
-    /// Bounds を用いた任意の型 I に対する BFS で、訪問順序を求める
+    /// Bounds を用いた任意の型 I: Ix に対する BFS で、訪問順序を求める
     ///
     /// # Arguments
     /// * `bounds` - 頂点のインデックス範囲
-    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返す `I: Ix` に対して `I -> impl IntoIterator<Item = I>` のクロージャー
+    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返す `I -> impl IntoIterator<Item = I>` のクロージャー
     /// * `init` - 始点となる頂点集合のイテレータ。1点のみの場合は `[v]` のように指定する
     ///
     /// # Returns
@@ -404,10 +421,30 @@ pub mod bfs_ix {
     ///
     /// # Examples
     /// ```ignore
-    /// let bounds = Bounds::new(0, 3);
-    /// let adj = [vec![1, 2], vec![], vec![], vec![]];
-    /// let order = bfs_order_arbitrary(bounds, |u| adj[u].iter().copied(), [0]);
-    /// assert_eq!(order, vec![0, 1, 2]);
+    /// let grid: Vec<Vec<char>> = [
+    ///     "...",
+    ///     "##.",
+    ///     ".#.",
+    /// ]
+    ///     .iter()
+    ///     .map(|row| row.chars().collect())
+    ///     .collect();
+    /// let h = 3;
+    /// let w = 3;
+    ///
+    /// let bounds = Bounds::new(Pos::new(0, 0), Pos::new(w - 1, h - 1));
+    /// let order = bfs_order_arbitrary(
+    ///     bounds,
+    ///     |pos| {
+    ///         pos.around4_pos_iter()
+    ///             .filter(|&next| bounds.in_range(next) && grid[next] == '.')
+    ///     },
+    ///     [Pos::new(0, 0)],
+    /// );
+    ///
+    /// assert!(order.contains(&Pos::new(0, 0)));
+    /// assert!(order.contains(&Pos::new(1, 2)));
+    /// assert_eq!(order.len(), 5);
     /// ```
     pub fn bfs_order_arbitrary<I, F, It>(
         bounds: Bounds<I>,
@@ -432,11 +469,11 @@ pub mod bfs_ix {
             .collect()
     }
 
-    /// Bounds を用いた任意の型 I に対する BFS で、各頂点への到達可能性を判定する
+    /// Bounds を用いた任意の型 I: Ix に対する BFS で、各頂点への到達可能性を判定する
     ///
     /// # Arguments
     /// * `bounds` - 頂点のインデックス範囲
-    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返す `I: Ix` に対して `I -> impl IntoIterator<Item = I>` のクロージャー
+    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返す `I -> impl IntoIterator<Item = I>` のクロージャー
     /// * `init` - 始点となる頂点集合のイテレータ。1点のみの場合は `[v]` のように指定する
     ///
     /// # Returns
@@ -447,12 +484,30 @@ pub mod bfs_ix {
     ///
     /// # Examples
     /// ```ignore
-    /// let bounds = Bounds::new(0, 2);
-    /// let adj = [vec![1], vec![], vec![]];
-    /// let reachable = bfs_reachable_arbitrary(bounds, |u| adj[u].iter().copied(), [0]);
-    /// assert!(reachable[0]);
-    /// assert!(reachable[1]);
-    /// assert!(!reachable[2]);
+    /// let grid: Vec<Vec<char>> = [
+    ///     "...",
+    ///     "##.",
+    ///     ".#.",
+    /// ]
+    ///     .iter()
+    ///     .map(|row| row.chars().collect())
+    ///     .collect();
+    /// let h = 3;
+    /// let w = 3;
+    ///
+    /// let bounds = Bounds::new(Pos::new(0, 0), Pos::new(w - 1, h - 1));
+    /// let reachable = bfs_reachable_arbitrary(
+    ///     bounds,
+    ///     |pos| {
+    ///         pos.around4_pos_iter()
+    ///             .filter(|&next| bounds.in_range(next) && grid[next] == '.')
+    ///     },
+    ///     [Pos::new(0, 0)],
+    /// );
+    ///
+    /// assert!(reachable[Pos::new(0, 0)]); // 始点
+    /// assert!(reachable[Pos::new(2, 2)]); // 到達可能
+    /// assert!(!reachable[Pos::new(0, 2)]); // 到達不可
     /// ```
     pub fn bfs_reachable_arbitrary<I, F, It>(
         bounds: Bounds<I>,
@@ -490,22 +545,23 @@ mod tests {
 
     #[test]
     fn test_bfs_arbitrary() {
-        let bounds = Bounds::new((0, 0), (1, 1));
+        use crate::math::geometry::pos::pos::Pos;
+        let grid: Vec<Vec<char>> = ["...", "##.", ".#."]
+            .iter()
+            .map(|row| row.chars().collect())
+            .collect();
+
+        let bounds = Bounds::new(Pos::new(0, 0), Pos::new(2, 2));
         let res = bfs_arbitrary(
             bounds,
-            |(r, c)| {
-                if (r, c) == (0, 0) {
-                    vec![(0, 1), (1, 0)]
-                } else {
-                    vec![]
-                }
+            |pos| {
+                pos.around4_pos_iter()
+                    .filter(|&next| bounds.in_range(next) && grid[next] == '.')
             },
-            [(0, 0)],
+            [Pos::new(1, 0)],
         );
-        assert_eq!(res[(0, 0)], Some(0));
-        assert_eq!(res[(0, 1)], Some(1));
-        assert_eq!(res[(1, 0)], Some(1));
-        assert_eq!(res[(1, 1)], None);
+        assert_eq!(res[Pos::new(2, 0)], Some(1));
+        assert_eq!(res[Pos::new(2, 2)], Some(3));
     }
 
     #[test]
