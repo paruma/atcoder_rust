@@ -30,18 +30,27 @@ pub mod bfs01 {
         }
     }
 
-    /// 標準的な 01-BFS
+    /// 01-BFS を使って各頂点への最短距離を求める
     ///
     /// # Arguments
     /// * `nv` - 頂点数
-    /// * `adj` - 頂点を受け取り、隣接する頂点とそのコストのペアのイテレータを返すクロージャー
-    /// * `init` - 始点となる頂点集合のイテレータ
+    /// * `adj` - 頂点を受け取り、隣接する頂点とそのコストのペアのイテレータを返す `usize -> impl IntoIterator<Item = (usize, i64)>` のクロージャー。コストは 0 または 1 のみ
+    /// * `init` - 始点となる頂点集合のイテレータ。1点のみの場合は `[v]` のように指定する
     ///
     /// # Returns
     /// 始点集合 `init` からの最短距離を格納した `Vec<Option<i64>>`。到達不可能な頂点は `None`。
     ///
     /// # 計算量
     /// O(V + E)
+    ///
+    /// # Examples
+    /// ```ignore
+    /// let adj = vec![vec![(1, 1), (3, 0)], vec![(2, 0)], vec![], vec![(2, 1)]];
+    ///
+    /// // 1点を始点にする場合
+    /// let dist = bfs01(4, |u| adj[u].iter().copied(), [0]);
+    /// assert_eq!(dist, vec![Some(0), Some(1), Some(1), Some(0)]);
+    /// ```
     pub fn bfs01<F, It>(
         nv: usize,
         mut adj: F,
@@ -79,18 +88,29 @@ pub mod bfs01 {
         dist
     }
 
-    /// 経路復元可能な 01-BFS
+    /// 01-BFS を使って各頂点への最短距離と経路復元情報を求める
     ///
     /// # Arguments
     /// * `nv` - 頂点数
-    /// * `adj` - 頂点を受け取り、隣接する頂点とそのコストのペアのイテレータを返すクロージャー
-    /// * `init` - 始点となる頂点集合のイテレータ
+    /// * `adj` - 頂点を受け取り、隣接する頂点とそのコストのペアのイテレータを返す `usize -> impl IntoIterator<Item = (usize, i64)>` のクロージャー。コストは 0 または 1 のみ
+    /// * `init` - 始点となる頂点集合のイテレータ。1点のみの場合は `[v]` のように指定する
     ///
     /// # Returns
     /// 最短距離 `dist` と、復元用配列 `prev` を含む `Bfs01Result`。
     ///
     /// # 計算量
     /// O(V + E)
+    ///
+    /// # Examples
+    /// ```ignore
+    /// let adj = vec![vec![(1, 0), (3, 1)], vec![(2, 0)], vec![], vec![(1, 0)]];
+    /// let res = bfs01_with_restore(4, |u| adj[u].iter().copied(), [0]);
+    ///
+    /// assert_eq!(res.dist, vec![Some(0), Some(0), Some(0), Some(1)]);
+    /// assert_eq!(res.restore(2), Some(vec![0, 1, 2]));
+    /// assert_eq!(res.restore(3), Some(vec![0, 3]));
+    /// assert_eq!(res.restore(1), Some(vec![0, 1]));
+    /// ```
     pub fn bfs01_with_restore<F, It>(
         nv: usize,
         mut adj: F,
@@ -160,18 +180,29 @@ pub mod bfs01_ix {
         }
     }
 
-    /// Bounds を用いた任意の型 I に対する 01-BFS
+    /// Bounds を用いた任意の型 I: Ix に対する 01-BFS で、各頂点への最短距離を求める
     ///
     /// # Arguments
     /// * `bounds` - 頂点のインデックス範囲
-    /// * `adj` - 頂点を受け取り、隣接する頂点とそのコストのペアのイテレータを返すクロージャー
-    /// * `init` - 始点となる頂点集合のイテレータ
+    /// * `adj` - 頂点を受け取り、隣接する頂点とそのコストのペアのイテレータを返す `I -> impl IntoIterator<Item = (I, i64)>` のクロージャー。コストは 0 または 1 のみ
+    /// * `init` - 始点となる頂点集合のイテレータ。1点のみの場合は `[v]` のように指定する
     ///
     /// # Returns
     /// 始点集合 `init` からの最短距離を格納した `IxVec<I, Option<i64>>`。
     ///
     /// # 計算量
     /// O(V + E)
+    ///
+    /// # Examples
+    /// ```ignore
+    /// let bounds = Bounds::new(0, 2);
+    /// let adj = [vec![(1, 0)], vec![(2, 1)], vec![]];
+    /// let res = bfs01_arbitrary(bounds, |u| adj[u].iter().copied(), [0]);
+    ///
+    /// assert_eq!(res[0], Some(0));
+    /// assert_eq!(res[1], Some(0));
+    /// assert_eq!(res[2], Some(1));
+    /// ```
     pub fn bfs01_arbitrary<I, F, It>(
         bounds: Bounds<I>,
         mut adj: F,
@@ -194,18 +225,28 @@ pub mod bfs01_ix {
         IxVec::from_vec(bounds, res_vec)
     }
 
-    /// Bounds を用いた任意の型 I に対する 01-BFS (経路復元付き)
+    /// Bounds を用いた任意の型 I: Ix に対する 01-BFS で、各頂点への最短距離と経路復元情報を求める
     ///
     /// # Arguments
     /// * `bounds` - 頂点のインデックス範囲
-    /// * `adj` - 頂点を受け取り、隣接する頂点とそのコストのペアのイテレータを返すクロージャー
-    /// * `init` - 始点となる頂点集合のイテレータ
+    /// * `adj` - 頂点を受け取り、隣接する頂点とそのコストのペアのイテレータを返す `I -> impl IntoIterator<Item = (I, i64)>` のクロージャー。コストは 0 または 1 のみ
+    /// * `init` - 始点となる頂点集合のイテレータ。1点のみの場合は `[v]` のように指定する
     ///
     /// # Returns
     /// 最短距離 `dist` と、復元用配列 `prev` を含む `Bfs01IxResult`。
     ///
     /// # 計算量
     /// O(V + E)
+    ///
+    /// # Examples
+    /// ```ignore
+    /// let bounds = Bounds::new(0, 2);
+    /// let adj = [vec![(1, 0)], vec![(2, 1)], vec![]];
+    /// let res = bfs01_with_restore_arbitrary(bounds, |u| adj[u].iter().copied(), [0]);
+    ///
+    /// assert_eq!(res.dist[2], Some(1));
+    /// assert_eq!(res.restore(2), Some(vec![0, 1, 2]));
+    /// ```
     pub fn bfs01_with_restore_arbitrary<I, F, It>(
         bounds: Bounds<I>,
         mut adj: F,

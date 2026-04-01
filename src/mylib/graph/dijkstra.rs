@@ -33,18 +33,27 @@ pub mod dijkstra {
         }
     }
 
-    /// 非負コストの辺のみで構成されるグラフに対して、ダイクストラ法を用いて最短距離を求めます。
+    /// ダイクストラ法を使って各頂点への最短距離を求める
     ///
     /// # Arguments
     /// * `nv` - 頂点数
-    /// * `adj` - 頂点を受け取り、隣接する頂点とそのコストのペアのイテレータを返すクロージャー
-    /// * `init` - 始点となる頂点集合のイテレータ
+    /// * `adj` - 頂点を受け取り、隣接する頂点とそのコストのペアのイテレータを返す `usize -> impl IntoIterator<Item = (usize, i64)>` のクロージャー。コストは非負
+    /// * `init` - 始点となる頂点集合のイテレータ。1点のみの場合は `[v]` のように指定する
     ///
     /// # Returns
     /// 始点集合 `init` からの最短距離を格納した `Vec<Option<i64>>`。到達不可能な頂点は `None`。
     ///
     /// # 計算量
     /// O(V + E log V)
+    ///
+    /// # Examples
+    /// ```ignore
+    /// let adj = vec![vec![(1, 10), (2, 3)], vec![(2, 1)], vec![(1, 5)]];
+    ///
+    /// // 1点を始点にする場合
+    /// let dist = dijkstra(3, |u| adj[u].iter().copied(), [0]);
+    /// assert_eq!(dist, vec![Some(0), Some(8), Some(3)]);
+    /// ```
     pub fn dijkstra<F, It>(
         nv: usize,
         mut adj: F,
@@ -78,18 +87,30 @@ pub mod dijkstra {
         dist
     }
 
-    /// 経路復元が可能なダイクストラ法を実行します。
+    /// ダイクストラ法を使って各頂点への最短距離と経路復元情報を求める
     ///
     /// # Arguments
     /// * `nv` - 頂点数
-    /// * `adj` - 頂点を受け取り、隣接する頂点とそのコストのペアのイテレータを返すクロージャー
-    /// * `init` - 始点となる頂点集合のイテレータ
+    /// * `adj` - 頂点を受け取り、隣接する頂点とそのコストのペアのイテレータを返す `usize -> impl IntoIterator<Item = (usize, i64)>` のクロージャー。コストは非負
+    /// * `init` - 始点となる頂点集合のイテレータ。1点のみの場合は `[v]` のように指定する
     ///
     /// # Returns
     /// 最短距離 `dist` と、復元用配列 `prev` を含む `DijkstraResult`。
     ///
     /// # 計算量
     /// O(V + E log V)
+    ///
+    /// # Examples
+    /// ```ignore
+    /// let adj = vec![vec![(1, 10), (3, 4)], vec![(2, 5)], vec![], vec![(1, 2)]];
+    /// let res = dijkstra_with_restore(4, |u| adj[u].iter().copied(), [0]);
+    ///
+    /// assert_eq!(res.dist, vec![Some(0), Some(6), Some(11), Some(4)]);
+    /// assert_eq!(res.restore(2), Some(vec![0, 3, 1, 2]));
+    /// assert_eq!(res.restore(1), Some(vec![0, 3, 1]));
+    /// assert_eq!(res.restore(3), Some(vec![0, 3]));
+    /// assert_eq!(res.restore(0), Some(vec![0]));
+    /// ```
     pub fn dijkstra_with_restore<F, It>(
         nv: usize,
         mut adj: F,
@@ -157,18 +178,29 @@ pub mod dijkstra_ix {
         }
     }
 
-    /// Bounds を用いた任意の型 I に対するダイクストラ法
+    /// Bounds を用いた任意の型 I: Ix に対するダイクストラ法で、各頂点への最短距離を求める
     ///
     /// # Arguments
     /// * `bounds` - 頂点のインデックス範囲
-    /// * `adj` - 頂点を受け取り、隣接する頂点とそのコストのペアのイテレータを返すクロージャー
-    /// * `init` - 始点となる頂点集合のイテレータ
+    /// * `adj` - 頂点を受け取り、隣接する頂点とそのコストのペアのイテレータを返す `I -> impl IntoIterator<Item = (I, i64)>` のクロージャー。コストは非負
+    /// * `init` - 始点となる頂点集合のイテレータ。1点のみの場合は `[v]` のように指定する
     ///
     /// # Returns
     /// 始点集合 `init` からの最短距離を格納した `IxVec<I, Option<i64>>`。
     ///
     /// # 計算量
     /// O(V + E log V)
+    ///
+    /// # Examples
+    /// ```ignore
+    /// let bounds = Bounds::new(0, 2);
+    /// let adj = [vec![(1, 10)], vec![(2, 5)], vec![]];
+    /// let res = dijkstra_arbitrary(bounds, |u| adj[u].iter().copied(), [0]);
+    ///
+    /// assert_eq!(res[0], Some(0));
+    /// assert_eq!(res[1], Some(10));
+    /// assert_eq!(res[2], Some(15));
+    /// ```
     pub fn dijkstra_arbitrary<I, F, It>(
         bounds: Bounds<I>,
         mut adj: F,
@@ -191,18 +223,28 @@ pub mod dijkstra_ix {
         IxVec::from_vec(bounds, res_vec)
     }
 
-    /// Bounds を用いた任意の型 I に対するダイクストラ法 (経路復元付き)
+    /// Bounds を用いた任意の型 I: Ix に対するダイクストラ法で、各頂点への最短距離と経路復元情報を求める
     ///
     /// # Arguments
     /// * `bounds` - 頂点のインデックス範囲
-    /// * `adj` - 頂点を受け取り、隣接する頂点とそのコストのペアのイテレータを返すクロージャー
-    /// * `init` - 始点となる頂点集合のイテレータ
+    /// * `adj` - 頂点を受け取り、隣接する頂点とそのコストのペアのイテレータを返す `I -> impl IntoIterator<Item = (I, i64)>` のクロージャー。コストは非負
+    /// * `init` - 始点となる頂点集合のイテレータ。1点のみの場合は `[v]` のように指定する
     ///
     /// # Returns
     /// 最短距離 `dist` と、復元用配列 `prev` を含む `DijkstraIxResult`。
     ///
     /// # 計算量
     /// O(V + E log V)
+    ///
+    /// # Examples
+    /// ```ignore
+    /// let bounds = Bounds::new(0, 2);
+    /// let adj = [vec![(1, 10)], vec![(2, 5)], vec![]];
+    /// let res = dijkstra_with_restore_arbitrary(bounds, |u| adj[u].iter().copied(), [0]);
+    ///
+    /// assert_eq!(res.dist[2], Some(15));
+    /// assert_eq!(res.restore(2), Some(vec![0, 1, 2]));
+    /// ```
     pub fn dijkstra_with_restore_arbitrary<I, F, It>(
         bounds: Bounds<I>,
         mut adj: F,
