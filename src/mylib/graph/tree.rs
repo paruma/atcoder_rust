@@ -5,3 +5,4 @@ pub mod lca_path_aggregate;
 pub mod reroot;
 #[allow(clippy::module_inception)]
 pub mod tree;
+pub mod tree_diameter;
