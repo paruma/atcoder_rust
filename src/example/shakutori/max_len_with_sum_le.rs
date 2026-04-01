@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use itertools::Itertools;
 
-/// 数列 xs の部分列で総和が k 以下になる最大の長さを求める
+/// 数列 xs の連続部分列で総和が k 以下になる最大の長さを求める
 fn solve(xs: &[i64], k: i64) -> usize {
     // end を 1 ずつ動かす尺取法
     let n = xs.len();
@@ -22,7 +22,7 @@ fn solve(xs: &[i64], k: i64) -> usize {
     max_len
 }
 
-/// 数列 xs の部分列で総和が k 以下になる最大の長さを求める
+/// 数列 xs の連続部分列で総和が k 以下になる最大の長さを求める
 fn solve2(xs: &[i64], k: i64) -> usize {
     // begin を 1 ずつ動かす尺取法
     let n = xs.len();
