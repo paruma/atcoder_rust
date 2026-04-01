@@ -1,37 +1,7 @@
 #![allow(dead_code)]
 
-/// 重み付き根付き木の隣接リストから、各頂点の子頂点リスト（子頂点と辺の重み）と帰りがけ順（post-order）の訪問順序を求めます。
-///
-/// - `adj`: 隣接リスト（隣接頂点と辺の重み）
-/// - `root`: 根となる頂点番号
-///
-/// 返り値: (各頂点の子頂点リスト, 帰りがけ順の頂点番号リスト)
-fn tree_children_cost_and_order(
-    adj: &[Vec<(usize, i64)>],
-    root: usize,
-) -> (Vec<Vec<(usize, i64)>>, Vec<usize>) {
-    fn rec(
-        adj: &[Vec<(usize, i64)>],
-        cur: usize,
-        parent: usize,
-        children: &mut [Vec<(usize, i64)>],
-        order: &mut Vec<usize>,
-    ) {
-        for &(next, edge_cost) in &adj[cur] {
-            if next != parent {
-                children[cur].push((next, edge_cost));
-                rec(adj, next, cur, children, order);
-            }
-        }
-        order.push(cur);
-    }
-    let nv = adj.len();
-    let mut children = vec![vec![]; nv];
-    let mut order = vec![];
-    rec(adj, root, root, &mut children, &mut order);
-
-    (children, order)
-}
+use mylib::graph::graph::dfs_post_order;
+use mylib::graph::tree::tree::make_tree_children_weighted;
 
 /// 根付き木において、各頂点を根とする部分木の辺重みの総和を計算します。
 ///
@@ -40,7 +10,13 @@ fn tree_children_cost_and_order(
 ///
 /// 返り値: 各頂点 `i` について、その部分木の重みの総和を `dp[i]` に格納したベクタ
 fn tree_dp_edge(adj: &[Vec<(usize, i64)>], root: usize) -> Vec<i64> {
-    let (children, order) = tree_children_cost_and_order(adj, root);
+    let children = make_tree_children_weighted(adj, root);
+    let order = dfs_post_order(
+        &adj.iter()
+            .map(|v| v.iter().map(|(u, _)| *u).collect())
+            .collect::<Vec<_>>(),
+        root,
+    );
 
     let nv = adj.len();
 
