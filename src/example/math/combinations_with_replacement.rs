@@ -1,8 +1,14 @@
 #![allow(dead_code)]
 
+/// n 個のものからr個取る重複組合せ n+r-1 C r 個を全列挙する。
+/// 各組合せは長さ `r` の `Vec<usize>`  (ソート済) で表し、組合せの全列挙を `Vec<Vec<usize>>` で返す。
+///
+/// ### アルゴリズム
+/// 最後に選択したのが a ならば次の選択肢は a, a+1, ...
+///
+/// ### 計算量
+/// O(binom(n + r, r))
 fn combinations_with_replacement(n: usize, r: usize) -> Vec<Vec<usize>> {
-    // n個のものからr個取る重複組合せ n+r-1 C r-1
-
     // seq が現在の状態、seq_list が結果の蓄積物
     fn rec(n: usize, r: usize, seq: &mut Vec<usize>, seq_list: &mut Vec<Vec<usize>>) {
         if seq.len() == r {
