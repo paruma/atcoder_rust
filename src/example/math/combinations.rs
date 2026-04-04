@@ -2,8 +2,16 @@
 
 /// n 個のものからr個取る組合せ nCr 個を全列挙する。
 /// 各組合せは長さ `r` の `Vec<usize>` で表し、組合せの全列挙を `Vec<Vec<usize>>` で返す。
+///
+/// ### アルゴリズム
+/// 最後に選択したのが i ならば次の選択肢は i+1, i+2, ...
+///
+/// ### 計算量
+/// O(binom(n + 1, r))
 fn combinations(n: usize, r: usize) -> Vec<Vec<usize>> {
-    // seq が現在の状態、seq_list が結果の蓄積物
+    // seq: 現在の状態
+    // seq_list: 結果の蓄積物
+
     fn rec(n: usize, r: usize, seq: &mut Vec<usize>, seq_list: &mut Vec<Vec<usize>>) {
         if seq.len() == r {
             // ここがforループの中のようなもの
@@ -22,18 +30,26 @@ fn combinations(n: usize, r: usize) -> Vec<Vec<usize>> {
         }
     }
 
+    // rec の呼び出し回数は binom(n + 1, r)
+    //  → 深さ d の呼び出し回数が binom(n - (r - d), d) 回で、ホッケースティック恒等式を使うと得られる。)
     let mut seq_list = vec![];
     rec(n, r, &mut vec![], &mut seq_list);
     seq_list
 }
 
-/// 組合せ全列挙の別実装。
+/// 組合せ全列挙の別実装。(combinations より再帰呼び出し回数が多い)
+///
 /// n 個のものからr個取る組合せ nCr 個を全列挙する。
 /// 各組合せは長さ `r` の `Vec<usize>` で表し、組合せの全列挙を `Vec<Vec<usize>>` で返す。
+///
+/// ### アルゴリズム
+/// 各 i に対して、 i番目を選ぶかどうかで分岐する
 fn combinations2(n: usize, r: usize) -> Vec<Vec<usize>> {
     // n個のものからr個取る組合せ nCr
 
-    // seq が現在の状態、seq_list が結果の蓄積物
+    // i: 選ぶかどうかの対象(i番目を選ぶかどうか)
+    // seq: 現在選んでいる要素の列
+    // seq_list が結果の蓄積物
     fn rec(n: usize, r: usize, i: usize, seq: &mut Vec<usize>, seq_list: &mut Vec<Vec<usize>>) {
         if i == n {
             // ここがforループの中のようなもの
