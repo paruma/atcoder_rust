@@ -1,19 +1,29 @@
-// 問題文と制約は読みましたか？
+// 問題の概要: Σ_i Σ_j A[i] B[j] (i mod j) を求める。
+// i mod j = i - j * floor(i/j) と変形すると、
+// Σ_i Σ_j A[i] B[j] (i mod j)
+// = Σ_j B[j] Σ_i A[i] * (i - j * floor(i/j))
+// となる。Σ_i A[i] * j * floor(i/j) の部分は floor(i/j) が同じ値同士をまとめて計算すると、
+// 調和級数の計算量になって間に合う
+
 // #[fastout]
 fn main() {
     input! {
         n: usize,
         m: usize,
-        a_s: [i64; n],
-        b_s: [i64; m],
+        mut a_s: [i64; n],
+        mut b_s: [i64; m],
     }
+
+    // ダミー値を入れて1オリジンにする
+    a_s.insert(0, 0);
+    b_s.insert(0, 0);
 
     // sum a[i] * i
     let ai_i_sum = a_s
         .iter()
         .copied()
         .enumerate()
-        .map(|(i, a)| (i + 1) as i64 * a)
+        .map(|(i, a)| i as i64 * a)
         .sum::<i64>();
 
     let asum = CumSum::new(&a_s);
@@ -21,32 +31,25 @@ fn main() {
     use ac_library::ModInt998244353 as Mint;
 
     // terms[j] = sum_i A[i] * j * floor(i/j)
-    let terms = (0..m)
+    let terms = (0..=m)
         .map(|j| {
-            let s = (0..=n / (j + 1))
+            if j == 0 {
+                return Mint::new(0);
+            }
+            (0..=n / j)
                 .map(move |f| {
-                    // floor(i/j) = f
-                    let begin_i1 = (j + 1) * f;
-                    let end_i1 = (j + 1) * (f + 1);
-                    let begin = begin_i1.saturating_sub(1).min(n);
-                    let end = end_i1.saturating_sub(1).min(n);
-                    // dbg!(j);
-                    // dbg!(f);
-                    // dbg!(begin..end);
+                    let begin = (j * f).min(n + 1);
+                    let end = (j * (f + 1)).min(n + 1);
 
                     Mint::new(asum_ref.range_sum(begin..end))
-                        * Mint::new((j + 1) as i64)
+                        * Mint::new(j as i64)
                         * Mint::new(f as i64)
                 })
-                .sum::<Mint>();
-            // dbg!(s);
-            s
+                .sum::<Mint>()
         })
         .collect_vec();
 
-    // dbg!(&terms);
-
-    let ans: Mint = (0..m)
+    let ans: Mint = (1..=m)
         .map(|j| Mint::new(b_s[j]) * (Mint::new(ai_i_sum) - terms[j]))
         .sum::<Mint>();
     println!("{}", ans);

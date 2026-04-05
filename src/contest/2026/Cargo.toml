@@ -498,28 +498,32 @@ path = "abc451/g/g.rs"
 [[bin]]
 name = "abc452_a"
 path = "abc452/a/a.rs"
-        
+
 [[bin]]
 name = "abc452_b"
 path = "abc452/b/b.rs"
-        
+
 [[bin]]
 name = "abc452_c"
 path = "abc452/c/c.rs"
-        
+
+[[bin]]
+name = "abc452_c_ix"
+path = "abc452/c/c_ix.rs"
+
+
 [[bin]]
 name = "abc452_d"
 path = "abc452/d/d.rs"
-        
+
 [[bin]]
 name = "abc452_e"
 path = "abc452/e/e.rs"
-        
+
 [[bin]]
 name = "abc452_f"
 path = "abc452/f/f.rs"
-        
+
 [[bin]]
 name = "abc452_g"
 path = "abc452/g/g.rs"
-        

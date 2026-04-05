@@ -1,4 +1,3 @@
-// 問題文と制約は読みましたか？
 // #[fastout]
 fn main() {
     input! {
@@ -7,7 +6,7 @@ fn main() {
         m: usize,
         ss: [Chars; m],
     }
-
+    // exists[len][place][ch - 'a'] = any[ s in ss | s.len() == len, s[place] = ch ]
     let mut exists = vec![vec![vec![false; 26]; 10]; 11];
     for s in &ss {
         for (i, ch) in s.iter().copied().enumerate() {
