@@ -1,27 +1,40 @@
-// 問題文と制約は読みましたか？
+// 尺取法 + 部分列判定
+// 嘘解法。S='a'*10^5, T="b" で落ちる
 
-// s は t の（連続とは限らない）部分列か？
-fn pred(s: &[char], t: &[char]) -> bool {
+// s は t を（連続とは限らない）部分列として含むか
+fn contains_as_subsequence(s: &[char], t: &[char]) -> bool {
     let mut s_iter = s.iter().copied().peekable();
     let mut t_iter = t.iter().copied().peekable();
     // s を全部食べれたら OK
 
     loop {
-        if s_iter.peek() == t_iter.peek() {
+        if t_iter.peek() == s_iter.peek() {
+            t_iter.next();
             s_iter.next();
-            t_iter.next();
         } else {
-            t_iter.next();
+            s_iter.next();
         }
-        if s_iter.peek().is_none() {
+        if t_iter.peek().is_none() {
             return true;
         }
 
-        if t_iter.peek().is_none() {
+        if s_iter.peek().is_none() {
             return false;
         }
     }
     panic!()
+}
+
+// s は t を（連続とは限らない）部分列として含むか (contains_as_subsequence のリファクタ)
+fn contains_as_subsequence2(s: &[char], t: &[char]) -> bool {
+    let mut t_iter = t.iter().copied().peekable();
+
+    for s_ch in s {
+        if Some(s_ch) == t_iter.peek() {
+            t_iter.next();
+        }
+    }
+    t_iter.peek().is_none()
 }
 // #[fastout]
 fn main() {
@@ -38,17 +51,15 @@ fn main() {
     while begin < n {
         // begin..end が条件を満たす範囲で end を繰り返し進める
         while end < n {
-            // end を1進めたときに条件を満たさなくなる場合は break
-            if pred(&t, &s[begin..end + 1]) {
+            // end を1進めたとき(区間が begin..end + 1 になったとき)
+            // に条件を満たさなくなる場合は break
+            if contains_as_subsequence2(&s[begin..end + 1], &t) {
                 break;
             }
 
             // end を進める
             end += 1;
         }
-        // dbg!(begin);
-        // dbg!(end);
-
         len_sum += end - begin;
 
         if begin == end {
@@ -59,10 +70,6 @@ fn main() {
             begin += 1;
         }
     }
-
-    // dbg!(len_sum);
-    // dbg!(n * (n + 1) / 2);
-
     let ans: usize = len_sum;
     println!("{}", ans);
 }
@@ -76,31 +83,31 @@ mod tests {
 
     #[test]
     fn test_problem() {
-        dbg!(pred(
+        dbg!(contains_as_subsequence(
             &"ac".chars().collect_vec(),
             &"abc".chars().collect_vec()
         ));
 
-        dbg!(pred(
+        dbg!(contains_as_subsequence(
             &"".chars().collect_vec(),
             &"abc".chars().collect_vec()
         ));
-        dbg!(pred(
+        dbg!(contains_as_subsequence(
             &"c".chars().collect_vec(),
             &"abc".chars().collect_vec()
         ));
 
-        dbg!(pred(
+        dbg!(contains_as_subsequence(
             &"ba".chars().collect_vec(),
             &"abc".chars().collect_vec()
         ));
 
-        dbg!(pred(
+        dbg!(contains_as_subsequence(
             &"acb".chars().collect_vec(),
             &"abc".chars().collect_vec()
         ));
 
-        dbg!(pred(
+        dbg!(contains_as_subsequence(
             &"abr".chars().collect_vec(),
             &"abc".chars().collect_vec()
         ));
