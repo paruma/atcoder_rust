@@ -511,10 +511,13 @@ path = "abc452/c/c.rs"
 name = "abc452_c_ix"
 path = "abc452/c/c_ix.rs"
 
-
 [[bin]]
 name = "abc452_d"
 path = "abc452/d/d.rs"
+
+[[bin]]
+name = "abc452_d_dp"
+path = "abc452/d/d_dp.rs"
 
 [[bin]]
 name = "abc452_e"
