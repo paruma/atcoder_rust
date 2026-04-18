@@ -548,6 +548,10 @@ name = "abc453_d"
 path = "abc453/d/d.rs"
 
 [[bin]]
+name = "abc453_d_ix"
+path = "abc453/d/d_ix.rs"
+
+[[bin]]
 name = "abc453_e"
 path = "abc453/e/e.rs"
 

@@ -111,13 +111,17 @@ fn main() {
         for next_dir in 0..4 {
             let next_pos = cur_pos + DIR4_LIST[next_dir];
             if grid.is_within(next_pos) && dist[next_pos][next_dir].is_none() {
-                let mut can_move = grid.can_move(next_pos);
-                if grid.is_まっすぐ(cur_pos) {
-                    can_move = can_move && cur_dir == next_dir;
-                }
-                if grid.is_曲がる(cur_pos) {
-                    can_move = can_move && cur_dir != next_dir;
-                }
+                // let mut can_move = grid.can_move(next_pos);
+                // if grid.is_まっすぐ(cur_pos) {
+                //     can_move = can_move && cur_dir == next_dir;
+                // }
+                // if grid.is_曲がる(cur_pos) {
+                //     can_move = can_move && cur_dir != next_dir;
+                // }
+
+                let can_move = grid.can_move(next_pos)
+                    && (grid.is_まっすぐ(cur_pos) <= (cur_dir == next_dir)) // <= は「ならば」
+                    && (grid.is_曲がる(cur_pos) <= (cur_dir != next_dir));
 
                 if can_move {
                     dist[next_pos][next_dir] = Some(cur_dist + 1);
