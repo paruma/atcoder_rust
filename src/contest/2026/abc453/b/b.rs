@@ -2,11 +2,24 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        t: usize,
+        x: i64,
+        xs: [i64; t+1],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let mut ans: Vec<(usize, i64)> = vec![];
+    ans.push((0, xs[0]));
+    let mut last = xs[0];
+
+    for i in 1..=t {
+        if (last - xs[i]).abs() >= x {
+            ans.push((i, xs[i]));
+            last = xs[i];
+        }
+    }
+
+    for (t, x) in ans {
+        println!("{} {}", t, x);
+    }
 }
 
 #[cfg(test)]

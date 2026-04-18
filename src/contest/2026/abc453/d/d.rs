@@ -1,12 +1,164 @@
+use std::ops::{Index, IndexMut};
+#[derive(Clone, Debug)]
+pub struct Grid {
+    pub grid: Vec<Vec<char>>,
+    pub h: usize,
+    pub w: usize,
+}
+impl Index<Pos> for Grid {
+    type Output = char;
+    fn index(&self, index: Pos) -> &Self::Output {
+        if self.is_within(index) {
+            self.grid.index(index)
+        } else {
+            &'#'
+        }
+    }
+}
+impl IndexMut<Pos> for Grid {
+    fn index_mut(&mut self, index: Pos) -> &mut Self::Output {
+        self.grid.index_mut(index)
+    }
+}
+impl Grid {
+    pub fn new(grid: Vec<Vec<char>>) -> Grid {
+        let h = grid.len();
+        let w = grid[0].len();
+        Grid { grid, h, w }
+    }
+    pub fn is_within(&self, pos: Pos) -> bool {
+        let h = self.h as i64;
+        let w = self.w as i64;
+        0 <= pos.y && pos.y < h && 0 <= pos.x && pos.x < w
+    }
+    pub fn can_move(&self, pos: Pos) -> bool {
+        ['.', 'S', 'G', 'o', 'x'].contains(&self[pos])
+    }
+
+    pub fn is_まっすぐ(&self, pos: Pos) -> bool {
+        ['o'].contains(&self[pos])
+    }
+    pub fn is_曲がる(&self, pos: Pos) -> bool {
+        ['x'].contains(&self[pos])
+    }
+    pub fn all_pos_iter(&self) -> impl Iterator<Item = Pos> {
+        iproduct!(0..self.h, 0..self.w).map(|(y, x)| Pos::new(x as i64, y as i64))
+    }
+    pub fn find_pos_of(&self, ch: char) -> Option<Pos> {
+        self.all_pos_iter().find(|pos| self[*pos] == ch)
+    }
+    pub fn encode(&self, pos: Pos) -> usize {
+        (pos.y * self.w as i64 + pos.x) as usize
+    }
+    pub fn decode(&self, i: usize) -> Pos {
+        let y = (i / self.w) as i64;
+        let x = (i % self.w) as i64;
+        Pos::new(x, y)
+    }
+    pub fn debug(&self) {
+        for row in &self.grid {
+            eprintln!("{}", row.iter().collect::<String>());
+        }
+        eprintln!();
+    }
+    /// pos の部分は背景を灰色にして出力する
+    pub fn debug_with_pos(&self, pos: Pos) {
+        const GRAY: &str = "\x1b[48;2;127;127;127;37m";
+        const RESET: &str = "\x1b[0m";
+        for y in 0..self.h {
+            let row = (0..self.w)
+                .map(|x| {
+                    if pos == Pos::new(x as i64, y as i64) {
+                        format!("{}{}{}", GRAY, self.grid[y][x], RESET)
+                    } else {
+                        self.grid[y][x].to_string()
+                    }
+                })
+                .join("");
+            eprintln!("{}", row);
+        }
+        eprintln!();
+    }
+}
 // 問題文と制約は読みましたか？
-// #[fastout]
+#[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        h: usize, w: usize,
+        grid: [Chars; h],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let mut dist: Vec<Vec<[Option<i64>; 4]>> = vec![vec![[None; 4]; w]; h];
+    let mut prev: Vec<Vec<[Option<(Pos, usize)>; 4]>> = vec![vec![[None; 4]; w]; h];
+    // 位置と方向
+    let mut open: Queue<(Pos, usize)> = Queue::new();
+
+    let grid = Grid::new(grid);
+    let start = grid.find_pos_of('S').unwrap();
+    for d in 0..4 {
+        dist[start][d] = Some(0);
+        // 始点の prev は None
+        open.push((start, d));
+    }
+    pub const DIR4_LIST: [Pos; 4] = [
+        Pos { x: 0, y: 1 },  // 下 D
+        Pos { x: 1, y: 0 },  // 右 R
+        Pos { x: 0, y: -1 }, // 上 U
+        Pos { x: -1, y: 0 }, // 左 L
+    ];
+
+    while let Some((cur_pos, cur_dir)) = open.pop() {
+        let cur_dist = dist[cur_pos][cur_dir].unwrap();
+        for next_dir in 0..4 {
+            let next_pos = cur_pos + DIR4_LIST[next_dir];
+            if grid.is_within(next_pos) && dist[next_pos][next_dir].is_none() {
+                let mut can_move = grid.can_move(next_pos);
+                if grid.is_まっすぐ(cur_pos) {
+                    can_move = can_move && cur_dir == next_dir;
+                }
+                if grid.is_曲がる(cur_pos) {
+                    can_move = can_move && cur_dir != next_dir;
+                }
+
+                if can_move {
+                    dist[next_pos][next_dir] = Some(cur_dist + 1);
+                    prev[next_pos][next_dir] = Some((cur_pos, cur_dir));
+                    open.push((next_pos, next_dir));
+                }
+            }
+        }
+    }
+
+    let goal = grid.find_pos_of('G').unwrap();
+
+    let min_dir = (0..4)
+        .filter(|d| dist[goal][*d].is_some())
+        .min_by_key(|d| dist[goal][*d].unwrap());
+
+    let dir_chars = ['D', 'R', 'U', 'L'];
+
+    if let Some(last_dir) = min_dir {
+        let mut path: Vec<(Pos, usize)> =
+            std::iter::successors(Some((goal, last_dir)), |&(cur_pos, cur_dir)| {
+                prev[cur_pos][cur_dir]
+            })
+            .collect();
+        path.reverse();
+        // pub const DIR4_LIST: [Pos; 4] = [
+        //     Pos { x: 0, y: 1 },  // 下 D
+        //     Pos { x: 1, y: 0 },  // 右 R
+        //     Pos { x: 0, y: -1 }, // 上 U
+        //     Pos { x: -1, y: 0 }, // 左 L
+        // ];
+        let moves = path[1..]
+            .iter()
+            .copied()
+            .map(|(_, dir)| dir_chars[dir])
+            .collect_vec();
+        println!("Yes");
+        println!("{}", moves.iter().collect::<String>());
+    } else {
+        println!("No");
+    }
 }
 
 #[cfg(test)]
@@ -136,3 +288,280 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use pos::*;
+#[allow(clippy::module_inception)]
+pub mod pos {
+    use std::io::BufRead;
+    use std::iter::Sum;
+    use std::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+    #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
+    pub struct Pos {
+        pub x: i64,
+        pub y: i64,
+    }
+    impl Pos {
+        pub fn new(x: i64, y: i64) -> Pos {
+            Pos { x, y }
+        }
+        pub fn scalar_mul(self, rhs: i64) -> Pos {
+            Pos::new(self.x * rhs, self.y * rhs)
+        }
+        pub fn inner_product(self, rhs: Self) -> i64 {
+            self.x * rhs.x + self.y * rhs.y
+        }
+        pub fn outer_product(self, rhs: Self) -> i64 {
+            self.x * rhs.y - self.y * rhs.x
+        }
+        pub fn norm_square(self) -> i64 {
+            self.inner_product(self)
+        }
+        pub fn l1_norm(self) -> i64 {
+            self.x.abs() + self.y.abs()
+        }
+        pub fn linf_norm(self) -> i64 {
+            self.x.abs().max(self.y.abs())
+        }
+        pub fn dist_square(self, rhs: Self) -> i64 {
+            (self - rhs).norm_square()
+        }
+        pub fn l1_dist(self, rhs: Self) -> i64 {
+            (self - rhs).l1_norm()
+        }
+        pub fn linf_dist(self, rhs: Self) -> i64 {
+            (self - rhs).linf_norm()
+        }
+        pub fn normalize(self) -> Pos {
+            if self.x == 0 && self.y == 0 {
+                return self;
+            }
+            let g = num::integer::gcd(self.x.abs(), self.y.abs());
+            Pos::new(self.x / g, self.y / g)
+        }
+        pub fn rotate90(self) -> Pos {
+            Pos::new(-self.y, self.x)
+        }
+        pub fn rotate270(self) -> Pos {
+            Pos::new(self.y, -self.x)
+        }
+        /// グリッドの幅 `width` を指定して、座標 `(x, y)` を 1次元インデックス `y * width + x` に変換する。
+        pub fn to_index_1d(self, width: usize) -> usize {
+            assert!(
+                self.x >= 0 && self.y >= 0,
+                "Pos::to_index_1d: x と y は 0 以上である必要があります。pos: ({}, {})",
+                self.x,
+                self.y
+            );
+            assert!(
+                (self.x as usize) < width,
+                "Pos::to_index_1d: x は width 未満である必要があります。x: {}, width: {}",
+                self.x,
+                width
+            );
+            (self.y as usize) * width + (self.x as usize)
+        }
+        /// 1次元インデックスとグリッドの幅 `width` から、座標 `(x, y)` を復元する。
+        pub fn from_index_1d(index: usize, width: usize) -> Pos {
+            Pos::new((index % width) as i64, (index / width) as i64)
+        }
+        pub fn around4_pos_iter(self) -> impl Iterator<Item = Pos> {
+            DIR4_LIST.iter().copied().map(move |d| self + d)
+        }
+        pub fn around8_pos_iter(self) -> impl Iterator<Item = Pos> {
+            DIR8_LIST.iter().copied().map(move |d| self + d)
+        }
+    }
+    impl Add for Pos {
+        type Output = Pos;
+        fn add(self, rhs: Self) -> Self::Output {
+            Pos::new(self.x + rhs.x, self.y + rhs.y)
+        }
+    }
+    impl Sub for Pos {
+        type Output = Pos;
+        fn sub(self, rhs: Self) -> Self::Output {
+            Pos::new(self.x - rhs.x, self.y - rhs.y)
+        }
+    }
+    impl Neg for Pos {
+        type Output = Self;
+        fn neg(self) -> Self::Output {
+            Pos::new(-self.x, -self.y)
+        }
+    }
+    impl Sum for Pos {
+        fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+            iter.fold(Pos::new(0, 0), |acc, x| acc + x)
+        }
+    }
+    impl<'a> Sum<&'a Pos> for Pos {
+        fn sum<I: Iterator<Item = &'a Self>>(iter: I) -> Self {
+            iter.fold(Pos::new(0, 0), |a, b| a + *b)
+        }
+    }
+    impl num_traits::Zero for Pos {
+        fn zero() -> Self {
+            Pos::new(0, 0)
+        }
+        fn is_zero(&self) -> bool {
+            self.x.is_zero() && self.y.is_zero()
+        }
+    }
+    impl AddAssign for Pos {
+        fn add_assign(&mut self, rhs: Self) {
+            *self = *self + rhs
+        }
+    }
+    impl SubAssign for Pos {
+        fn sub_assign(&mut self, rhs: Self) {
+            *self = *self - rhs
+        }
+    }
+    impl Mul<i64> for Pos {
+        type Output = Pos;
+        fn mul(self, rhs: i64) -> Self::Output {
+            Pos::new(self.x * rhs, self.y * rhs)
+        }
+    }
+    impl MulAssign<i64> for Pos {
+        fn mul_assign(&mut self, rhs: i64) {
+            *self = *self * rhs
+        }
+    }
+    use std::fmt::{Debug, Error, Formatter};
+    impl Debug for Pos {
+        fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+            f.write_fmt(format_args!("({}, {})", self.x, self.y))?;
+            Ok(())
+        }
+    }
+    use proconio::source::{Readable, Source};
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub enum PosXY {}
+    impl Readable for PosXY {
+        type Output = Pos;
+        fn read<R: BufRead, S: Source<R>>(source: &mut S) -> Pos {
+            let x = i64::read(source);
+            let y = i64::read(source);
+            Pos::new(x, y)
+        }
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub enum PosYX {}
+    impl Readable for PosYX {
+        type Output = Pos;
+        fn read<R: BufRead, S: Source<R>>(source: &mut S) -> Pos {
+            let y = i64::read(source);
+            let x = i64::read(source);
+            Pos::new(x, y)
+        }
+    }
+    /// 1-indexed で与えられた座標(YX)
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub enum PosYX1 {}
+    impl Readable for PosYX1 {
+        type Output = Pos;
+        fn read<R: BufRead, S: Source<R>>(source: &mut S) -> Pos {
+            let y = i64::read(source) - 1;
+            let x = i64::read(source) - 1;
+            Pos::new(x, y)
+        }
+    }
+    pub const DIR8_LIST: [Pos; 8] = [
+        Pos { x: 0, y: 1 },
+        Pos { x: 1, y: 1 },
+        Pos { x: 1, y: 0 },
+        Pos { x: 1, y: -1 },
+        Pos { x: 0, y: -1 },
+        Pos { x: -1, y: -1 },
+        Pos { x: -1, y: 0 },
+        Pos { x: -1, y: 1 },
+    ];
+    pub const DIR4_LIST: [Pos; 4] = [
+        Pos { x: 0, y: 1 },
+        Pos { x: 1, y: 0 },
+        Pos { x: 0, y: -1 },
+        Pos { x: -1, y: 0 },
+    ];
+}
+use vec_vec_at::*;
+pub mod vec_vec_at {
+    use super::pos::*;
+    use easy_ext::ext;
+    use std::ops::{Index, IndexMut};
+    #[ext(ExtVecVec)]
+    impl<T> Vec<Vec<T>> {
+        pub fn width(&self) -> usize {
+            if self.is_empty() { 0 } else { self[0].len() }
+        }
+        pub fn height(&self) -> usize {
+            self.len()
+        }
+        pub fn is_within(&self, pos: Pos) -> bool {
+            (0..self.width() as i64).contains(&pos.x) && (0..self.height() as i64).contains(&pos.y)
+        }
+    }
+    impl<T> Index<Pos> for Vec<Vec<T>> {
+        type Output = T;
+        fn index(&self, index: Pos) -> &Self::Output {
+            if cfg!(debug_assertions) && !self.is_within(index) {
+                panic!(
+                    "index out of bounds: the size (w, h) is ({}, {}) but the index (x, y) is ({}, {})",
+                    self.width(),
+                    self.height(),
+                    index.x,
+                    index.y
+                );
+            }
+            &self[index.y as usize][index.x as usize]
+        }
+    }
+    impl<T> IndexMut<Pos> for Vec<Vec<T>> {
+        fn index_mut(&mut self, index: Pos) -> &mut Self::Output {
+            if cfg!(debug_assertions) && !self.is_within(index) {
+                panic!(
+                    "index out of bounds: the size (w, h) is ({}, {}) but the index (x, y) is ({}, {})",
+                    self.width(),
+                    self.height(),
+                    index.x,
+                    index.y
+                );
+            }
+            &mut self[index.y as usize][index.x as usize]
+        }
+    }
+}
+use mod_queue::*;
+pub mod mod_queue {
+    use std::collections::VecDeque;
+    #[derive(Clone, Debug, PartialEq, Eq, Hash)]
+    pub struct Queue<T> {
+        raw: VecDeque<T>,
+    }
+    impl<T> Queue<T> {
+        pub fn new() -> Self {
+            Queue {
+                raw: VecDeque::new(),
+            }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push_back(value)
+        }
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop_front()
+        }
+        pub fn peek(&self) -> Option<&T> {
+            self.raw.front()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.raw.is_empty()
+        }
+        pub fn len(&self) -> usize {
+            self.raw.len()
+        }
+    }
+    impl<T> Default for Queue<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+}

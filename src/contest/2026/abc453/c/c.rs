@@ -5,7 +5,23 @@ fn main() {
         n: usize,
         xs: [i64; n],
     }
-    let ans: i64 = -2_i64;
+    let ans = std::iter::repeat_n([-1, 1], n)
+        .multi_cartesian_product()
+        .map(|pat| {
+            let mut cnt = 0;
+            let mut cur = 0;
+            for i in 0..n {
+                let next = cur + xs[i] * pat[i];
+                if (next >= 0) != (cur >= 0) {
+                    cnt += 1;
+                }
+                cur = next;
+            }
+            cnt
+        })
+        .max()
+        .unwrap();
+
     println!("{}", ans);
 }
 
