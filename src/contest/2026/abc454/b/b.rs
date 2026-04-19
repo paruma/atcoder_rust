@@ -3,10 +3,15 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        m: usize,
+        fs: [i64; n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let ans1: bool = fs.iter().copied().all_unique();
+    let cnts = fs.iter().copied().counts();
+    let ans2 = (1..=m).all(|k| *cnts.get(&(k as i64)).unwrap_or(&0) >= 1);
+
+    print_yesno(ans1);
+    print_yesno(ans2);
 }
 
 #[cfg(test)]

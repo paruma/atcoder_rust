@@ -1,12 +1,35 @@
-// 問題文と制約は読みましたか？
-// #[fastout]
+fn norm(a_s: &[char]) -> Vec<char> {
+    let mut stack = Vec::<char>::new();
+    for &a in a_s {
+        stack.push(a);
+        let stack_len = stack.len();
+        if stack_len >= 4 && stack[stack_len - 4..stack_len] == ['(', 'x', 'x', ')'] {
+            stack.pop();
+            stack.pop();
+            stack.pop();
+            stack.pop();
+            stack.push('x');
+            stack.push('x');
+        }
+    }
+
+    stack
+}
+
+#[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        t: usize
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    for _ in 0..t {
+        input! {
+            a_s: Chars,
+            b_s: Chars,
+        }
+        let ans = norm(&a_s) == norm(&b_s);
+        println!("{}", if ans { "Yes" } else { "No" });
+    }
 }
 
 #[cfg(test)]
