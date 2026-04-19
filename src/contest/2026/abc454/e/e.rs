@@ -2,11 +2,22 @@
 
 fn solve(n: usize, banned: Pos) -> Option<Vec<char>> {
     if n % 2 == 1 {
+        // n が奇数の場合は実現不可能
+        // [理由]
+        // 市松模様を考える。
+        // スタートとゴールの色は同じ。
+        // n が奇数のとき、移動回数 n^2 - 2 は奇数
+        // よって、スタートからゴールに到達できたとしたらスタートゴールの色が異なることになり矛盾する。
         return None;
     }
     if (banned.x + banned.y) % 2 == 0 {
+        // スタート（ゴール）の色と同じ色が BAN されていたら、実現不可能
+        // スタート（ゴール）の色が黒だとして、BAN された色も黒だとする。
+        // このとき、黒の数は白の数より1つ少ない。
+        // 一方経路がもし存在したら、黒の数は白の数より1つ多いことになり、矛盾する。
         return None;
     }
+    // BAN されたマスは左下の領域にあると仮定する（右上にある場合は対称移動する）
     if banned.x > banned.y {
         let ans = solve(n, Pos::new(banned.y, banned.x)).unwrap();
         let ans_flipped = ans
@@ -26,10 +37,10 @@ fn solve(n: usize, banned: Pos) -> Option<Vec<char>> {
     assert!(banned.x <= banned.y);
 
     pub const DIR4_LIST: [Pos; 4] = [
-        Pos { x: 0, y: 1 },  // D (下)
-        Pos { x: 1, y: 0 },  // R (右)
-        Pos { x: 0, y: -1 }, // U (上)
-        Pos { x: -1, y: 0 }, // L (左)
+        Pos { x: 0, y: 1 },  // 0: D (下)
+        Pos { x: 1, y: 0 },  // 1: R (右)
+        Pos { x: 0, y: -1 }, // 2: U (上)
+        Pos { x: -1, y: 0 }, // 3: L (左)
     ];
     let dir_chars = ['D', 'R', 'U', 'L'];
 
@@ -37,18 +48,19 @@ fn solve(n: usize, banned: Pos) -> Option<Vec<char>> {
     let mut visited = vec![vec![false; n]; n];
     visited[cur] = true;
     visited[banned] = true; // 便宜上
-    let mut phase = 0; // 下向き: 0, 上向き: 1
+    let mut phase = 0; // 下向き: 0, 上向き: 1, 2列ジグザグ: 3
     let goal = Pos::new(n as i64 - 1, n as i64 - 1);
     let mut ans: Vec<char> = vec![];
 
     while cur != goal {
         let priority = if phase == 0 {
-            // 左下右 3, 0, 1
+            // 左下右
             [3, 0, 1]
         } else if phase == 1 {
-            // 左上右 3, 4, 1
+            // 左上右
             [3, 2, 1]
         } else {
+            // 左右下
             [3, 1, 0]
         };
 
@@ -65,16 +77,48 @@ fn solve(n: usize, banned: Pos) -> Option<Vec<char>> {
         let next = cur + DIR4_LIST[next_dir];
         visited[next] = true;
         cur = next;
-        if cur.y == (n as i64 - 1) && phase == 0 {
+        if cur == Pos::new(n as i64 - 2, 0) {
+            phase = 3;
+        } else if cur.y == (n as i64 - 1) && phase == 0 {
             phase = 1;
         } else if cur.y == 0 && phase == 1 {
             phase = 0;
-        } else if cur == Pos::new(n as i64 - 2, 0) {
-            phase = 3;
         }
     }
 
     Some(ans)
+}
+
+#[allow(dead_code)]
+/// 出力例
+/// 114❯ grid | 0  1  2  3
+///     0     | v  >  >  v
+///     1     | v  ^  <  v
+///     2     | v  X  ^  v
+///     3     | >  >  ^  .
+fn visualize_answer(n: usize, banned: Pos, ans: &[char]) {
+    let dir_map = hashmap! {
+        'R' => Pos::new(1, 0),
+        'L' => Pos::new(-1, 0),
+        'D' => Pos::new(0, 1),
+        'U' => Pos::new(0, -1),
+    };
+
+    let arrow_map = hashmap! {
+        'R' => '>',
+        'L' => '<',
+        'D' => 'v',
+        'U' => '^',
+    };
+    let mut grid = vec![vec!['.'; n]; n];
+    grid[banned] = 'X';
+    let mut cur = Pos::new(0, 0);
+    for &ch in ans {
+        grid[cur] = arrow_map[&ch];
+        let dir = dir_map[&ch];
+        cur += dir;
+    }
+    table! {grid}
 }
 
 #[fastout]
@@ -92,30 +136,7 @@ fn main() {
         let banned = Pos::new(b as i64, a as i64);
         let ans = solve(n, banned);
         if let Some(ans) = ans {
-            // {
-            //     let dir_map = hashmap! {
-            //         'R' => Pos::new(1, 0),
-            //         'L' => Pos::new(-1, 0),
-            //         'D' => Pos::new(0, 1),
-            //         'U' => Pos::new(0, -1),
-            //     };
-
-            //     let arrow_map = hashmap! {
-            //         'R' => '→',
-            //         'L' => '←',
-            //         'D' => '↓',
-            //         'U' => '↑',
-            //     };
-            //     let mut grid = vec![vec!['.'; n]; n];
-            //     grid[banned] = 'X';
-            //     let mut cur = Pos::new(0, 0);
-            //     for &ch in &ans {
-            //         grid[cur] = arrow_map[&ch];
-            //         let dir = dir_map[&ch];
-            //         cur += dir;
-            //     }
-            //     table! {grid}
-            // }
+            // visualize_answer(n, banned, &ans);
             println!("Yes");
             println!("{}", ans.iter().collect::<String>());
         } else {
