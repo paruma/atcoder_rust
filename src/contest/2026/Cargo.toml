@@ -590,3 +590,31 @@ path = "abc454/f/f.rs"
 [[bin]]
 name = "abc454_g"
 path = "abc454/g/g.rs"
+
+[[bin]]
+name = "abc455_a"
+path = "abc455/a/a.rs"
+
+[[bin]]
+name = "abc455_b"
+path = "abc455/b/b.rs"
+
+[[bin]]
+name = "abc455_c"
+path = "abc455/c/c.rs"
+
+[[bin]]
+name = "abc455_d"
+path = "abc455/d/d.rs"
+
+[[bin]]
+name = "abc455_e"
+path = "abc455/e/e.rs"
+
+[[bin]]
+name = "abc455_f"
+path = "abc455/f/f.rs"
+
+[[bin]]
+name = "abc455_g"
+path = "abc455/g/g.rs"
