@@ -3,10 +3,36 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        q: usize,
+        cps: [(Usize1, Usize1); q],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    let mut next: Vec<Option<usize>> = vec![None; 2 * n];
+    let mut prev: Vec<Option<usize>> = vec![None; 2 * n];
+
+    for i in 0..n {
+        // i + n → i
+        next[i + n] = Some(i);
+        prev[i] = Some(i + n);
+    }
+
+    for (c, p) in cps {
+        let prev_c = prev[c].unwrap();
+        // prev_c → None
+        // p → c
+        next[prev_c] = None;
+
+        next[p] = Some(c);
+        prev[c] = Some(p);
+    }
+
+    let ans: Vec<usize> = (0..n)
+        .map(|i| {
+            let start = i + n;
+            std::iter::successors(Some(start), |acc| next[*acc]).count() - 1
+        })
+        .collect_vec();
+    print_vec_1line(&ans);
 }
 
 #[cfg(test)]

@@ -3,9 +3,24 @@
 fn main() {
     input! {
         n: usize,
+        k: usize,
         xs: [i64; n],
     }
-    let ans: i64 = -2_i64;
+    let scores = xs
+        .iter()
+        .copied()
+        .sorted()
+        .dedup_with_count()
+        .map(|(cnt, x)| (cnt as i64) * x)
+        .sorted()
+        .collect_vec();
+
+    let ans = if k >= scores.len() {
+        0
+    } else {
+        scores[..scores.len() - k].iter().copied().sum::<i64>()
+    };
+
     println!("{}", ans);
 }
 
