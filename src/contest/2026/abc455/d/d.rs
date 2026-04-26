@@ -19,9 +19,9 @@ fn main() {
     for (c, p) in cps {
         let prev_c = prev[c].unwrap();
         // prev_c → None
-        // p → c
         next[prev_c] = None;
 
+        // p → c
         next[p] = Some(c);
         prev[c] = Some(p);
     }
