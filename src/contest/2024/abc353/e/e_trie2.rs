@@ -1,44 +1,3 @@
-//#[derive_readable]
-use std::collections::BTreeMap;
-
-// [usize; 26] を使うよりも BTreeMap<T, usize> を使うほうが若干早かった(50ms vs 43ms)
-struct Trie<T> {
-    nexts: Vec<BTreeMap<T, usize>>,
-}
-
-impl<T: Ord + Copy> Trie<T> {
-    pub fn new() -> Self {
-        Self {
-            nexts: vec![BTreeMap::new()],
-        }
-    }
-
-    pub fn insert(&mut self, xs: &[T]) {
-        let mut cur_node = 0;
-        for &x in xs {
-            if !self.nexts[cur_node].contains_key(&x) {
-                let new_node = self.nexts.len();
-                self.nexts[cur_node].insert(x, new_node);
-                self.nexts.push(BTreeMap::new());
-            }
-            cur_node = self.nexts[cur_node][&x];
-        }
-    }
-
-    pub fn node_path(&self, xs: &[T]) -> Vec<usize> {
-        let mut cur_node = 0;
-        let mut path = vec![cur_node];
-        for &x in xs {
-            let Some(&next_node) = self.nexts[cur_node].get(&x) else {
-                break;
-            };
-            cur_node = next_node;
-            path.push(cur_node);
-        }
-        path
-    }
-}
-
 #[derive(Debug, Clone)]
 struct Problem {
     n: usize,
@@ -230,86 +189,50 @@ fn print_yesno(ans: bool) {
 }
 
 // ====== snippet ======
-use rolling_hash::*;
-pub mod rolling_hash {
-    const MOD: i64 = (1 << 61) - 1;
-    const MOD_I128: i128 = (1 << 61) - 1;
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-    struct ModInt261M1 {
-        val: i64,
+use trie::*;
+#[allow(clippy::module_inception)]
+pub mod trie {
+    use std::collections::BTreeMap;
+    #[derive(Clone, Debug)]
+    pub struct Trie<T> {
+        nexts: Vec<BTreeMap<T, usize>>,
     }
-    impl ModInt261M1 {
-        #[inline]
-        pub fn new(val: i64) -> Self {
-            Self { val }
-        }
-    }
-    impl std::ops::Add for ModInt261M1 {
-        type Output = Self;
-        #[inline]
-        fn add(self, rhs: Self) -> Self::Output {
-            let mut x = self.val + rhs.val;
-            if x >= MOD {
-                x -= MOD;
-            }
-            Self::new(x)
-        }
-    }
-    impl std::ops::Sub for ModInt261M1 {
-        type Output = Self;
-        #[inline]
-        fn sub(self, rhs: Self) -> Self::Output {
-            let mut x = MOD + self.val - rhs.val;
-            if x >= MOD {
-                x -= MOD;
-            }
-            Self::new(x)
-        }
-    }
-    impl std::ops::Mul for ModInt261M1 {
-        type Output = Self;
-        #[inline]
-        fn mul(self, rhs: Self) -> Self::Output {
-            let x = (self.val as i128) * (rhs.val as i128);
-            let mut x = ((x >> 61) + (x & MOD_I128)) as i64;
-            if x >= MOD {
-                x -= MOD;
-            }
-            Self::new(x)
-        }
-    }
-    pub struct RollingHash {
-        hash_list: Vec<ModInt261M1>,
-        pow_list: Vec<ModInt261M1>,
-        len: usize,
-    }
-    impl RollingHash {
-        pub fn new(xs: &[i64], base: i64) -> Self {
-            let base = ModInt261M1::new(base);
-            let mut hash_list = vec![ModInt261M1::new(0); xs.len() + 1];
-            let mut pow_list = vec![ModInt261M1::new(1); xs.len() + 1];
-            for i in 0..xs.len() {
-                hash_list[i + 1] = hash_list[i] * base + ModInt261M1::new(xs[i]);
-                pow_list[i + 1] = pow_list[i] * base;
-            }
-            let len = xs.len();
+    impl<T: Ord + Copy> Trie<T> {
+        pub fn new() -> Self {
             Self {
-                hash_list,
-                pow_list,
-                len,
+                nexts: vec![BTreeMap::new()],
             }
         }
-        pub fn hash(&self, begin: usize, end: usize) -> i64 {
-            let x = self.hash_list[end] - self.hash_list[begin] * self.pow_list[end - begin];
-            x.val
+        pub fn insert(&mut self, xs: &[T]) {
+            let mut cur_node = 0;
+            for &x in xs {
+                if !self.nexts[cur_node].contains_key(&x) {
+                    let new_node = self.nexts.len();
+                    self.nexts[cur_node].insert(x, new_node);
+                    self.nexts.push(BTreeMap::new());
+                }
+                cur_node = self.nexts[cur_node][&x];
+            }
         }
-
-        pub fn len(&self) -> usize {
-            self.len
+        pub fn next(&self, cur: usize, x: T) -> Option<usize> {
+            self.nexts[cur].get(&x).copied()
         }
-
-        pub fn is_empty(&self) -> bool {
-            self.len() == 0
+        pub fn node_path(&self, xs: &[T]) -> Vec<usize> {
+            let mut cur_node = 0;
+            let mut path = vec![cur_node];
+            for &x in xs {
+                let Some(&next_node) = self.nexts[cur_node].get(&x) else {
+                    break;
+                };
+                cur_node = next_node;
+                path.push(cur_node);
+            }
+            path
+        }
+    }
+    impl<T: Ord + Copy> Default for Trie<T> {
+        fn default() -> Self {
+            Self::new()
         }
     }
 }
