@@ -302,6 +302,14 @@ path = "abc386/a/a.rs"
 # name = "abc353_e"
 # path = "abc353/e/e.rs"
 
+[[bin]]
+name = "abc353_e_trie"
+path = "abc353/e/e_trie.rs"
+
+[[bin]]
+name = "abc353_e_trie2"
+path = "abc353/e/e_trie2.rs"
+
 # [[bin]]
 # name = "abc353_f"
 # path = "abc353/f/f.rs"
