@@ -2,10 +2,30 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        xss: [[usize; 6]; 3],
     }
-    let ans: i64 = -2_i64;
+
+    let cntss = (0..3)
+        .map(|i| {
+            //
+            xss[i].iter().copied().fold(vec![0; 7], |mut acc, x| {
+                acc[x] += 1;
+                acc
+            })
+        })
+        .collect_vec();
+
+    let ans = [4, 5, 6]
+        .iter()
+        .copied()
+        .permutations(3)
+        .map(|target| {
+            let term1 = (0..3)
+                .map(|i| cntss[i][target[i] as usize])
+                .product::<i64>();
+            (term1 as f64) / (6.0 * 6.0 * 6.0)
+        })
+        .sum::<f64>();
     println!("{}", ans);
 }
 

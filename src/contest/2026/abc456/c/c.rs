@@ -2,10 +2,23 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        xs: Chars,
     }
-    let ans: i64 = -2_i64;
+    use ac_library::ModInt998244353 as Mint;
+
+    let n = xs.len();
+    let mut begin = 0;
+
+    let mut ans = Mint::new(0);
+
+    for end in 1..=n {
+        ans += Mint::new(end - begin);
+
+        if end != n && xs[end - 1] == xs[end] {
+            begin = end;
+        }
+    }
+
     println!("{}", ans);
 }
 
