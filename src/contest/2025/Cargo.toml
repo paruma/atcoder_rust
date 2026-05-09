@@ -513,6 +513,10 @@ name = "abc403_e"
 path = "abc403/e/e.rs"
 
 [[bin]]
+name = "abc403_e_trie"
+path = "abc403/e/e_trie.rs"
+
+[[bin]]
 name = "abc403_f"
 path = "abc403/f/f.rs"
 
