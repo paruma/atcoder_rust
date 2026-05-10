@@ -3,9 +3,22 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
     }
-    let ans: i64 = -2_i64;
+
+    let a_ss = (0..n)
+        .map(|_| {
+            input! {
+                l: usize,
+                a_s: [i64; l]
+            }
+            a_s
+        })
+        .collect_vec();
+    input! {
+        x: Usize1,
+        y: Usize1,
+    }
+    let ans: i64 = a_ss[x][y];
     println!("{}", ans);
 }
 

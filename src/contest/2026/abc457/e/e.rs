@@ -1,12 +1,96 @@
 // 問題文と制約は読みましたか？
-// #[fastout]
+#[derive_readable]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+struct CRange {
+    left: Usize1,
+    right: Usize1,
+}
+#[fastout]
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        m: usize,
+        clothes: [CRange; m],
+        q: usize,
+        qs: [CRange; q]
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let clothes = clothes
+        .iter()
+        .copied()
+        .sorted_by_key(|r| (r.right, Reverse(r.left)))
+        .collect_vec();
+
+    let mut right_to_lefts = HashMap::<usize, BTreeSet<usize>>::new();
+    let mut left_to_rights = HashMap::<usize, BTreeSet<usize>>::new();
+    for &c in &clothes {
+        right_to_lefts.entry(c.right).or_default().insert(c.left);
+        left_to_rights.entry(c.left).or_default().insert(c.right);
+    }
+
+    let clothes_to_index = clothes
+        .iter()
+        .copied()
+        .enumerate()
+        .map(|(i, c)| (c, i))
+        .collect::<HashMap<CRange, usize>>();
+
+    // cloths について
+    let has_subset = {
+        let mut has_subset = vec![false; m];
+
+        let mut set: BTreeSet<usize> = BTreeSet::new();
+        for j in 0..m {
+            let cloth = clothes[j];
+            has_subset[j] = set.range(cloth.left..=cloth.right).next().is_some();
+            set.insert(cloth.left);
+        }
+        has_subset
+    };
+
+    let ans = qs
+        .iter()
+        .copied()
+        .map(|q| {
+            // パターン1
+            let pattern1 = {
+                //
+                if let Some(&cloth_idx) = clothes_to_index.get(&q) {
+                    has_subset[cloth_idx]
+                } else {
+                    false
+                }
+            };
+
+            // パターン2
+            let pattern2 = {
+                // 右→左
+                let left = right_to_lefts
+                    .get(&q.right)
+                    .and_then(|set| set.range(q.left..).min());
+
+                // 左→右
+                let right = left_to_rights
+                    .get(&q.left)
+                    .and_then(|set| set.range(..=q.right).max());
+
+                // dbg!(left);
+                // dbg!(right);
+
+                if let (Some(&left), Some(&right)) = (left, right) {
+                    left != q.left && (left as i64) - (right as i64) <= 1
+                } else {
+                    false
+                }
+            };
+            // dbg!(pattern1);
+            // dbg!(pattern2);
+            pattern1 || pattern2
+        })
+        .collect_vec();
+
+    for p in ans {
+        println!("{}", if p { "Yes" } else { "No" });
+    }
 }
 
 #[cfg(test)]
