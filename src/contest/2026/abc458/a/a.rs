@@ -2,11 +2,11 @@
 // #[fastout]
 fn main() {
     input! {
+        xs: Chars,
         n: usize,
-        xs: [i64; n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let ans = &xs[n..xs.len() - n];
+    print_chars(ans);
 }
 
 #[cfg(test)]

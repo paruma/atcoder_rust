@@ -2,10 +2,19 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        xs: Chars,
     }
-    let ans: i64 = -2_i64;
+    let n = xs.len();
+    let ans = (0..n)
+        .map(|i| {
+            //
+            if xs[i] == 'C' {
+                usize::min(i + 1, n - i)
+            } else {
+                0
+            }
+        })
+        .sum::<usize>();
     println!("{}", ans);
 }
 

@@ -2,10 +2,35 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        x1: usize,
+        x2: usize,
+        x3: usize,
     }
-    let ans: i64 = -2_i64;
+    use ac_library::ModInt998244353 as Mint;
+    let sum = x1 + x2 + x3;
+
+    let comb = Comb::<Mint>::new(2 * sum + 2);
+
+    let ans = (0..x1)
+        .map(|k| {
+            // dbg!(k);
+            // 1 が隣り合ってる場所が k 個ある
+            let sub = if x2 < x1 - 1 - k {
+                Mint::new(0)
+            } else {
+                let rem2 = x2 - (x1 - 1 - k);
+                let factor0 = comb.comb(x1 - 1, k);
+                let factor1 = comb.h(x1 + 1 - k, rem2);
+                let factor2 = comb.h(rem2, x3);
+                // dbg!(rem2);
+                // dbg!(factor1);
+                // dbg!(factor2);
+                factor0 * factor1 * factor2
+            };
+            // dbg!(sub);
+            sub
+        })
+        .sum::<Mint>();
     println!("{}", ans);
 }
 
@@ -136,3 +161,91 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use mod_combinatorics::*;
+pub mod mod_combinatorics {
+    use ac_library::modint::ModIntBase;
+    #[derive(Clone, Debug)]
+    pub struct Comb<Mint: ModIntBase> {
+        fac: Vec<Mint>,
+        invfac: Vec<Mint>,
+    }
+    impl<Mint: ModIntBase> Comb<Mint> {
+        /// 階乗とその逆元を `max_val` まで前計算する。
+        /// 計算量: O(max_val)
+        pub fn new(max_val: usize) -> Self {
+            let mut inv = vec![Mint::new(0); max_val + 1];
+            let mut fac = vec![Mint::new(0); max_val + 1];
+            let mut invfac = vec![Mint::new(0); max_val + 1];
+            fac[0] = 1.into();
+            fac[1] = 1.into();
+            invfac[0] = 1.into();
+            invfac[1] = 1.into();
+            inv[1] = 1.into();
+            let modulus = Mint::modulus() as usize;
+            for i in 2..=max_val {
+                inv[i] = -inv[modulus % i] * Mint::new(modulus / i);
+                fac[i] = fac[i - 1] * Mint::new(i);
+                invfac[i] = invfac[i - 1] * inv[i];
+            }
+            Self { fac, invfac }
+        }
+        pub fn comb(&self, n: usize, k: usize) -> Mint {
+            assert!(
+                n < self.fac.len(),
+                "index out of range (n={}, max_val={})",
+                n,
+                self.fac.len() - 1
+            );
+            if n < k {
+                0.into()
+            } else {
+                self.fac[n] * self.invfac[k] * self.invfac[n - k]
+            }
+        }
+
+        pub fn h(&self, n: usize, k: usize) -> Mint {
+            assert!(
+                n < self.fac.len(),
+                "index out of range (n={}, max_val={})",
+                n,
+                self.fac.len() - 1
+            );
+            if n == 0 {
+                0.into()
+            } else {
+                self.comb(n + k - 1, k)
+            }
+        }
+        pub fn perm(&self, n: usize, k: usize) -> Mint {
+            assert!(
+                n < self.fac.len(),
+                "index out of range (n={}, max_val={})",
+                n,
+                self.fac.len() - 1
+            );
+            if n < k {
+                0.into()
+            } else {
+                self.fac[n] * self.invfac[n - k]
+            }
+        }
+        pub fn factorial(&self, n: usize) -> Mint {
+            assert!(
+                n < self.fac.len(),
+                "index out of range (n={}, max_val={})",
+                n,
+                self.fac.len() - 1
+            );
+            self.fac[n]
+        }
+        pub fn inv_factorial(&self, n: usize) -> Mint {
+            assert!(
+                n < self.invfac.len(),
+                "index out of range (n={}, max_val={})",
+                n,
+                self.invfac.len() - 1
+            );
+            self.invfac[n]
+        }
+    }
+}
