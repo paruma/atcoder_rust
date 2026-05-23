@@ -15,16 +15,14 @@ impl Problem {
     fn solve(&self) -> Answer {
         // 解法
         // trie 木を構築する
-        let mut trie = Trie::new();
+        let mut trie = TrieCore::new();
         let mut vals: Vec<i64> = vec![0];
         let mut ans = 0;
 
         for str in &self.strs {
             trie.insert(str);
-            for &node in &trie.node_path(str)[1..] {
-                while vals.len() <= node {
-                    vals.push(0)
-                }
+            vals.resize(trie.num_nodes(), 0);
+            for &node in &trie.trace_nodes(str)[1..] {
                 ans += vals[node];
                 vals[node] += 1;
             }
@@ -191,37 +189,73 @@ fn print_yesno(ans: bool) {
 // ====== snippet ======
 use trie::*;
 #[allow(clippy::module_inception)]
+/// トライ木（接頭辞木）の実装。
+/// 数列（文字列）の集合を管理し、共通接頭辞の検索やノードのパス取得を効率的に行う。
 pub mod trie {
     use std::collections::BTreeMap;
+    /// トライ木の実装。
+    /// 各ノードは `BTreeMap` を用いて、次の文字に対する遷移先ノード ID を保持する。
     #[derive(Clone, Debug)]
-    pub struct Trie<T> {
-        nexts: Vec<BTreeMap<T, usize>>,
+    pub struct TrieCore<T> {
+        children_list: Vec<BTreeMap<T, usize>>,
     }
-    impl<T: Ord + Copy> Trie<T> {
+    impl<T: Ord + Copy> TrieCore<T> {
+        /// 空のトライ木を構築する。
+        /// # 計算量
+        /// O(1)
         pub fn new() -> Self {
             Self {
-                nexts: vec![BTreeMap::new()],
+                children_list: vec![BTreeMap::new()],
             }
         }
+        /// 指定したノード `node` が持つ子ノードへの遷移情報を取得する。
+        /// # 計算量
+        /// O(1)
+        pub fn children(&self, node: usize) -> &BTreeMap<T, usize> {
+            &self.children_list[node]
+        }
+        /// 数列 `xs` をトライ木に挿入する。
+        /// # 計算量
+        /// O(|xs| log Σ) （Σ はアルファベットサイズ、ここでは文字の種類数）
         pub fn insert(&mut self, xs: &[T]) {
             let mut cur_node = 0;
             for &x in xs {
-                if !self.nexts[cur_node].contains_key(&x) {
-                    let new_node = self.nexts.len();
-                    self.nexts[cur_node].insert(x, new_node);
-                    self.nexts.push(BTreeMap::new());
+                if !self.children_list[cur_node].contains_key(&x) {
+                    let new_node = self.children_list.len();
+                    self.children_list[cur_node].insert(x, new_node);
+                    self.children_list.push(BTreeMap::new());
                 }
-                cur_node = self.nexts[cur_node][&x];
+                cur_node = self.children_list[cur_node][&x];
             }
         }
+        /// 指定したノード `cur` から、文字 `x` による遷移先のノード ID を取得する。
+        /// 遷移先が存在しない場合は `None` を返す。
+        /// # 計算量
+        /// O(log Σ)
         pub fn next(&self, cur: usize, x: T) -> Option<usize> {
-            self.nexts[cur].get(&x).copied()
+            self.children_list[cur].get(&x).copied()
         }
-        pub fn node_path(&self, xs: &[T]) -> Vec<usize> {
+        /// 数列 `xs` に対応する終端ノード ID を取得する。
+        /// `xs` がトライ木に含まれない場合は `None` を返す。
+        /// # 計算量
+        /// O(|xs| log Σ)
+        pub fn find_node(&self, xs: &[T]) -> Option<usize> {
+            let mut cur_node = 0;
+            for &x in xs {
+                let next_node = self.next(cur_node, x)?;
+                cur_node = next_node;
+            }
+            Some(cur_node)
+        }
+        /// 数列 `xs` を辿る際に通過するノード ID のリストを返す。
+        /// 途中で遷移できなくなった場合は、そこまでのノード ID リストを返す。
+        /// # 計算量
+        /// O(|xs| log Σ)
+        pub fn trace_nodes(&self, xs: &[T]) -> Vec<usize> {
             let mut cur_node = 0;
             let mut path = vec![cur_node];
             for &x in xs {
-                let Some(&next_node) = self.nexts[cur_node].get(&x) else {
+                let Some(next_node) = self.next(cur_node, x) else {
                     break;
                 };
                 cur_node = next_node;
@@ -229,8 +263,14 @@ pub mod trie {
             }
             path
         }
+        /// トライ木に含まれるノードの総数を返す。
+        /// # 計算量
+        /// O(1)
+        pub fn num_nodes(&self) -> usize {
+            self.children_list.len()
+        }
     }
-    impl<T: Ord + Copy> Default for Trie<T> {
+    impl<T: Ord + Copy> Default for TrieCore<T> {
         fn default() -> Self {
             Self::new()
         }

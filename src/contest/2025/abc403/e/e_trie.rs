@@ -34,7 +34,19 @@ fn main() {
                     trie_x_contains_count[last_node] += 1;
                 }
                 if let Some(last_node) = trie_y.find_node(&q.s) {
-                    cnt -= trie_y_prefix_count[last_node];
+                    // 途中で0になる場合は、それより下はもうない扱い。
+                    if trie_y
+                        .trace_nodes(&q.s)
+                        .iter()
+                        .all(|&node| trie_y_prefix_count[node] >= 1)
+                    {
+                        let last_node_cnt = trie_y_prefix_count[last_node];
+                        cnt -= last_node_cnt;
+                        // last_node の子孫も更新するのが望ましいが、省略する
+                        for node in trie_y.trace_nodes(&q.s) {
+                            trie_y_prefix_count[node] -= last_node_cnt;
+                        }
+                    }
                 }
             }
         } else {
