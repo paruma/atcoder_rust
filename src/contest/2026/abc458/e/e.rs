@@ -13,22 +13,25 @@ fn main() {
 
     let ans = (0..x1)
         .map(|k| {
-            // dbg!(k);
             // 1 が隣り合ってる場所が k 個ある
-            let sub = if x2 < x1 - 1 - k {
+            if x2 < x1 - 1 - k {
                 Mint::new(0)
             } else {
+                // 1が隣り合わない箇所に2を挿入したとき、残りの2の数
+                // 1が隣り合わない箇所は x1 - 1 - k 箇所ある
                 let rem2 = x2 - (x1 - 1 - k);
+
+                // 1の隣り合う箇所の選び方
                 let factor0 = comb.comb(x1 - 1, k);
+
+                // 1 が隣り合っている k 箇所は隣り合うようにして、残りの rem2 個の 2の挿入の仕方。
+                // 挿入箇所が x1 + 1 - k 箇所あり、そこから重複を許して rem2 箇所選んで2を挿入する。
                 let factor1 = comb.h(x1 + 1 - k, rem2);
+
+                // 1 が隣り合わない箇所は rem2 個ある。そこに重複を許して x3 箇所選んで3を挿入する
                 let factor2 = comb.h(rem2, x3);
-                // dbg!(rem2);
-                // dbg!(factor1);
-                // dbg!(factor2);
                 factor0 * factor1 * factor2
-            };
-            // dbg!(sub);
-            sub
+            }
         })
         .sum::<Mint>();
     println!("{}", ans);
