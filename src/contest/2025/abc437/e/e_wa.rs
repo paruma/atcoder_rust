@@ -1,60 +1,81 @@
-struct Trie {
-    children_list: Vec<BTreeMap<i64, usize>>,
+// WA
+// #[fastout]
+fn dfs(
+    index_set: &Vec<HashMap<i64, Vec<usize>>>,
+    children_set: &Vec<HashMap<i64, BTreeSet<i64>>>,
+    levels: &Vec<usize>,
+    level: usize,
+    val: i64,
+    acc: &mut Vec<usize>,
+) {
+    // dbg!(level, val);
+    if index_set[level].contains_key(&val) {
+        for &idx in &index_set[level][&val] {
+            acc.push(idx);
+        }
+    }
+    if children_set[level].contains_key(&val) {
+        for &child in &children_set[level][&val] {
+            dfs(index_set, children_set, levels, level + 1, child, acc);
+        }
+    }
+    // for child in children_set[level].entry(val).or_default() {}
+
+    //
 }
 
-impl Trie {
-    pub fn new() -> Self {
-        Self {
-            children_list: vec![BTreeMap::new()],
-        }
-    }
-
-    pub fn insert1(&mut self, pos: usize, val: i64) -> usize {
-        if !self.children_list[pos].contains_key(&val) {
-            let new_node = self.children_list.len();
-            self.children_list[pos].insert(val, new_node);
-            self.children_list.push(BTreeMap::new());
-        }
-        self.children_list[pos][&val]
-    }
-    fn dfs_internal(&self, cur: usize, acc: &mut Vec<usize>) {
-        for &next in self.children_list[cur].values() {
-            acc.push(next);
-            self.dfs_internal(next, acc);
-        }
-    }
-    pub fn dfs(&self, cur: usize) -> Vec<usize> {
-        let mut acc = vec![];
-        self.dfs_internal(cur, &mut acc);
-        acc
-    }
-    pub fn num_nodes(&self) -> usize {
-        self.children_list.len()
-    }
-}
 fn main() {
     input! {
         n: usize,
         mut xys: [(usize, i64); n],
     }
-    let mut trie: Trie = Trie::new();
 
-    let mut node_to_idx = vec![];
-    let mut index_to_node = vec![usize::MAX; n + 1];
-    index_to_node[0] = 0;
-    for (i, (x, y)) in xys.iter().copied().enumerate().map(|(i, xy)| (i + 1, xy)) {
-        let node = trie.insert1(index_to_node[x], y);
-        node_to_idx.resize(trie.num_nodes(), vec![]);
-        node_to_idx[node].push(i);
-        index_to_node[i] = node;
+    xys.insert(0, (0, 0));
+
+    // let mut tree: Vec<HashMap<i64, (Vec<usize>, Vec<i64>)>> = vec![];
+    // index_set[l][t] = l階層目で追加されたyの値が t となるような添字の集合
+    let mut index_set: Vec<HashMap<i64, Vec<usize>>> = vec![];
+    // FIXME: これだと、l-1階層目の親が異なり、l層目に行くときの文字が同じノードが2つあるとき、意図せずl+1層目の子供が混ざってしまう
+    // children_set[l][t] = l階層目で追加されたyの値が t となるような子どものyの値の集合
+    let mut children_set: Vec<HashMap<i64, BTreeSet<i64>>> = vec![];
+
+    // levels[i]: A[i] がいる階層
+    let mut levels: Vec<usize> = vec![usize::MAX; n + 1];
+
+    index_set.push(HashMap::new());
+    children_set.push(HashMap::new());
+    index_set[0].insert(0, vec![0]); // key はダミー値
+    levels[0] = 0;
+
+    for (i, (x, y)) in xys.iter().copied().enumerate() {
+        if i == 0 {
+            continue;
+        }
+        levels[i] = levels[x] + 1;
+        if levels[i] >= index_set.len() {
+            index_set.push(HashMap::new());
+        }
+        if levels[i] >= children_set.len() {
+            children_set.push(HashMap::new());
+        }
+
+        //children_set[levels[x]].insert(xys[x], i);
+        children_set[levels[x]]
+            .entry(xys[x].1)
+            .or_default()
+            .insert(y);
+        index_set[levels[i]].entry(y).or_default().push(i);
     }
-    let node_dfs = trie.dfs(0);
-    let ans = node_dfs
-        .iter()
-        .copied()
-        .flat_map(|node| node_to_idx[node].iter().copied())
-        .collect_vec();
-    print_vec_1line(&ans);
+    let mut ans = vec![];
+
+    dfs(&index_set, &children_set, &levels, 0, 0, &mut ans);
+
+    // dbg!(ans);
+    // dbg!(levels);
+    // dbg!(children_set);
+    // dbg!(index_set);
+
+    print_vec(&ans[1..]);
 }
 
 #[cfg(test)]
@@ -116,7 +137,7 @@ mod tests {
 }
 
 // ====== import ======
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeSet;
 #[allow(unused_imports)]
 use {
     itertools::{Itertools, chain, iproduct, izip},
