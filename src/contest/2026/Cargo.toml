@@ -702,3 +702,31 @@ path = "abc458/f/f.rs"
 [[bin]]
 name = "abc458_g"
 path = "abc458/g/g.rs"
+
+[[bin]]
+name = "abc459_a"
+path = "abc459/a/a.rs"
+
+[[bin]]
+name = "abc459_b"
+path = "abc459/b/b.rs"
+
+[[bin]]
+name = "abc459_c"
+path = "abc459/c/c.rs"
+
+[[bin]]
+name = "abc459_d"
+path = "abc459/d/d.rs"
+
+[[bin]]
+name = "abc459_e"
+path = "abc459/e/e.rs"
+
+[[bin]]
+name = "abc459_f"
+path = "abc459/f/f.rs"
+
+[[bin]]
+name = "abc459_g"
+path = "abc459/g/g.rs"
