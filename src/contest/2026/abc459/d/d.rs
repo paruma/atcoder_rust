@@ -1,12 +1,45 @@
 // 問題文と制約は読みましたか？
 // #[fastout]
+// #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        t: usize
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    for _ in 0..t {
+        input! {
+            xs: Chars,
+        }
+
+        let cnts = xs
+            .iter()
+            .copied()
+            .counts()
+            .iter()
+            .sorted_by_key(|(key, cnt)| Reverse(**cnt))
+            .map(|(key, value)| (*key, *value))
+            .collect_vec();
+
+        let mut ans = vec!['.'; xs.len()];
+        let mut cursor = 0;
+
+        for (ch, cnt) in cnts {
+            for _ in 0..cnt {
+                ans[cursor] = ch;
+                cursor += 2;
+                if cursor >= xs.len() {
+                    cursor = 1;
+                }
+            }
+        }
+        let is_ok = ans.iter().copied().tuple_windows().all(|(x1, x2)| x1 != x2);
+        if is_ok {
+            println!("Yes");
+            println!("{}", ans.iter().collect::<String>());
+        } else {
+            println!("No");
+        }
+    }
 }
 
 #[cfg(test)]

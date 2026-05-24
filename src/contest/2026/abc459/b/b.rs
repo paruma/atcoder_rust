@@ -3,10 +3,16 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        xss: [Chars; n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let map = [
+        2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 9, 9, 9, 9,
+    ];
+    let ans = xss
+        .iter()
+        .map(|xs| map[xs[0] as usize - 'a' as usize])
+        .collect_vec();
+    println!("{}", ans.iter().join(""));
 }
 
 #[cfg(test)]

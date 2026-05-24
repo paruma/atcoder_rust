@@ -2,11 +2,15 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        x: Usize1
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let ans: Vec<char> = "HelloWorld"
+        .chars()
+        .enumerate()
+        .filter(|(i, _)| *i != x)
+        .map(|(_, x)| x)
+        .collect_vec();
+    print_chars(&ans);
 }
 
 #[cfg(test)]

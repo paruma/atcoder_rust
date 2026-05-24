@@ -1,11 +1,77 @@
+fn tree_cumsum(adj: &[Vec<usize>], xs: &[i64], root: usize) -> Vec<i64> {
+    let children = make_tree_children(adj, root);
+    let order = dfs_post_order(adj, root);
+
+    let nv = adj.len();
+
+    let mut dp = vec![0; nv];
+    for cur in order {
+        let children_sum = children[cur]
+            .iter()
+            .copied()
+            .map(|child| dp[child])
+            .sum::<i64>();
+        dp[cur] = children_sum + xs[cur];
+    }
+    dp
+}
+
+use ac_library::ModInt998244353 as Mint;
+
+fn nck(n: i64, k: i64) -> Mint {
+    if n < k {
+        Mint::new(0)
+    } else {
+        // 分子
+        let f1 = (n - k + 1..=n).map(Mint::new).product::<Mint>();
+        // 分母
+        let f2 = (1..=k).map(Mint::new).product::<Mint>();
+
+        f1 / f2
+    }
+}
+
 // 問題文と制約は読みましたか？
 // #[fastout]
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        mut ps: [Usize1; n - 1],
+        cs: [i64; n],
+        ds: [i64; n],
     }
-    let ans: i64 = -2_i64;
+    ps.insert(0, 0);
+
+    let adj = ps
+        .iter()
+        .copied()
+        .enumerate()
+        .fold(vec![vec![]; n], |mut acc, (i, x)| {
+            acc[i].push(x);
+            acc[x].push(i);
+            acc
+        });
+
+    // 葉から累積和
+    let cum_cs = tree_cumsum(&adj, &cs, 0);
+    let cum_ds = tree_cumsum(&adj, &ds, 0);
+
+    // dbg!(&cs);
+    // dbg!(&ds);
+    // dbg!(&cum_cs);
+    // dbg!(&cum_ds);
+
+    let ans = (0..n)
+        .map(|i| {
+            let sum_cs = cum_cs[i];
+            let sum_ds = cum_ds[i];
+
+            let all = sum_cs - sum_ds + ds[i];
+            let n_take = ds[i];
+            nck(all, n_take)
+        })
+        .product::<Mint>();
+
     println!("{}", ans);
 }
 
@@ -136,3 +202,48 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+/// 根付き木の隣接リスト `adj` と根 `root` から、各頂点の子頂点リストを求めます。
+/// # 計算量
+/// O(V + E)
+pub fn make_tree_children(adj: &[Vec<usize>], root: usize) -> Vec<Vec<usize>> {
+    let n = adj.len();
+    let mut children = vec![vec![]; n];
+    let mut visited = vec![false; n];
+    let mut queue = std::collections::VecDeque::new();
+    visited[root] = true;
+    queue.push_back(root);
+    while let Some(v) = queue.pop_front() {
+        for &u in &adj[v] {
+            if !visited[u] {
+                visited[u] = true;
+                children[v].push(u);
+                queue.push_back(u);
+            }
+        }
+    }
+    children
+}
+/// 深さ優先探索 (DFS) を行い、帰りがけ順 (post-order) での頂点順序を返します。
+/// # 計算量
+/// O(V + E)
+pub fn dfs_post_order(adj: &[Vec<usize>], init: usize) -> Vec<usize> {
+    fn dfs(
+        adj: &[Vec<usize>],
+        current: usize,
+        visited: &mut Vec<bool>,
+        post_order: &mut Vec<usize>,
+    ) {
+        visited[current] = true;
+        for &next in &adj[current] {
+            if !visited[next] {
+                dfs(adj, next, visited, post_order);
+            }
+        }
+        post_order.push(current);
+    }
+    let nv = adj.len();
+    let mut visited = vec![false; nv];
+    let mut post_order = vec![];
+    dfs(adj, init, &mut visited, &mut post_order);
+    post_order
+}
