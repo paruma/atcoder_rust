@@ -3,9 +3,29 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        m: usize,
+        mut xs: [i64; n], // シャリ
+        mut ys: [i64; m], // ネタ
     }
-    let ans: i64 = -2_i64;
+
+    xs.sort();
+    ys.sort();
+
+    let mut xs_itr = xs.iter().copied().peekable();
+
+    let mut cnt = 0;
+
+    for y in ys {
+        while let Some(next_x) = xs_itr.next() {
+            if next_x * 2 >= y {
+                cnt += 1;
+                break;
+            }
+        }
+        //
+    }
+
+    let ans: i64 = cnt;
     println!("{}", ans);
 }
 

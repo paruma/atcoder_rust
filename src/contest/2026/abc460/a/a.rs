@@ -2,10 +2,14 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        n: i64,
+        m: i64,
     }
-    let ans: i64 = -2_i64;
+    let ans = std::iter::successors(Some(m), |acc| {
+        let ans = (n % acc);
+        if ans == 0 { None } else { Some(ans) }
+    })
+    .count();
     println!("{}", ans);
 }
 
