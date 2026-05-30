@@ -15,7 +15,7 @@ fn main() {
             .iter()
             .copied()
             .counts()
-            .iter()
+            .iter() // into_iter を使うと、.map(|(key, value)| (*key, *value)) が不要になる。
             .sorted_by_key(|(key, cnt)| Reverse(**cnt))
             .map(|(key, value)| (*key, *value))
             .collect_vec();

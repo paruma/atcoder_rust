@@ -3,9 +3,29 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        txs: [(i64, i64); n],
     }
-    let ans: i64 = -2_i64;
+
+    let uvs = txs
+        .iter()
+        .copied()
+        .map(|(t, x)| (t - x, t + x))
+        .collect_vec();
+
+    // u でソート。ただし、同率の u がある場合は v が小さい方を左に置く
+    let vs_sorted = uvs.iter().copied().sorted().map(|(_, v)| v).collect_vec();
+
+    // 部分列の末尾を入れた集合
+    let mut set: BTreeSet<i64> = BTreeSet::new();
+
+    for v in vs_sorted {
+        if let Some(last) = set.range(..=v).max().copied() {
+            set.remove(&last);
+        }
+        set.insert(v);
+    }
+
+    let ans: usize = set.len();
     println!("{}", ans);
 }
 
