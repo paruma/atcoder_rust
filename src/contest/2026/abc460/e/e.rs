@@ -1,6 +1,7 @@
 use ac_library::ModInt998244353 as Mint;
 
 fn solve(n: i128, m: i128) -> Mint {
+    // 1 <= n <= 10^18 が n の制約。最大は18桁ではなく19桁！！！
     (1..=19)
         .map(|k| {
             // k: 桁
@@ -16,7 +17,7 @@ fn solve(n: i128, m: i128) -> Mint {
             // 10^k * x ≡ x (mod m)
             // (10^k - 1) x ≡ 0 (mod m)
             // A = 10^k - 1 とおいて
-            // ax = my
+            // ax = mz
             // n = 13, m = 4, a=99 のとき
             // x = 4, 8, 12 (floor(13/4)個)
             // 一般には floor(n/(m/ gcd(a,m))個

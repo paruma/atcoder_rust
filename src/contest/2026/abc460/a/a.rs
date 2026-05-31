@@ -5,11 +5,7 @@ fn main() {
         n: i64,
         m: i64,
     }
-    let ans = std::iter::successors(Some(m), |acc| {
-        let ans = (n % acc);
-        if ans == 0 { None } else { Some(ans) }
-    })
-    .count();
+    let ans = std::iter::successors(Some(m), |&acc| n.checked_rem(acc)).count() - 1;
     println!("{}", ans);
 }
 

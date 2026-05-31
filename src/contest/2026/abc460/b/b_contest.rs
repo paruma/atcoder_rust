@@ -1,22 +1,35 @@
 // 問題文と制約は読みましたか？
+// #[fastout]
+// #[fastout]
 fn main() {
     input! {
         t: usize
     }
     for _ in 0..t {
         input! {
-            p1: PosXY,
-            r1: i64,
-            p2: PosXY,
-            r2: i64,
+            x1: i128,
+            y1: i128,
+            r1: i128,
+            x2: i128,
+            y2: i128,
+            r2: i128,
         }
 
-        let d2 = p1.dist_square(p2);
-        // d = dist(p1, p2) にはルートがつくため、2乗した形を作る。
-        // |r1 - r2| <= d <= r1 + r2
-        // (r1- r2)^2 <= d^2 <= (r1 + r2)^2
+        let d2 = {
+            let delx = x1 - x2;
+            let dely = y1 - y2;
 
-        let ans = ((r1 - r2).pow(2)..=(r1 + r2).pow(2)).contains(&d2);
+            delx * delx + dely * dely
+        };
+
+        // 勘違いして、r1, r2 を二乗しようとしてしまった（√を外す気持ちだけど元から√はついていない）
+        let r12 = r1 * r1;
+        let r22 = r2 * r2;
+
+        let cond1 = { r12 + r22 - d2 < 0 || (r12 + r22 - d2) * (r12 + r22 - d2) <= 4 * r12 * r22 };
+
+        let cond2 = { d2 - r12 - r22 < 0 || (r12 + r22 - d2) * (r12 + r22 - d2) <= 4 * r12 * r22 };
+        let ans = cond1 && cond2;
         print_yesno(ans);
     }
 }
