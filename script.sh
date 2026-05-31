@@ -22,5 +22,5 @@ if [ -n "$ZSH_VERSION" ]; then
 fi
 
 # あらかじめライブラリをビルドしておいて、ビルド時間を短縮させる
-cargo build -p atcoder_rust_2026 2>/dev/null &
-cargo build -p atcoder_rust_2026 --release 2>/dev/null &
+(cargo build -p atcoder_rust_2026 2>/dev/null &)
+(cargo build -p atcoder_rust_2026 --release 2>/dev/null &)
