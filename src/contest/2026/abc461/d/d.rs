@@ -1,11 +1,57 @@
 // 問題文と制約は読みましたか？
 // #[fastout]
+
+// k 以下
+fn solve(h: usize, w: usize, cumsum: &CumSum2D, k: i64) -> i64 {
+    if k < 0 {
+        return 0;
+    }
+    (0..=w)
+        .tuple_combinations()
+        .map(|(l, r)| {
+            let mut u = 0;
+            let mut cnt = 0;
+            for d in 1..=h {
+                while cumsum.rect_sum(u..d, l..r) > k {
+                    u += 1;
+                }
+                cnt += (d - u) as i64;
+            }
+            cnt
+        })
+        .sum::<i64>()
+}
+
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        h: usize, w: usize,
+        k: i64,
+        grid: [Chars; h],
     }
-    let ans: i64 = -2_i64;
+
+    let grid = grid
+        .iter()
+        .map(|row| {
+            row.iter()
+                .copied()
+                .map(|ch| (ch == '1') as i64)
+                .collect_vec()
+        })
+        .collect_vec();
+    let cumsum = {
+        let mut cumsum = vec![vec![0; w + 1]; h + 1];
+        for y in 1..h + 1 {
+            for x in 1..w + 1 {
+                cumsum[y][x] =
+                    cumsum[y - 1][x] + cumsum[y][x - 1] - cumsum[y - 1][x - 1] + grid[y - 1][x - 1];
+            }
+        }
+        cumsum
+    };
+
+    let cumsum = CumSum2D::new(&grid);
+
+    let ans: i64 = solve(h, w, &cumsum, k) - solve(h, w, &cumsum, k - 1);
     println!("{}", ans);
 }
 
@@ -136,3 +182,59 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use cumsum_2d::*;
+#[allow(clippy::module_inception)]
+pub mod cumsum_2d {
+    use std::ops::{Bound, Range, RangeBounds};
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct CumSum2D {
+        pub cumsum: Vec<Vec<i64>>,
+    }
+    impl CumSum2D {
+        pub fn new(xss: &[Vec<i64>]) -> CumSum2D {
+            if xss.is_empty() {
+                return CumSum2D {
+                    cumsum: vec![vec![0]],
+                };
+            }
+            let height = xss.len();
+            let width = xss[0].len();
+            let mut cumsum = vec![vec![0; width + 1]; height + 1];
+            for y in 1..height + 1 {
+                for x in 1..width + 1 {
+                    cumsum[y][x] = cumsum[y - 1][x] + cumsum[y][x - 1] - cumsum[y - 1][x - 1]
+                        + xss[y - 1][x - 1];
+                }
+            }
+            CumSum2D { cumsum }
+        }
+        pub fn rect_sum(
+            &self,
+            y_range: impl RangeBounds<usize>,
+            x_range: impl RangeBounds<usize>,
+        ) -> i64 {
+            let y_len = self.cumsum.len() - 1;
+            let x_len = self.cumsum[0].len() - 1;
+            let y_range = open(y_range, y_len);
+            let x_range = open(x_range, x_len);
+            let y1 = y_range.start;
+            let y2 = y_range.end;
+            let x1 = x_range.start;
+            let x2 = x_range.end;
+            self.cumsum[y2][x2] - self.cumsum[y2][x1] - self.cumsum[y1][x2] + self.cumsum[y1][x1]
+        }
+    }
+    fn open(range: impl RangeBounds<usize>, len: usize) -> Range<usize> {
+        let begin = match range.start_bound() {
+            Bound::Unbounded => 0,
+            Bound::Included(&x) => x,
+            Bound::Excluded(&x) => x + 1,
+        };
+        let end = match range.end_bound() {
+            Bound::Excluded(&x) => x,
+            Bound::Included(&x) => x + 1,
+            Bound::Unbounded => len,
+        };
+        begin..end
+    }
+}

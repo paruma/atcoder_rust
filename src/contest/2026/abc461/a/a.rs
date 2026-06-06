@@ -2,11 +2,11 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        a: usize,
+        d: usize,
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let ans: bool = a <= d;
+    print_yesno(ans);
 }
 
 #[cfg(test)]

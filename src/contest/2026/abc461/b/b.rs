@@ -3,10 +3,12 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        a_s: [Usize1; n],
+        b_s: [Usize1; n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    let ans: bool = (0..n).all(|i| b_s[a_s[i]] == i);
+    print_yesno(ans);
 }
 
 #[cfg(test)]
