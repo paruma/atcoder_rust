@@ -43,14 +43,18 @@ impl Problem {
                 let x = x as usize;
                 iproduct!(&x_to_n_mod2[x % pow_2_9], &x_to_n_mod5[x % pow_5_9])
                     .filter_map(|(&n2, &n5)| {
-                        let crt_result = {
-                            let result = ac_library::crt(
-                                &[n2 as i64, n5 as i64],
-                                &[pow_2_9 as i64, 4 * pow_5_9 as i64],
-                            );
-                            if result == (0, 0) { None } else { Some(result) }
-                        };
-                        crt_result.map(|(r, _m)| r)
+                        let n5 = n5 % pow_5_9;
+                        let cand0 = ac_library::crt(
+                            &[n2 as i64, n5 as i64],
+                            &[pow_2_9 as i64, pow_5_9 as i64],
+                        )
+                        .0;
+                        if ac_library::pow_mod(cand0, cand0, (pow_2_9 * pow_5_9) as u32) == x as u32
+                        {
+                            Some(cand0)
+                        } else {
+                            None
+                        }
                     })
                     .min()
                     .unwrap()
