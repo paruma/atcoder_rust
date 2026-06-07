@@ -1,4 +1,5 @@
-// コンテスト後のリファクタリング
+// 問題文と制約は読みましたか？
+// #[fastout]
 fn main() {
     input! {
         n: usize,
@@ -8,47 +9,27 @@ fn main() {
     }
 
     // 色ごとに価値ソート
-    let by_color = {
-        let mut by_color = vec![vec![]; n];
+    let mut by_color = vec![vec![]; n];
 
-        for &(c, v) in &cvs {
-            by_color[c].push(v);
-        }
+    for &(c, v) in &cvs {
+        by_color[c].push(v);
+    }
 
-        for c in 0..n {
-            by_color[c].sort_by_key(|v| Reverse(*v));
-        }
-        by_color
-    };
-
-    // 2段階で選ぶ
-    // 第1段階: 各色のトップから m 個選ぶ
-    // 第2段階: 第1段階で選んだ m 個を除いた残りのもので k - m 個を選ぶ
-
-    // c2.rs の top, other では 1つの for ループで両方計算してた。
-    // 関心の分離をして、コードが多少重複してでも別の for ループで計算するようにする。
     // 各色のトップの価値
-    let top = {
-        let mut top = vec![];
-        for c in 0..n {
-            if !by_color[c].is_empty() {
-                top.push(by_color[c][0]);
-            }
-        }
-        top.sort_by_key(|&v| Reverse(v));
-        top
-    };
+    let mut top = vec![];
+    let mut other: Vec<i64> = vec![];
 
-    let other = {
-        let mut other: Vec<i64> = vec![];
-        for c in 0..n {
-            if !by_color[c].is_empty() {
-                other.extend(&by_color[c][1..]);
-            }
+    for c in 0..n {
+        if !by_color[c].is_empty() {
+            by_color[c].sort_by_key(|v| Reverse(*v));
+            top.push(by_color[c][0]);
+            other.extend(&by_color[c][1..]);
         }
-        other.extend(&top[m..]);
-        other
-    };
+    }
+
+    top.sort_by_key(|&v| Reverse(v));
+    other.extend(&top[m..]); // 各色のトップの中でトップmより下は other に入れて、再度選択対象に入れる
+    other.sort_by_key(|&v| Reverse(v));
 
     let ans = top[..m].iter().sum::<i64>() + other[..k - m].iter().sum::<i64>();
     println!("{}", ans);
