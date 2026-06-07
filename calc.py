@@ -5,6 +5,26 @@ import rlcompleter
 import readline
 readline.parse_and_bind('tab: complete')
 
+# 数値を3桁カンマ区切りで表示する
+import sys
+def comma_displayhook(value):
+    if value is None:
+        return
+    import builtins
+    builtins._ = None
+    if isinstance(value, int):
+        if abs(value) >= 10000:
+            s_comma = f"{value:,}"
+            s_sci = f"{value:.2e}"
+            m, e = s_sci.split('e')
+            print(f"{s_comma} ({m}×10^{int(e)})")
+        else:
+            print(f"{value:,}")
+    else:
+        print(repr(value))
+    builtins._ = value
+sys.displayhook = comma_displayhook
+
 
 from math import prod, gcd, lcm, comb, perm, factorial, log10, log2
 import functools
