@@ -5,7 +5,7 @@ import rlcompleter
 import readline
 readline.parse_and_bind('tab: complete')
 
-# 数値を3桁カンマ区切りで表示する
+# 数値を3桁カンマ区切りおよび指数表記（10^4以上）で表示する
 import sys
 def comma_displayhook(value):
     if value is None:
