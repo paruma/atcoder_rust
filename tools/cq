@@ -1,0 +1,194 @@
+#!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.9"
+# dependencies = []
+# ///
+
+import argparse
+import builtins
+import re
+import sys
+from collections.abc import Callable
+from math import *  # noqa: F403
+
+
+class P:
+    """関数をパイプライン対応にするラッパー"""
+
+    def __init__(self, func: Callable) -> None:
+        self.func = func
+
+    def __or__(self, other: Callable) -> "P":
+        # self | other -> other(self(x))
+        if callable(other):
+            return P(lambda x: other(self.func(x)))
+        return NotImplemented
+
+    def __ror__(self, other: any) -> any:
+        # data | self -> self(data)
+        return self.func(other)
+
+    def __call__(self, *args: any, **kwargs: any) -> any:
+        return self.func(*args, **kwargs)
+
+
+class V(list):
+    """競プロ特化型の配列・行列クラス"""
+
+    def __init__(self, data: str | list | tuple | int) -> None:
+        if isinstance(data, str):
+            # 空白・改行でパースして数値を取り出す
+            lines = [line.strip() for line in data.strip().splitlines() if line.strip()]
+            if len(lines) > 1:
+                # 複数行なら2次元配列（行列）として扱う
+                data = [V(line) for line in lines]
+            else:
+                # 1行なら1次元配列として扱う
+                data = [self._num(x) for x in re.findall(r"-?\d+", lines[0])]
+        elif isinstance(data, (list, tuple)):
+            # 要素がイテラブルなら再帰的に V に変換
+            data = [V(x) if isinstance(x, (list, tuple)) else x for x in data]
+        super().__init__(data if isinstance(data, list) else [data])
+
+    def _num(self, x: str) -> int | str:
+        """文字列を整数に変換"""
+        try:
+            return int(x)
+        except (ValueError, TypeError):
+            return x
+
+    def __add__(self, n: int | list) -> "V":
+        return self._op(lambda a, b: a + b, n)
+
+    def __sub__(self, n: int | list) -> "V":
+        return self._op(lambda a, b: a - b, n)
+
+    def __mul__(self, n: int | list) -> "V":
+        return self._op(lambda a, b: a * b, n)
+
+    def __truediv__(self, n: int | list) -> "V":
+        return self._op(lambda a, b: a / b, n)
+
+    def __floordiv__(self, n: int | list) -> "V":
+        return self._op(lambda a, b: a // b, n)
+
+    def __mod__(self, n: int | list) -> "V":
+        return self._op(lambda a, b: a % n, n)
+
+    def __pow__(self, n: int | list) -> "V":
+        return self._op(lambda a, b: a**b, n)
+
+    def __or__(self, func: Callable[["V"], any]) -> any:
+        """パイプライン演算子 (|) のサポート"""
+        if callable(func):
+            res = func(self)
+            return V(res) if isinstance(res, list) and not isinstance(res, V) else res
+        return NotImplemented
+
+    def _op(self, func: Callable[[object, object], object], n: int | list) -> "V":
+        if isinstance(n, int):
+            return V(
+                [func(x, n) if not isinstance(x, V) else x._op(func, n) for x in self]
+            )
+        if isinstance(n, list):
+            return V([func(a, b) for a, b in zip(self, n, strict=False)])
+        return self
+
+    @property
+    def s(self) -> int:
+        """全要素の総和"""
+        return builtins.sum(x.s if isinstance(x, V) else x for x in self)
+
+    @property
+    def T(self) -> "V":
+        """転置行列"""
+        if not self or not isinstance(self[0], V):
+            return self
+        return V(list(map(V, zip(*self, strict=False))))
+
+    @property
+    def sorted(self) -> "V":
+        return V(builtins.sorted(self))
+
+    def map(self, func: Callable) -> "V":
+        return V([func(x) for x in self])
+
+    def __repr__(self) -> str:
+        if any(isinstance(x, V) for x in self):
+            return "\n".join(repr(x) for x in self)
+        return " ".join(map(str, self))
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="競プロ用 jq 風 CLI ツール (cq)",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+利用可能な関数 (パイプ | で連結可能):
+  sum    : 総和 (全要素)
+  T      : 転置
+  sorted : ソート
+  map(f) : 各要素への適用 (例: map(sum))
+
+使用例:
+  echo 3 4 5 | cq '-1'
+  => 2 3 4
+
+  echo 3 4 5 | cq sum
+  => 12
+
+  echo -e "2 1\\n1 2" | cq sorted
+  => 1 2
+     2 1
+
+  echo -e "2 1\\n1 2" | cq "T | sorted | T"
+  => 1 2
+     2 1
+
+  echo -e "1 2\\n3 4" | cq "map(sum)"
+  => 3 7
+""",
+    )
+    parser.add_argument("expr", nargs="?", default="_", help="実行する式または関数")
+    args = parser.parse_args()
+
+    if sys.stdin.isatty():
+        parser.print_help()
+        return
+
+    raw = sys.stdin.read()
+    if not raw.strip():
+        return
+    _data = V(raw)
+
+    expr = args.expr
+    if any(expr.startswith(op) for op in ["+", "-", "*", "/", "%", "**"]):
+        expr = "_" + expr
+
+    # 評価用コンテキスト
+    ctx = {
+        "_": _data,
+        "V": V,
+        "sum": P(lambda x: x.s if hasattr(x, "s") else builtins.sum(x)),
+        "T": P(lambda x: x.T if hasattr(x, "T") else x),
+        "sorted": P(lambda x: V(builtins.sorted(x))),
+        "map": lambda f: P(
+            lambda x: x.map(f) if hasattr(x, "map") else V(builtins.map(f, x))
+        ),
+    }
+    ctx.update({k: v for k, v in globals().items() if not k.startswith("__")})
+
+    try:
+        res = eval(expr, ctx)
+        if callable(res):
+            res = res(_data)
+        if isinstance(res, list) and not isinstance(res, V):
+            res = V(res)
+        if res is not None:
+            print(res)
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+
+
+if __name__ == "__main__":
+    main()
