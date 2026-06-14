@@ -1,12 +1,50 @@
-// 問題文と制約は読みましたか？
-// #[fastout]
+fn solve(a: i64, b: i64, x: i64, y: i64) -> i64 {
+    let x = x.abs();
+    let y = y.abs();
+
+    if a >= b {
+        let a = i64::min(a, b * 3);
+        if x >= y {
+            let rem = x - y;
+            b * 2 * y + a * num_integer::div_ceil(rem, 2) + b * num_integer::div_floor(rem, 2)
+        } else {
+            // x < y
+            let rem = y - x;
+            // dbg!(rem);
+            b * 2 * x + b * num_integer::div_ceil(rem, 2) + a * num_integer::div_floor(rem, 2)
+        }
+    } else {
+        let b = i64::min(b, a * 3);
+        if x >= y {
+            let rem = x - y;
+            // dbg!(rem);
+            a * 2 * y + a * num_integer::div_ceil(rem, 2) + b * num_integer::div_floor(rem, 2)
+        } else {
+            // x < y
+            let rem = y - x;
+            // dbg!(rem);
+            a * 2 * x + b * num_integer::div_ceil(rem, 2) + a * num_integer::div_floor(rem, 2)
+        }
+    }
+}
+
+#[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        t: usize
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    for _ in 0..t {
+        input! {
+            a: i64,
+            b: i64,
+            x: i64,
+            y: i64,
+        }
+
+        let ans = solve(a, b, x, y);
+        println!("{}", ans);
+    }
 }
 
 #[cfg(test)]
@@ -68,6 +106,7 @@ mod tests {
 }
 
 // ====== import ======
+use num::Integer;
 #[allow(unused_imports)]
 use {
     itertools::{Itertools, chain, iproduct, izip},

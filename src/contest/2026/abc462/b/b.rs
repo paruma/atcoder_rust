@@ -3,10 +3,32 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    let xss = (0..n)
+        .map(|_| {
+            input! {
+                k: usize,
+                xs: [Usize1; k],
+            }
+            xs
+        })
+        .collect_vec();
+
+    let mut ans = vec![vec![]; n];
+
+    for from in 0..n {
+        for &to in &xss[from] {
+            ans[to].push(from);
+        }
+    }
+
+    for row in ans {
+        let msg = std::iter::once(row.len())
+            .chain(row.iter().copied().map(|x| x + 1))
+            .collect_vec();
+        print_vec_1line(&msg);
+    }
 }
 
 #[cfg(test)]
