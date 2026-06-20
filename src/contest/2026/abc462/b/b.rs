@@ -3,17 +3,8 @@
 fn main() {
     input! {
         n: usize,
+        xss: [[Usize1]; n]
     }
-
-    let xss = (0..n)
-        .map(|_| {
-            input! {
-                k: usize,
-                xs: [Usize1; k],
-            }
-            xs
-        })
-        .collect_vec();
 
     let mut ans = vec![vec![]; n];
 
