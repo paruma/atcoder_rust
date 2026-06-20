@@ -196,9 +196,8 @@ mod tests {
 
 // ====== import ======
 #[allow(unused_imports)]
-use itertools::{chain, iproduct, izip, Itertools};
+use itertools::{Itertools, chain, iproduct, izip};
 use num_integer::Roots;
-use pathfinding::matrix::directions::E;
 #[allow(unused_imports)]
 use proconio::{
     derive_readable, fastout, input,
