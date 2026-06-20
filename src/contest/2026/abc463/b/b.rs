@@ -3,10 +3,11 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        x: char,
+        xss: [Chars; n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let ans = (0..n).any(|i| xss[i][x as usize - 'A' as usize] == 'o');
+    print_yesno(ans);
 }
 
 #[cfg(test)]

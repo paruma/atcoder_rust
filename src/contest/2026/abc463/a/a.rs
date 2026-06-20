@@ -2,11 +2,11 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        x: i64,
+        y: i64,
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let ans: bool = x * 9 == y * 16;
+    print_yesno(ans);
 }
 
 #[cfg(test)]
