@@ -38,16 +38,6 @@ fn main() {
                 .collect_vec()
         })
         .collect_vec();
-    let cumsum = {
-        let mut cumsum = vec![vec![0; w + 1]; h + 1];
-        for y in 1..h + 1 {
-            for x in 1..w + 1 {
-                cumsum[y][x] =
-                    cumsum[y - 1][x] + cumsum[y][x - 1] - cumsum[y - 1][x - 1] + grid[y - 1][x - 1];
-            }
-        }
-        cumsum
-    };
 
     let cumsum = CumSum2D::new(&grid);
 
