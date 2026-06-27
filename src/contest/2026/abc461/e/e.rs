@@ -1,30 +1,32 @@
-// 問題文と制約は読みましたか？
-// #[fastout]
+// R行目をすべて塗る場合は、前回R行目をすべて塗った後から、塗った列の種類数が求まればよい。
+// 種類数は列が重複している場合、一番最後に塗ったものをカウントしてあげればよい
+// C列目をすべて塗るの場合も同様
+// 一般に種類数を考えるときは、同じ値が複数ある場合は、最小添字（または最大添字）の数を数えるとうまくいく。
+
 fn main() {
     input! {
         n: usize,
         nq: usize,
     }
 
-    let mut last_row = vec![0; n];
-    let mut last_col = (1..=n).collect_vec();
-    let mut ft_row = RangeAddFenwickTreeI64::new(1 + n + nq);
-    let mut ft_col = RangeAddFenwickTreeI64::new(1 + n + nq);
+    // last_row_time[row] = row を最後に塗った時刻 (塗っていない場合は None)
+    let mut last_row_time: Vec<Option<usize>> = vec![None; n];
+    let mut last_col_time: Vec<Option<usize>> = vec![None; n];
 
-    for i in 0..n {
-        let time = 1 + i;
-        ft_col.range_add(0..time, 1);
+    // cnt_row[i] = 時刻 i に行が塗られて、時刻 i から処理時点まででその行がまだ塗られていない場合は1、そうでない場合は0
+    let mut cnt_row = RangeSumFenwickTreeI64::new(n + nq);
+    let mut cnt_col = RangeSumFenwickTreeI64::new(n + nq);
+
+    // 各列を白で塗る
+    for c in 0..n {
+        last_col_time[c] = Some(c);
+        cnt_col.add(c, 1);
     }
 
-    let mut ans = 0_i64;
+    let mut cnt_black = 0_i64;
 
     for i in 0..nq {
-        // lg!(&last_row);
-        // lg!(&last_col);
-        // lg!(&ft_row.to_vec());
-        // lg!(&ft_col.to_vec());
-
-        let time = 1 + n + i;
+        let cur_time = n + i;
         input! {
             t: usize
         }
@@ -33,25 +35,36 @@ fn main() {
             input! {
                 row: Usize1,
             }
+            // last_row[row] から現在の時刻までで白を塗った行が何種類あるか
+            let kind_white = cnt_col.range_sum(last_row_time[row].map_or(0, |x| x + 1)..cur_time);
+            // kind_white の数だけ白→黒にする
+            cnt_black += kind_white;
 
-            let n_kind = ft_col.get(last_row[row]);
-            // dbg!(last_row[row]);
-            // dbg!(n_kind);
-            ans += n_kind;
-            ft_row.range_add(last_row[row]..=time, 1);
-            last_row[row] = time;
+            // 種類数は最新のものだけカウントする（過去のものはカウントから外す）
+            if let Some(last_time) = last_row_time[row] {
+                cnt_row.add(last_time, -1);
+            }
+            cnt_row.add(cur_time, 1);
+
+            last_row_time[row] = Some(cur_time);
         } else {
             input! {
                 col: Usize1,
             }
-            let n_kind = ft_row.get(last_col[col]);
-            // dbg!(n_kind);
-            ans -= n_kind;
+            // last_col[col] から現在の時刻までで黒を塗った行が何種類あるか
+            let kind_black = cnt_row.range_sum(last_col_time[col].map_or(0, |x| x + 1)..cur_time);
+            // kind_black の数だけ黒→白にする
+            cnt_black -= kind_black;
 
-            ft_col.range_add(last_col[col]..=time, 1);
-            last_col[col] = time;
+            // 種類数は最新のものだけカウントする（過去のものはカウントから外す）
+            if let Some(last_time) = last_col_time[col] {
+                cnt_col.add(last_time, -1);
+            }
+            cnt_col.add(cur_time, 1);
+
+            last_col_time[col] = Some(cur_time);
         }
-        println!("{}", ans);
+        println!("{}", cnt_black);
     }
 }
 
@@ -183,8 +196,62 @@ pub mod print_util {
 
 // ====== snippet ======
 use ab_group::*;
-use range_add_fenwick_tree::*;
 use range_sum_fenwick_tree::*;
+#[allow(clippy::module_inception)]
+pub mod ab_group {
+    use std::{
+        convert::Infallible,
+        iter::Sum,
+        marker::PhantomData,
+        ops::{Add, Neg, Sub},
+    };
+    /// 可換群 (Abelian Group)
+    pub trait AbGroup {
+        type S: Clone;
+        fn zero() -> Self::S;
+        fn add(a: &Self::S, b: &Self::S) -> Self::S;
+        fn neg(a: &Self::S) -> Self::S;
+        fn sub(a: &Self::S, b: &Self::S) -> Self::S {
+            Self::add(a, &Self::neg(b))
+        }
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub struct AdditiveAbGroup<T>(Infallible, PhantomData<fn() -> T>);
+    impl<T: Sum + Add<Output = T> + Sub<Output = T> + Neg<Output = T> + Copy> AbGroup
+        for AdditiveAbGroup<T>
+    {
+        type S = T;
+        fn zero() -> Self::S {
+            std::iter::empty().sum()
+        }
+        fn add(a: &Self::S, b: &Self::S) -> Self::S {
+            *a + *b
+        }
+        fn neg(a: &Self::S) -> Self::S {
+            -(*a)
+        }
+        fn sub(a: &Self::S, b: &Self::S) -> Self::S {
+            *a - *b
+        }
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub struct XorAbGroup(Infallible);
+    impl AbGroup for XorAbGroup {
+        type S = u64;
+        fn zero() -> Self::S {
+            0
+        }
+        fn add(a: &Self::S, b: &Self::S) -> Self::S {
+            *a ^ *b
+        }
+        fn neg(a: &Self::S) -> Self::S {
+            *a
+        }
+        fn sub(a: &Self::S, b: &Self::S) -> Self::S {
+            *a ^ *b
+        }
+    }
+}
 #[allow(clippy::module_inception)]
 pub mod range_sum_fenwick_tree {
     use super::{AbGroup, AdditiveAbGroup};
@@ -425,461 +492,5 @@ pub mod range_sum_fenwick_tree {
         pub fn len(&self) -> usize {
             self.n
         }
-    }
-}
-#[allow(clippy::module_inception)]
-pub mod ab_group {
-    use std::{
-        convert::Infallible,
-        iter::Sum,
-        marker::PhantomData,
-        ops::{Add, Neg, Sub},
-    };
-    /// 可換群 (Abelian Group)
-    pub trait AbGroup {
-        type S: Clone;
-        fn zero() -> Self::S;
-        fn add(a: &Self::S, b: &Self::S) -> Self::S;
-        fn neg(a: &Self::S) -> Self::S;
-        fn sub(a: &Self::S, b: &Self::S) -> Self::S {
-            Self::add(a, &Self::neg(b))
-        }
-    }
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-    pub struct AdditiveAbGroup<T>(Infallible, PhantomData<fn() -> T>);
-    impl<T: Sum + Add<Output = T> + Sub<Output = T> + Neg<Output = T> + Copy> AbGroup
-        for AdditiveAbGroup<T>
-    {
-        type S = T;
-        fn zero() -> Self::S {
-            std::iter::empty().sum()
-        }
-        fn add(a: &Self::S, b: &Self::S) -> Self::S {
-            *a + *b
-        }
-        fn neg(a: &Self::S) -> Self::S {
-            -(*a)
-        }
-        fn sub(a: &Self::S, b: &Self::S) -> Self::S {
-            *a - *b
-        }
-    }
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-    pub struct XorAbGroup(Infallible);
-    impl AbGroup for XorAbGroup {
-        type S = u64;
-        fn zero() -> Self::S {
-            0
-        }
-        fn add(a: &Self::S, b: &Self::S) -> Self::S {
-            *a ^ *b
-        }
-        fn neg(a: &Self::S) -> Self::S {
-            *a
-        }
-        fn sub(a: &Self::S, b: &Self::S) -> Self::S {
-            *a ^ *b
-        }
-    }
-}
-#[allow(clippy::module_inception)]
-pub mod range_add_fenwick_tree {
-    use super::{AbGroup, AdditiveAbGroup, RangeSumFenwickTreeArbitrary};
-    use std::ops::{Bound, RangeBounds};
-    /// 1次元の階差数列を管理する Fenwick Tree。
-    /// 内部的には階差数列を `RangeSumFenwickTreeArbitrary` で管理しています。
-    #[derive(Clone)]
-    pub struct RangeAddFenwickTreeArbitrary<G: AbGroup> {
-        ft: RangeSumFenwickTreeArbitrary<G>,
-    }
-    /// i64 の加算群を用いた標準的な Range Add Fenwick Tree のエイリアス。
-    pub type RangeAddFenwickTreeI64 = RangeAddFenwickTreeArbitrary<AdditiveAbGroup<i64>>;
-    /// 任意の数値型 T の加算群を用いた Range Add Fenwick Tree のエイリアス。
-    pub type RangeAddFenwickTree<T> = RangeAddFenwickTreeArbitrary<AdditiveAbGroup<T>>;
-    impl<G: AbGroup> RangeAddFenwickTreeArbitrary<G> {
-        /// サイズ `n` の Range Add Fenwick Tree を作成します。
-        /// # 計算量
-        /// O(n)
-        pub fn new(n: usize) -> Self {
-            Self {
-                ft: RangeSumFenwickTreeArbitrary::new(n + 1),
-            }
-        }
-        /// 配列のスライスから Range Add Fenwick Tree を作成します。
-        /// # 計算量
-        /// O(n)
-        pub fn from_slice(slice: &[G::S]) -> Self {
-            let n = slice.len();
-            let mut diff = vec![G::zero(); n + 1];
-            if n > 0 {
-                diff[0] = slice[0].clone();
-                for i in 1..n {
-                    diff[i] = G::sub(&slice[i], &slice[i - 1]);
-                }
-                diff[n] = G::neg(&slice[n - 1]);
-            }
-            Self {
-                ft: RangeSumFenwickTreeArbitrary::from_slice(&diff),
-            }
-        }
-        /// 指定された範囲 `range` に `val` を加算します。
-        /// # Panics
-        /// 範囲が不正な場合にパニックします。
-        /// # 計算量
-        /// O(log n)
-        pub fn range_add<R>(&mut self, range: R, val: G::S)
-        where
-            R: RangeBounds<usize>,
-        {
-            let (l, r) = self.resolve_range(range);
-            let n = self.ft.len() - 1;
-            assert!(
-                l <= r && r <= n,
-                "RangeAddFenwickTreeArbitrary::range_add: invalid range. l: {}, r: {}, n: {}",
-                l,
-                r,
-                n
-            );
-            self.ft.add(l, val.clone());
-            self.ft.add(r, G::neg(&val));
-        }
-        fn resolve_range<R: RangeBounds<usize>>(&self, range: R) -> (usize, usize) {
-            let n = self.ft.len() - 1;
-            let l = match range.start_bound() {
-                Bound::Included(&l) => l,
-                Bound::Excluded(&l) => l + 1,
-                Bound::Unbounded => 0,
-            };
-            let r = match range.end_bound() {
-                Bound::Included(&r) => r + 1,
-                Bound::Excluded(&r) => r,
-                Bound::Unbounded => n,
-            };
-            (l, r)
-        }
-        /// `idx` 番目の要素に `val` を加算します。
-        /// # 計算量
-        /// O(log n)
-        pub fn add(&mut self, idx: usize, val: G::S) {
-            self.range_add(idx..=idx, val);
-        }
-        /// `idx` 番目の要素の値を `val` に設定します。
-        /// # 計算量
-        /// O(log n)
-        pub fn set(&mut self, idx: usize, val: G::S) {
-            let old = self.get(idx);
-            self.add(idx, G::sub(&val, &old));
-        }
-        /// `idx` 番目の要素の値を取得します。
-        /// # Panics
-        /// `idx >= n` の場合にパニックします。
-        /// # 計算量
-        /// O(log n)
-        pub fn get(&self, idx: usize) -> G::S {
-            let n = self.ft.len() - 1;
-            assert!(
-                idx < n,
-                "RangeAddFenwickTreeArbitrary::get: index out of bounds. idx: {}, n: {}",
-                idx,
-                n
-            );
-            self.ft.prefix_sum(idx + 1)
-        }
-        /// 現在の状態を `Vec<G::S>` として返します。
-        /// # 計算量
-        /// O(n log n)
-        pub fn to_vec(&self) -> Vec<G::S> {
-            let n = self.ft.len() - 1;
-            (0..n).map(|i| self.get(i)).collect()
-        }
-        /// 保持している要素数を返します。
-        #[allow(clippy::len_without_is_empty)]
-        pub fn len(&self) -> usize {
-            self.ft.len() - 1
-        }
-    }
-}
-use lg::*;
-pub mod lg {
-    use std::borrow::Borrow;
-    use std::fmt;
-    use std::iter::once;
-    /// Print the values with the line number.
-    /// # Examples
-    /// ```rust
-    /// # use mylib::*;
-    /// let x = 42;
-    /// let y = 43;
-    /// lg!(x);
-    /// lg!(x, y);
-    /// lg!(42, x, 43, y);
-    /// ```
-    #[macro_export]
-    macro_rules ! lg {(@ contents $ head : expr_2021 $ (, $ tail : expr_2021 ) * ) => {{$ crate :: __lg_internal ! ($ head ) ; $ (eprint ! ("," ) ; $ crate :: __lg_internal ! ($ tail ) ; ) * eprintln ! () ; } } ; ($ ($ expr : expr_2021 ) ,* $ (, ) ? ) => {{eprint ! ("{}\u{276f}" , line ! () ) ; $ crate :: lg ! (@ contents $ ($ expr ) ,* ) } } ; }
-    #[doc(hidden)]
-    #[macro_export]
-    macro_rules! __lg_internal {
-        ($ value : expr_2021 ) => {{
-            match $value {
-                head => {
-                    eprint!(
-                        " {} = {}",
-                        stringify!($value),
-                        $crate::__quiet(format!("{:?}", &head))
-                    );
-                }
-            }
-        }};
-    }
-    /// Print many 1D arrays side-by-side with the line number.
-    /// # Examples
-    /// ```rust
-    /// # use mylib::*;
-    /// let a = [1, 2, 3];
-    /// let b = [4, 5, 6];
-    /// let c = [7, 8, 9];
-    /// rows! {
-    ///   "id", // the name of the index
-    ///   @"a" => a,
-    ///   b,
-    ///   @"c" => c,
-    /// }
-    /// ```
-    #[macro_export]
-    macro_rules ! rows {{$ index_label : literal , $ (@ offset $ offset : expr_2021 , ) ? $ (@ verticalbar $ verticalbar : expr_2021 , ) * $ ($ (@$ label : literal => ) ? $ values : expr_2021 ) ,* $ (, ) ? } => {{#! [allow (unused_assignments ) ] let mut rows = $ crate :: Rows :: default () ; rows . line_number (line ! () ) ; $ (rows . offset ($ offset ) ; ) ? $ (rows . verticalbar ($ verticalbar ) ; ) * rows . index_label ($ index_label ) ; $ ({let mut label = stringify ! ($ values ) . to_string () ; if label . starts_with ("&" ) {label = label [1 .. ] . to_string () ; } $ ({let label_ : &'static str = $ label ; label = label_ . to_string () ; } ) ? rows . row (label , $ values ) ; } ) * eprintln ! ("{}" , rows . to_string_table () ) ; } } ; }
-    /// Print the 2D array with the line number.
-    /// # Examples
-    /// ```rust
-    /// # use mylib::*;
-    /// let a = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
-    /// table! {
-    ///    @"a" => a,
-    /// }
-    /// table! {
-    ///   a,
-    /// }
-    /// ```
-    #[macro_export]
-    macro_rules ! table {{$ (@$ name : literal => ) ? $ values : expr_2021 $ (, ) ? } => {{#! [allow (unused_assignments ) ] let mut name = stringify ! ($ values ) . to_string () ; if name . starts_with ("&" ) {name = name [1 .. ] . to_string () ; } $ ({let name_ : &'static str = $ name ; name = name_ . to_string () ; } ) ? let mut rows = $ crate :: Rows :: default () ; rows . line_number (line ! () ) ; rows . table_name (name ) ; # [allow (array_into_iter ) ] for (i , row ) in $ values . into_iter () . enumerate () {rows . row (i . to_string () , row ) ; } eprintln ! ("{}" , rows . to_string_table () ) ; } } ; }
-    #[doc(hidden)]
-    pub fn __quiet(s: impl AsRef<str>) -> String {
-        s.as_ref()
-            .replace("340282366920938463463374607431768211455", "*")
-            .replace("170141183460469231731687303715884105727", "*")
-            .replace("18446744073709551615", "*")
-            .replace("9223372036854775807", "*")
-            .replace("-9223372036854775808", "*")
-            .replace("4294967295", "*")
-            .replace("2147483647", "*")
-            .replace("-2147483648", "*")
-            .replace("None", "*")
-            .replace("Some", "")
-            .replace("true", "#")
-            .replace("false", ".")
-            .replace(['"', '\''], "")
-    }
-    #[doc(hidden)]
-    #[derive(Default)]
-    pub struct Rows {
-        line_number: String,
-        index_label: String,
-        offset: usize,
-        verticalbars: Vec<usize>,
-        table_name: String,
-        rows: Vec<Row>,
-    }
-    impl Rows {
-        pub fn line_number(&mut self, line_number: u32) -> &mut Self {
-            self.line_number = format!("{}", line_number);
-            self
-        }
-        pub fn index_label(&mut self, index_label: impl Into<String>) -> &mut Self {
-            self.index_label = index_label.into();
-            self
-        }
-        pub fn offset(&mut self, offset: usize) -> &mut Self {
-            self.offset = offset;
-            self
-        }
-        pub fn verticalbar(&mut self, verticalbar: impl IntoIterator<Item = usize>) -> &mut Self {
-            self.verticalbars.extend(verticalbar);
-            self
-        }
-        pub fn table_name(&mut self, table_name: impl Into<String>) -> &mut Self {
-            self.table_name = table_name.into();
-            self
-        }
-        pub fn row(
-            &mut self,
-            label: impl Into<String>,
-            values: impl IntoIterator<Item = impl fmt::Debug>,
-        ) -> &mut Self {
-            self.rows.push(Row {
-                label: label.into(),
-                values: values
-                    .into_iter()
-                    .map(|value| __quiet(format!("{:?}", value)))
-                    .collect(),
-            });
-            self
-        }
-        pub fn to_string_table(self) -> StringTable {
-            let Self {
-                line_number,
-                index_label,
-                offset,
-                verticalbars,
-                table_name,
-                rows,
-            } = self;
-            let w = rows
-                .iter()
-                .map(|row| row.values.len())
-                .max()
-                .unwrap_or_default();
-            let mut verticalbar_count = vec![0; w + 1];
-            for &v in &verticalbars {
-                if (offset..=offset + w).contains(&v) {
-                    verticalbar_count[v - offset] += 1;
-                }
-            }
-            StringTable {
-                head: StringRow {
-                    label: format!(
-                        "{line_number}❯ {table_name}{index_label}",
-                        index_label = if index_label.is_empty() {
-                            String::new()
-                        } else {
-                            format!("[{}]", index_label)
-                        }
-                    ),
-                    values: (offset..offset + w)
-                        .map(|index| index.to_string())
-                        .collect(),
-                },
-                body: rows
-                    .iter()
-                    .map(|row| StringRow {
-                        label: row.label.clone(),
-                        values: row.values.clone(),
-                    })
-                    .collect(),
-                verticalbar_count,
-            }
-        }
-    }
-    struct Row {
-        label: String,
-        values: Vec<String>,
-    }
-    #[doc(hidden)]
-    pub struct StringTable {
-        head: StringRow,
-        body: Vec<StringRow>,
-        verticalbar_count: Vec<usize>,
-    }
-    impl fmt::Display for StringTable {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            let Self {
-                head,
-                body,
-                verticalbar_count,
-            } = self;
-            let w = body
-                .iter()
-                .map(|row| row.values.len())
-                .max()
-                .unwrap_or_default();
-            let label_width = once(head.label.chars().count())
-                .chain(body.iter().map(|row| row.label.chars().count()))
-                .max()
-                .unwrap();
-            let value_width = (0..w)
-                .map(|j| {
-                    once(j.to_string().len())
-                        .chain(
-                            body.iter()
-                                .map(|row| row.values.get(j).map_or(0, |s| s.chars().count())),
-                        )
-                        .max()
-                        .unwrap()
-                })
-                .collect::<Vec<_>>();
-            gray(f)?;
-            write!(
-                f,
-                "{}",
-                head.to_string(label_width, &value_width, verticalbar_count, true)
-            )?;
-            resetln(f)?;
-            for row in body {
-                write!(
-                    f,
-                    "{}",
-                    row.to_string(label_width, &value_width, verticalbar_count, false)
-                )?;
-                writeln!(f)?;
-            }
-            Ok(())
-        }
-    }
-    struct StringRow {
-        label: String,
-        values: Vec<String>,
-    }
-    impl StringRow {
-        fn to_string(
-            &self,
-            label_width: usize,
-            value_width: &[usize],
-            varticalbars_count: &[usize],
-            label_align_left: bool,
-        ) -> String {
-            let Self { label, values } = self;
-            let w = value_width.len();
-            let mut s = String::new();
-            s.push_str(&if label_align_left {
-                format!("{label:<label_width$} |")
-            } else {
-                format!("{label:^label_width$} |")
-            });
-            for j in 0..w {
-                let value_width = value_width[j];
-                s.push_str("|".repeat(varticalbars_count[j]).as_str());
-                if varticalbars_count[j] == 0 && j != 0 && value_width <= 1 {
-                    s.push(' ');
-                }
-                match values.get(j) {
-                    Some(value) => {
-                        s.push_str(&format!(" {value:>value_width$}",));
-                    }
-                    None => {
-                        s.push_str(" ".repeat(value_width + 1).as_str());
-                    }
-                }
-            }
-            s
-        }
-    }
-    const GRAY: &str = "\x1b[48;2;127;127;127;37m";
-    const RESET: &str = "\x1b[0m";
-    fn gray(f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{GRAY}")
-    }
-    fn resetln(f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "{RESET}")
-    }
-    /// Format a iterator of [`bool`]s.
-    pub fn bools<B, I>(iter: I) -> String
-    where
-        B: Borrow<bool>,
-        I: IntoIterator<Item = B>,
-    {
-        format!(
-            "[{}]",
-            iter.into_iter()
-                .map(|b| ['.', '#'][usize::from(*(b.borrow()))])
-                .collect::<String>(),
-        )
     }
 }
