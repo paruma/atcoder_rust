@@ -1,12 +1,41 @@
 // 問題文と制約は読みましたか？
 // #[fastout]
+#[allow(unused_variables)]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        h: usize, w: usize,
+        grid: [Chars; h],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    // これは
+    let x_max = (0..w)
+        .filter(|&x| (0..h).any(|y| grid[y][x] == '#'))
+        .max()
+        .unwrap();
+    let x_min = (0..w)
+        .filter(|&x| (0..h).any(|y| grid[y][x] == '#'))
+        .min()
+        .unwrap();
+
+    // こう書ける。
+    // Itertools の minmax を使って、min と max を同時に取得できる
+    let (x_min, x_max) = (0..w)
+        .filter(|&x| (0..h).any(|y| grid[y][x] == '#'))
+        .minmax()
+        .into_option()
+        .unwrap();
+
+    let (y_min, y_max) = (0..h)
+        .filter(|&y| (0..w).any(|x| grid[y][x] == '#'))
+        .minmax()
+        .into_option()
+        .unwrap();
+
+    let ans = (y_min..=y_max)
+        .map(|y| (x_min..=x_max).map(|x| grid[y][x]).collect_vec())
+        .collect_vec();
+
+    print_vec_chars(&ans);
 }
 
 #[cfg(test)]

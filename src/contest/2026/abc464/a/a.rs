@@ -2,10 +2,11 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        xs: Chars,
     }
-    let ans: i64 = -2_i64;
+    let cnt_w = xs.iter().copied().filter(|ch| *ch == 'W').count();
+    let cnt_e = xs.iter().copied().filter(|ch| *ch == 'E').count();
+    let ans = if cnt_w > cnt_e { "West" } else { "East" };
     println!("{}", ans);
 }
 
