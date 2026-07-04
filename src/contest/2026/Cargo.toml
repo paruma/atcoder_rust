@@ -867,6 +867,10 @@ name = "abc464_e_imos"
 path = "abc464/e/e_imos.rs"
 
 [[bin]]
+name = "abc464_e_from_back"
+path = "abc464/e/e_from_back.rs"
+
+[[bin]]
 name = "abc464_f"
 path = "abc464/f/f.rs"
 
