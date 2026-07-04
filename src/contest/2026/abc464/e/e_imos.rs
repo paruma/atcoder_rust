@@ -1,4 +1,5 @@
-// 文字が切り替わる部分をいもす法のノリで管理
+// 各マスの最後に書かれた時刻をいもす法で管理する。
+// [0, c) × [0, r) に対して t で chmax するクエリをいもす法でやるイメージ
 fn main() {
     input! {
         h: usize,
@@ -9,34 +10,26 @@ fn main() {
 
     qs.insert(0, (Pos::new(w as i64 - 1, h as i64 - 1), 'A'));
 
-    let mut grid = vec![vec![(0, 'A'); w]; h];
+    let mut imos = vec![vec![0; w]; h];
 
-    for (i, (pos, ch)) in qs.iter().copied().enumerate() {
-        grid[pos] = (i, ch);
+    for (t, (p, _)) in qs.iter().copied().enumerate() {
+        chmax!(imos[p], t);
     }
 
     for y in (0..h).rev() {
-        for x in (0..w).rev() {
-            let pos = Pos::new(x as i64, y as i64);
-            if x != w - 1 {
-                let right = grid[pos + Pos::new(1, 0)];
-                if right.0 > grid[pos].0 {
-                    grid[pos] = right;
-                }
-            }
-
-            if y != h - 1 {
-                let bottom = grid[pos + Pos::new(0, 1)];
-                if bottom.0 > grid[pos].0 {
-                    grid[pos] = bottom;
-                }
-            }
+        for x in (0..w - 1).rev() {
+            chmax!(imos[y][x], imos[y][x + 1]);
+        }
+    }
+    for x in (0..w).rev() {
+        for y in (0..h - 1).rev() {
+            chmax!(imos[y][x], imos[y + 1][x]);
         }
     }
 
-    let ans = grid
+    let ans = imos
         .iter()
-        .map(|row| row.iter().copied().map(|(_, ch)| ch).collect_vec())
+        .map(|row| row.iter().copied().map(|t| qs[t].1).collect_vec())
         .collect_vec();
 
     print_vec_chars(&ans);
@@ -693,5 +686,33 @@ pub mod lg {
                 .map(|b| ['.', '#'][usize::from(*(b.borrow()))])
                 .collect::<String>(),
         )
+    }
+}
+#[allow(clippy::module_inception)]
+#[macro_use]
+pub mod chminmax {
+    #[allow(unused_macros)]
+    #[macro_export]
+    macro_rules! chmin {
+        ($ a : expr_2021 , $ b : expr_2021 ) => {
+            if $a > $b {
+                $a = $b;
+                true
+            } else {
+                false
+            }
+        };
+    }
+    #[allow(unused_macros)]
+    #[macro_export]
+    macro_rules! chmax {
+        ($ a : expr_2021 , $ b : expr_2021 ) => {
+            if $a < $b {
+                $a = $b;
+                true
+            } else {
+                false
+            }
+        };
     }
 }

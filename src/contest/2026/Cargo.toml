@@ -863,6 +863,10 @@ name = "abc464_e"
 path = "abc464/e/e.rs"
 
 [[bin]]
+name = "abc464_e_imos"
+path = "abc464/e/e_imos.rs"
+
+[[bin]]
 name = "abc464_f"
 path = "abc464/f/f.rs"
 
