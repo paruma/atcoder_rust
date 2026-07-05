@@ -3,10 +3,26 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        xs: Chars,
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    let mut cnt_o = 0;
+    let mut left = vec![];
+    let mut right = vec![];
+
+    for (i, ch) in xs.iter().copied().enumerate().rev() {
+        if ch == 'o' {
+            cnt_o += 1;
+        }
+        if cnt_o % 2 == 0 {
+            left.push(i + 1);
+        } else {
+            right.push(i + 1);
+        }
+    }
+
+    let ans = right.iter().chain(left.iter().rev()).copied().collect_vec();
+    print_vec_1line(&ans);
 }
 
 #[cfg(test)]

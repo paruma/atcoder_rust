@@ -1,12 +1,31 @@
-// 問題文と制約は読みましたか？
-// #[fastout]
+#[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        t: usize
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    for _ in 0..t {
+        input! {
+            x: i64,
+            y: i64,
+            k: i64,
+        }
+
+        let xs = std::iter::successors(Some(x), |&acc| if acc == 0 { None } else { Some(acc / k) })
+            .collect_vec();
+        let ys = std::iter::successors(Some(y), |&acc| if acc == 0 { None } else { Some(acc / k) })
+            .collect_vec();
+
+        let xs_set = xs.iter().copied().collect::<HashSet<_>>();
+        let ys_set = ys.iter().copied().collect::<HashSet<_>>();
+
+        let common = *xs_set.intersection(&ys_set).max().unwrap();
+
+        let ans = xs.iter().copied().filter(|x| *x >= common).count()
+            + ys.iter().copied().filter(|x| *x >= common).count()
+            - 2;
+        println!("{}", ans);
+    }
 }
 
 #[cfg(test)]

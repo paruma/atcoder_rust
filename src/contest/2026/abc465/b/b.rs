@@ -2,10 +2,17 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        x: i64,
+        y: i64,
+        l: i64,
+        r: i64,
+        a: i64,
+        b: i64,
     }
-    let ans: i64 = -2_i64;
+
+    let ans = (a..b)
+        .map(|t| if (l..r).contains(&t) { x } else { y })
+        .sum::<i64>();
     println!("{}", ans);
 }
 
