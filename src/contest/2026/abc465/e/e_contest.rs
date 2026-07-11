@@ -1,6 +1,4 @@
-// コンテスト実装の軽微なリファクタリング
-// 3が出てきたかどうかの管理をやめた: 種類数の計算のために管理している「出てきた数字の集合」でカバーできる
-// i=1 は別途実装
+// 問題文と制約は読みましたか？
 use ac_library::ModInt998244353 as Mint;
 
 // #[fastout]
@@ -16,14 +14,17 @@ fn main() {
         .collect_vec();
     let n = xs.len();
 
-    // dp[i][smaller][桁和 mod 3][出てきた数字の集合] = 場合の数
+    // dp[i][smaller][桁わ mod 3][3 を含むか][種類] = 場合の数
     let mut dp = vec![
         vec![
             vec![
                 vec![
-                       // .
+                    vec![
+                        // .
                         Mint::new(0); 1024
                     ];
+                    2
+                ];
                 3
             ];
             2
@@ -31,62 +32,130 @@ fn main() {
         n + 1
     ];
 
-    // i = 0 からの遷移
-    {
-        let i = 0;
-        for x in 1..xs[i] {
-            dp[i + 1][1][x % 3][BitSet::empty().inserted(x)] += Mint::new(1);
-        }
+    // dp[i][smaller][桁和 mod 3][3 を含むか][数字の集合]
+    dp[0][0][0][0][0] = Mint::new(1);
 
-        dp[i + 1][0][xs[i] % 3][BitSet::empty().inserted(xs[i])] += Mint::new(1);
-    }
-
-    for i in 1..n {
+    for i in 0..n {
         for rem in 0..3 {
-            for set in BitSet::all_subset(10) {
-                let dp_false = dp[i][0][rem][set];
-                let dp_true = dp[i][1][rem][set];
+            for contains3 in [0, 1] {
+                for kind in 0..1024 {
+                    let kind = BitSet::new(kind);
 
-                for x in 0..10 {
-                    dp[i + 1][1][(rem + x) % 3][set.inserted(x)] += dp_true;
+                    let dp_false = dp[i][0][rem][contains3][kind];
+                    let dp_true = dp[i][1][rem][contains3][kind];
+
+                    let begin = if i == 0 { 1 } else { 0 };
+
+                    for x in begin..10 {
+                        dp[i + 1][1][(rem + x) % 3][(contains3 == 1 || x == 3) as usize]
+                            [kind.inserted(x)] += dp_true;
+                    }
+
+                    for x in begin..xs[i] {
+                        dp[i + 1][1][(rem + x) % 3][(contains3 == 1 || x == 3) as usize]
+                            [kind.inserted(x)] += dp_false;
+                    }
+
+                    dp[i + 1][0][(rem + xs[i]) % 3][(contains3 == 1 || xs[i] == 3) as usize]
+                        [kind.inserted(xs[i])] += dp_false;
                 }
-
-                for x in 0..xs[i] {
-                    dp[i + 1][1][(rem + x) % 3][set.inserted(x)] += dp_false;
-                }
-
-                dp[i + 1][0][(rem + xs[i]) % 3][set.inserted(xs[i])] += dp_false;
             }
         }
 
-        // 先頭 i 文字が全部 0 の場合からの遷移 (leading zero 考慮)
-        for x in 1..10 {
-            dp[i + 1][1][x % 3][BitSet::empty().inserted(x)] += Mint::new(1);
+        if i != 0 {
+            for x in 1..10 {
+                // 0...0 から新しく生やす(dp_false, dp_true を使わない)
+                dp[i + 1][1][x % 3][(x == 3) as usize][BitSet::empty().inserted(x)] += Mint::new(1);
+            }
         }
     }
 
-    let ans = [0, 1]
+    // println!("{:?}", dp);
+
+    // 3の倍数、3は含まれない、3種類ではない
+    let cnt1 = [0, 1]
         .iter()
         .map(|&smaller| {
-            [0, 1, 2]
+            BitSet::all_subset(10)
+                .filter(|set| set.len() != 3)
+                .map(|set| dp[n][smaller][0][0][set])
+                .sum::<Mint>()
+        })
+        .sum::<Mint>();
+
+    // 3の倍数ではない、3が含まれる、3種類ではない
+    let cnt2 = [0, 1]
+        .iter()
+        .map(|&smaller| {
+            [1, 2]
                 .iter()
                 .copied()
                 .map(|rem| {
                     BitSet::all_subset(10)
-                        .filter(|set| {
-                            let cond1 = rem == 0;
-                            let cond2 = set.contains(3);
-                            let cond3 = set.len() == 3;
-                            cond1 as i64 + cond2 as i64 + cond3 as i64 == 1
-                        })
-                        .map(|set| dp[n][smaller][rem][set])
+                        .filter(|set| set.len() != 3)
+                        .map(|set| dp[n][smaller][rem][1][set])
                         .sum::<Mint>()
                 })
                 .sum::<Mint>()
         })
         .sum::<Mint>();
 
+    // 3の倍数ではない、3は含まれない、ちょうど3種類
+    let cnt3 = [0, 1]
+        .iter()
+        .map(|&smaller| {
+            [1, 2]
+                .iter()
+                .copied()
+                .map(|rem| {
+                    BitSet::all_subset(10)
+                        .filter(|set| set.len() == 3)
+                        .map(|set| dp[n][smaller][rem][0][set])
+                        .sum::<Mint>()
+                })
+                .sum::<Mint>()
+        })
+        .sum::<Mint>();
+
+    let ans = cnt1 + cnt2 + cnt3;
     println!("{}", ans);
+}
+
+fn solve_naive(n: i64) -> i64 {
+    let cnt1 = (1..=n)
+        .filter(|&x| {
+            let ds = to_digits_le_vec(x, 10);
+            let cond1 = x % 3 == 0;
+            let cond2 = ds.contains(&3);
+            let cond3 = ds.iter().copied().collect::<HashSet<_>>().len() == 3;
+            cond1 && !cond2 && !cond3
+        })
+        .count() as i64;
+
+    let cnt2 = (1..=n)
+        .filter(|&x| {
+            let ds = to_digits_le_vec(x, 10);
+            let cond1 = x % 3 == 0;
+            let cond2 = ds.contains(&3);
+            let cond3 = ds.iter().copied().collect::<HashSet<_>>().len() == 3;
+            !cond1 && cond2 && !cond3
+        })
+        .count() as i64;
+
+    let cnt3 = (1..=n)
+        .filter(|&x| {
+            let ds = to_digits_le_vec(x, 10);
+            let cond1 = x % 3 == 0;
+            let cond2 = ds.contains(&3);
+            let cond3 = ds.iter().copied().collect::<HashSet<_>>().len() == 3;
+            !cond1 && !cond2 && cond3
+        })
+        .count() as i64;
+    dbg!(cnt1);
+    dbg!(cnt2);
+    dbg!(cnt3);
+
+    cnt1 + cnt2 + cnt3
 }
 
 #[cfg(test)]
@@ -99,6 +168,7 @@ mod tests {
     #[test]
     fn test_problem() {
         assert_eq!(1 + 1, 2);
+        dbg!(solve_naive(1013));
     }
 
     /// 間違っていたら false を返す
@@ -383,5 +453,95 @@ pub mod bitset {
         fn index_mut(&mut self, s: BitSet) -> &mut Self::Output {
             &mut self[..][s]
         }
+    }
+}
+use digit::*;
+#[allow(clippy::module_inception)]
+pub mod digit {
+    /// n の base 進数を Little Endian で表す
+    /// 例:
+    /// - `to_digits_le_vec(123, 10) == vec![3, 2, 1]`
+    /// - `to_digits_le_vec(0, 10) == vec![]`
+    pub fn to_digits_le_vec(mut n: i64, base: i64) -> Vec<i64> {
+        assert!(n >= 0);
+        assert!(base >= 2);
+        if n == 0 {
+            return vec![];
+        }
+        let mut res = vec![];
+        while n > 0 {
+            res.push(n % base);
+            n /= base;
+        }
+        res
+    }
+    /// n の base 進数を Little Endian で生成するイテレータ
+    /// 例:
+    /// - `to_digits_le_iter(123, 10).collect::<Vec<_>>() == vec![3, 2, 1]`
+    /// - `to_digits_le_iter(0, 10).collect::<Vec<_>>() == vec![]`
+    pub fn to_digits_le_iter(n: i64, base: i64) -> impl Iterator<Item = i64> {
+        assert!(n >= 0);
+        assert!(base >= 2);
+        DigitsLeIterator { n, base }
+    }
+    struct DigitsLeIterator {
+        n: i64,
+        base: i64,
+    }
+    impl Iterator for DigitsLeIterator {
+        type Item = i64;
+        fn next(&mut self) -> Option<Self::Item> {
+            if self.n == 0 {
+                return None;
+            }
+            let digit = self.n % self.base;
+            self.n /= self.base;
+            Some(digit)
+        }
+    }
+    /// Little Endian で表された各桁から、数値を評価する
+    /// 例:
+    /// - `from_digits_le(&[3, 2, 1], 10) == 123`
+    /// - `from_digits_le(&[], 10) == 0`
+    pub fn from_digits_le(digits: &[i64], base: i64) -> i64 {
+        assert!(base >= 2);
+        debug_assert!(digits.iter().all(|&d| (0..base).contains(&d)));
+        digits.iter().rfold(0, |acc, &d| acc * base + d)
+    }
+    /// x を base 進数で表した際の桁数を返す
+    /// 例:
+    /// - `count_digits(123, 10) == 3`
+    /// - `count_digits(0, 10) == 0`
+    pub fn count_digits(mut x: i64, base: i64) -> usize {
+        assert!(x >= 0);
+        assert!(base >= 2);
+        if x == 0 {
+            return 0;
+        }
+        let mut count = 0;
+        while x > 0 {
+            x /= base;
+            count += 1;
+        }
+        count
+    }
+    /// 2つの数値を指定された基数で連結する。
+    /// `count_digits(b, base)` が 0 (すなわち `b == 0`) の場合、`a` をそのまま返す。
+    /// 例:
+    /// - `concat_digits(123, 45, 10) == 12345`
+    /// - `concat_digits(123, 0, 10) == 123`
+    pub fn concat_digits(a: i64, b: i64, base: i64) -> i64 {
+        assert!(a >= 0);
+        assert!(b >= 0);
+        assert!(base >= 2);
+        let digits = count_digits(b, base);
+        if digits == 0 {
+            return a;
+        }
+        let mut p = 1;
+        for _ in 0..digits {
+            p *= base;
+        }
+        a * p + b
     }
 }
