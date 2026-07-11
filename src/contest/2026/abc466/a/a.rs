@@ -5,8 +5,8 @@ fn main() {
         n: usize,
         xs: [i64; n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let ans: bool = xs.iter().copied().all(|x| x < 0);
+    print_yesno(ans);
 }
 
 #[cfg(test)]

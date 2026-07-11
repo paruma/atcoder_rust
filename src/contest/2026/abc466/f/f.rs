@@ -1,12 +1,52 @@
-// 問題文と制約は読みましたか？
 // #[fastout]
+
+fn rec(a_s: &[i64], end: i64, idx: usize, memo: &mut HashMap<(i64, usize), i64>) -> i64 {
+    if idx == a_s.len() - 1 {
+        return num_integer::div_ceil(end, a_s[idx]);
+    }
+    if let Some(ans) = memo.get(&(end, idx)) {
+        return *ans;
+    }
+    let a = a_s[idx];
+    let n_loop = end / a;
+    let rem = end % a;
+    let term1 = rec(a_s, a, idx + 1, memo);
+    let term2 = rec(a_s, rem, idx + 1, memo);
+
+    let ans = term1 * n_loop + term2;
+    memo.insert((end, idx), ans);
+    ans
+}
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        t: usize
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let mut memo =  HashMap::new();
+    for _ in 0..t {
+        input! {
+            n: usize,
+            x: i64,
+            a_s: [i64; n],
+        }
+
+        let a_s = {
+            // 単調減少にする
+            let mut tmp = vec![];
+            let mut min = a_s[0];
+            tmp.push(a_s[0]);
+
+            for &a in &a_s[1..] {
+                if a < min {
+                    min = a;
+                    tmp.push(a);
+                }
+            }
+            tmp
+        };
+
+        let ans = rec(&a_s, x + 1, 0, &mut memo) - 1;
+        println!("{}", ans);
+    }
 }
 
 #[cfg(test)]

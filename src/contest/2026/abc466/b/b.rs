@@ -3,10 +3,15 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        m: usize,
+        css: [(Usize1, i64); n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let mut ans = vec![-1; m];
+
+    for (c, s) in css {
+        ans[c] = ans[c].max(s);
+    }
+    print_vec_1line(&ans);
 }
 
 #[cfg(test)]
