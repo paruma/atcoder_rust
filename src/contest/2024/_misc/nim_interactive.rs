@@ -346,48 +346,59 @@ use std::collections::{BinaryHeap, HashMap, HashSet};
 
 // ====== output func ======
 #[allow(unused_imports)]
-use print_vec::*;
-pub mod print_vec {
+use print_util::*;
+pub mod print_util {
     use itertools::Itertools;
     use proconio::fastout;
+
     #[fastout]
-    pub fn print_vec<T: std::fmt::Debug>(arr: &[T]) {
+    pub fn print_vec<T: std::fmt::Display>(arr: &[T]) {
         for a in arr {
-            println!("{:?}", a);
+            println!("{}", a);
         }
     }
+
     #[fastout]
-    pub fn print_vec_1line<T: std::fmt::Debug>(arr: &[T]) {
-        let msg = arr.iter().map(|x| format!("{:?}", x)).join(" ");
-        println!("{}", msg);
+    pub fn print_vec_1line<T: std::fmt::Display>(arr: &[T]) {
+        println!("{}", arr.iter().join(" "));
     }
+
     #[fastout]
-    pub fn print_vec2<T: std::fmt::Debug>(arr: &Vec<Vec<T>>) {
+    pub fn print_vec2<T: std::fmt::Display, R: AsRef<[T]>>(arr: &[R]) {
         for row in arr {
-            let msg = row.iter().map(|x| format!("{:?}", x)).join(" ");
-            println!("{}", msg);
+            println!("{}", row.as_ref().iter().join(" "));
         }
     }
+
     pub fn print_bytes(bytes: &[u8]) {
-        let msg = String::from_utf8(bytes.to_vec()).unwrap();
-        println!("{}", msg);
+        println!("{}", std::str::from_utf8(bytes).unwrap());
     }
+
+    pub fn print_chars(chars: &[char]) {
+        println!("{}", chars.iter().collect::<String>());
+    }
+
     #[fastout]
-    pub fn print_vec_bytes(vec_bytes: &[Vec<u8>]) {
+    pub fn print_vec_bytes<R: AsRef<[u8]>>(vec_bytes: &[R]) {
         for row in vec_bytes {
-            let msg = String::from_utf8(row.to_vec()).unwrap();
-            println!("{}", msg);
+            println!("{}", std::str::from_utf8(row.as_ref()).unwrap());
         }
     }
+
+    #[fastout]
+    pub fn print_vec_chars<R: AsRef<[char]>>(vec_chars: &[R]) {
+        for row in vec_chars {
+            println!("{}", row.as_ref().iter().collect::<String>());
+        }
+    }
+
+    pub fn print_yesno(ans: bool) {
+        println!("{}", if ans { "Yes" } else { "No" });
+    }
 }
 
-#[allow(unused)]
-fn print_yesno(ans: bool) {
-    let msg = if ans { "Yes" } else { "No" };
-    println!("{}", msg);
-}
-
-// ====== snippet ======
+// インタラクティブ問題では、標準出力の後に flush することが求められる。
+// なぜか flush に失敗した場合は unwrap をしてプログラムを終了するようにしている
 #[macro_export]
 macro_rules! println_flush {
     () => {
@@ -399,3 +410,5 @@ macro_rules! println_flush {
         stdout().flush().unwrap();
     }};
 }
+
+// ====== snippet ======
