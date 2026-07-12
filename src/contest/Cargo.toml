@@ -35,3 +35,8 @@ cli_test_dir = { workspace = true }
 [[bin]]
 name = "template"
 path = "template.rs"
+
+
+[[bin]]
+name = "template_interactive"
+path = "template_interactive.rs"
