@@ -1,30 +1,7 @@
 /*
     [解法]
 
-    D = B - A として、フリップしたカードに対する D の総和を求めればよい。
-    フリップする区間たちはすべて disjoint としてよい。(解の構造を考えるとたどり着く)
-    K=1 の場合は最大区間和問題である。
-    そのため、最大区間和問題が解ける Kadane's Algorithm をベースに考える。
-
-    dp 配列を以下のように定義する。
-    dp[i][k] =
-        [0, i) のカードのみがあり、
-        カード i - 1 をひっくり返していて、
-        ひっくり返した区間の数が k 個である場合の、
-        ひっくり返したカードの D の値の総和
-
-    このとき、遷移は以下のようになる。
-    i - 1 より左側で最後に flip したカード j で場合分けする
-
-    * j = i - 2 の場合: i - 2 が末尾の flip の区間に i - 1 もくっつける
-        * (i - 1, k) → (i, k) と遷移
-    * j < i - 2 の場合: j が末尾の flip の区間と隙間を開けて i - 1 を flip させる
-        * (j + 1, k - 1) → (i, k) と遷移
-    * j が存在しない場合: i - 1 で初めて flip させる
-        * 無から (i, 1) に遷移
-
-    2番めは O(N) 個の遷移があるが、prefix max が求められればいいので、セグ木や累積 max で計算すればよい
-    (セグ木を使うと TLE が怖いので、実装では累積 max を使っている)
+    選ぶ選ばないのDP(ひっくり返すかどうか)
 
 */
 fn main() {
@@ -36,39 +13,39 @@ fn main() {
 
     let ds = abs.iter().copied().map(|(a, b)| b - a).collect_vec();
 
-    let mut dp = vec![vec![NEG_INF; k + 1]; n + 1];
-    let mut dp_cummax = vec![vec![NEG_INF; k + 1]; n + 2];
+    // dp[i][k][p] = [0, i) まで見て、k個の区間をひっくり返して、i-1番目をひっくり返したか? = p となる場合の
+    // ひっくり返した添字の ds の値の総和の最大値
+    let mut dp = vec![vec![[NEG_INF; 2]; k + 1]; n + 1];
 
-    dp[0][0] = fin(0);
-    dp_cummax[1][0] = fin(0);
+    // 初期値決定
+    {
+        //最初ひっくり返す
+        dp[1][1][true as usize] = fin(ds[0]);
 
-    for i in 1..=n {
-        {
-            // ki = 1 (今までにでてこなかった。単独で新規に生やす)
-            chmax!(dp[i][1], fin(ds[i - 1]));
-        }
+        // 最初ひっくり返さない
+        dp[1][0][false as usize] = fin(0);
+    }
 
-        for ki in 1..=k {
-            // i - 1 からくっつける
-            chmax!(dp[i][ki], dp[i - 1][ki] + ds[i - 1]);
-
-            // i - 2 あたりから隔てて得る (i>=2)
-            chmax!(dp[i][ki], dp_cummax[i - 1][ki - 1] + ds[i - 1]);
-        }
-
-        // dp_cummax 更新
+    for i in 2..=n {
         for ki in 0..=k {
-            dp_cummax[i + 1][ki] = std::cmp::max(dp_cummax[i][ki], dp[i][ki]);
+            chmax!(
+                dp[i][ki][true as usize],
+                dp[i - 1][ki][true as usize] + fin(ds[i - 1])
+            );
+            if ki >= 1 {
+                chmax!(
+                    dp[i][ki][true as usize],
+                    dp[i - 1][ki - 1][false as usize] + fin(ds[i - 1])
+                );
+            }
+
+            chmax!(dp[i][ki][false as usize], dp[i - 1][ki][true as usize]);
+            chmax!(dp[i][ki][false as usize], dp[i - 1][ki][false as usize]);
         }
     }
 
     let before_sum = abs.iter().copied().map(|(a, _)| a).sum::<i64>();
-    let max_diff = dp
-        .iter()
-        .map(|row| row.iter().copied().max().unwrap())
-        .max()
-        .unwrap()
-        .get_fin();
+    let max_diff = dp[n].iter().flatten().max().unwrap().get_fin();
     let ans: i64 = before_sum + max_diff;
     println!("{}", ans);
 }
