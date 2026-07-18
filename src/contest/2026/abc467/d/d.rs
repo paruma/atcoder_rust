@@ -1,12 +1,65 @@
 // 問題文と制約は読みましたか？
 // #[fastout]
+
+// p1, p2 を通る垂直二等分線
+fn line(p1: Pos, p2: Pos) -> (i128, i128, i128) {
+    let a = 2 * (p2.x - p1.x);
+    let b = 2 * (p2.y - p1.y);
+    let c = (p2.x * p2.x - p1.x * p1.x) + (p2.y * p2.y - p1.y * p1.y);
+    norm(a, b, c)
+}
+
+fn norm(a: i128, b: i128, c: i128) -> (i128, i128, i128) {
+    if a < 0 {
+        return norm(-a, -b, -c);
+    }
+    if a == 0 && b < 0 {
+        return norm(-a, -b, -c);
+    }
+
+    let gcd = a.gcd(&b.abs()).gcd(&c.abs());
+    (a / gcd, b / gcd, c / gcd)
+}
+
+fn norm2(a: i128, b: i128) -> (i128, i128) {
+    if a < 0 {
+        return norm2(-a, -b);
+    }
+    if a == 0 && b < 0 {
+        return norm2(-a, -b);
+    }
+
+    let gcd = a.gcd(&b.abs());
+    (a / gcd, b / gcd)
+}
+
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        t: usize
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    for _ in 0..t {
+        input! {
+            p1: PosXY,
+            p2: PosXY,
+            p3: PosXY,
+            p4: PosXY,
+        }
+
+        // p1 p2 の垂直二等分線
+        let (a1, b1, c1) = line(p1, p2);
+
+        // p3 p4 の垂直二等分線
+        let (a2, b2, c2) = line(p3, p4);
+
+        // eprintln!("({}, {}, {})", a1, b1, c1);
+        // eprintln!("({}, {}, {})", a2, b2, c2);
+
+        let pred1 = norm2(a1, b1) != norm2(a2, b2); // 平行じゃない
+        let pred2 = (a1, b1, c1) == (a2, b2, c2); // 一致
+        let ans = pred1 || pred2;
+        print_yesno(ans);
+    }
 }
 
 #[cfg(test)]
@@ -18,6 +71,8 @@ mod tests {
 
     #[test]
     fn test_problem() {
+        dbg!(1, 2, 3);
+        dbg!((1, 2, 3));
         assert_eq!(1 + 1, 2);
     }
 
@@ -136,3 +191,198 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use {num::Integer, pos::*};
+#[allow(clippy::module_inception)]
+pub mod pos {
+    use std::io::BufRead;
+    use std::iter::Sum;
+    use std::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+    #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
+    pub struct Pos {
+        pub x: i128,
+        pub y: i128,
+    }
+    impl Pos {
+        pub fn new(x: i128, y: i128) -> Pos {
+            Pos { x, y }
+        }
+        pub fn scalar_mul(self, rhs: i128) -> Pos {
+            Pos::new(self.x * rhs, self.y * rhs)
+        }
+        pub fn inner_product(self, rhs: Self) -> i128 {
+            self.x * rhs.x + self.y * rhs.y
+        }
+        pub fn outer_product(self, rhs: Self) -> i128 {
+            self.x * rhs.y - self.y * rhs.x
+        }
+        pub fn norm_square(self) -> i128 {
+            self.inner_product(self)
+        }
+        pub fn l1_norm(self) -> i128 {
+            self.x.abs() + self.y.abs()
+        }
+        pub fn linf_norm(self) -> i128 {
+            self.x.abs().max(self.y.abs())
+        }
+        pub fn dist_square(self, rhs: Self) -> i128 {
+            (self - rhs).norm_square()
+        }
+        pub fn l1_dist(self, rhs: Self) -> i128 {
+            (self - rhs).l1_norm()
+        }
+        pub fn linf_dist(self, rhs: Self) -> i128 {
+            (self - rhs).linf_norm()
+        }
+        pub fn normalize(self) -> Pos {
+            if self.x == 0 && self.y == 0 {
+                return self;
+            }
+            let g = num::integer::gcd(self.x.abs(), self.y.abs());
+            Pos::new(self.x / g, self.y / g)
+        }
+        pub fn rotate90(self) -> Pos {
+            Pos::new(-self.y, self.x)
+        }
+        pub fn rotate270(self) -> Pos {
+            Pos::new(self.y, -self.x)
+        }
+        /// グリッドの幅 `width` を指定して、座標 `(x, y)` を 1次元インデックス `y * width + x` に変換する。
+        pub fn to_index_1d(self, width: usize) -> usize {
+            assert!(
+                self.x >= 0 && self.y >= 0,
+                "Pos::to_index_1d: x と y は 0 以上である必要があります。pos: ({}, {})",
+                self.x,
+                self.y
+            );
+            assert!(
+                (self.x as usize) < width,
+                "Pos::to_index_1d: x は width 未満である必要があります。x: {}, width: {}",
+                self.x,
+                width
+            );
+            (self.y as usize) * width + (self.x as usize)
+        }
+        /// 1次元インデックスとグリッドの幅 `width` から、座標 `(x, y)` を復元する。
+        pub fn from_index_1d(index: usize, width: usize) -> Pos {
+            Pos::new((index % width) as i128, (index / width) as i128)
+        }
+        pub fn around4_pos_iter(self) -> impl Iterator<Item = Pos> {
+            DIR4_LIST.iter().copied().map(move |d| self + d)
+        }
+        pub fn around8_pos_iter(self) -> impl Iterator<Item = Pos> {
+            DIR8_LIST.iter().copied().map(move |d| self + d)
+        }
+    }
+    impl Add for Pos {
+        type Output = Pos;
+        fn add(self, rhs: Self) -> Self::Output {
+            Pos::new(self.x + rhs.x, self.y + rhs.y)
+        }
+    }
+    impl Sub for Pos {
+        type Output = Pos;
+        fn sub(self, rhs: Self) -> Self::Output {
+            Pos::new(self.x - rhs.x, self.y - rhs.y)
+        }
+    }
+    impl Neg for Pos {
+        type Output = Self;
+        fn neg(self) -> Self::Output {
+            Pos::new(-self.x, -self.y)
+        }
+    }
+    impl Sum for Pos {
+        fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+            iter.fold(Pos::new(0, 0), |acc, x| acc + x)
+        }
+    }
+    impl<'a> Sum<&'a Pos> for Pos {
+        fn sum<I: Iterator<Item = &'a Self>>(iter: I) -> Self {
+            iter.fold(Pos::new(0, 0), |a, b| a + *b)
+        }
+    }
+    impl num_traits::Zero for Pos {
+        fn zero() -> Self {
+            Pos::new(0, 0)
+        }
+        fn is_zero(&self) -> bool {
+            self.x.is_zero() && self.y.is_zero()
+        }
+    }
+    impl AddAssign for Pos {
+        fn add_assign(&mut self, rhs: Self) {
+            *self = *self + rhs
+        }
+    }
+    impl SubAssign for Pos {
+        fn sub_assign(&mut self, rhs: Self) {
+            *self = *self - rhs
+        }
+    }
+    impl Mul<i128> for Pos {
+        type Output = Pos;
+        fn mul(self, rhs: i128) -> Self::Output {
+            Pos::new(self.x * rhs, self.y * rhs)
+        }
+    }
+    impl MulAssign<i128> for Pos {
+        fn mul_assign(&mut self, rhs: i128) {
+            *self = *self * rhs
+        }
+    }
+    use std::fmt::{Debug, Error, Formatter};
+    impl Debug for Pos {
+        fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+            f.write_fmt(format_args!("({}, {})", self.x, self.y))?;
+            Ok(())
+        }
+    }
+    use proconio::source::{Readable, Source};
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub enum PosXY {}
+    impl Readable for PosXY {
+        type Output = Pos;
+        fn read<R: BufRead, S: Source<R>>(source: &mut S) -> Pos {
+            let x = i128::read(source);
+            let y = i128::read(source);
+            Pos::new(x, y)
+        }
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub enum PosYX {}
+    impl Readable for PosYX {
+        type Output = Pos;
+        fn read<R: BufRead, S: Source<R>>(source: &mut S) -> Pos {
+            let y = i128::read(source);
+            let x = i128::read(source);
+            Pos::new(x, y)
+        }
+    }
+    /// 1-indexed で与えられた座標(YX)
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub enum PosYX1 {}
+    impl Readable for PosYX1 {
+        type Output = Pos;
+        fn read<R: BufRead, S: Source<R>>(source: &mut S) -> Pos {
+            let y = i128::read(source) - 1;
+            let x = i128::read(source) - 1;
+            Pos::new(x, y)
+        }
+    }
+    pub const DIR8_LIST: [Pos; 8] = [
+        Pos { x: 0, y: 1 },
+        Pos { x: 1, y: 1 },
+        Pos { x: 1, y: 0 },
+        Pos { x: 1, y: -1 },
+        Pos { x: 0, y: -1 },
+        Pos { x: -1, y: -1 },
+        Pos { x: -1, y: 0 },
+        Pos { x: -1, y: 1 },
+    ];
+    pub const DIR4_LIST: [Pos; 4] = [
+        Pos { x: 0, y: 1 },
+        Pos { x: 1, y: 0 },
+        Pos { x: 0, y: -1 },
+        Pos { x: -1, y: 0 },
+    ];
+}

@@ -3,9 +3,29 @@
 fn main() {
     input! {
         n: usize,
+        m: usize, // = 1
         xs: [i64; n],
+        ys: [i64; n - 1],
     }
-    let ans: i64 = -2_i64;
+
+    // 初項1
+    let mut goal1 = vec![-1; n];
+    goal1[0] = 1;
+
+    // 初項0
+    let mut goal0 = vec![-1; n];
+    goal0[0] = 0;
+
+    for i in 0..n - 1 {
+        goal1[i + 1] = (goal1[i] + ys[i]) % 2;
+        goal0[i + 1] = (goal0[i] + ys[i]) % 2;
+    }
+
+    let diff0 = izip!(&xs, &goal0).filter(|(a, b)| a != b).count();
+    let diff1 = izip!(&xs, &goal1).filter(|(a, b)| a != b).count();
+
+    let ans: usize = diff0.min(diff1);
+
     println!("{}", ans);
 }
 

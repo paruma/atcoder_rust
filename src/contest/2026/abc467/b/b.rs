@@ -3,9 +3,14 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        xs: [(i64, i64, String); n],
     }
-    let ans: i64 = -2_i64;
+
+    let ans = xs
+        .iter()
+        .filter(|(_, _, s)| s == &String::from("keep"))
+        .map(|(a, b, _)| *b - *a)
+        .sum::<i64>();
     println!("{}", ans);
 }
 
