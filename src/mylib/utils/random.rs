@@ -57,10 +57,10 @@ pub mod random_test {
     /// use rand::{Rng, rngs::SmallRng, SeedableRng};
     ///
     /// let mut rng = SmallRng::from_os_rng();
-    /// let even_number = generate_random_while(|| rng.random_range(0..100), |&x| x % 2 == 0);
+    /// let even_number = generate_random_until(|| rng.random_range(0..100), |&x| x % 2 == 0);
     /// assert!(even_number % 2 == 0);
     /// ```
-    pub fn generate_random_while<T, F, P>(mut generator: F, mut pred: P) -> T
+    pub fn generate_random_until<T, F, P>(mut generator: F, mut pred: P) -> T
     where
         F: FnMut() -> T,
         P: FnMut(&T) -> bool,
@@ -137,7 +137,7 @@ pub mod random_test {
         R: Rng,
     {
         let generator = || rng.random_range(begin..end);
-        generate_random_while(generator, |x| is_prime(*x))
+        generate_random_until(generator, |x| is_prime(*x))
     }
 }
 
@@ -163,7 +163,7 @@ mod tests {
         use rand::{rngs::SmallRng, *};
         let mut rng = SmallRng::from_os_rng();
         for _ in 0..10 {
-            let x = generate_random_while(|| rng.random_range(0..4), |&x| x % 2 == 0);
+            let x = generate_random_until(|| rng.random_range(0..4), |&x| x % 2 == 0);
             assert!(x % 2 == 0 && (0..4).contains(&x));
         }
     }
