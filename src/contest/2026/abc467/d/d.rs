@@ -33,6 +33,21 @@ fn norm2(a: i128, b: i128) -> (i128, i128) {
     (a / gcd, b / gcd)
 }
 
+fn solve(p1: Pos, p2: Pos, p3: Pos, p4: Pos) -> bool {
+    // p1 p2 の垂直二等分線
+    let (a1, b1, c1) = line(p1, p2);
+
+    // p3 p4 の垂直二等分線
+    let (a2, b2, c2) = line(p3, p4);
+
+    // eprintln!("({}, {}, {})", a1, b1, c1);
+    // eprintln!("({}, {}, {})", a2, b2, c2);
+
+    let pred1 = norm2(a1, b1) != norm2(a2, b2);
+    let pred2 = (a1, b1, c1) == (a2, b2, c2); // 一致
+    pred1 || pred2
+}
+
 fn main() {
     input! {
         t: usize
@@ -46,19 +61,7 @@ fn main() {
             p4: PosXY,
         }
 
-        // p1 p2 の垂直二等分線
-        let (a1, b1, c1) = line(p1, p2);
-
-        // p3 p4 の垂直二等分線
-        let (a2, b2, c2) = line(p3, p4);
-
-        // eprintln!("({}, {}, {})", a1, b1, c1);
-        // eprintln!("({}, {}, {})", a2, b2, c2);
-
-        let pred1 = norm2(a1, b1) != norm2(a2, b2); // 平行じゃない
-        let pred2 = (a1, b1, c1) == (a2, b2, c2); // 一致
-        let ans = pred1 || pred2;
-        print_yesno(ans);
+        print_yesno(solve(p1, p2, p3, p4));
     }
 }
 
@@ -66,6 +69,7 @@ fn main() {
 mod tests {
     #[allow(unused_imports)]
     use super::*;
+    use num_rational::Ratio;
     #[allow(unused_imports)]
     use rand::{rngs::SmallRng, seq::SliceRandom, *};
 
@@ -75,21 +79,73 @@ mod tests {
         dbg!((1, 2, 3));
         assert_eq!(1 + 1, 2);
     }
+    type R = Ratio<i128>;
+
+    fn dist_sq(cx: R, cy: R, p: Pos) -> R {
+        let px = R::from_integer(p.x);
+        let py = R::from_integer(p.y);
+        let dx = px - cx;
+        let dy = py - cy;
+        dx * dx + dy * dy
+    }
+    fn solve_naive(p1: Pos, p2: Pos, p3: Pos, p4: Pos) -> bool {
+        let size = 15;
+        iproduct!(-size..=size, -size..=size, -size..=size, -size..=size)
+            .filter(|(denom1, _numor1, denom2, _numor2)| *denom1 != 0 && *denom2 != 0)
+            .any(|(denom1, numor1, denom2, numor2)| {
+                let cx = R::new(numor1, denom1);
+                let cy = R::new(numor2, denom2);
+
+                let pred = dist_sq(cx, cy, p1) == dist_sq(cx, cy, p2)
+                    && dist_sq(cx, cy, p3) == dist_sq(cx, cy, p4);
+                if pred {
+                    dbg!(cx, cy);
+                }
+                pred
+            })
+    }
 
     /// 間違っていたら false を返す
     fn process_one_test(rng: &mut SmallRng) -> bool {
         // ==== 問題を作る ====
-        let n = rng.random_range(1..=10);
-        let xs = (0..n).map(|_| rng.random_range(0..10)).collect_vec();
+        let size = 1;
+        let (p1, p2) = generate_random_until(
+            || {
+                let p1 = Pos::new(
+                    rng.random_range(-size..=size),
+                    rng.random_range(-size..=size),
+                );
+                let p2 = Pos::new(
+                    rng.random_range(-size..=size),
+                    rng.random_range(-size..=size),
+                );
+                (p1, p2)
+            },
+            |(p1, p2)| p1 != p2,
+        );
+        let (p3, p4) = generate_random_until(
+            || {
+                let p1 = Pos::new(
+                    rng.random_range(-size..=size),
+                    rng.random_range(-size..=size),
+                );
+                let p2 = Pos::new(
+                    rng.random_range(-size..=size),
+                    rng.random_range(-size..=size),
+                );
+                (p1, p2)
+            },
+            |(p1, p2)| p1 != p2,
+        );
 
         // ==== 解く ====
-        let main_ans = xs.len();
-        let naive_ans = 1;
+        let main_ans = solve(p1, p2, p3, p4);
+        let naive_ans = solve_naive(p1, p2, p3, p4);
 
         // ==== 間違っていたら報告をする ====
         if main_ans != naive_ans {
             // 問題を出力
-            println!("{:?}", (n, xs));
+            println!("{:?}", (p1, p2, p3, p4));
             println!("main ans : {:?}", main_ans);
             println!("naive ans: {:?}", naive_ans);
             return false;
@@ -102,7 +158,7 @@ mod tests {
     #[ignore]
     fn test_with_naive() {
         let num_tests = 100;
-        let max_wrong_case = 10; // この件数間違いが見つかったら打ち切り
+        let max_wrong_case = 1; // この件数間違いが見つかったら打ち切り
         let mut cnt_wrong = 0;
         let mut rng = SmallRng::seed_from_u64(42);
         // let mut rng = SmallRng::from_os_rng();
@@ -385,4 +441,122 @@ pub mod pos {
         Pos { x: 0, y: -1 },
         Pos { x: -1, y: 0 },
     ];
+}
+use random_test::*;
+/// ランダムなテストケースを生成するためのユーティリティモジュール
+pub mod random_test {
+    use ac_library::Dsu;
+    use itertools::Itertools;
+    use num::Integer;
+    use num_integer::Roots;
+    use rand::Rng;
+    use std::{collections::HashSet, hash::Hash};
+    /// 指定された個数のユニークな値を生成する。
+    /// `generator` クロージャが返す値が `n` 種類に達するまで値の生成を繰り返す。
+    /// # Arguments
+    /// * `n` - 生成するユニークな値の個数
+    /// * `generator` - 値を生成するクロージャ
+    /// # Examples
+    /// ```
+    /// use mylib::utils::random::random_test::*;
+    /// use rand::{Rng, rngs::SmallRng, SeedableRng};
+    /// let mut rng = SmallRng::from_os_rng();
+    /// let uniq_seq = generate_random_uniq_sequence(10, || rng.random_range(0..100));
+    /// assert_eq!(uniq_seq.len(), 10);
+    /// ```
+    pub fn generate_random_uniq_sequence<T, F>(n: usize, mut generator: F) -> Vec<T>
+    where
+        T: Hash + PartialEq + Eq,
+        F: FnMut() -> T,
+    {
+        let mut set: HashSet<T> = HashSet::new();
+        while set.len() != n {
+            set.insert(generator());
+        }
+        set.into_iter().collect_vec()
+    }
+    /// 条件 `pred` を満たすランダムな値を生成する。
+    /// `generator` クロージャで値を生成し、`pred` が `true` を返すまで繰り返す。
+    /// `(0..).map(|_| generator()).find(|x| pred(x)).unwrap()` と書くのと同じ。
+    /// # Arguments
+    /// * `generator` - 値を生成するクロージャ
+    /// * `pred` - 値が満たすべき条件を判定するクロージャ
+    /// # Examples
+    /// ```
+    /// use mylib::utils::random::random_test::*;
+    /// use rand::{Rng, rngs::SmallRng, SeedableRng};
+    /// let mut rng = SmallRng::from_os_rng();
+    /// let even_number = generate_random_until(|| rng.random_range(0..100), |&x| x % 2 == 0);
+    /// assert!(even_number % 2 == 0);
+    /// ```
+    pub fn generate_random_until<T, F, P>(mut generator: F, mut pred: P) -> T
+    where
+        F: FnMut() -> T,
+        P: FnMut(&T) -> bool,
+    {
+        loop {
+            let x = generator();
+            if pred(&x) {
+                return x;
+            }
+        }
+    }
+    /// `n_vertices` 頂点のランダムな木（辺のリスト）を生成する。
+    /// # Arguments
+    /// * `rng` - 乱数生成器
+    /// * `n_vertices` - 木の頂点数
+    /// # Examples
+    /// ```
+    /// use mylib::utils::random::random_test::*;
+    /// use rand::{Rng, rngs::SmallRng, SeedableRng};
+    /// let mut rng = SmallRng::from_os_rng();
+    /// let tree = generate_random_tree(&mut rng, 5);
+    /// assert_eq!(tree.len(), 4);
+    /// ```
+    pub fn generate_random_tree<R>(rng: &mut R, n_vertices: usize) -> Vec<(usize, usize)>
+    where
+        R: Rng,
+    {
+        let mut edges: Vec<(usize, usize)> = Vec::new();
+        let mut dsu = Dsu::new(n_vertices);
+        while edges.len() != n_vertices - 1 {
+            let x = rng.random_range(0..n_vertices);
+            let y = rng.random_range(0..n_vertices);
+            if !dsu.same(x, y) {
+                dsu.merge(x, y);
+                edges.push((x, y));
+            }
+        }
+        edges
+    }
+    fn is_prime(n: i64) -> bool {
+        if n <= 1 {
+            return false;
+        }
+        for i in 2..=n.sqrt() {
+            if n.is_multiple_of(&i) {
+                return false;
+            }
+        }
+        true
+    }
+    /// 指定された範囲 `[begin, end)` 内のランダムな素数を生成する。
+    /// # Arguments
+    /// * `rng` - 乱数生成器
+    /// * `begin` - 範囲の下限（含む）
+    /// * `end` - 範囲の上限（含まない）
+    /// # Examples
+    /// ```
+    /// use mylib::utils::random::random_test::*;
+    /// use rand::{Rng, rngs::SmallRng, SeedableRng};
+    /// let mut rng = SmallRng::from_os_rng();
+    /// let prime = generate_random_prime(&mut rng, 0, 100);
+    /// ```
+    pub fn generate_random_prime<R>(rng: &mut R, begin: i64, end: i64) -> i64
+    where
+        R: Rng,
+    {
+        let generator = || rng.random_range(begin..end);
+        generate_random_until(generator, |x| is_prime(*x))
+    }
 }
