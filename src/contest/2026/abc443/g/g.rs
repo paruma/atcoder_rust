@@ -1,11 +1,39 @@
 // #[fastout]
+// #[fastout]
+fn floor_sum2(n: i64, m: i64, a: i64, b: i64) -> i64 {
+    let aq = i64::div_euclid(a, m);
+    let ar = i64::rem_euclid(a, m);
+    let bq = i64::div_euclid(b, m);
+    let br = i64::rem_euclid(b, m);
+    let term1 = aq * n * (n - 1) / 2 + bq * n;
+
+    let term2 = {
+        if ar == 0 {
+            0
+        } else {
+            let y = i64::div_euclid(ar * (n - 1) + br, m);
+            n * y - floor_sum2(y, ar, m, m - br + ar - 1)
+        }
+    };
+
+    term1 + term2
+}
+
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        t: usize
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    for _ in 0..t {
+        input! {
+            n: i64,
+            m: i64,
+            a: i64,
+            b: i64,
+        }
+        let ans = n - (floor_sum2(n, m, a, b) - floor_sum2(n, m, a - 1, b - 1));
+        println!("{}", ans);
+    }
 }
 
 #[cfg(test)]
@@ -66,6 +94,9 @@ mod tests {
     }
 }
 
+use std::todo;
+
+use ac_library::floor_sum;
 // ====== import ======
 #[allow(unused_imports)]
 use {
