@@ -57,16 +57,34 @@ pub mod pos {
             (self - rhs).linf_norm()
         }
 
-        // ベクトルを正規化する（最大公約数で割る）。
-        // (0,0)の場合は(0,0)を返す。
-        //
-        // 計算量: O(log(min(|x|, |y|)))
-        pub fn normalize(self) -> Pos {
+        /// 向きが同じであれば同一視する正規化 (方向ベクトル)
+        /// 最大公約数で割り、符号はそのまま残す。
+        /// (0,0) の場合は (0,0) を返す。
+        /// 計算量: O(log(min(|x|, |y|)))
+        pub fn normalize_direction(self) -> Pos {
             if self.x == 0 && self.y == 0 {
                 return self;
             }
             let g = num::integer::gcd(self.x.abs(), self.y.abs());
             Pos::new(self.x / g, self.y / g)
+        }
+
+        /// 平行であれば同一視する正規化（直線の傾きを表す）
+        /// 最大公約数で割り、最初の非零成分 (x が優先) が正になるように符号を統一する。
+        /// (0,0) の場合は (0,0) を返す。
+        /// 計算量: O(log(min(|x|, |y|)))
+        pub fn normalize_slope(self) -> Pos {
+            if self.x == 0 && self.y == 0 {
+                return self;
+            }
+            // 最初の非零成分 (x 優先) が正になるように符号を反転
+            let p = if self.x < 0 || (self.x == 0 && self.y < 0) {
+                -self
+            } else {
+                self
+            };
+            let g = num::integer::gcd(p.x, p.y);
+            Pos::new(p.x / g, p.y / g)
         }
 
         // 原点を中心に反時計回りに90度回転
@@ -497,11 +515,21 @@ mod tests_pos {
     }
 
     #[test]
-    fn test_pos_normalize() {
-        assert_eq!(Pos::new(6, 9).normalize(), Pos::new(2, 3));
-        assert_eq!(Pos::new(-6, 9).normalize(), Pos::new(-2, 3));
-        assert_eq!(Pos::new(0, 5).normalize(), Pos::new(0, 1));
-        assert_eq!(Pos::new(0, 0).normalize(), Pos::new(0, 0));
+    fn test_normalize_direction() {
+        assert_eq!(Pos::new(6, 9).normalize_direction(), Pos::new(2, 3));
+        assert_eq!(Pos::new(-6, 9).normalize_direction(), Pos::new(-2, 3));
+        assert_eq!(Pos::new(0, 5).normalize_direction(), Pos::new(0, 1));
+        assert_eq!(Pos::new(0, 0).normalize_direction(), Pos::new(0, 0));
+    }
+
+    #[test]
+    fn test_normalize_slope() {
+        assert_eq!(Pos::new(6, 9).normalize_slope(), Pos::new(2, 3));
+        assert_eq!(Pos::new(-6, -9).normalize_slope(), Pos::new(2, 3));
+        assert_eq!(Pos::new(2, -1).normalize_slope(), Pos::new(2, -1));
+        assert_eq!(Pos::new(-2, 1).normalize_slope(), Pos::new(2, -1));
+        assert_eq!(Pos::new(0, -5).normalize_slope(), Pos::new(0, 1));
+        assert_eq!(Pos::new(0, 0).normalize_slope(), Pos::new(0, 0));
     }
 
     #[test]
