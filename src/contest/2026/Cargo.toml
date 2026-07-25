@@ -699,272 +699,272 @@ cli_test_dir = { workspace = true }
 # name = "abc458_f"
 # path = "abc458/f/f.rs"
 
-[[bin]]
-name = "abc458_g"
-path = "abc458/g/g.rs"
-
-[[bin]]
-name = "abc459_a"
-path = "abc459/a/a.rs"
-
-[[bin]]
-name = "abc459_b"
-path = "abc459/b/b.rs"
-
-[[bin]]
-name = "abc459_c"
-path = "abc459/c/c.rs"
-
-[[bin]]
-name = "abc459_d"
-path = "abc459/d/d.rs"
-
-[[bin]]
-name = "abc459_e"
-path = "abc459/e/e.rs"
-
-[[bin]]
-name = "abc459_f"
-path = "abc459/f/f.rs"
-
-[[bin]]
-name = "abc459_g"
-path = "abc459/g/g.rs"
-
-[[bin]]
-name = "abc460_a"
-path = "abc460/a/a.rs"
-
-[[bin]]
-name = "abc460_b"
-path = "abc460/b/b.rs"
-
-[[bin]]
-name = "abc460_c"
-path = "abc460/c/c.rs"
-
-[[bin]]
-name = "abc460_d"
-path = "abc460/d/d.rs"
-
-[[bin]]
-name = "abc460_e"
-path = "abc460/e/e.rs"
-
-[[bin]]
-name = "abc460_f"
-path = "abc460/f/f.rs"
-
-[[bin]]
-name = "abc460_g"
-path = "abc460/g/g.rs"
-
-[[bin]]
-name = "abc461_a"
-path = "abc461/a/a.rs"
-
-[[bin]]
-name = "abc461_b"
-path = "abc461/b/b.rs"
-
-[[bin]]
-name = "abc461_c"
-path = "abc461/c/c.rs"
-
-[[bin]]
-name = "abc461_d"
-path = "abc461/d/d.rs"
-
-[[bin]]
-name = "abc461_e"
-path = "abc461/e/e.rs"
-
-[[bin]]
-name = "abc461_f"
-path = "abc461/f/f.rs"
-
-[[bin]]
-name = "abc461_g"
-path = "abc461/g/g.rs"
-
-[[bin]]
-name = "abc462_a"
-path = "abc462/a/a.rs"
-
-[[bin]]
-name = "abc462_b"
-path = "abc462/b/b.rs"
-
-[[bin]]
-name = "abc462_c"
-path = "abc462/c/c.rs"
-
-[[bin]]
-name = "abc462_d"
-path = "abc462/d/d.rs"
-
-[[bin]]
-name = "abc462_e"
-path = "abc462/e/e.rs"
-
-[[bin]]
-name = "abc462_f"
-path = "abc462/f/f.rs"
-
-[[bin]]
-name = "abc462_g"
-path = "abc462/g/g.rs"
-[[bin]]
-name = "abc463_a"
-path = "abc463/a/a.rs"
-
-[[bin]]
-name = "abc463_b"
-path = "abc463/b/b.rs"
-
-[[bin]]
-name = "abc463_c"
-path = "abc463/c/c.rs"
-
-[[bin]]
-name = "abc463_d"
-path = "abc463/d/d.rs"
-
-[[bin]]
-name = "abc463_e"
-path = "abc463/e/e.rs"
-
-[[bin]]
-name = "abc463_f"
-path = "abc463/f/f.rs"
-
-[[bin]]
-name = "abc463_g"
-path = "abc463/g/g.rs"
-
-[[bin]]
-name = "abc464_a"
-path = "abc464/a/a.rs"
-
-[[bin]]
-name = "abc464_b"
-path = "abc464/b/b.rs"
-
-[[bin]]
-name = "abc464_c"
-path = "abc464/c/c.rs"
-
-[[bin]]
-name = "abc464_d"
-path = "abc464/d/d.rs"
-
-[[bin]]
-name = "abc464_e"
-path = "abc464/e/e.rs"
-
-[[bin]]
-name = "abc464_e_imos"
-path = "abc464/e/e_imos.rs"
-
-[[bin]]
-name = "abc464_e_from_back"
-path = "abc464/e/e_from_back.rs"
-
-[[bin]]
-name = "abc464_f"
-path = "abc464/f/f.rs"
-
-[[bin]]
-name = "abc464_g"
-path = "abc464/g/g.rs"
-
-[[bin]]
-name = "abc465_a"
-path = "abc465/a/a.rs"
-
-[[bin]]
-name = "abc465_b"
-path = "abc465/b/b.rs"
-
-[[bin]]
-name = "abc465_c"
-path = "abc465/c/c.rs"
-
-[[bin]]
-name = "abc465_d"
-path = "abc465/d/d.rs"
-
-[[bin]]
-name = "abc465_e"
-path = "abc465/e/e.rs"
-
-[[bin]]
-name = "abc465_f"
-path = "abc465/f/f.rs"
-
-[[bin]]
-name = "abc465_g"
-path = "abc465/g/g.rs"
-
-[[bin]]
-name = "abc466_a"
-path = "abc466/a/a.rs"
-
-[[bin]]
-name = "abc466_b"
-path = "abc466/b/b.rs"
-
-[[bin]]
-name = "abc466_c"
-path = "abc466/c/c.rs"
-
-[[bin]]
-name = "abc466_d"
-path = "abc466/d/d.rs"
-
-[[bin]]
-name = "abc466_e"
-path = "abc466/e/e.rs"
-
-[[bin]]
-name = "abc466_e2"
-path = "abc466/e/e2.rs"
-
-[[bin]]
-name = "abc466_f"
-path = "abc466/f/f.rs"
-
-[[bin]]
-name = "abc466_g"
-path = "abc466/g/g.rs"
-
-[[bin]]
-name = "abc467_a"
-path = "abc467/a/a.rs"
-
-[[bin]]
-name = "abc467_b"
-path = "abc467/b/b.rs"
-
-[[bin]]
-name = "abc467_c"
-path = "abc467/c/c.rs"
-
-[[bin]]
-name = "abc467_d"
-path = "abc467/d/d.rs"
-
-[[bin]]
-name = "abc467_e"
-path = "abc467/e/e.rs"
-
-[[bin]]
-name = "abc467_f"
-path = "abc467/f/f.rs"
-
-[[bin]]
-name = "abc467_g"
-path = "abc467/g/g.rs"
+# [[bin]]
+# name = "abc458_g"
+# path = "abc458/g/g.rs"
+
+# [[bin]]
+# name = "abc459_a"
+# path = "abc459/a/a.rs"
+
+# [[bin]]
+# name = "abc459_b"
+# path = "abc459/b/b.rs"
+
+# [[bin]]
+# name = "abc459_c"
+# path = "abc459/c/c.rs"
+
+# [[bin]]
+# name = "abc459_d"
+# path = "abc459/d/d.rs"
+
+# [[bin]]
+# name = "abc459_e"
+# path = "abc459/e/e.rs"
+
+# [[bin]]
+# name = "abc459_f"
+# path = "abc459/f/f.rs"
+
+# [[bin]]
+# name = "abc459_g"
+# path = "abc459/g/g.rs"
+
+# [[bin]]
+# name = "abc460_a"
+# path = "abc460/a/a.rs"
+
+# [[bin]]
+# name = "abc460_b"
+# path = "abc460/b/b.rs"
+
+# [[bin]]
+# name = "abc460_c"
+# path = "abc460/c/c.rs"
+
+# [[bin]]
+# name = "abc460_d"
+# path = "abc460/d/d.rs"
+
+# [[bin]]
+# name = "abc460_e"
+# path = "abc460/e/e.rs"
+
+# [[bin]]
+# name = "abc460_f"
+# path = "abc460/f/f.rs"
+
+# [[bin]]
+# name = "abc460_g"
+# path = "abc460/g/g.rs"
+
+# [[bin]]
+# name = "abc461_a"
+# path = "abc461/a/a.rs"
+
+# [[bin]]
+# name = "abc461_b"
+# path = "abc461/b/b.rs"
+
+# [[bin]]
+# name = "abc461_c"
+# path = "abc461/c/c.rs"
+
+# [[bin]]
+# name = "abc461_d"
+# path = "abc461/d/d.rs"
+
+# [[bin]]
+# name = "abc461_e"
+# path = "abc461/e/e.rs"
+
+# [[bin]]
+# name = "abc461_f"
+# path = "abc461/f/f.rs"
+
+# [[bin]]
+# name = "abc461_g"
+# path = "abc461/g/g.rs"
+
+# [[bin]]
+# name = "abc462_a"
+# path = "abc462/a/a.rs"
+
+# [[bin]]
+# name = "abc462_b"
+# path = "abc462/b/b.rs"
+
+# [[bin]]
+# name = "abc462_c"
+# path = "abc462/c/c.rs"
+
+# [[bin]]
+# name = "abc462_d"
+# path = "abc462/d/d.rs"
+
+# [[bin]]
+# name = "abc462_e"
+# path = "abc462/e/e.rs"
+
+# [[bin]]
+# name = "abc462_f"
+# path = "abc462/f/f.rs"
+
+# [[bin]]
+# name = "abc462_g"
+# path = "abc462/g/g.rs"
+# [[bin]]
+# name = "abc463_a"
+# path = "abc463/a/a.rs"
+
+# [[bin]]
+# name = "abc463_b"
+# path = "abc463/b/b.rs"
+
+# [[bin]]
+# name = "abc463_c"
+# path = "abc463/c/c.rs"
+
+# [[bin]]
+# name = "abc463_d"
+# path = "abc463/d/d.rs"
+
+# [[bin]]
+# name = "abc463_e"
+# path = "abc463/e/e.rs"
+
+# [[bin]]
+# name = "abc463_f"
+# path = "abc463/f/f.rs"
+
+# [[bin]]
+# name = "abc463_g"
+# path = "abc463/g/g.rs"
+
+# [[bin]]
+# name = "abc464_a"
+# path = "abc464/a/a.rs"
+
+# [[bin]]
+# name = "abc464_b"
+# path = "abc464/b/b.rs"
+
+# [[bin]]
+# name = "abc464_c"
+# path = "abc464/c/c.rs"
+
+# [[bin]]
+# name = "abc464_d"
+# path = "abc464/d/d.rs"
+
+# [[bin]]
+# name = "abc464_e"
+# path = "abc464/e/e.rs"
+
+# [[bin]]
+# name = "abc464_e_imos"
+# path = "abc464/e/e_imos.rs"
+
+# [[bin]]
+# name = "abc464_e_from_back"
+# path = "abc464/e/e_from_back.rs"
+
+# [[bin]]
+# name = "abc464_f"
+# path = "abc464/f/f.rs"
+
+# [[bin]]
+# name = "abc464_g"
+# path = "abc464/g/g.rs"
+
+# [[bin]]
+# name = "abc465_a"
+# path = "abc465/a/a.rs"
+
+# [[bin]]
+# name = "abc465_b"
+# path = "abc465/b/b.rs"
+
+# [[bin]]
+# name = "abc465_c"
+# path = "abc465/c/c.rs"
+
+# [[bin]]
+# name = "abc465_d"
+# path = "abc465/d/d.rs"
+
+# [[bin]]
+# name = "abc465_e"
+# path = "abc465/e/e.rs"
+
+# [[bin]]
+# name = "abc465_f"
+# path = "abc465/f/f.rs"
+
+# [[bin]]
+# name = "abc465_g"
+# path = "abc465/g/g.rs"
+
+# [[bin]]
+# name = "abc466_a"
+# path = "abc466/a/a.rs"
+
+# [[bin]]
+# name = "abc466_b"
+# path = "abc466/b/b.rs"
+
+# [[bin]]
+# name = "abc466_c"
+# path = "abc466/c/c.rs"
+
+# [[bin]]
+# name = "abc466_d"
+# path = "abc466/d/d.rs"
+
+# [[bin]]
+# name = "abc466_e"
+# path = "abc466/e/e.rs"
+
+# [[bin]]
+# name = "abc466_e2"
+# path = "abc466/e/e2.rs"
+
+# [[bin]]
+# name = "abc466_f"
+# path = "abc466/f/f.rs"
+
+# [[bin]]
+# name = "abc466_g"
+# path = "abc466/g/g.rs"
+
+# [[bin]]
+# name = "abc467_a"
+# path = "abc467/a/a.rs"
+
+# [[bin]]
+# name = "abc467_b"
+# path = "abc467/b/b.rs"
+
+# [[bin]]
+# name = "abc467_c"
+# path = "abc467/c/c.rs"
+
+# [[bin]]
+# name = "abc467_d"
+# path = "abc467/d/d.rs"
+
+# [[bin]]
+# name = "abc467_e"
+# path = "abc467/e/e.rs"
+
+# [[bin]]
+# name = "abc467_f"
+# path = "abc467/f/f.rs"
+
+# [[bin]]
+# name = "abc467_g"
+# path = "abc467/g/g.rs"
 
 
 [[bin]]
