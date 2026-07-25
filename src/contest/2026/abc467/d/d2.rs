@@ -1,5 +1,16 @@
-// 問題文と制約は読みましたか？
-// #[fastout]
+// 直線の一致・平行判定に比を使う
+
+fn cross0((a0, a1): (i128, i128), (b0, b1): (i128, i128)) -> bool {
+    a0 * b1 == a1 * b0
+}
+
+fn is_parallel2((a0, a1): (i128, i128), (b0, b1): (i128, i128)) -> bool {
+    cross0((a0, a1), (b0, b1))
+}
+
+fn is_parallel3((a0, a1, a2): (i128, i128, i128), (b0, b1, b2): (i128, i128, i128)) -> bool {
+    cross0((a0, a1), (b0, b1)) && cross0((a1, a2), (b1, b2)) && cross0((a2, a0), (b2, b0))
+}
 
 // p1, p2 を通る垂直二等分線
 fn line(p1: Pos, p2: Pos) -> (i128, i128, i128) {
@@ -9,31 +20,6 @@ fn line(p1: Pos, p2: Pos) -> (i128, i128, i128) {
     (a, b, c)
 }
 
-fn norm3(a: i128, b: i128, c: i128) -> (i128, i128, i128) {
-    if a < 0 {
-        return norm3(-a, -b, -c);
-    }
-    if a == 0 && b < 0 {
-        return norm3(-a, -b, -c);
-    }
-    // (a, b) = (0, 0) は考慮しない
-
-    let gcd = a.gcd(&b.abs()).gcd(&c.abs());
-    (a / gcd, b / gcd, c / gcd)
-}
-
-fn norm2(a: i128, b: i128) -> (i128, i128) {
-    if a < 0 {
-        return norm2(-a, -b);
-    }
-    if a == 0 && b < 0 {
-        return norm2(-a, -b);
-    }
-
-    let gcd = a.gcd(&b.abs());
-    (a / gcd, b / gcd)
-}
-
 fn solve(p1: Pos, p2: Pos, p3: Pos, p4: Pos) -> bool {
     // p1 p2 の垂直二等分線
     let (a1, b1, c1) = line(p1, p2);
@@ -41,8 +27,8 @@ fn solve(p1: Pos, p2: Pos, p3: Pos, p4: Pos) -> bool {
     // p3 p4 の垂直二等分線
     let (a2, b2, c2) = line(p3, p4);
 
-    let pred1 = norm2(a1, b1) != norm2(a2, b2); // 2つの直線が平行ではない
-    let pred2 = norm3(a1, b1, c1) == norm3(a2, b2, c2); // 2つの直線が一致
+    let pred1 = !is_parallel2((a1, b1), (a2, b2)); // 2つの直線が平行ではない
+    let pred2 = is_parallel3((a1, b1, c1), (a2, b2, c2)); // 2つの直線が一致
     pred1 || pred2
 }
 
