@@ -3,9 +3,27 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        xs: [Usize1; n],
+        ys: [Usize1; n],
     }
-    let ans: i64 = -2_i64;
+
+    // xs >= ys だったら 0
+    let ans = if xs >= ys {
+        0
+    } else {
+        let mut cur = xs;
+        let mut cnt = 0;
+        loop {
+            cur.next_permutation();
+            if cur >= ys {
+                break;
+            }
+            cnt += 1;
+        }
+
+        cnt
+    };
+
     println!("{}", ans);
 }
 
@@ -68,6 +86,7 @@ mod tests {
 }
 
 // ====== import ======
+use superslice::Ext;
 #[allow(unused_imports)]
 use {
     itertools::{Itertools, chain, iproduct, izip},

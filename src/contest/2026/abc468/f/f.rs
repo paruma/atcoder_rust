@@ -1,11 +1,66 @@
 // 問題文と制約は読みましたか？
 // #[fastout]
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct MaxUsizeUsize(Infallible);
+impl Monoid for MaxUsizeUsize {
+    type S = (usize, usize);
+    fn identity() -> Self::S {
+        (usize::MIN, usize::MIN)
+    }
+    fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+        std::cmp::max(*a, *b)
+    }
+}
+
+fn lis(xs: &[usize]) -> Vec<usize> {
+    if xs.len() == 0 {
+        return vec![];
+    }
+    let n = xs.len();
+    let mut dp: Vec<usize> = vec![0; n];
+    let mut prev = vec![usize::MAX; n];
+    let mut seg = Segtree::<MaxUsizeUsize>::new(n);
+    for x in 0..n {
+        seg.set(x, (0, usize::MAX));
+    }
+    for (i, x) in xs.iter().copied().enumerate() {
+        dp[i] = seg.prod(..x).0.wrapping_add(1);
+        prev[i] = if x == 0 { usize::MAX } else { seg.prod(..x).1 };
+        if seg.get(x).0 < dp[i] {
+            seg.set(x, (dp[i], i));
+        }
+    }
+
+    let lis_len = dp.iter().copied().max().unwrap();
+    let pos = dp.iter().position(|x| *x == lis_len).unwrap();
+    //    dbg!(prev);
+    std::iter::successors(Some(pos), |cur| {
+        let prev = prev[*cur];
+        if prev < n { Some(prev) } else { None }
+    })
+    .collect_vec()
+}
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        xs: [Usize1; n],
     }
-    let ans: i64 = -2_i64;
+
+    let lis1 = lis(&xs);
+
+    let lis_set = lis1.iter().copied().collect::<HashSet<usize>>();
+    // dbg!(&lis1);
+
+    let ys = (0..n)
+        .filter(|i| !lis_set.contains(&i))
+        .map(|i| xs[i])
+        .collect_vec();
+    let ys_cc = CoordinateCompression::new(&ys).compress_vec(&ys);
+    // dbg!(&ys);
+    let lis2 = lis(&ys_cc);
+
+    let ans: usize = lis1.len() + lis2.len();
     println!("{}", ans);
 }
 
@@ -68,6 +123,11 @@ mod tests {
 }
 
 // ====== import ======
+use {
+    ac_library::{Monoid, Segtree},
+    num_traits::WrappingAdd,
+    std::convert::Infallible,
+};
 #[allow(unused_imports)]
 use {
     itertools::{Itertools, chain, iproduct, izip},
@@ -136,3 +196,77 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use coordinate_compression::*;
+#[allow(clippy::module_inception)]
+pub mod coordinate_compression {
+    use itertools::Itertools;
+    use superslice::Ext;
+    #[derive(Debug, Clone)]
+    pub struct CoordinateCompression<T> {
+        space: Vec<T>,
+    }
+    impl<T: Ord + Copy> CoordinateCompression<T> {
+        /// 与えられた要素から座標圧縮空間を構築する。
+        /// # 計算量
+        /// O(N log N) (N = |space|)
+        pub fn new(space: &[T]) -> Self {
+            let space = space.iter().copied().sorted().dedup().collect_vec();
+            Self { space }
+        }
+        /// 与えられた値を座標圧縮したインデックスを返す。
+        /// 値が空間に存在しない場合はパニックする。
+        /// # 計算量
+        /// O(log N) (N = space_size)
+        pub fn compress(&self, x: T) -> usize {
+            self.space.binary_search(&x).unwrap()
+        }
+        /// 座標圧縮前の空間のうち x 以下である最大の値を座標圧縮したものを返す
+        /// # 計算量
+        /// O(log N) (N = space_size)
+        pub fn compress_floor(&self, x: T) -> usize {
+            self.space.upper_bound(&x) - 1
+        }
+        /// 座標圧縮前の空間のうち x 以上である最小の値を座標圧縮したものを返す
+        /// # 計算量
+        /// O(log N) (N = space_size)
+        pub fn compress_ceil(&self, x: T) -> usize {
+            self.space.lower_bound(&x)
+        }
+        /// 与えられた各要素を座標圧縮した結果を返す。
+        /// # 計算量
+        /// O(M log N) (M = |xs|, N = space_size)
+        pub fn compress_vec(&self, xs: &[T]) -> Vec<usize> {
+            xs.iter().map(|&x| self.compress(x)).collect_vec()
+        }
+        /// 指定された範囲内の値に対応する座標圧縮後のインデックス範囲を [begin, end) で返す。
+        /// # 計算量
+        /// O(log N) (N = space_size)
+        pub fn compress_range(
+            &self,
+            range: impl std::ops::RangeBounds<T>,
+        ) -> std::ops::Range<usize> {
+            use std::ops::Bound::*;
+            let begin = match range.start_bound() {
+                Unbounded => 0,
+                Included(&x) => self.space.lower_bound(&x),
+                Excluded(&x) => self.space.upper_bound(&x),
+            };
+            let end = match range.end_bound() {
+                Unbounded => self.space.len(),
+                Included(&x) => self.space.upper_bound(&x),
+                Excluded(&x) => self.space.lower_bound(&x),
+            };
+            begin..end
+        }
+        /// 座標圧縮されたインデックスから元の値を復元する。
+        /// # 計算量
+        /// O(1)
+        pub fn decompress(&self, i: usize) -> T {
+            self.space[i]
+        }
+        /// 座標圧縮後の空間の大きさ（要素数）を返す。
+        pub fn space_size(&self) -> usize {
+            self.space.len()
+        }
+    }
+}

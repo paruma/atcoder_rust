@@ -5,7 +5,12 @@ fn main() {
         n: usize,
         xs: [i64; n],
     }
-    let ans: i64 = -2_i64;
+    let ans: usize = xs
+        .iter()
+        .copied()
+        .tuple_windows()
+        .filter(|&(a, b, c)| a < b && b > c)
+        .count();
     println!("{}", ans);
 }
 

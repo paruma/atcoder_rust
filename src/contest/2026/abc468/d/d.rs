@@ -2,10 +2,66 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        xs: Bytes,
     }
-    let ans: i64 = -2_i64;
+    let n = xs.len();
+
+    // 奇数
+    let term1 = {
+        (0..n)
+            .map(|c| {
+                //c: 中心
+                let mut cnt = 0;
+                let mut change = 0;
+                for r in 0.. {
+                    if c < r || c + r >= n {
+                        break;
+                    }
+                    if xs[c + r] != xs[c - r] {
+                        change += 1;
+                    }
+                    if change >= 2 {
+                        break;
+                    }
+
+                    cnt += 1;
+                }
+
+                cnt
+            })
+            .sum::<usize>()
+    };
+
+    // dbg!(term1);
+
+    // 偶数
+    let term2 = {
+        //
+        (0..n - 1)
+            .map(|c| {
+                // c, c+1 が中心
+                let mut cnt = 0;
+                let mut change = 0;
+                for r in 0.. {
+                    // c - r と c + 1 + r を見る
+                    if c < r || c + 1 + r >= n {
+                        break;
+                    }
+                    if xs[c + 1 + r] != xs[c - r] {
+                        change += 1;
+                    }
+                    if change >= 2 {
+                        break;
+                    }
+
+                    cnt += 1;
+                }
+                cnt
+            })
+            .sum::<usize>()
+    };
+
+    let ans: usize = term1 + term2;
     println!("{}", ans);
 }
 
