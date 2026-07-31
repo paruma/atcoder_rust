@@ -11,7 +11,7 @@ fn main() {
 
     for i in 0..m {
         if xs[i] == 'G' {
-            let min = (i as i64 - d as i64).max(0) as usize;
+            let min = i.saturating_sub(d);
             let max = (i as i64 + d as i64).min((m - 1) as i64) as usize;
 
             for j in min..=max {
