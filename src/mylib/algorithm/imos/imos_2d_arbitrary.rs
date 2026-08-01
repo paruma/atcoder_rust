@@ -1,11 +1,11 @@
-use crate::math::algebra::ab_group::ab_group::AbGroup;
+use crate::math::algebra::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
 use cargo_snippet::snippet;
 
 #[snippet(prefix = "use imos_2d_arbitrary::*;", include = "ab_group")]
 #[allow(clippy::module_inception)]
 /// 可換群 (AbGroup) を用いた汎用的な 2次元いもす法を扱うモジュール
 pub mod imos_2d_arbitrary {
-    use super::AbGroup;
+    use super::{AbGroup, AdditiveAbGroup};
 
     /// 2次元いもす法のための構造体 (汎用版)
     #[derive(Clone, Debug, PartialEq, Eq)]
@@ -16,6 +16,9 @@ pub mod imos_2d_arbitrary {
         x_begin: i64,
         x_end: i64,
     }
+
+    /// 任意の数値型 `T` の加算群を用いた 2 次元いもす法のエイリアス。
+    pub type Imos2dAdditive<T> = Imos2dArbitrary<AdditiveAbGroup<T>>;
 
     impl<G: AbGroup> Imos2dArbitrary<G> {
         /// `[y_begin, y_end) x [x_begin, x_end)` の矩形領域を対象とする `Imos2dArbitrary` を生成する。

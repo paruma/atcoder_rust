@@ -1,16 +1,19 @@
-use crate::math::algebra::ab_group::ab_group::AbGroup;
+use crate::math::algebra::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
 use cargo_snippet::snippet;
 
 #[snippet(prefix = "use cumsum_arbitrary::*;", include = "ab_group")]
 #[allow(clippy::module_inception)]
 pub mod cumsum_arbitrary {
-    use super::AbGroup;
+    use super::{AbGroup, AdditiveAbGroup};
     use std::ops::{Bound, Range, RangeBounds};
 
     #[derive(Clone, Debug, PartialEq, Eq)]
     pub struct CumSumArbitrary<G: AbGroup> {
         pub cumsum: Vec<G::S>,
     }
+
+    /// 任意の数値型 `T` の加算群を用いた累積和のエイリアス。
+    pub type CumSumAdditive<T> = CumSumArbitrary<AdditiveAbGroup<T>>;
 
     impl<G: AbGroup> CumSumArbitrary<G> {
         /// # 計算量

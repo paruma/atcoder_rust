@@ -65,6 +65,9 @@ pub mod potentialized_dsu {
         cnt_groups: usize,
     }
 
+    /// 任意の数値型 `T` の加算群を用いたポテンシャル付き DSU のエイリアス。
+    pub type PotentializedDsuAdditive<T> = PotentializedDsuArbitrary<AdditiveAbGroup<T>>;
+
     pub type PotentializedDsu = PotentializedDsuArbitrary<AdditiveAbGroup<i64>>;
 
     impl<G: AbGroup> PotentializedDsuArbitrary<G>

@@ -1,11 +1,11 @@
-use crate::math::algebra::ab_group::ab_group::AbGroup;
+use crate::math::algebra::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
 use cargo_snippet::snippet;
 
 #[snippet(prefix = "use rect_add_imos_arbitrary::*;", include = "ab_group")]
 #[allow(clippy::module_inception)]
 /// 可換群 (AbGroup) を用いた汎用的な 2次元長方形加算いもす法を扱うモジュール
 pub mod rect_add_imos_arbitrary {
-    use super::AbGroup;
+    use super::{AbGroup, AdditiveAbGroup};
     use std::ops::{Bound, RangeBounds};
 
     /// 2次元いもす法（差分配列）を用いて、2次元配列に対する長方形領域への加算クエリを効率的に処理するデータ構造 (汎用版)。
@@ -17,6 +17,9 @@ pub mod rect_add_imos_arbitrary {
         w: usize,
         diff: Vec<Vec<G::S>>,
     }
+
+    /// 任意の数値型 `T` の加算群を用いた長方形加算いもす法のエイリアス。
+    pub type RectAddImosAdditive<T> = RectAddImosArbitrary<AdditiveAbGroup<T>>;
 
     impl<G: AbGroup> RectAddImosArbitrary<G> {
         /// サイズ `h` × `w` の `RectAddImosArbitrary` インスタンスを作成する。

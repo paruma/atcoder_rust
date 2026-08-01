@@ -1,11 +1,11 @@
-use crate::math::algebra::ab_group::ab_group::AbGroup;
+use crate::math::algebra::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
 use cargo_snippet::snippet;
 
 #[snippet(prefix = "use range_add_imos_arbitrary::*;", include = "ab_group")]
 #[allow(clippy::module_inception)]
 /// 可換群 (AbGroup) を用いた汎用的な 1次元区間加算いもす法を扱うモジュール
 pub mod range_add_imos_arbitrary {
-    use super::AbGroup;
+    use super::{AbGroup, AdditiveAbGroup};
 
     /// いもす法（差分配列）を用いて、配列に対する区間加算クエリを効率的に処理するデータ構造 (汎用版)。
     /// 最終的な配列の状態を一度に計算する場合（オフライン処理）に特に有用です。
@@ -16,6 +16,9 @@ pub mod range_add_imos_arbitrary {
         n: usize,
         diff: Vec<G::S>,
     }
+
+    /// 任意の数値型 `T` の加算群を用いた区間加算いもす法のエイリアス。
+    pub type RangeAddImosAdditive<T> = RangeAddImosArbitrary<AdditiveAbGroup<T>>;
 
     impl<G: AbGroup> RangeAddImosArbitrary<G> {
         /// サイズ `n` の新しい `RangeAddImosArbitrary` インスタンスを作成します。

@@ -1,11 +1,11 @@
-use crate::math::algebra::ab_group::ab_group::AbGroup;
+use crate::math::algebra::ab_group::ab_group::{AbGroup, AdditiveAbGroup};
 use cargo_snippet::snippet;
 
 #[snippet(prefix = "use imos_1d_arbitrary::*;", include = "ab_group")]
 #[allow(clippy::module_inception)]
 /// 可換群 (AbGroup) を用いた汎用的な 1次元いもす法を扱うモジュール
 pub mod imos_1d_arbitrary {
-    use super::AbGroup;
+    use super::{AbGroup, AdditiveAbGroup};
 
     /// 1次元いもす法のための構造体 (汎用版)
     #[derive(Clone, Debug, PartialEq, Eq)]
@@ -14,6 +14,9 @@ pub mod imos_1d_arbitrary {
         begin: i64,
         end: i64,
     }
+
+    /// 任意の数値型 `T` の加算群を用いた 1 次元いもす法のエイリアス。
+    pub type Imos1DAdditive<T> = Imos1DArbitrary<AdditiveAbGroup<T>>;
 
     impl<G: AbGroup> Imos1DArbitrary<G> {
         /// `[begin, end)` の半開区間を対象とする `Imos1DArbitrary` を生成する。
