@@ -345,7 +345,7 @@ mod tests_dynamic_monoid_segtree {
         let expected = base
             .iter()
             .enumerate()
-            .filter_map(|(i, a)| Some(a).filter(|_| range.contains(&i)))
+            .filter_map(|(i, a)| range.contains(&i).then_some(a))
             .fold(vec![0; base_len], |acc, x| {
                 acc.iter().zip(x.iter()).map(|(a, b)| a + b).collect()
             });

@@ -380,7 +380,7 @@ mod tests {
             assert_eq!(
                 actual, expected,
                 "Random test failed for k={}, n={}, initial_terms={:?}, coeffs={:?}",
-                k, n, &initial_terms, &coeffs
+                k, n, initial_terms, coeffs
             );
         }
     }
