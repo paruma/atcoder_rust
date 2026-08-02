@@ -3,9 +3,15 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        xs: Chars,
     }
-    let ans: i64 = -2_i64;
+    let ans = (0..n)
+        .filter(|&i| {
+            let min = if i == 0 { 0 } else { i - 1 };
+            let max = if i == n - 1 { n - 1 } else { i + 1 };
+            (min..=max).all(|j| xs[j] == 'x')
+        })
+        .count();
     println!("{}", ans);
 }
 

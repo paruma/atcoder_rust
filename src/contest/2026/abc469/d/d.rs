@@ -3,10 +3,70 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        m: usize,
+        abs: [(Usize1, Usize1); m],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    let abs = abs.iter().copied().unique().collect_vec();
+    let m = abs.len();
+
+    let adj = abs
+        .iter()
+        .copied()
+        .fold(vec![vec![]; n], |mut acc, (a, b)| {
+            acc[a].push(b);
+            acc[b].push(a);
+            acc
+        });
+
+    let mut cnts = vec![0; n]; // [0, m] の値を取る
+    let mut cnts_cnts = vec![0; (m + 1).max(n + 1)];
+    cnts_cnts[0] = n;
+
+    for a in abs.iter().copied().flat_map(|(a, b)| [a, b]) {
+        cnts_cnts[cnts[a]] -= 1;
+        cnts[a] += 1;
+        cnts_cnts[cnts[a]] += 1;
+    }
+
+    // dbg!(&cnts);
+    // dbg!(&cnts_cnts);
+    let mut ans = 0;
+
+    for x in 0..n {
+        for &a in &adj[x] {
+            cnts_cnts[cnts[a]] -= 1;
+            cnts[a] -= 1;
+            cnts_cnts[cnts[a]] += 1;
+
+            cnts_cnts[cnts[x]] -= 1;
+            cnts[x] -= 1;
+            cnts_cnts[cnts[x]] += 1;
+        }
+        // なんかする
+
+        // dbg!(&cnts);
+        // dbg!(&cnts_cnts);
+
+        // dbg!(adj[x].len());
+        ans += cnts_cnts[m - adj[x].len()];
+        if cnts[x] == m - adj[x].len() {
+            ans -= 1;
+        }
+
+        for &a in &adj[x] {
+            cnts_cnts[cnts[a]] -= 1;
+            cnts[a] += 1;
+            cnts_cnts[cnts[a]] += 1;
+
+            cnts_cnts[cnts[x]] -= 1;
+            cnts[x] += 1;
+            cnts_cnts[cnts[x]] += 1;
+        }
+        //
+    }
+
+    println!("{}", ans / 2);
 }
 
 #[cfg(test)]

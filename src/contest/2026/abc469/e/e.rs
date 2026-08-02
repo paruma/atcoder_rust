@@ -3,7 +3,8 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        k: usize,
+        xs: Chars,
     }
     let ans: i64 = -2_i64;
     println!("{}", ans);

@@ -3,10 +3,29 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        xs: Chars,
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let mut ans = vec![usize::MAX; n];
+
+    let mut cur = 0;
+
+    for k in 0..n {
+        cur = (cur + 1).min(n);
+
+        loop {
+            if cur == n {
+                break;
+            }
+            let cur_char = xs[cur - 1];
+            if cur_char != 'o' {
+                break;
+            } else {
+                cur += 1;
+            }
+        }
+        ans[k] = cur;
+    }
+    print_vec(&ans);
 }
 
 #[cfg(test)]
