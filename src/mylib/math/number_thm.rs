@@ -10,6 +10,8 @@ pub fn divisors(n: i64) -> Vec<i64> {
     use num_integer::Roots;
 
     assert!(n >= 1);
+    // N = 720720, 73513440, 96342336, 999983 に対してそれぞれ1000回列挙する処理時間を測定したところ、
+    // `Vec::new` から `Vec::with_capacity` に変えると、32.8 ms から 64.3 ms に増加した。
     let mut retval: Vec<i64> = Vec::new();
     for i in 1..=n.sqrt() {
         if n.is_multiple_of(&i) {
@@ -191,8 +193,12 @@ pub mod eratosthenes_sieve {
         /// # 計算量
         /// O(nの約数の個数)
         pub fn divisors(&self, n: usize) -> Vec<usize> {
-            let mut res = vec![1];
             let pf = self.prime_factorize(n);
+            let divisor_count = pf.iter().map(|&(_, e)| e + 1).product();
+            // N = 100000 までの全整数の約数を100回列挙する処理時間を測定したところ、
+            // `Vec::new` から `Vec::with_capacity` に変えることで、1.45 s から 1.01 s に短縮された。
+            let mut res = Vec::with_capacity(divisor_count);
+            res.push(1);
             for (p, e) in pf {
                 let n = res.len();
                 for i in 0..n {
