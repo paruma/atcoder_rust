@@ -21,7 +21,7 @@ mylib は競プロ用のコードライブラリです。以下の流れで運�
 
 ## こんなときはこのファイルを読む
 
-- **mylib で実装するとき（常に読むべき）**
+- **mylib で実装するとき（1〜2行の修正やコメント修正を除く）**
   → [コーディング規約](references/coding-conventions.md)
   → [スニペット設計](references/snippet-design.md)
 
