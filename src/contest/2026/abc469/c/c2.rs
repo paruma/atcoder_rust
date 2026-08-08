@@ -1,31 +1,14 @@
-// 問題文と制約は読みましたか？
-// #[fastout]
+// 解説の解法
 fn main() {
     input! {
         n: usize,
         xs: Chars,
     }
-    let mut ans = vec![usize::MAX; n];
-
-    let mut cur = 0;
-
-    for k in 0..n {
-        // do-while のノリ
-        loop {
-            cur = usize::min(cur + 1, n);
-            // 次があるとき、あたりを引いたらもう一回
-            if cur == n || xs[cur - 1] != 'o' {
-                break;
-            }
-        }
-        ans[k] = cur;
-        // 普通の while で書く場合はこう
-        // while cur < n && xs[cur] == 'o' {
-        //     cur += 1;
-        // }
-        // cur = usize::min(cur + 1, n);
-        // ans[k] = cur;
-    }
+    // k回目は 'x' が k 回現れるところまで取れる。
+    let pos_x = xs.iter().positions(|ch| *ch == 'x').collect_vec();
+    let ans = (0..n)
+        .map(|i| pos_x.get(i).unwrap_or(&(n - 1)) + 1)
+        .collect_vec();
     print_vec(&ans);
 }
 

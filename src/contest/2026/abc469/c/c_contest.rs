@@ -10,21 +10,20 @@ fn main() {
     let mut cur = 0;
 
     for k in 0..n {
-        // do-while のノリ
+        cur = (cur + 1).min(n);
+
         loop {
-            cur = usize::min(cur + 1, n);
-            // 次があるとき、あたりを引いたらもう一回
-            if cur == n || xs[cur - 1] != 'o' {
+            if cur == n {
                 break;
+            }
+            let cur_char = xs[cur - 1];
+            if cur_char != 'o' {
+                break;
+            } else {
+                cur += 1;
             }
         }
         ans[k] = cur;
-        // 普通の while で書く場合はこう
-        // while cur < n && xs[cur] == 'o' {
-        //     cur += 1;
-        // }
-        // cur = usize::min(cur + 1, n);
-        // ans[k] = cur;
     }
     print_vec(&ans);
 }

@@ -998,28 +998,31 @@ path = "abc468/g/g.rs"
 [[bin]]
 name = "abc469_a"
 path = "abc469/a/a.rs"
-        
+
 [[bin]]
 name = "abc469_b"
 path = "abc469/b/b.rs"
-        
+
 [[bin]]
 name = "abc469_c"
 path = "abc469/c/c.rs"
-        
+
+[[bin]]
+name = "abc469_c2"
+path = "abc469/c/c2.rs"
+
 [[bin]]
 name = "abc469_d"
 path = "abc469/d/d.rs"
-        
+
 [[bin]]
 name = "abc469_e"
 path = "abc469/e/e.rs"
-        
+
 [[bin]]
 name = "abc469_f"
 path = "abc469/f/f.rs"
-        
+
 [[bin]]
 name = "abc469_g"
 path = "abc469/g/g.rs"
-        
