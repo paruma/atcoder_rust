@@ -1016,6 +1016,10 @@ name = "abc469_d"
 path = "abc469/d/d.rs"
 
 [[bin]]
+name = "abc469_d2"
+path = "abc469/d/d2.rs"
+
+[[bin]]
 name = "abc469_e"
 path = "abc469/e/e.rs"
 

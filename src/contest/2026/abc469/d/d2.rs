@@ -1,8 +1,6 @@
 // 解法
-// x < y という有情拳は考えずに x != y だけ考えて、最後に2で割ればいい
-// x を固定したとき、条件を満たす y の数は x を含まないペアすべての含まれているプレイヤーの人数と考える
-// 各 c に対して、c 個のペアに含まれているプレイヤーの人数を管理し、
-// 差分計算でx を含むペアを一時的に除いた上で残ったすべてのペアに含まれているプレイヤーの人数を数えればよい
+// (A1, B1) は x または y に必ず現れるという必要条件の絞り込みをする
+// この絞り込みで、片方の候補は定数個(2個)に抑えられる
 fn main() {
     input! {
         n: usize,
@@ -10,60 +8,34 @@ fn main() {
         abs: [(Usize1, Usize1); m],
     }
 
-    let adj = abs
+    let (a0, b0) = abs[0];
+    let term1 = [a0, b0]
         .iter()
         .copied()
-        .fold(vec![vec![]; n], |mut acc, (a, b)| {
-            acc[a].push(b);
-            acc[b].push(a);
-            acc
-        });
+        .map(|x| {
+            if abs[1..].iter().all(|&(a, b)| a == x || b == x) {
+                n - 1
+            } else {
+                abs[1..]
+                    .iter()
+                    .copied()
+                    .filter(|&(a, b)| a != x && b != x)
+                    .map(|(a, b)| BTreeSet::from([a, b]))
+                    .reduce(|s1, s2| s1.intersection(&s2).copied().collect::<BTreeSet<usize>>())
+                    .unwrap()
+                    .len()
+            }
+        })
+        .sum::<usize>();
 
-    // cnts[i]: プレイヤーiが現れるペアの数
-    let mut cnts = vec![0; n]; // [0, m] の値を取る
-    // cnts_cnts[c]: ペアが c 回現れるプレイヤーの数
-    let mut cnts_cnts = vec![0; m + 1];
-    cnts_cnts[0] = n;
+    let term2 = abs
+        .iter()
+        .copied()
+        .all(|(a, b)| [a0, b0].contains(&a) || [a0, b0].contains(&b)) as usize;
 
-    for a in abs.iter().copied().flat_map(|(a, b)| [a, b]) {
-        cnts_cnts[cnts[a]] -= 1;
-        cnts[a] += 1;
-        cnts_cnts[cnts[a]] += 1;
-    }
+    let ans = term1 - term2;
 
-    let mut ans = 0;
-
-    for x in 0..n {
-        // x を含むペアを除く
-        for &a in &adj[x] {
-            cnts_cnts[cnts[a]] -= 1;
-            cnts[a] -= 1;
-            cnts_cnts[cnts[a]] += 1;
-
-            cnts_cnts[cnts[x]] -= 1;
-            cnts[x] -= 1;
-            cnts_cnts[cnts[x]] += 1;
-        }
-
-        // x を含むペア以外で、すべてのペアに現れているプレイヤーの人数
-        ans += cnts_cnts[m - adj[x].len()];
-        if cnts[x] == m - adj[x].len() {
-            ans -= 1; // x がカウントされちゃっているときは除く
-        }
-
-        // x を含むペアを戻す
-        for &a in &adj[x] {
-            cnts_cnts[cnts[a]] -= 1;
-            cnts[a] += 1;
-            cnts_cnts[cnts[a]] += 1;
-
-            cnts_cnts[cnts[x]] -= 1;
-            cnts[x] += 1;
-            cnts_cnts[cnts[x]] += 1;
-        }
-    }
-
-    println!("{}", ans / 2);
+    println!("{}", ans);
 }
 
 #[cfg(test)]
