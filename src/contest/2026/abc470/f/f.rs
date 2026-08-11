@@ -13,7 +13,6 @@ fn main() {
         .copied()
         .map(|ch| ch as i64 - 'a' as i64)
         .collect_vec();
-    use ac_library::ModInt998244353 as Mint;
 
     let groups = {
         let mut dsu = DsuCore::new(n);
@@ -23,8 +22,8 @@ fn main() {
         }
         dsu.groups()
     };
-
-    // 同じ連結成分に同じ文字がいるか？
+    /*
+    もともとの実装をシンプルにした
     let mut has_same = false;
     let mut set_by_group = vec![HashBag::<i64>::new(); groups.len()];
     let mut vec_by_group = vec![Vec::<i64>::new(); groups.len()];
@@ -42,13 +41,29 @@ fn main() {
     let counts_by_group = vec_by_group
         .iter()
         .map(|vec| vec.iter().copied().counts().values().copied().collect_vec())
+
+     */
+
+    let counts_by_group = groups
+        .iter()
+        .map(|g| {
+            g.iter()
+                .copied()
+                .map(|i| xs[i])
+                .counts()
+                .values()
+                .copied()
+                .collect_vec()
+        })
         .collect_vec();
 
-    // dbg!(&counts_by_group);
+    let has_same = counts_by_group
+        .iter()
+        .any(|cnts| cnts.iter().copied().any(|c| c >= 2));
+
+    use ac_library::ModInt998244353 as Mint;
 
     let comb: Comb<Mint> = Comb::new(n);
-
-    // 連結成分が1の場合は注意
 
     let factor1 = counts_by_group
         .iter()
