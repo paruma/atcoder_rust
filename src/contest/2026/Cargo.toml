@@ -1048,6 +1048,10 @@ name = "abc470_d"
 path = "abc470/d/d.rs"
 
 [[bin]]
+name = "abc470_d2"
+path = "abc470/d/d2.rs"
+
+[[bin]]
 name = "abc470_e"
 path = "abc470/e/e.rs"
 
