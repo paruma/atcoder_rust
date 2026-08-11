@@ -3,10 +3,15 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    for i in 1..=n {
+        if i % 3 == 0 {
+            println!("Fizz");
+        } else {
+            println!("{}", i);
+        }
+    }
 }
 
 #[cfg(test)]

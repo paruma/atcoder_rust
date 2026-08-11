@@ -3,10 +3,47 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        nq: usize,
+        mut ps: [Usize1; n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let mut is_inv = false;
+    // ps の逆
+    let mut qs = vec![usize::MAX; n];
+
+    for i in 0..n {
+        qs[ps[i]] = i;
+    }
+
+    for _ in 0..nq {
+        input! {
+            t: usize,
+        }
+
+        if t == 1 {
+            input! {
+                x: Usize1,
+                y: Usize1,
+            }
+            if is_inv {
+                let x2 = qs[x];
+                let y2 = qs[y];
+                ps.swap(x2, y2);
+                qs.swap(x, y);
+            } else {
+                let x2 = ps[x];
+                let y2 = ps[y];
+                ps.swap(x, y);
+                qs.swap(x2, y2);
+            }
+        } else {
+            //
+            is_inv = !is_inv;
+        }
+    }
+
+    let ans = if is_inv { qs } else { ps };
+    let ans = ans.iter().copied().map(|p| p + 1).collect_vec();
+    print_vec_1line(&ans);
 }
 
 #[cfg(test)]

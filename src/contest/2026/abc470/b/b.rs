@@ -3,9 +3,12 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        xs: [Usize1; n],
     }
-    let ans: i64 = -2_i64;
+
+    let cnts = xs.iter().copied().counts();
+    let max_cnt = cnts.values().copied().max().unwrap();
+    let ans: usize = n - max_cnt;
     println!("{}", ans);
 }
 
