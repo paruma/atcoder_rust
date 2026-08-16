@@ -2,11 +2,15 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        a: i64,
+        b: i64,
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let ans: bool = a + b == 9 || a - b == 9 || a * b == 9 || a == 9 * b;
+    if ans {
+        println!("Nine");
+    } else {
+        println!("Nein");
+    }
 }
 
 #[cfg(test)]

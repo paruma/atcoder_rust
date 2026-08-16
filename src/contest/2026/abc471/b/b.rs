@@ -3,9 +3,16 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        ss: [String; n],
     }
-    let ans: i64 = -2_i64;
+    let ans: usize = ss
+        .iter()
+        .map(|s| s.to_ascii_lowercase())
+        .counts()
+        .values()
+        .copied()
+        .max()
+        .unwrap();
     println!("{}", ans);
 }
 

@@ -1,11 +1,40 @@
 // 問題文と制約は読みましたか？
-// #[fastout]
+define_queries! {
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    enum Query: usize {
+        1 => Add { t: i64, w: i64 },
+        3 => Output { t: i64 },
+    }
+}
+
+#[fastout]
 fn main() {
     input! {
         n: usize,
         xs: [i64; n],
     }
-    let ans: i64 = -2_i64;
+
+    let mut set = xs.iter().copied().collect::<BTreeSet<_>>();
+
+    let mut ans = 0;
+    let mut cur = 0;
+
+    for _ in 0..n {
+        let left = set.range(..cur).max().copied();
+        let right = set.range(cur + 1..).min().copied();
+
+        let next = [left, right]
+            .iter()
+            .copied()
+            .flatten()
+            .min_by_key(|&x| ((cur - x).abs(), x))
+            .unwrap();
+
+        ans += (cur - next).abs();
+        cur = next;
+        set.remove(&cur);
+    }
+
     println!("{}", ans);
 }
 
@@ -136,3 +165,22 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+#[macro_use]
+pub mod define_queries {
+    /// クエリ形式の入力を proconio::input! で読み込める enum を定義するマクロ。
+    /// 出典： <https://zenn.dev/magurofly/articles/6ee845bd5e385e>
+    /// # 利用例
+    /// ```
+    /// use mylib::define_queries;
+    /// use proconio::marker::Usize1;
+    /// define_queries! {
+    ///     #[derive(Debug, PartialEq)]
+    ///     enum Query: usize {
+    ///         1 => Add { a: i64, b: i64 },
+    ///         2 => Show { k: Usize1 },
+    ///     }
+    /// }
+    /// ```
+    #[macro_export]
+    macro_rules ! define_queries {($ ($ (# [$ attr : meta ] ) * enum $ enum_name : ident : $ sig : ty {$ ($ pattern : pat => $ variant : ident $ ({$ ($ name : ident : $ marker : ty $ (, ) ? ) ,* } ) ? $ (, ) ? ) ,* } ) * ) => {$ ($ (# [$ attr ] ) * enum $ enum_name {$ ($ variant $ ({$ ($ name : <$ marker as proconio :: source :: Readable >:: Output ) ,* } ) ? ) ,* } impl proconio :: source :: Readable for $ enum_name {type Output = Self ; fn read < R : std :: io :: BufRead , S : proconio :: source :: Source < R >> (source : & mut S ) -> Self {#! [allow (unreachable_patterns ) ] match <$ sig as proconio :: source :: Readable >:: read (source ) {$ ($ pattern => $ enum_name ::$ variant $ ({$ ($ name : <$ marker as proconio :: source :: Readable >:: read (source ) ) ,* } ) ? ) ,* , _ => unreachable ! () } } } ) * } }
+}
