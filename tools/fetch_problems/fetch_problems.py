@@ -5,6 +5,8 @@
 # ]
 # ///
 
+from __future__ import annotations
+
 import argparse
 import csv
 import math
@@ -21,8 +23,16 @@ class ProblemInfo:
     """Basic problem information from AtCoder Problems API."""
 
     id: str
-    contest_id: str
     title: str
+
+
+@dataclass(frozen=True)
+class ContestProblem:
+    """Association between a contest and a problem."""
+
+    contest_id: str
+    problem_id: str
+    problem_index: str
 
 
 @dataclass(frozen=True)
@@ -32,28 +42,62 @@ class ProblemDifficulty:
     difficulty: float | None
 
 
+@dataclass(frozen=True)
+class ProblemRow:
+    """One row written to the output TSV file."""
+
+    contest: str
+    index: str
+    title: str
+    difficulty: str
+    url: str
+
+
 def convert_difficulty(raw_difficulty: float) -> int:
-    """Converts internal difficulty value to the display value (positive number)."""
+    """Convert an internal difficulty value to the displayed value.
+
+    Args:
+        raw_difficulty: Difficulty value returned by AtCoder Problems API.
+
+    Returns:
+        Difficulty value displayed by AtCoder Problems.
+    """
     if raw_difficulty >= 400:
         return round(raw_difficulty)
     return round(400 / math.exp(1.0 - raw_difficulty / 400))
 
 
-def fetch_atcoder_data(timeout: int = 10) -> tuple[list[ProblemInfo], dict[str, ProblemDifficulty]]:
-    """
-    Fetches problems and models data from AtCoder Problems API.
+def fetch_atcoder_data(
+    timeout: int = 10,
+) -> tuple[list[ProblemInfo], list[ContestProblem], dict[str, ProblemDifficulty]]:
+    """Fetch problem metadata, contest associations, and difficulty models.
+
+    Args:
+        timeout: Timeout in seconds for each HTTP request.
+
+    Returns:
+        Problem metadata, contest-problem associations, and difficulty models.
     """
     problems_url = "https://kenkoooo.com/atcoder/resources/problems.json"
+    contest_problems_url = "https://kenkoooo.com/atcoder/resources/contest-problem.json"
     models_url = "https://kenkoooo.com/atcoder/resources/problem-models.json"
 
     p_res = requests.get(problems_url, timeout=timeout)
     p_res.raise_for_status()
+    cp_res = requests.get(contest_problems_url, timeout=timeout)
+    cp_res.raise_for_status()
     m_res = requests.get(models_url, timeout=timeout)
     m_res.raise_for_status()
 
-    problems = [
-        ProblemInfo(id=p["id"], contest_id=p["contest_id"], title=p["title"])
-        for p in p_res.json()
+    problems = [ProblemInfo(id=p["id"], title=p["title"]) for p in p_res.json()]
+
+    contest_problems = [
+        ContestProblem(
+            contest_id=cp["contest_id"],
+            problem_id=cp["problem_id"],
+            problem_index=cp["problem_index"],
+        )
+        for cp in cp_res.json()
     ]
 
     models_raw = m_res.json()
@@ -62,13 +106,17 @@ def fetch_atcoder_data(timeout: int = 10) -> tuple[list[ProblemInfo], dict[str, 
         for pid, m in models_raw.items()
     }
 
-    return problems, models
+    return problems, contest_problems, models
 
 
 def parse_title(title: str) -> tuple[str, str]:
-    """
-    Splits the title into index and clean title.
-    Example: 'C. Drop Blocks' -> ('C', 'Drop Blocks')
+    """Split a title into its index and clean title.
+
+    Args:
+        title: Problem title such as ``C. Drop Blocks``.
+
+    Returns:
+        Title index and the title without that index.
     """
     match = re.match(r"^([a-zA-Z0-9]+)\.\s*(.*)$", title)
     if match:
@@ -76,20 +124,62 @@ def parse_title(title: str) -> tuple[str, str]:
     return "", title
 
 
-def get_problem_index(problem_id: str, contest_id: str, title_index: str) -> str:
-    """
-    Determines the best problem index.
-    Prioritizes title_index if available, otherwise uses problem_id suffix.
-    """
-    if title_index:
-        return title_index.upper()
+def format_difficulty(problem_id: str, models: dict[str, ProblemDifficulty]) -> str:
+    """Format the displayed difficulty of one problem.
 
-    if problem_id.startswith(contest_id + "_"):
-        return problem_id[len(contest_id) + 1 :].upper()
-    return problem_id.upper()
+    Args:
+        problem_id: Problem identifier used as the model key.
+        models: Difficulty models keyed by problem identifier.
+
+    Returns:
+        Displayed difficulty, or ``-`` when no estimate is available.
+    """
+    diff_info = models.get(problem_id)
+    if diff_info is None or diff_info.difficulty is None:
+        return "-"
+    return str(convert_difficulty(diff_info.difficulty))
+
+
+def build_problem_rows(
+    problems: list[ProblemInfo],
+    contest_problems: list[ContestProblem],
+    models: dict[str, ProblemDifficulty],
+    prefix: str | None,
+) -> list[ProblemRow]:
+    """Build TSV rows using contest-problem associations.
+
+    Args:
+        problems: Problem metadata returned by AtCoder Problems API.
+        contest_problems: Associations between contests and problems.
+        models: Difficulty models keyed by problem identifier.
+        prefix: Optional case-insensitive contest ID prefix.
+
+    Returns:
+        Rows matching the requested contest prefix.
+    """
+    normalized_prefix = prefix.lower() if prefix else None
+    problem_by_id = {problem.id: problem for problem in problems}
+
+    return [
+        ProblemRow(
+            contest=contest_problem.contest_id.upper(),
+            index=contest_problem.problem_index,
+            title=parse_title(problem.title)[1],
+            difficulty=format_difficulty(contest_problem.problem_id, models),
+            url=(
+                f"https://atcoder.jp/contests/{contest_problem.contest_id}"
+                f"/tasks/{contest_problem.problem_id}"
+            ),
+        )
+        for contest_problem in contest_problems
+        if normalized_prefix is None
+        or contest_problem.contest_id.lower().startswith(normalized_prefix)
+        if (problem := problem_by_id.get(contest_problem.problem_id)) is not None
+    ]
 
 
 def main() -> None:
+    """Fetch AtCoder problem data and write the selected contests as TSV."""
     parser = argparse.ArgumentParser(
         description="Fetch all AtCoder problems and output as TSV including difficulty."
     )
@@ -111,37 +201,26 @@ def main() -> None:
 
     print("Fetching data from AtCoder Problems API...", file=sys.stderr)
     try:
-        problems, models = fetch_atcoder_data()
-    except Exception as e:
-        print(f"Error fetching data: {e}", file=sys.stderr)
+        problems, contest_problems, models = fetch_atcoder_data()
+    except requests.RequestException as error:
+        print(f"Error fetching data: {error}", file=sys.stderr)
         sys.exit(1)
 
-    prefix = args.prefix.lower() if args.prefix else None
+    rows = build_problem_rows(problems, contest_problems, models, args.prefix)
 
-    count = 0
     with open(args.output, "w", encoding="utf-8", newline="") as f:
         writer = csv.writer(f, delimiter="\t")
         writer.writerow(["Contest", "Index", "Title", "Difficulty", "URL"])
 
-        for p in problems:
-            if prefix and not p.contest_id.lower().startswith(prefix):
-                continue
+        for row in rows:
+            writer.writerow(
+                [row.contest, row.index, row.title, row.difficulty, row.url]
+            )
 
-            diff_info = models.get(p.id)
-            if diff_info and diff_info.difficulty is not None:
-                difficulty = str(convert_difficulty(diff_info.difficulty))
-            else:
-                difficulty = "-"
-
-            contest_display = p.contest_id.upper()
-            title_index, clean_title = parse_title(p.title)
-            index = get_problem_index(p.id, p.contest_id, title_index)
-            url = f"https://atcoder.jp/contests/{p.contest_id}/tasks/{p.id}"
-
-            writer.writerow([contest_display, index, clean_title, difficulty, url])
-            count += 1
-
-    print(f"Successfully saved {count} problems to {args.output}", file=sys.stderr)
+    print(
+        f"Successfully saved {len(rows)} problems to {args.output}",
+        file=sys.stderr,
+    )
 
 
 if __name__ == "__main__":

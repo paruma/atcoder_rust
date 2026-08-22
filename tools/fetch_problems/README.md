@@ -1,6 +1,6 @@
 # fetch_problems
 
-AtCoder Problems API から全問題の情報を取得し、推定難易度（Difficulty）を含む TSV ファイルを生成するツールです。
+AtCoder Problems API の問題情報、コンテストとの対応、推定難易度（Difficulty）を結合し、TSV ファイルを生成するツールです。
 
 ## 使い方
 
