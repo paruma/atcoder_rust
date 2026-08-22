@@ -2,11 +2,14 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        xs: Chars,
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let ans = xs
+        .iter()
+        .copied()
+        .map(|ch| if ch == 'A' { ch } else { '.' })
+        .collect_vec();
+    print_chars(&ans);
 }
 
 #[cfg(test)]

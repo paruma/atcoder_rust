@@ -1,12 +1,28 @@
 // 問題文と制約は読みましたか？
-// #[fastout]
+#[fastout]
 fn main() {
     input! {
         n: usize,
+        m: usize,
+        k: i64,
         xs: [i64; n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    let mut ys = vec![0; n]; // 実際に食べた
+    let mut win_sum = 0;
+
+    for i in 0..n {
+        if i >= m {
+            win_sum -= ys[i - m];
+        }
+        if win_sum + xs[i] <= k {
+            ys[i] = xs[i];
+            win_sum += xs[i];
+            println!("Yes");
+        } else {
+            println!("No");
+        }
+    }
 }
 
 #[cfg(test)]

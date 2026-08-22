@@ -1,12 +1,68 @@
-// 問題文と制約は読みましたか？
 // #[fastout]
+/// 無向グラフの辺集合から隣接リストを作成します。
+/// # 計算量
+/// O(V + E)
+pub fn make_adj_from_undirected(n_vertex: usize, edges: &[(usize, usize)]) -> Vec<Vec<usize>> {
+    let mut adj = vec![vec![]; n_vertex];
+    for &(from, to) in edges {
+        adj[from].push(to);
+        adj[to].push(from);
+    }
+    adj
+}
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        t: usize
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    for _ in 0..t {
+        input! {
+            nv: usize,
+            ne: usize,
+            es: [(Usize1, Usize1); ne],
+        }
+        let adj = make_adj_from_undirected(nv, &es);
+
+        let dist = bfs(nv, |u| adj[u].iter().copied(), [0]);
+
+        let parity = dist.iter().copied().map(|x| x.unwrap() % 2).collect_vec();
+
+        let same_pair = es.iter().copied().find(|&(u, v)| parity[u] == parity[v]);
+
+        if let Some((u, v)) = same_pair {
+            let path0 = {
+                // 0 → u
+                let result = bfs_with_restore(nv, |u| adj[u].iter().copied(), [0]);
+                result.restore(u).unwrap()
+            };
+            let path1 = {
+                // 0 → v
+                let result = bfs_with_restore(nv, |u| adj[u].iter().copied(), [0]);
+                result.restore(v).unwrap()
+            };
+            // dbg!(&path0);
+            // dbg!(&path1);
+
+            // 0 5 2 1
+            // 0 5 4 3
+
+            let i = (0..).find(|&i| path0[i] != path1[i]).unwrap();
+
+            let ans = [
+                &path0[i - 1..].iter().copied().rev().collect_vec(),
+                &path1[i..],
+            ]
+            .concat();
+
+            let ans = ans.iter().copied().map(|x| x + 1).collect_vec();
+            println!("{}", ans.len());
+            println!("{}", ans.iter().join(" "));
+            // dbg!(ans);
+            // 1オリジンに戻す
+        } else {
+            println!("-1");
+        }
+    }
 }
 
 #[cfg(test)]
@@ -136,3 +192,211 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use bfs::*;
+#[allow(clippy::module_inception)]
+pub mod bfs {
+    use std::collections::VecDeque;
+    /// BFS の結果（距離と復元情報）
+    #[derive(Clone, Debug)]
+    pub struct BfsResult {
+        pub dist: Vec<Option<i64>>,
+        pub prev: Vec<Option<usize>>,
+    }
+    impl BfsResult {
+        /// 頂点 `t` への最短経路を復元する（始点 -> ... -> t）
+        /// # Returns
+        /// 始点から `t` までの頂点列。`t` に到達不可能な場合は `None`。
+        /// # 計算量
+        /// O(経路の長さ)
+        pub fn restore(&self, t: usize) -> Option<Vec<usize>> {
+            self.dist[t]?;
+            let mut path: Vec<_> =
+                std::iter::successors(Some(t), |&curr| self.prev[curr]).collect();
+            path.reverse();
+            Some(path)
+        }
+    }
+    /// 幅優先探索 (BFS) で、各頂点への最短距離を求める
+    /// # Arguments
+    /// * `nv` - 頂点数
+    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返す `usize -> impl IntoIterator<Item = usize>` のクロージャー
+    /// * `init` - 始点となる頂点集合のイテレータ。1点のみの場合は `[v]` のように指定する
+    /// # Returns
+    /// 始点集合 `init` からの最短距離を格納した `Vec<Option<i64>>`。到達不可能な頂点は `None`。
+    /// # 計算量
+    /// O(V + E)
+    /// # Examples
+    /// ```ignore
+    /// let adj = vec![vec![1], vec![0, 2, 3], vec![1], vec![1]];
+    /// // 1点を始点にする場合
+    /// let dist = bfs(4, |u| adj[u].iter().copied(), [0]);
+    /// assert_eq!(dist, vec![Some(0), Some(1), Some(2), Some(2)]);
+    /// // 複数点を始点にする場合
+    /// let starts = vec![0, 3];
+    /// let dist = bfs(4, |u| adj[u].iter().copied(), starts.iter().copied());
+    /// assert_eq!(dist, vec![Some(0), Some(1), Some(2), Some(0)]);
+    /// ```
+    pub fn bfs<F, It>(
+        nv: usize,
+        mut adj: F,
+        init: impl IntoIterator<Item = usize>,
+    ) -> Vec<Option<i64>>
+    where
+        F: FnMut(usize) -> It,
+        It: IntoIterator<Item = usize>,
+    {
+        let mut dist = vec![None; nv];
+        let mut q = VecDeque::new();
+        for s in init {
+            if dist[s].is_none() {
+                dist[s] = Some(0);
+                q.push_back(s);
+            }
+        }
+        while let Some(u) = q.pop_front() {
+            let d = dist[u].unwrap();
+            for v in adj(u) {
+                if dist[v].is_none() {
+                    dist[v] = Some(d + 1);
+                    q.push_back(v);
+                }
+            }
+        }
+        dist
+    }
+    /// 幅優先探索 (BFS) で、各頂点への最短距離と経路復元情報を求める
+    /// # Arguments
+    /// * `nv` - 頂点数
+    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返す `usize -> impl IntoIterator<Item = usize>` のクロージャー
+    /// * `init` - 始点となる頂点集合のイテレータ。1点のみの場合は `[v]` のように指定する
+    /// # Returns
+    /// 最短距離 `dist` と、復元用配列 `prev` を含む `BfsResult`。
+    /// # 計算量
+    /// O(V + E)
+    /// # Examples
+    /// ```ignore
+    /// let adj = vec![vec![1, 3], vec![2], vec![], vec![]];
+    /// let res = bfs_with_restore(4, |u| adj[u].iter().copied(), [0]);
+    /// assert_eq!(res.dist, vec![Some(0), Some(1), Some(2), Some(1)]);
+    /// assert_eq!(res.restore(2), Some(vec![0, 1, 2]));
+    /// assert_eq!(res.restore(3), Some(vec![0, 3]));
+    /// assert_eq!(res.restore(0), Some(vec![0]));
+    /// ```
+    pub fn bfs_with_restore<F, It>(
+        nv: usize,
+        mut adj: F,
+        init: impl IntoIterator<Item = usize>,
+    ) -> BfsResult
+    where
+        F: FnMut(usize) -> It,
+        It: IntoIterator<Item = usize>,
+    {
+        let mut dist = vec![None; nv];
+        let mut prev = vec![None; nv];
+        let mut q = VecDeque::new();
+        for s in init {
+            if dist[s].is_none() {
+                dist[s] = Some(0);
+                q.push_back(s);
+            }
+        }
+        while let Some(u) = q.pop_front() {
+            let d = dist[u].unwrap();
+            for v in adj(u) {
+                if dist[v].is_none() {
+                    dist[v] = Some(d + 1);
+                    prev[v] = Some(u);
+                    q.push_back(v);
+                }
+            }
+        }
+        BfsResult { dist, prev }
+    }
+    /// 幅優先探索 (BFS) での訪問順序（キューに入れた順）を求める
+    /// # Arguments
+    /// * `nv` - 頂点数
+    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返す `usize -> impl IntoIterator<Item = usize>` のクロージャー
+    /// * `init` - 始点となる頂点集合のイテレータ。1点のみの場合は `[v]` のように指定する
+    /// # Returns
+    /// 到達可能な頂点を訪問順に格納した `Vec<usize>`
+    /// # 計算量
+    /// O(V + E)
+    /// # Examples
+    /// ```ignore
+    /// let adj = vec![vec![1, 3], vec![2], vec![], vec![]];
+    /// let order = bfs_order(4, |u| adj[u].iter().copied(), [0]);
+    /// assert_eq!(order, vec![0, 1, 3, 2]);
+    /// ```
+    pub fn bfs_order<F, It>(
+        nv: usize,
+        mut adj: F,
+        init: impl IntoIterator<Item = usize>,
+    ) -> Vec<usize>
+    where
+        F: FnMut(usize) -> It,
+        It: IntoIterator<Item = usize>,
+    {
+        let mut visited = vec![false; nv];
+        let mut order = Vec::new();
+        let mut q = VecDeque::new();
+        for s in init {
+            if !visited[s] {
+                visited[s] = true;
+                order.push(s);
+                q.push_back(s);
+            }
+        }
+        while let Some(u) = q.pop_front() {
+            for v in adj(u) {
+                if !visited[v] {
+                    visited[v] = true;
+                    order.push(v);
+                    q.push_back(v);
+                }
+            }
+        }
+        order
+    }
+    /// 標準的な usize インデックスを用いた幅優先探索 (BFS) で、各頂点への到達可能性を判定する
+    /// # Arguments
+    /// * `nv` - 頂点数
+    /// * `adj` - 頂点を受け取り、隣接する頂点のイテレータを返す `usize -> impl IntoIterator<Item = usize>` のクロージャー
+    /// * `init` - 始点となる頂点集合のイテレータ。1点のみの場合は `[v]` のように指定する
+    /// # Returns
+    /// 各頂点への到達可能性を格納した `Vec<bool>`
+    /// # 計算量
+    /// O(V + E)
+    /// # Examples
+    /// ```ignore
+    /// let adj = vec![vec![1], vec![2], vec![], vec![4], vec![]];
+    /// let reachable = bfs_reachable(5, |u| adj[u].iter().copied(), [0]);
+    /// assert_eq!(reachable, vec![true, true, true, false, false]);
+    /// ```
+    pub fn bfs_reachable<F, It>(
+        nv: usize,
+        mut adj: F,
+        init: impl IntoIterator<Item = usize>,
+    ) -> Vec<bool>
+    where
+        F: FnMut(usize) -> It,
+        It: IntoIterator<Item = usize>,
+    {
+        let mut visited = vec![false; nv];
+        let mut q = VecDeque::new();
+        for s in init {
+            if !visited[s] {
+                visited[s] = true;
+                q.push_back(s);
+            }
+        }
+        while let Some(u) = q.pop_front() {
+            for v in adj(u) {
+                if !visited[v] {
+                    visited[v] = true;
+                    q.push_back(v);
+                }
+            }
+        }
+        visited
+    }
+}
