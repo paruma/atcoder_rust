@@ -2,6 +2,8 @@
 # requires-python = ">=3.12"
 # dependencies = []
 # ///
+from __future__ import annotations
+
 import argparse
 import os
 import re
@@ -146,6 +148,17 @@ def normalize_module_path(path: str) -> str:
         parts[-1] = parts[-1][:-3]
 
     return "::".join(parts)
+
+
+def resolve_source_path(path: str, module_path: str) -> Path | None:
+    """入力されたファイルまたはモジュールに対応する Rust ソースを返す。"""
+    input_path = Path(path)
+    if input_path.is_file() and input_path.suffix == ".rs":
+        return input_path
+
+    module_source = Path("src/mylib").joinpath(*module_path.split("::"))
+    candidates = (module_source.with_suffix(".rs"), module_source / "mod.rs")
+    return next((candidate for candidate in candidates if candidate.is_file()), None)
 
 
 def get_source_context(file_path: str, missed_lines: str) -> str:
@@ -374,17 +387,38 @@ def verify_doc_tests() -> StepResult:
     )
 
 
-def verify_static_analysis() -> list[StepResult]:
+def verify_static_analysis(source_path: Path | None) -> list[StepResult]:
     """静的解析（Format, Clippy, Doc Lint, Snippet Linter）の一括実行"""
     results = []
 
     # Format
-    ok, _ = run_command(["cargo", "fmt", "-p", "mylib"])
-    results.append(
-        StepResult(
-            "Format", VerificationStatus.PASS if ok else VerificationStatus.FAIL, ""
+    if source_path is None:
+        results.append(
+            StepResult(
+                "Format",
+                VerificationStatus.FAIL,
+                "Could not resolve the source file to format.",
+            )
         )
-    )
+    else:
+        ok, out = run_command(
+            [
+                "rustfmt",
+                "--edition",
+                "2024",
+                "--config",
+                "skip_children=true",
+                str(source_path),
+            ]
+        )
+        results.append(
+            StepResult(
+                "Format",
+                VerificationStatus.PASS if ok else VerificationStatus.FAIL,
+                "",
+                out,
+            )
+        )
 
     # Clippy
     ok, out = run_command(
@@ -439,6 +473,7 @@ def main():
 
     # パスを正規化 (file path -> module path)
     normalized_path = normalize_module_path(args.module_path)
+    source_path = resolve_source_path(args.module_path, normalized_path)
     if normalized_path != args.module_path:
         print(f"Normalized path: {args.module_path} -> {normalized_path}")
 
@@ -471,7 +506,7 @@ def main():
 
     # 4. Static Analysis
     print("\n>>> Step: Static Analysis")
-    for res in verify_static_analysis():
+    for res in verify_static_analysis(source_path):
         report.add(res)
         if res.status == VerificationStatus.FAIL:
             print(f"\n❌ {res.name} failed:\n{res.output}")
