@@ -6,6 +6,10 @@ use num_integer::Integer;
 /// ax ≡ b (mod m) を解く。
 /// - 解が存在する場合、解を x ≡ r (mod m') としたとき (r, m') を返す。
 /// - 解なしの場合は None。
+///
+/// # 制約
+/// - `a`, `b`: 任意の整数
+/// - `m`: 正の整数
 fn solve_linear_congruence(a: i64, b: i64, m: i64) -> Option<(i64, i64)> {
     let g = a.gcd(&m);
     if b % g != 0 {
@@ -19,6 +23,10 @@ fn solve_linear_congruence(a: i64, b: i64, m: i64) -> Option<(i64, i64)> {
 /// x ≡ a (mod m) かつ x ≡ b (mod n) を解く。
 /// - 解が存在する場合、解を x ≡ r (mod l) としたとき (r, l) を返す。
 /// - 解なしの場合は None を返す
+///
+/// # 制約
+/// - `a`, `b`: 任意の整数
+/// - `m`, `n`: 正の整数
 fn solve_simultaneous_congruences(a: i64, m: i64, b: i64, n: i64) -> Option<(i64, i64)> {
     let (r, modulus) = crt(&[a, b], &[m, n]);
     if modulus == 0 {
