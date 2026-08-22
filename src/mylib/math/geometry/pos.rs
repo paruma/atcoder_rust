@@ -21,6 +21,10 @@ pub mod pos {
             Pos { x, y }
         }
 
+        pub fn new_from_usize(x: usize, y: usize) -> Pos {
+            Pos::new(x as i64, y as i64)
+        }
+
         pub fn scalar_mul(self, rhs: i64) -> Pos {
             Pos::new(self.x * rhs, self.y * rhs)
         }
@@ -437,6 +441,11 @@ mod tests_pos {
         let p1: Pos = Pos::new(2, 3);
         let p2: Pos = Pos::new(4, 7);
         assert_eq!(p1 + p2, Pos::new(6, 10));
+    }
+
+    #[test]
+    fn test_new_from_usize() {
+        assert_eq!(Pos::new_from_usize(2, 3), Pos::new(2, 3));
     }
 
     #[test]
