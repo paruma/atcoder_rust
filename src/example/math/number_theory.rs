@@ -13,7 +13,7 @@ fn solve_linear_congruence(a: i64, b: i64, m: i64) -> Option<(i64, i64)> {
     }
     let (a2, b2, m2) = (a / g, b / g, m / g);
     let a_inv = inv_mod(a2, m2);
-    Some((a_inv * b2 % m2, m2))
+    Some(((a_inv * b2).rem_euclid(m2), m2))
 }
 
 /// x ≡ a (mod m) かつ x ≡ b (mod n) を解く。
@@ -38,6 +38,8 @@ mod tests {
         assert_eq!(solve_linear_congruence(3, 4, 5), Some((3, 5)));
         // 6x ≡ 9 (mod 15) -> 2x ≡ 3 (mod 5) -> x ≡ 4 (mod 5)
         assert_eq!(solve_linear_congruence(6, 9, 15), Some((4, 5)));
+        // x ≡ -1 (mod 5) -> x ≡ 4 (mod 5)
+        assert_eq!(solve_linear_congruence(1, -1, 5), Some((4, 5)));
         // 2x ≡ 1 (mod 4) -> no solution
         assert_eq!(solve_linear_congruence(2, 1, 4), None);
     }
