@@ -2,14 +2,14 @@
 # requires-python = ">=3.12"
 # dependencies = []
 # ///
-import subprocess
-import sys
+import argparse
 import os
 import re
-import argparse
-from pathlib import Path
+import subprocess
+import sys
 from dataclasses import dataclass
 from enum import Enum, auto
+from pathlib import Path
 
 
 class VerificationStatus(Enum):
@@ -72,7 +72,8 @@ def run_command(cmd: list[str], capture: bool = True) -> tuple[bool, str]:
     print(msg)
     try:
         result = subprocess.run(cmd, check=True, text=True, capture_output=capture)
-        return True, result.stdout if capture else ""
+        output = result.stdout + result.stderr if capture else ""
+        return True, output
     except subprocess.CalledProcessError as e:
         output = e.stdout + e.stderr if capture else str(e)
         return False, output
@@ -157,7 +158,7 @@ def get_source_context(file_path: str, missed_lines: str) -> str:
     try:
         with open(file_path, "r") as f:
             lines = f.readlines()
-    except Exception as e:
+    except (OSError, UnicodeError) as e:
         return f"   [Error reading source: {e}]"
 
     # 行番号をリストに変換
@@ -178,7 +179,7 @@ def get_source_context(file_path: str, missed_lines: str) -> str:
         return ""
 
     output = ["   --- Missed Lines Context ---"]
-    sorted_targets = sorted(list(targets))
+    sorted_targets = sorted(targets)
 
     # 連続する行をグループ化して表示
     processed = set()
@@ -399,9 +400,7 @@ def verify_static_analysis() -> list[StepResult]:
     )
 
     # Doc Lint (rustdoc の警告をエラーとして扱う)
-    ok, out = run_command(
-        ["cargo", "rustdoc", "-p", "mylib", "--", "-D", "warnings"]
-    )
+    ok, out = run_command(["cargo", "rustdoc", "-p", "mylib", "--", "-D", "warnings"])
     results.append(
         StepResult(
             "Doc Lint",
