@@ -1094,28 +1094,55 @@ path = "abc471/g/g.rs"
 [[bin]]
 name = "abc472_a"
 path = "abc472/a/a.rs"
-        
+
 [[bin]]
 name = "abc472_b"
 path = "abc472/b/b.rs"
-        
+
 [[bin]]
 name = "abc472_c"
 path = "abc472/c/c.rs"
-        
+
 [[bin]]
 name = "abc472_d"
 path = "abc472/d/d.rs"
-        
+
 [[bin]]
 name = "abc472_e"
 path = "abc472/e/e.rs"
-        
+
 [[bin]]
 name = "abc472_f"
 path = "abc472/f/f.rs"
-        
+
 [[bin]]
 name = "abc472_g"
 path = "abc472/g/g.rs"
-        
+
+[[bin]]
+name = "abc473_a"
+path = "abc473/a/a.rs"
+
+[[bin]]
+name = "abc473_b"
+path = "abc473/b/b.rs"
+
+[[bin]]
+name = "abc473_c"
+path = "abc473/c/c.rs"
+
+[[bin]]
+name = "abc473_d"
+path = "abc473/d/d.rs"
+
+[[bin]]
+name = "abc473_e"
+path = "abc473/e/e.rs"
+
+[[bin]]
+name = "abc473_f"
+path = "abc473/f/f.rs"
+
+[[bin]]
+name = "abc473_g"
+path = "abc473/g/g.rs"
