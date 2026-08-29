@@ -3,7 +3,7 @@
 fn main() {
     input! {
         h: usize, w: usize,
-        k: usize,
+        k: i64,
         grid: [Chars; h],
     }
 
@@ -25,14 +25,14 @@ fn main() {
         for y in 0..h {
             for x in 0..w {
                 if !danger_cols[x] && !danger_rows[y] {
-                    is_safe.push(Pos::new(x as i64, y as i64));
+                    is_safe.push(Pos::new_from_usize(x, y));
                 }
             }
         }
         is_safe
     };
 
-    let bounds = Bounds::new(Pos::new(0, 0), Pos::new(w as i64 - 1, h as i64 - 1));
+    let bounds = Bounds::new(Pos::new_from_usize(0, 0), Pos::new_from_usize(w - 1, h - 1));
     let res = bfs_arbitrary(
         bounds,
         |pos| {
@@ -43,10 +43,9 @@ fn main() {
     );
 
     let ans = res
-        .as_vec()
         .iter()
         .copied()
-        .filter(|x| x.is_some_and(|x| x <= k as i64))
+        .filter(|x| x.is_some_and(|x| x <= k))
         .count();
     println!("{}", ans);
 }
@@ -462,6 +461,7 @@ pub mod lg {
         )
     }
 }
+
 use pos::*;
 #[allow(clippy::module_inception)]
 pub mod pos {
@@ -476,6 +476,9 @@ pub mod pos {
     impl Pos {
         pub fn new(x: i64, y: i64) -> Pos {
             Pos { x, y }
+        }
+        pub fn new_from_usize(x: usize, y: usize) -> Pos {
+            Pos::new(x as i64, y as i64)
         }
         pub fn scalar_mul(self, rhs: i64) -> Pos {
             Pos::new(self.x * rhs, self.y * rhs)
@@ -677,6 +680,7 @@ pub mod pos {
         Pos { x: -1, y: 0 },
     ];
 }
+
 use vec_vec_at::*;
 pub mod vec_vec_at {
     use super::pos::*;

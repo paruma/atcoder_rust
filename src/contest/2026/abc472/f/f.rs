@@ -1,20 +1,35 @@
-// 問題文と制約は読みましたか？
-// #[fastout]
+/*
+解法
+N角形をN-2個の三角形に分割する。
+N角形の重心はN-2個の三角形の重心を面積で重み付けして平均を取ったもの
+
+頂点a,b,c の三角形の面積は
+(b-a)×(c-a) = b×c - (b-c)×a  ← 外積は可換ではなく b×c - (b+c)×a ではない点に注意
+
+頂点a,b,c の三角形の重心は (a+b+c)/3
+
+面積×重心は
+
+(b×c - (b-c)×a) (a+b+c)/3
+= ...
+と展開し、項ごとに総和を取れば、N-2個の面積×重心の和が求まる。
+
+ */
 fn main() {
     input! {
         n: usize,
         nq: usize,
-        ps: [PosF64; n],
+        ps: [PosXY; n],
         qs: [(Usize1, Usize1); nq]
     }
 
-    let ps = chain!(&ps, &ps).copied().collect_vec();
+    let ps = [ps.as_slice(), ps.as_slice()].concat();
 
-    let plus_list = ps
+    let sub_list = ps
         .iter()
         .copied()
         .tuple_windows()
-        .map(|(p, q)| p + q)
+        .map(|(p, q)| p - q)
         .collect_vec();
 
     let mult_list = ps
@@ -27,7 +42,7 @@ fn main() {
         .iter()
         .copied()
         .tuple_windows()
-        .map(|(p, q)| (p + q) / 3.0 * (p.outer_product(q)))
+        .map(|(p, q)| (p + q) * (p.outer_product(q)))
         .collect_vec();
 
     let term2_list = ps
@@ -35,35 +50,35 @@ fn main() {
         .copied()
         .tuple_windows()
         .map(|(p, q)| {
-            let a = (p + q) / 3.0;
-            let b = p + q;
+            let a = p + q;
+            let b = p - q;
 
             [-a.x * b.y, a.x * b.x, -a.y * b.y, a.y * b.x]
         })
         .collect_vec();
 
-    let cum_plus_list = plus_list
+    let cum_sub_list = sub_list
         .iter()
         .copied()
-        .scanl(PosF64::zero(), |acc, x| *acc + x)
+        .scanl(Pos::zero(), |acc, x| *acc + x)
         .collect_vec();
 
     let cum_mult_list = mult_list
         .iter()
         .copied()
-        .scanl(0.0, |acc, x| *acc + x)
+        .scanl(0, |acc, x| *acc + x)
         .collect_vec();
 
     let cum_term1_list = term1_list
         .iter()
         .copied()
-        .scanl(PosF64::zero(), |acc, x| *acc + x)
+        .scanl(Pos::zero(), |acc, x| *acc + x)
         .collect_vec();
 
     let cum_term2_list = term2_list
         .iter()
         .copied()
-        .scanl([0.0, 0.0, 0.0, 0.0], |[a, b, c, d], [x, y, z, w]| {
+        .scanl([0, 0, 0, 0], |[a, b, c, d], [x, y, z, w]| {
             [*a + x, *b + y, *c + z, *d + w]
         })
         .collect_vec();
@@ -72,18 +87,18 @@ fn main() {
         let v = if v < u { v + n } else { v };
 
         // 面積の総和
-        let area_sum = {
-            let s1 = cum_mult_list[v] - cum_mult_list[u];
-            let s2 = cum_plus_list[v] - cum_plus_list[u];
+        let area_sum2 = {
+            let s1 = cum_mult_list[v] - cum_mult_list[u + 1];
+            let s2 = cum_sub_list[v] - cum_sub_list[u + 1];
 
             s1 - s2.outer_product(ps[u])
         };
 
-        // vec の総和
-        let vec_sum = {
-            let term1 = cum_term1_list[v] - cum_term1_list[u];
+        // (三角形の重心 * 面積)の総和
+        let vec_sum6 = {
+            let term1 = cum_term1_list[v] - cum_term1_list[u + 1];
             let term2 = {
-                let begin = cum_term2_list[u];
+                let begin = cum_term2_list[u + 1];
                 let end = cum_term2_list[v];
 
                 let diff = [
@@ -93,19 +108,20 @@ fn main() {
                     end[3] - begin[3],
                 ];
 
-                PosF64::new(
+                -Pos::new(
                     diff[0] * ps[u].x + diff[1] * ps[u].y,
                     diff[2] * ps[u].x + diff[3] * ps[u].y,
                 )
             };
 
-            let term3 = ps[u] * (cum_mult_list[v] - cum_mult_list[u]) / 3.0;
-            let term4 = -ps[u] * (cum_plus_list[v] - cum_plus_list[u]).outer_product(ps[u]) / 3.0;
-            term1 - term2 + term3 + term4
+            let term3 = ps[u] * (cum_mult_list[v] - cum_mult_list[u + 1]);
+            let term4 = -ps[u] * (cum_sub_list[v] - cum_sub_list[u + 1]).outer_product(ps[u]);
+            term1 + term2 + term3 + term4
         };
 
-        let ans = vec_sum / area_sum;
-        println!("{} {}", ans.x, ans.y);
+        let ans_x = vec_sum6.x as f64 / (3.0 * area_sum2 as f64);
+        let ans_y = vec_sum6.y as f64 / (3.0 * area_sum2 as f64);
+        println!("{} {}", ans_x, ans_y);
         //
     }
 }
@@ -237,134 +253,223 @@ pub mod print_util {
 }
 
 // ====== snippet ======
-use {num::Zero, pos_f64::*};
+use {num::Zero, pos::*};
 #[allow(clippy::module_inception)]
-pub mod pos_f64 {
+pub mod pos {
+    use std::io::BufRead;
     use std::iter::Sum;
-    use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
-    #[derive(Clone, Copy, PartialEq, PartialOrd)]
-    pub struct PosF64 {
-        pub x: f64,
-        pub y: f64,
+    use std::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+    #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
+    pub struct Pos {
+        pub x: i64,
+        pub y: i64,
     }
-    impl PosF64 {
-        pub fn new(x: f64, y: f64) -> PosF64 {
-            PosF64 { x, y }
+    impl Pos {
+        pub fn new(x: i64, y: i64) -> Pos {
+            Pos { x, y }
         }
-        pub fn scalar_mul(self, rhs: f64) -> PosF64 {
-            self * rhs
+        pub fn new_from_usize(x: usize, y: usize) -> Pos {
+            Pos::new(x as i64, y as i64)
         }
-        pub fn inner_product(self, rhs: Self) -> f64 {
+        pub fn scalar_mul(self, rhs: i64) -> Pos {
+            Pos::new(self.x * rhs, self.y * rhs)
+        }
+        pub fn inner_product(self, rhs: Self) -> i64 {
             self.x * rhs.x + self.y * rhs.y
         }
-        pub fn outer_product(self, rhs: Self) -> f64 {
+        pub fn outer_product(self, rhs: Self) -> i64 {
             self.x * rhs.y - self.y * rhs.x
         }
-        pub fn norm_square(self) -> f64 {
+        pub fn norm_square(self) -> i64 {
             self.inner_product(self)
         }
-        pub fn norm(self) -> f64 {
-            self.norm_square().sqrt()
+        pub fn l1_norm(self) -> i64 {
+            self.x.abs() + self.y.abs()
         }
-        pub fn dist(self, rhs: Self) -> f64 {
-            (self - rhs).norm()
+        pub fn linf_norm(self) -> i64 {
+            self.x.abs().max(self.y.abs())
         }
-        pub fn dist_square(self, rhs: Self) -> f64 {
+        pub fn dist_square(self, rhs: Self) -> i64 {
             (self - rhs).norm_square()
         }
-        pub fn rotate(self, theta: f64) -> PosF64 {
-            let (s, c) = theta.sin_cos();
-            PosF64::new(self.x * c - self.y * s, self.x * s + self.y * c)
+        pub fn l1_dist(self, rhs: Self) -> i64 {
+            (self - rhs).l1_norm()
         }
-        pub fn normalize(self) -> PosF64 {
-            self / self.norm()
+        pub fn linf_dist(self, rhs: Self) -> i64 {
+            (self - rhs).linf_norm()
+        }
+        /// 向きが同じであれば同一視する正規化 (方向ベクトル)
+        /// 最大公約数で割り、符号はそのまま残す。
+        /// (0,0) の場合は (0,0) を返す。
+        /// 計算量: O(log(min(|x|, |y|)))
+        pub fn normalize_direction(self) -> Pos {
+            if self.x == 0 && self.y == 0 {
+                return self;
+            }
+            let g = num::integer::gcd(self.x.abs(), self.y.abs());
+            Pos::new(self.x / g, self.y / g)
+        }
+        /// 平行であれば同一視する正規化（直線の傾きを表す）
+        /// 最大公約数で割り、最初の非零成分 (x が優先) が正になるように符号を統一する。
+        /// (0,0) の場合は (0,0) を返す。
+        /// 計算量: O(log(min(|x|, |y|)))
+        pub fn normalize_slope(self) -> Pos {
+            if self.x == 0 && self.y == 0 {
+                return self;
+            }
+            let p = if self.x < 0 || (self.x == 0 && self.y < 0) {
+                -self
+            } else {
+                self
+            };
+            let g = num::integer::gcd(p.x, p.y);
+            Pos::new(p.x / g, p.y / g)
+        }
+        pub fn rotate90(self) -> Pos {
+            Pos::new(-self.y, self.x)
+        }
+        pub fn rotate270(self) -> Pos {
+            Pos::new(self.y, -self.x)
+        }
+        /// グリッドの幅 `width` を指定して、座標 `(x, y)` を 1次元インデックス `y * width + x` に変換する。
+        pub fn to_index_1d(self, width: usize) -> usize {
+            assert!(
+                self.x >= 0 && self.y >= 0,
+                "Pos::to_index_1d: x と y は 0 以上である必要があります。pos: ({}, {})",
+                self.x,
+                self.y
+            );
+            assert!(
+                (self.x as usize) < width,
+                "Pos::to_index_1d: x は width 未満である必要があります。x: {}, width: {}",
+                self.x,
+                width
+            );
+            (self.y as usize) * width + (self.x as usize)
+        }
+        /// 1次元インデックスとグリッドの幅 `width` から、座標 `(x, y)` を復元する。
+        pub fn from_index_1d(index: usize, width: usize) -> Pos {
+            Pos::new((index % width) as i64, (index / width) as i64)
+        }
+        pub fn around4_pos_iter(self) -> impl Iterator<Item = Pos> {
+            DIR4_LIST.iter().copied().map(move |d| self + d)
+        }
+        pub fn around8_pos_iter(self) -> impl Iterator<Item = Pos> {
+            DIR8_LIST.iter().copied().map(move |d| self + d)
         }
     }
-    impl Add for PosF64 {
-        type Output = PosF64;
+    impl Add for Pos {
+        type Output = Pos;
         fn add(self, rhs: Self) -> Self::Output {
-            PosF64::new(self.x + rhs.x, self.y + rhs.y)
+            Pos::new(self.x + rhs.x, self.y + rhs.y)
         }
     }
-    impl Sub for PosF64 {
-        type Output = PosF64;
+    impl Sub for Pos {
+        type Output = Pos;
         fn sub(self, rhs: Self) -> Self::Output {
-            PosF64::new(self.x - rhs.x, self.y - rhs.y)
+            Pos::new(self.x - rhs.x, self.y - rhs.y)
         }
     }
-    impl Neg for PosF64 {
+    impl Neg for Pos {
         type Output = Self;
         fn neg(self) -> Self::Output {
-            PosF64::new(-self.x, -self.y)
+            Pos::new(-self.x, -self.y)
         }
     }
-    impl Sum for PosF64 {
+    impl Sum for Pos {
         fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
-            iter.fold(PosF64::new(0.0, 0.0), |acc, x| acc + x)
+            iter.fold(Pos::new(0, 0), |acc, x| acc + x)
         }
     }
-    impl<'a> Sum<&'a PosF64> for PosF64 {
+    impl<'a> Sum<&'a Pos> for Pos {
         fn sum<I: Iterator<Item = &'a Self>>(iter: I) -> Self {
-            iter.fold(PosF64::new(0.0, 0.0), |a, b| a + *b)
+            iter.fold(Pos::new(0, 0), |a, b| a + *b)
         }
     }
-    impl num_traits::Zero for PosF64 {
+    impl num_traits::Zero for Pos {
         fn zero() -> Self {
-            PosF64::new(0.0, 0.0)
+            Pos::new(0, 0)
         }
         fn is_zero(&self) -> bool {
             self.x.is_zero() && self.y.is_zero()
         }
     }
-    impl AddAssign for PosF64 {
+    impl AddAssign for Pos {
         fn add_assign(&mut self, rhs: Self) {
             *self = *self + rhs
         }
     }
-    impl SubAssign for PosF64 {
+    impl SubAssign for Pos {
         fn sub_assign(&mut self, rhs: Self) {
             *self = *self - rhs
         }
     }
-    impl Mul<f64> for PosF64 {
-        type Output = PosF64;
-        fn mul(self, rhs: f64) -> Self::Output {
-            PosF64::new(self.x * rhs, self.y * rhs)
+    impl Mul<i64> for Pos {
+        type Output = Pos;
+        fn mul(self, rhs: i64) -> Self::Output {
+            Pos::new(self.x * rhs, self.y * rhs)
         }
     }
-    impl MulAssign<f64> for PosF64 {
-        fn mul_assign(&mut self, rhs: f64) {
-            *self = *self * rhs;
-        }
-    }
-    impl Div<f64> for PosF64 {
-        type Output = PosF64;
-        fn div(self, rhs: f64) -> Self::Output {
-            PosF64::new(self.x / rhs, self.y / rhs)
-        }
-    }
-    impl DivAssign<f64> for PosF64 {
-        fn div_assign(&mut self, rhs: f64) {
-            *self = *self / rhs;
+    impl MulAssign<i64> for Pos {
+        fn mul_assign(&mut self, rhs: i64) {
+            *self = *self * rhs
         }
     }
     use std::fmt::{Debug, Error, Formatter};
-    impl Debug for PosF64 {
+    impl Debug for Pos {
         fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
             f.write_fmt(format_args!("({}, {})", self.x, self.y))?;
             Ok(())
         }
     }
     use proconio::source::{Readable, Source};
-    use std::io::BufRead;
-    impl Readable for PosF64 {
-        type Output = PosF64;
-        fn read<R: BufRead, S: Source<R>>(source: &mut S) -> PosF64 {
-            let x = f64::read(source);
-            let y = f64::read(source);
-            PosF64::new(x, y)
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub enum PosXY {}
+    impl Readable for PosXY {
+        type Output = Pos;
+        fn read<R: BufRead, S: Source<R>>(source: &mut S) -> Pos {
+            let x = i64::read(source);
+            let y = i64::read(source);
+            Pos::new(x, y)
         }
     }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub enum PosYX {}
+    impl Readable for PosYX {
+        type Output = Pos;
+        fn read<R: BufRead, S: Source<R>>(source: &mut S) -> Pos {
+            let y = i64::read(source);
+            let x = i64::read(source);
+            Pos::new(x, y)
+        }
+    }
+    /// 1-indexed で与えられた座標(YX)
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub enum PosYX1 {}
+    impl Readable for PosYX1 {
+        type Output = Pos;
+        fn read<R: BufRead, S: Source<R>>(source: &mut S) -> Pos {
+            let y = i64::read(source) - 1;
+            let x = i64::read(source) - 1;
+            Pos::new(x, y)
+        }
+    }
+    pub const DIR8_LIST: [Pos; 8] = [
+        Pos { x: 0, y: 1 },
+        Pos { x: 1, y: 1 },
+        Pos { x: 1, y: 0 },
+        Pos { x: 1, y: -1 },
+        Pos { x: 0, y: -1 },
+        Pos { x: -1, y: -1 },
+        Pos { x: -1, y: 0 },
+        Pos { x: -1, y: 1 },
+    ];
+    pub const DIR4_LIST: [Pos; 4] = [
+        Pos { x: 0, y: 1 },
+        Pos { x: 1, y: 0 },
+        Pos { x: 0, y: -1 },
+        Pos { x: -1, y: 0 },
+    ];
 }
 use scan_iter::*;
 #[allow(clippy::module_inception)]

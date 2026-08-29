@@ -23,29 +23,22 @@ fn main() {
         }
         let adj = make_adj_from_undirected(nv, &es);
 
-        let dist = bfs(nv, |u| adj[u].iter().copied(), [0]);
+        let bfs_result = bfs_with_restore(nv, |u| adj[u].iter().copied(), [0]);
 
-        let parity = dist.iter().copied().map(|x| x.unwrap() % 2).collect_vec();
+        let parity = bfs_result
+            .dist
+            .iter()
+            .copied()
+            .map(|x| x.unwrap() % 2)
+            .collect_vec();
 
         let same_pair = es.iter().copied().find(|&(u, v)| parity[u] == parity[v]);
 
         if let Some((u, v)) = same_pair {
-            let path0 = {
-                // 0 → u
-                let result = bfs_with_restore(nv, |u| adj[u].iter().copied(), [0]);
-                result.restore(u).unwrap()
-            };
-            let path1 = {
-                // 0 → v
-                let result = bfs_with_restore(nv, |u| adj[u].iter().copied(), [0]);
-                result.restore(v).unwrap()
-            };
-            // dbg!(&path0);
-            // dbg!(&path1);
+            let path0 = bfs_result.restore(u).unwrap();
+            let path1 = bfs_result.restore(v).unwrap();
 
-            // 0 5 2 1
-            // 0 5 4 3
-
+            // LCA の一つ下
             let i = (0..).find(|&i| path0[i] != path1[i]).unwrap();
 
             let ans = [
@@ -57,8 +50,6 @@ fn main() {
             let ans = ans.iter().copied().map(|x| x + 1).collect_vec();
             println!("{}", ans.len());
             println!("{}", ans.iter().join(" "));
-            // dbg!(ans);
-            // 1オリジンに戻す
         } else {
             println!("-1");
         }
