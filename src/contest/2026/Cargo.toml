@@ -1146,3 +1146,31 @@ path = "abc473/f/f.rs"
 [[bin]]
 name = "abc473_g"
 path = "abc473/g/g.rs"
+
+[[bin]]
+name = "_misc_iwai2026_a"
+path = "_misc/iwai2026/a.rs"
+
+[[bin]]
+name = "_misc_iwai2026_b"
+path = "_misc/iwai2026/b.rs"
+
+[[bin]]
+name = "_misc_iwai2026_c"
+path = "_misc/iwai2026/c.rs"
+
+[[bin]]
+name = "_misc_iwai2026_d"
+path = "_misc/iwai2026/d.rs"
+
+[[bin]]
+name = "_misc_iwai2026_e"
+path = "_misc/iwai2026/e.rs"
+
+[[bin]]
+name = "_misc_iwai2026_f"
+path = "_misc/iwai2026/f.rs"
+
+[[bin]]
+name = "_misc_iwai2026_g"
+path = "_misc/iwai2026/g.rs"
