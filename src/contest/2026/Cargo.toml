@@ -1174,3 +1174,31 @@ path = "_misc/iwai2026/f.rs"
 [[bin]]
 name = "_misc_iwai2026_g"
 path = "_misc/iwai2026/g.rs"
+
+[[bin]]
+name = "arc229_a"
+path = "arc229/a/a.rs"
+
+[[bin]]
+name = "arc229_b"
+path = "arc229/b/b.rs"
+
+[[bin]]
+name = "arc229_c"
+path = "arc229/c/c.rs"
+
+[[bin]]
+name = "arc229_d"
+path = "arc229/d/d.rs"
+
+[[bin]]
+name = "arc229_e"
+path = "arc229/e/e.rs"
+
+[[bin]]
+name = "arc229_f"
+path = "arc229/f/f.rs"
+
+[[bin]]
+name = "arc229_g"
+path = "arc229/g/g.rs"
