@@ -1,12 +1,37 @@
 // 問題文と制約は読みましたか？
 // #[fastout]
+
+fn dfs(n: usize, rem: i64, seq: &mut Vec<i64>, seq_list: &mut Vec<Vec<i64>>) {
+    if seq.len() == n - 1 {
+        let mut seq2 = seq.clone();
+        seq2.push(rem);
+        seq2.reverse();
+        seq_list.push(seq2);
+        return;
+    }
+    let i = n - seq.len() - 1;
+
+    for next in (0..)
+        .map(|j| (i as i64 + 1) * j)
+        .take_while(|next| *next <= rem)
+    {
+        seq.push(next / (i as i64 + 1));
+        dfs(n, rem - next, seq, seq_list);
+        seq.pop();
+    }
+}
+
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        k: i64,
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let mut seq_list = vec![];
+    let mut seq = vec![];
+
+    dfs(n, k, &mut seq, &mut seq_list);
+    seq_list.sort();
+    print_vec2(&seq_list);
 }
 
 #[cfg(test)]

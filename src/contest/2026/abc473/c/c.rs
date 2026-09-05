@@ -3,9 +3,16 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        k: usize,
+        xs: [Usize1; n],
     }
-    let ans: i64 = -2_i64;
+
+    let cnts = xs.iter().copied().counts();
+
+    let max = cnts.values().copied().max().unwrap();
+
+    let ans = cnts.iter().filter(|(key, cnt)| **cnt >= max - 1).count();
+
     println!("{}", ans);
 }
 

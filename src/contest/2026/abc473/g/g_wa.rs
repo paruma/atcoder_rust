@@ -1,15 +1,29 @@
+/*
+def stirling_s2(ball: int, box: int) -> int:
+    return sum(
+        (-1) ** (box - i) * comb(box, i) * i**ball for i in range(0, box + 1)
+    ) // factorial(box)
+ */
+
 use ac_library::{ModInt998244353 as Mint, convolution};
+
+// fn s2(ball: i64, bx: i64) -> i64{
+//     (0..=bx).map(|i|{
+//          (-1) ** (box - i) * comb(box, i) * i**ball
+//     })
+//     //
+// }
 
 // 問題文と制約は読みましたか？
 // #[fastout]
 
-fn s1(begin: usize, end: usize) -> Vec<Mint> {
+fn s1(comb: &Comb<Mint>, begin: usize, end: usize) -> Vec<Mint> {
     if end - begin == 1 {
         return vec![Mint::new(begin), Mint::new(1)];
     }
     let mid = (begin + end) / 2;
-    let fact1 = s1(begin, mid);
-    let fact2 = s1(mid, end);
+    let fact1 = s1(comb, begin, mid);
+    let fact2 = s1(comb, mid, end);
     convolution(&fact1, &fact2)
 }
 
@@ -23,7 +37,26 @@ fn main() {
     let ans = if k >= 2 * n {
         Mint::new(0)
     } else {
-        let f = s1(0, n)[n - (k - n)];
+        // 第2種と勘違い
+        let ball = k;
+        let box0 = n;
+        dbg!(ball, box0);
+
+        let f = (0..=box0)
+            .map(|i| {
+                //
+                let factor1 = if box0 % 2 == i % 2 {
+                    Mint::new(1)
+                } else {
+                    Mint::new(-1)
+                };
+                let factor2 = comb.comb(box0, i);
+                let factor3 = Mint::new(i).pow(ball as u64);
+
+                factor1 * factor2 * factor3
+            })
+            .sum::<Mint>();
+
         f / comb.factorial(n)
     };
     println!("{}", ans);
@@ -38,13 +71,6 @@ mod tests {
 
     #[test]
     fn test_problem() {
-        for i in 0..10 {
-            let ans = (0..i)
-                .tuple_combinations()
-                .map(|(i, j, k, l)| i * j * k * l)
-                .sum::<i64>();
-            println!("{}", ans);
-        }
         assert_eq!(1 + 1, 2);
     }
 

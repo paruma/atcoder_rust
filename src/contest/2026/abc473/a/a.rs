@@ -5,7 +5,7 @@ fn main() {
         n: usize,
         xs: [i64; n],
     }
-    let ans: i64 = -2_i64;
+    let ans: i64 = xs[n / 2..].iter().copied().sum();
     println!("{}", ans);
 }
 

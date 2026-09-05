@@ -1,12 +1,70 @@
+use ac_library::Segtree;
+use monoid_template::*;
+#[allow(unused_variables)]
+pub mod monoid_template {
+    use ac_library::segtree::Monoid;
+    use std::convert::Infallible;
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub struct RangeXxx {
+        pub a: i64,
+        pub b: i64,
+        pub c: i64, // 足りてない分
+    }
+    impl RangeXxx {
+        pub fn unit(x: char) -> Self {
+            let a = (x == 'A') as i64;
+            let b = (x == 'B') as i64;
+            let c = b;
+            Self { a, b, c }
+        }
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub struct RangeXxxMonoid(Infallible);
+    impl Monoid for RangeXxxMonoid {
+        type S = RangeXxx;
+        fn identity() -> Self::S {
+            RangeXxx { a: 0, b: 0, c: 0 }
+        }
+        fn binary_operation(x: &Self::S, y: &Self::S) -> Self::S {
+            let a = x.a + y.a;
+            let b = x.b + y.b;
+            let c = x.c.max(y.c - (x.a - x.b)).max(0);
+            RangeXxx { a, b, c }
+        }
+    }
+}
 // 問題文と制約は読みましたか？
-// #[fastout]
+#[fastout]
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        xs: Chars,
+        nq: usize
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let mut seg: Segtree<RangeXxxMonoid> =
+        Segtree::from(xs.iter().copied().map(RangeXxx::unit).collect_vec());
+
+    for _ in 0..nq {
+        input! {
+            t: usize,
+        }
+
+        if t == 1 {
+            input! {
+                i: Usize1,
+                c: char,
+            }
+            seg.set(i, RangeXxx::unit(c));
+        } else {
+            input! {
+                l: Usize1,
+                r: Usize1,
+            }
+
+            let ans = seg.prod(l..=r).c == 0;
+            println!("{}", if ans { "Yes" } else { "No" });
+        }
+    }
 }
 
 #[cfg(test)]

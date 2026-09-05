@@ -5,7 +5,14 @@ fn main() {
         n: usize,
         xs: [i64; n],
     }
-    let ans: i64 = -2_i64;
+    let ans: i64 = xs
+        .iter()
+        .copied()
+        .counts()
+        .iter()
+        .filter(|(key, cnt)| **cnt % 2 == 1)
+        .map(|(key, _)| *key)
+        .sum();
     println!("{}", ans);
 }
 
