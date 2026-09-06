@@ -1202,3 +1202,31 @@ path = "arc229/f/f.rs"
 [[bin]]
 name = "arc229_g"
 path = "arc229/g/g.rs"
+
+[[bin]]
+name = "abc474_a"
+path = "abc474/a/a.rs"
+
+[[bin]]
+name = "abc474_b"
+path = "abc474/b/b.rs"
+
+[[bin]]
+name = "abc474_c"
+path = "abc474/c/c.rs"
+
+[[bin]]
+name = "abc474_d"
+path = "abc474/d/d.rs"
+
+[[bin]]
+name = "abc474_e"
+path = "abc474/e/e.rs"
+
+[[bin]]
+name = "abc474_f"
+path = "abc474/f/f.rs"
+
+[[bin]]
+name = "abc474_g"
+path = "abc474/g/g.rs"
