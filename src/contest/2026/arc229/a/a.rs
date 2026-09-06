@@ -2,11 +2,38 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        x: usize,
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    let mut ans = vec![];
+
+    // 24 個の ar
+    for _ in 0..24 {
+        ans.push('A');
+        ans.push('R');
+    }
+
+    // 24 個の cr
+    for _ in 0..24 {
+        ans.push('C');
+        ans.push('R');
+    }
+    ans.push('C');
+    // ここまでで
+    // A R A R C R C みたいなのができる
+    // A24個、C25個、R 48個くらい
+
+    for _ in 0..600 - x {
+        let pos = ans
+            .iter()
+            .tuple_windows()
+            .position(|(&a1, &a2, &a3)| a1 == 'A' && a2 == 'R' && a3 == 'C')
+            .unwrap();
+
+        ans[pos] = 'C';
+        ans[pos + 2] = 'A';
+    }
+    print_chars(&ans);
 }
 
 #[cfg(test)]
