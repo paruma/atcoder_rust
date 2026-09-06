@@ -4,9 +4,25 @@ fn main() {
     input! {
         n: usize,
         xs: [i64; n],
+        ys: [i64; n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    let ans = (0..n)
+        .map(|i| {
+            if xs[i] > ys[i] {
+                1_000_000_000_000_000_000_i64
+            } else {
+                1
+            }
+        })
+        .collect_vec();
+
+    if ans.iter().copied().all(|x| x == 1) {
+        println!("No");
+    } else {
+        println!("Yes");
+        print_vec_1line(&ans);
+    }
 }
 
 #[cfg(test)]

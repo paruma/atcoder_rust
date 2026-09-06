@@ -3,10 +3,13 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        xs: [Usize1; n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+    let ans = xs.iter().copied().enumerate().all(|(i, x)| {
+        // i番目に抜けた人の座席がx
+        i / 10 == x / 10
+    });
+    print_yesno(ans);
 }
 
 #[cfg(test)]

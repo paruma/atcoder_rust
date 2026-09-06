@@ -3,10 +3,43 @@
 fn main() {
     input! {
         n: usize,
+        nq: usize,
         xs: [i64; n],
+        qs: [i64; nq],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    let mut next = HashMap::new();
+    let mut prev = HashMap::new();
+
+    for i in 0..n - 1 {
+        next.insert(xs[i], xs[i + 1]);
+        prev.insert(xs[i + 1], xs[i]);
+    }
+    next.insert(-1, xs[0]);
+    prev.insert(xs[0], -1);
+
+    next.insert(xs[n - 1], -2);
+    prev.insert(-2, xs[n - 1]);
+
+    for q in qs {
+        // prev_q q next_q から q を消す
+        let prev_q = prev[&q];
+        let next_q = next[&q];
+        next.insert(prev_q, next_q);
+        prev.insert(next_q, prev_q);
+
+        // prev_m2 -2 → prev_m2 q -2
+        let prev_m2 = prev[&-2];
+        next.insert(prev_m2, q);
+        prev.insert(q, prev_m2);
+
+        next.insert(q, -2);
+        prev.insert(-2, q);
+    }
+
+    let ans =
+        &std::iter::successors(Some(-1_i64), |acc| next.get(acc).copied()).collect_vec()[1..=n];
+    print_vec_1line(ans);
 }
 
 #[cfg(test)]
