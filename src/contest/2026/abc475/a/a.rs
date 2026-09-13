@@ -2,11 +2,18 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        xs: Chars,
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    let mut ans = vec![];
+
+    for i in 0..xs.len() {
+        ans.push(xs[i]);
+        if i != xs.len() - 1 {
+            ans.push('o');
+        }
+    }
+    print_chars(&ans);
 }
 
 #[cfg(test)]

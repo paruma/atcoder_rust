@@ -1,11 +1,41 @@
 // 問題文と制約は読みましたか？
 // #[fastout]
+fn nc2(n: usize) -> usize {
+    if n == 0 { 0 } else { n * (n - 1) / 2 }
+}
+
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        h: usize, w: usize,
+        grid: [Chars; h],
     }
-    let ans: i64 = -2_i64;
+
+    let all = nc2(h + 1) * nc2(w + 1);
+
+    let mut cnt = 0;
+
+    for y in 0..h {
+        let f1 = grid[y]
+            .iter()
+            .copied()
+            .dedup_with_count()
+            .filter(|(cnt, ch)| *ch == '#')
+            .map(|(cnt, _)| nc2(cnt + 1))
+            .sum::<usize>();
+        cnt += f1 * (y + 1);
+    }
+
+    for x in 0..w {
+        let f2 = (0..h)
+            .map(|y| grid[y][x])
+            .dedup_with_count()
+            .filter(|(cnt, ch)| *ch == '#')
+            .map(|(cnt, _)| nc2(cnt + 1))
+            .sum::<usize>();
+        cnt += f2 * (x + 1);
+    }
+
+    let ans = all - cnt;
     println!("{}", ans);
 }
 

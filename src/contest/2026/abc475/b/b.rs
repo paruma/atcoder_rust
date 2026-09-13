@@ -5,8 +5,23 @@ fn main() {
         n: usize,
         xs: [i64; n],
     }
-    let ans: i64 = -2_i64;
-    println!("{}", ans);
+
+    let mut cnt1 = 0;
+    let mut cnt10 = 0;
+    let mut cnt100 = 0;
+
+    for mut x in xs {
+        let otsuri = if x % 1000 == 0 { 0 } else { 1000 - x % 1000 };
+
+        let otsuri1 = otsuri % 10;
+        let otsuri10 = (otsuri % 100) / 10;
+        let otsuri100 = (otsuri % 1000) / 100;
+
+        cnt1 += otsuri1;
+        cnt10 += otsuri10;
+        cnt100 += otsuri100;
+    }
+    println!("{} {} {}", cnt1, cnt10, cnt100);
 }
 
 #[cfg(test)]
