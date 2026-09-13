@@ -133,6 +133,7 @@ pub mod tuple_combinations_with_replacement {
                 }
             }
 
+            // itertools の tuple_combinations と同様に、size_hint・count・fold を最適化できるが、ここでは実装していない。
             impl<I, A> Iterator for $combination<I>
             where
                 I: Iterator<Item = A> + Clone,
