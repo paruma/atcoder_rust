@@ -21,6 +21,26 @@ pub mod digit {
         res
     }
 
+    /// n の base 進数を Big Endian で表す
+    ///
+    /// 例:
+    /// - `to_digits_be_vec(123, 10) == vec![1, 2, 3]`
+    /// - `to_digits_be_vec(0, 10) == vec![]`
+    pub fn to_digits_be_vec(mut n: i64, base: i64) -> Vec<i64> {
+        assert!(n >= 0);
+        assert!(base >= 2);
+        if n == 0 {
+            return vec![];
+        }
+        let mut res = vec![];
+        while n > 0 {
+            res.push(n % base);
+            n /= base;
+        }
+        res.reverse();
+        res
+    }
+
     /// n の base 進数を Little Endian で生成するイテレータ
     ///
     /// 例:
@@ -58,6 +78,17 @@ pub mod digit {
         assert!(base >= 2);
         debug_assert!(digits.iter().all(|&d| (0..base).contains(&d)));
         digits.iter().rfold(0, |acc, &d| acc * base + d)
+    }
+
+    /// Big Endian で表された各桁から、数値を評価する
+    ///
+    /// 例:
+    /// - `from_digits_be(&[1, 2, 3], 10) == 123`
+    /// - `from_digits_be(&[], 10) == 0`
+    pub fn from_digits_be(digits: &[i64], base: i64) -> i64 {
+        assert!(base >= 2);
+        debug_assert!(digits.iter().all(|&d| (0..base).contains(&d)));
+        digits.iter().fold(0, |acc, &d| acc * base + d)
     }
 
     /// x を base 進数で表した際の桁数を返す
@@ -114,10 +145,24 @@ mod test_digit {
     }
 
     #[test]
+    fn test_to_digits_be() {
+        assert_eq!(to_digits_be_vec(12345, 10), vec![1, 2, 3, 4, 5]);
+        assert_eq!(to_digits_be_vec(102030405, 100), vec![1, 2, 3, 4, 5]);
+        assert_eq!(to_digits_be_vec(0, 10), vec![]);
+    }
+
+    #[test]
     fn test_from_digits_le() {
         assert_eq!(from_digits_le(&[5, 4, 3, 2, 1], 10), 12345);
         assert_eq!(from_digits_le(&[5, 4, 3, 2, 1], 100), 102030405);
         assert_eq!(from_digits_le(&[], 10), 0);
+    }
+
+    #[test]
+    fn test_from_digits_be() {
+        assert_eq!(from_digits_be(&[1, 2, 3, 4, 5], 10), 12345);
+        assert_eq!(from_digits_be(&[1, 2, 3, 4, 5], 100), 102030405);
+        assert_eq!(from_digits_be(&[], 10), 0);
     }
 
     #[test]
@@ -157,5 +202,11 @@ mod test_digit {
     #[should_panic]
     fn test_from_digits_le_panic() {
         from_digits_le(&[10], 10);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_from_digits_be_panic() {
+        from_digits_be(&[10], 10);
     }
 }
