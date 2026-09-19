@@ -36,9 +36,20 @@ fn main() {
                 // i 枚クーポン必要
                 // n - i 枚クーポンもらえる
                 // 不足分: i - (n - i) = 2 * i - n
-                let lack_coupon = (2 * i).saturating_sub(n);
-                let term3 = lack_coupon as i64 * xs[pivot];
-                term1 + term2 + term3
+                if pivot < i {
+                    // lack_coupon が 0 のとき、pivot は A の方で買わないことになるが
+                    // この処理では pivot を必ず A で買うことになってしまっている
+                    let lack_coupon =
+                        (2 * i)
+                            .saturating_sub(n)
+                            .saturating_sub(if pivot < i { 1 } else { 0 });
+                    let term3 = lack_coupon as i64 * xs[pivot];
+                    term1 + term2 + term3 - ys[pivot]
+                } else {
+                    let lack_coupon = (2 * i).saturating_sub(n);
+                    let term3 = lack_coupon as i64 * xs[pivot];
+                    term1 + term2 + term3
+                }
             })
             .min()
             .unwrap();
