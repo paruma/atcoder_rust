@@ -24,10 +24,10 @@ pub mod range_add_range_argminmax {
     struct RangeArgminmax<T> {
         min: T,
         max: T,
-        argmin_left: Option<usize>,
-        argmin_right: Option<usize>,
-        argmax_left: Option<usize>,
-        argmax_right: Option<usize>,
+        argmin_left: usize,
+        argmin_right: usize,
+        argmax_left: usize,
+        argmax_right: usize,
     }
 
     impl<T> RangeArgminmax<T>
@@ -38,10 +38,10 @@ pub mod range_add_range_argminmax {
             Self {
                 min: value,
                 max: value,
-                argmin_left: Some(index),
-                argmin_right: Some(index),
-                argmax_left: Some(index),
-                argmax_right: Some(index),
+                argmin_left: index,
+                argmin_right: index,
+                argmax_left: index,
+                argmax_right: index,
             }
         }
 
@@ -49,10 +49,10 @@ pub mod range_add_range_argminmax {
             Self {
                 min: T::max_value(),
                 max: T::min_value(),
-                argmin_left: None,
-                argmin_right: None,
-                argmax_left: None,
-                argmax_right: None,
+                argmin_left: usize::MAX,
+                argmin_right: usize::MIN,
+                argmax_left: usize::MAX,
+                argmax_right: usize::MIN,
             }
         }
 
@@ -61,22 +61,22 @@ pub mod range_add_range_argminmax {
             let max = left.max.max(right.max);
             let argmin_left = match left.min.cmp(&right.min) {
                 Ordering::Less => left.argmin_left,
-                Ordering::Equal => left.argmin_left.or(right.argmin_left),
+                Ordering::Equal => left.argmin_left.min(right.argmin_left),
                 Ordering::Greater => right.argmin_left,
             };
             let argmin_right = match left.min.cmp(&right.min) {
                 Ordering::Less => left.argmin_right,
-                Ordering::Equal => right.argmin_right.or(left.argmin_right),
+                Ordering::Equal => left.argmin_right.max(right.argmin_right),
                 Ordering::Greater => right.argmin_right,
             };
             let argmax_left = match left.max.cmp(&right.max) {
                 Ordering::Less => right.argmax_left,
-                Ordering::Equal => left.argmax_left.or(right.argmax_left),
+                Ordering::Equal => left.argmax_left.min(right.argmax_left),
                 Ordering::Greater => left.argmax_left,
             };
             let argmax_right = match left.max.cmp(&right.max) {
                 Ordering::Less => right.argmax_right,
-                Ordering::Equal => right.argmax_right.or(left.argmax_right),
+                Ordering::Equal => left.argmax_right.max(right.argmax_right),
                 Ordering::Greater => left.argmax_right,
             };
             Self {
@@ -137,7 +137,7 @@ pub mod range_add_range_argminmax {
         }
 
         fn mapping(f: &Self::F, value: &<Self::M as Monoid>::S) -> <Self::M as Monoid>::S {
-            if value.argmin_left.is_none() {
+            if value.argmin_left == usize::MAX {
                 *value
             } else {
                 RangeArgminmax {
@@ -204,22 +204,30 @@ pub mod range_add_range_argminmax {
         }
 
         /// range で最小値をとる最左の添字を取得する。
-        pub fn range_argmin_left<R: RangeBounds<usize>>(&mut self, range: R) -> Option<usize> {
+        ///
+        /// 空区間では `usize::MAX` を返す。
+        pub fn range_argmin_left<R: RangeBounds<usize>>(&mut self, range: R) -> usize {
             self.segtree.prod(range).argmin_left
         }
 
         /// range で最小値をとる最右の添字を取得する。
-        pub fn range_argmin_right<R: RangeBounds<usize>>(&mut self, range: R) -> Option<usize> {
+        ///
+        /// 空区間では `usize::MIN` を返す。
+        pub fn range_argmin_right<R: RangeBounds<usize>>(&mut self, range: R) -> usize {
             self.segtree.prod(range).argmin_right
         }
 
         /// range で最大値をとる最左の添字を取得する。
-        pub fn range_argmax_left<R: RangeBounds<usize>>(&mut self, range: R) -> Option<usize> {
+        ///
+        /// 空区間では `usize::MAX` を返す。
+        pub fn range_argmax_left<R: RangeBounds<usize>>(&mut self, range: R) -> usize {
             self.segtree.prod(range).argmax_left
         }
 
         /// range で最大値をとる最右の添字を取得する。
-        pub fn range_argmax_right<R: RangeBounds<usize>>(&mut self, range: R) -> Option<usize> {
+        ///
+        /// 空区間では `usize::MIN` を返す。
+        pub fn range_argmax_right<R: RangeBounds<usize>>(&mut self, range: R) -> usize {
             self.segtree.prod(range).argmax_right
         }
 
@@ -234,22 +242,30 @@ pub mod range_add_range_argminmax {
         }
 
         /// 全要素で最小値をとる最左の添字を取得する。
-        pub fn all_argmin_left(&self) -> Option<usize> {
+        ///
+        /// 空のセグメント木では `usize::MAX` を返す。
+        pub fn all_argmin_left(&self) -> usize {
             self.segtree.all_prod().argmin_left
         }
 
         /// 全要素で最小値をとる最右の添字を取得する。
-        pub fn all_argmin_right(&self) -> Option<usize> {
+        ///
+        /// 空のセグメント木では `usize::MIN` を返す。
+        pub fn all_argmin_right(&self) -> usize {
             self.segtree.all_prod().argmin_right
         }
 
         /// 全要素で最大値をとる最左の添字を取得する。
-        pub fn all_argmax_left(&self) -> Option<usize> {
+        ///
+        /// 空のセグメント木では `usize::MAX` を返す。
+        pub fn all_argmax_left(&self) -> usize {
             self.segtree.all_prod().argmax_left
         }
 
         /// 全要素で最大値をとる最右の添字を取得する。
-        pub fn all_argmax_right(&self) -> Option<usize> {
+        ///
+        /// 空のセグメント木では `usize::MIN` を返す。
+        pub fn all_argmax_right(&self) -> usize {
             self.segtree.all_prod().argmax_right
         }
 
@@ -324,19 +340,35 @@ mod tests {
         assert_eq!(seg.range_max(left..right), max);
         assert_eq!(
             seg.range_argmin_left(left..right),
-            range.iter().position(|&x| x == min).map(|i| left + i)
+            range
+                .iter()
+                .position(|&x| x == min)
+                .map(|i| left + i)
+                .unwrap_or(usize::MAX)
         );
         assert_eq!(
             seg.range_argmin_right(left..right),
-            range.iter().rposition(|&x| x == min).map(|i| left + i)
+            range
+                .iter()
+                .rposition(|&x| x == min)
+                .map(|i| left + i)
+                .unwrap_or(usize::MIN)
         );
         assert_eq!(
             seg.range_argmax_left(left..right),
-            range.iter().position(|&x| x == max).map(|i| left + i)
+            range
+                .iter()
+                .position(|&x| x == max)
+                .map(|i| left + i)
+                .unwrap_or(usize::MAX)
         );
         assert_eq!(
             seg.range_argmax_right(left..right),
-            range.iter().rposition(|&x| x == max).map(|i| left + i)
+            range
+                .iter()
+                .rposition(|&x| x == max)
+                .map(|i| left + i)
+                .unwrap_or(usize::MIN)
         );
     }
 
@@ -352,10 +384,10 @@ mod tests {
         seg.set(5, 11);
         assert_eq!(seg.all_min(), 2);
         assert_eq!(seg.all_max(), 15);
-        assert_eq!(seg.all_argmin_left(), Some(6));
-        assert_eq!(seg.all_argmin_right(), Some(6));
-        assert_eq!(seg.all_argmax_left(), Some(4));
-        assert_eq!(seg.all_argmax_right(), Some(4));
+        assert_eq!(seg.all_argmin_left(), 6);
+        assert_eq!(seg.all_argmin_right(), 6);
+        assert_eq!(seg.all_argmax_left(), 4);
+        assert_eq!(seg.all_argmax_right(), 4);
     }
 
     #[test]
@@ -366,8 +398,8 @@ mod tests {
         assert_eq!(empty.to_vec(), Vec::<i64>::new());
 
         let mut seg = RangeAddRangeArgminmaxSegtree::from_slice(&[i64::MIN, i64::MAX]);
-        assert_eq!(seg.range_argmin_left(0..1), Some(0));
-        assert_eq!(seg.range_argmax_left(1..2), Some(1));
+        assert_eq!(seg.range_argmin_left(0..1), 0);
+        assert_eq!(seg.range_argmax_left(1..2), 1);
     }
 
     #[test]
@@ -383,8 +415,8 @@ mod tests {
         seg.chmin(2, 0);
         seg.chmax(1, 10);
         assert_eq!(seg.to_vec(), vec![3, 10, 0]);
-        assert_eq!(seg.all_argmin_left(), Some(2));
-        assert_eq!(seg.all_argmax_left(), Some(1));
+        assert_eq!(seg.all_argmin_left(), 2);
+        assert_eq!(seg.all_argmax_left(), 1);
     }
 
     #[ignore]
