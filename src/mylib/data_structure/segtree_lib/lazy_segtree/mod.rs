@@ -3,6 +3,7 @@
 //! - `range_add_range_sum`: 加算 / 和
 //! - `range_add_range_max`: 加算 / 最大値
 //! - `range_add_range_min`: 加算 / 最小値
+//! - `range_add_range_argminmax`: 加算 / 最小値・最大値とそれぞれの添字
 //! - `range_affine_range_sum`: アフィン変換 ($ax+b$) / 和
 //! - `range_affine_range_sum_of_square`: アフィン変換 / 和・2乗和
 //! - `range_affine_range_minmax`: アフィン変換 / 最小値・最大値
@@ -29,6 +30,7 @@ use cargo_snippet::snippet;
 pub mod map_monoid_template;
 pub mod range_add_range_max;
 pub mod range_add_range_min;
+pub mod range_add_range_argminmax;
 pub mod range_add_range_sum;
 pub mod range_affine_range_minmax;
 pub mod range_affine_range_sum;
