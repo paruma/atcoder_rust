@@ -6,6 +6,7 @@ pub mod ix {
     use std::ops::{Index, IndexMut};
 
     /// Haskell の `Ix` 型クラスに相当するトレイトです。
+    ///
     /// 連続する値の範囲を定義し、その範囲内の値を整数インデックスにマッピングするために使用されます。
     pub trait Ix: PartialOrd + Copy {
         /// 範囲内の全ての要素を順番に返すイテレータを返します。
@@ -15,6 +16,7 @@ pub mod ix {
         fn range_size(bounds: (Self, Self)) -> usize;
 
         /// 指定された範囲内における、値 `i` の 0 始まりのインデックスを返します。
+        ///
         /// `i` が範囲外の場合はパニックします。
         fn to_index(bounds: (Self, Self), i: Self) -> usize;
 
@@ -324,6 +326,7 @@ pub mod ix {
     }
 
     /// `Ix` トレイトを実装した型をインデックスとして使用できるベクタラッパーです。
+    ///
     /// 内部的には `Vec` を使用しており、`Ix::to_index` を用いてアクセスを変換します。
     #[derive(Clone, Debug, PartialEq, Eq, Hash)]
     pub struct IxVec<I, T> {
@@ -354,6 +357,7 @@ pub mod ix {
         }
 
         /// 既存の `Vec` から `IxVec` を作成します。
+        ///
         /// `data` の長さは `bounds` の範囲サイズと一致する必要があります。
         pub fn from_vec(bounds: Bounds<I>, data: Vec<T>) -> Self {
             let size = bounds.range_size();
@@ -408,6 +412,7 @@ pub mod ix {
         }
 
         /// 指定されたインデックスの要素への参照を返します。
+        ///
         /// インデックスが範囲外の場合は `None` を返します。
         pub fn get(&self, index: I) -> Option<&T> {
             if self.bounds.in_range(index) {
@@ -419,6 +424,7 @@ pub mod ix {
         }
 
         /// 指定されたインデックスの要素へのミュータブル参照を返します。
+        ///
         /// インデックスが範囲外の場合は `None` を返します。
         pub fn get_mut(&mut self, index: I) -> Option<&mut T> {
             if self.bounds.in_range(index) {

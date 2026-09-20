@@ -146,6 +146,7 @@ pub mod mod_partition {
         /// 分割数 P(n, k)
         ///
         /// n を k 個以下の正整数の和として表す方法の数。
+        ///
         /// n を k 以下の正整数の和として表す方法の数とも等しい。
         pub fn partition(&self, n: usize, k: usize) -> Mint {
             assert!(

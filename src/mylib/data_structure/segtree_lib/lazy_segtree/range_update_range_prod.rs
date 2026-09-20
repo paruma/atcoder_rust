@@ -154,6 +154,12 @@ pub mod range_update_range_prod {
 
         /// 左端 `l` を固定し、区間 `[l, r)` での総積が述語 `g` を満たすような最大の `r` を返します。
         ///
+        /// # 前提条件
+        /// * `l <= n`
+        /// * `g(1)` が `true`
+        /// * `g` は単調である。
+        ///     * `g(prod(l..i))` が `true` => `g(prod(l..j))` が `true` for all `l <= j <= i`.
+        ///
         /// # 計算量
         /// O(log N)
         pub fn max_right<G>(&mut self, l: usize, g: G) -> usize
@@ -164,6 +170,12 @@ pub mod range_update_range_prod {
         }
 
         /// 右端 `r` を固定し、区間 `[l, r)` での総積が述語 `g` を満たすような最小の `l` を返します。
+        ///
+        /// # 前提条件
+        /// * `r <= n`
+        /// * `g(1)` が `true`
+        /// * `g` は単調である。
+        ///     * `g(prod(i..r))` が `true` => `g(prod(j..r))` が `true` for all `i <= j <= r`.
         ///
         /// # 計算量
         /// O(log N)

@@ -22,6 +22,7 @@ pub mod acl_suffix_array_finder {
         }
 
         /// `target` に出現する `pattern` の開始位置をすべて返す。
+        ///
         /// 結果はソートされているとは限らない。
         ///
         /// 計算量は O(|P| log |T|)

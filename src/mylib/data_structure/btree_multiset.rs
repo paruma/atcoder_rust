@@ -52,7 +52,9 @@ pub mod btree_multiset {
 
         /// 最小の要素を返す。
         ///
-        /// 空の場合は `None` を返す。計算量は $O(\log K)$ ($K$ は種類数)。
+        /// 空の場合は `None` を返す。
+        ///
+        /// 計算量は $O(\log K)$ ($K$ は種類数)。
         pub fn min(&self) -> Option<&T>
         where
             T: Ord,
@@ -62,7 +64,9 @@ pub mod btree_multiset {
 
         /// 最大の要素を返す。
         ///
-        /// 空の場合は `None` を返す。計算量は $O(\log K)$ ($K$ は種類数)。
+        /// 空の場合は `None` を返す。
+        ///
+        /// 計算量は $O(\log K)$ ($K$ は種類数)。
         pub fn max(&self) -> Option<&T>
         where
             T: Ord,
@@ -73,6 +77,7 @@ pub mod btree_multiset {
         /// 重複を考慮して、$n$ 番目に小さい要素を返す（0-indexed）。
         ///
         /// $n$ が全体の要素数（`len()`）以上の場合は `None` を返す。
+        ///
         /// 計算量は $O(\log K + \min(m, K))$ ($m$ は走査したユニークな要素数、$K$ は種類数)。
         pub fn nth_min(&self, n: usize) -> Option<&T>
         where
@@ -91,6 +96,7 @@ pub mod btree_multiset {
         /// 重複を考慮して、$n$ 番目に大きい要素を返す（0-indexed）。
         ///
         /// $n$ が全体の要素数（`len()`）以上の場合は `None` を返す。
+        ///
         /// 計算量は $O(\log K + \min(m, K))$ ($m$ は走査したユニークな要素数、$K$ は種類数)。
         pub fn nth_max(&self, n: usize) -> Option<&T>
         where
@@ -108,7 +114,9 @@ pub mod btree_multiset {
 
         /// 指定した範囲内での最小の要素を返す。
         ///
-        /// 範囲内に要素がない場合は `None` を返す。計算量は $O(\log K)$ ($K$ は種類数)。
+        /// 範囲内に要素がない場合は `None` を返す。
+        ///
+        /// 計算量は $O(\log K)$ ($K$ は種類数)。
         pub fn min_in_range<R>(&self, range: R) -> Option<&T>
         where
             T: Ord,
@@ -119,7 +127,9 @@ pub mod btree_multiset {
 
         /// 指定した範囲内での最大の要素を返す。
         ///
-        /// 範囲内に要素がない場合は `None` を返す。計算量は $O(\log K)$ ($K$ は種類数)。
+        /// 範囲内に要素がない場合は `None` を返す。
+        ///
+        /// 計算量は $O(\log K)$ ($K$ は種類数)。
         pub fn max_in_range<R>(&self, range: R) -> Option<&T>
         where
             T: Ord,
@@ -131,6 +141,7 @@ pub mod btree_multiset {
         /// 指定した範囲内で、重複を考慮して $n$ 番目に小さい要素を返す（0-indexed）。
         ///
         /// $n$ が範囲内の要素数以上の場合は `None` を返す。
+        ///
         /// 計算量は $O(\log K + \min(m, K))$ ($m$ は範囲内で走査したユニークな要素数、$K$ は種類数)。
         pub fn nth_min_in_range<R>(&self, n: usize, range: R) -> Option<&T>
         where
@@ -150,6 +161,7 @@ pub mod btree_multiset {
         /// 指定した範囲内で、重複を考慮して $n$ 番目に大きい要素を返す（0-indexed）。
         ///
         /// $n$ が範囲内の要素数以上の場合は `None` を返す。
+        ///
         /// 計算量は $O(\log K + \min(m, K))$ ($m$ は範囲内で走査したユニークな要素数、$K$ は種類数)。
         pub fn nth_max_in_range<R>(&self, n: usize, range: R) -> Option<&T>
         where
@@ -194,6 +206,7 @@ pub mod btree_multiset {
         /// 要素を1つ削除する。
         ///
         /// 要素が存在した場合は `true`、存在しなかった場合は `false` を返す。
+        ///
         /// 計算量は $O(\log K)$ ($K$ は種類数)。
         pub fn remove1<Q>(&mut self, value: &Q) -> bool
         where
@@ -213,7 +226,9 @@ pub mod btree_multiset {
 
         /// 要素を最大 `count` 個削除する。
         ///
-        /// 実際に削除した個数を返す。計算量は $O(\log K)$ ($K$ は種類数)。
+        /// 実際に削除した個数を返す。
+        ///
+        /// 計算量は $O(\log K)$ ($K$ は種類数)。
         pub fn remove_up_to<Q>(&mut self, value: &Q, count: usize) -> usize
         where
             T: Borrow<Q> + Ord,
@@ -238,6 +253,7 @@ pub mod btree_multiset {
         /// 指定した要素をすべて削除する。
         ///
         /// 要素が存在した場合は `true`、存在しなかった場合は `false` を返す。
+        ///
         /// 計算量は $O(\log K)$ ($K$ は種類数)。
         pub fn remove_all<Q>(&mut self, value: &Q) -> bool
         where
@@ -254,7 +270,9 @@ pub mod btree_multiset {
 
         /// 最小の要素を1つ取り出して削除する。
         ///
-        /// 空の場合は `None` を返す。計算量は $O(\log K)$ ($K$ は種類数)。
+        /// 空の場合は `None` を返す。
+        ///
+        /// 計算量は $O(\log K)$ ($K$ は種類数)。
         pub fn pop_min(&mut self) -> Option<T>
         where
             T: Ord + Clone,
@@ -272,7 +290,9 @@ pub mod btree_multiset {
 
         /// 最大の要素を1つ取り出して削除する。
         ///
-        /// 空の場合は `None` を返す。計算量は $O(\log K)$ ($K$ は種類数)。
+        /// 空の場合は `None` を返す。
+        ///
+        /// 計算量は $O(\log K)$ ($K$ は種類数)。
         pub fn pop_max(&mut self) -> Option<T>
         where
             T: Ord + Clone,

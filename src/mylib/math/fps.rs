@@ -5,6 +5,7 @@ use ac_library::{Modulus, StaticModInt, convolution};
 use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Neg, Rem, Shl, Shr, Sub, SubAssign};
 
 /// 形式的冪級数を表す構造体。
+///
 /// 係数を`Vec<StaticModInt<M>>`で保持する。
 #[derive(Clone, Debug, PartialEq, Eq, Default, Hash)]
 pub struct FormalPowerSeries<M: Modulus> {
@@ -13,30 +14,35 @@ pub struct FormalPowerSeries<M: Modulus> {
 
 impl<M: Modulus> FormalPowerSeries<M> {
     /// 新しいFPSを係数ベクトルから作成する。
+    ///
     /// 計算量: O(1)
     pub fn new(coeffs: Vec<StaticModInt<M>>) -> Self {
         Self { coeffs }
     }
 
     /// ゼロ多項式を返す。
+    ///
     /// 計算量: O(1)
     pub fn zero() -> Self {
         Self::new(vec![])
     }
 
     /// 定数1の多項式を返す。
+    ///
     /// 計算量: O(1)
     pub fn one() -> Self {
         Self::new(vec![StaticModInt::new(1)])
     }
 
     /// 次数を返す (係数ベクトルの長さ)。
+    ///
     /// 計算量: O(1)
     pub fn coeff_len(&self) -> usize {
         self.coeffs.len()
     }
 
     /// 末尾の0係数を削除して、表現を正規化する。
+    ///
     /// 計算量: O(N) (N = self.coeff_len())
     pub fn trim(&mut self) {
         while self.coeffs.last().is_some_and(|&c| c.val() == 0) {
@@ -47,6 +53,7 @@ impl<M: Modulus> FormalPowerSeries<M> {
     /// 多項式の係数を反転する。
     /// 例えば、f(x) = a_0 + a_1 x + ... + a_n x^n の係数配列を
     /// [a_n, a_{n-1}, ..., a_0] のように反転させる。
+    ///
     /// 計算量: O(N) (N = self.coeff_len())
     pub fn rev(&self) -> Self {
         let mut reversed_coeffs = self.coeffs.clone();
@@ -55,6 +62,7 @@ impl<M: Modulus> FormalPowerSeries<M> {
     }
 
     /// `deg` 次までの逆元 `1/f(x)` をニュートン法で計算する。
+    ///
     /// 計算量: O(deg log deg)
     pub fn inv(&self, deg: usize) -> Self {
         assert!(
@@ -82,6 +90,7 @@ impl<M: Modulus> FormalPowerSeries<M> {
     }
 
     /// 指定された次数 `len` でFPSを切り詰める（足りない場合は0で埋める）。
+    ///
     /// 計算量: O(len)
     pub fn prefix(mut self, len: usize) -> Self {
         self.coeffs.truncate(len);
@@ -90,6 +99,7 @@ impl<M: Modulus> FormalPowerSeries<M> {
     }
 
     /// 導関数 `f'(x)` を計算する。
+    ///
     /// 計算量: O(N) (N = self.coeff_len())
     pub fn diff(&self) -> Self {
         let n = self.coeff_len();
@@ -104,6 +114,7 @@ impl<M: Modulus> FormalPowerSeries<M> {
     }
 
     /// 不定積分 `∫f(x)dx` を計算する（積分定数は0）。
+    ///
     /// 計算量: O(N) (N = self.coeff_len())
     pub fn integral(&self) -> Self {
         let n = self.coeff_len();
@@ -125,7 +136,9 @@ impl<M: Modulus> FormalPowerSeries<M> {
     }
 
     /// FPSの対数 `log(f(x))` を計算する。
+    ///
     /// 前提条件: `f(0) == 1`
+    ///
     /// 計算量: O(deg log deg)
     pub fn log(&self, deg: usize) -> Self {
         assert!(
@@ -142,7 +155,9 @@ impl<M: Modulus> FormalPowerSeries<M> {
     }
 
     /// FPSの指数 `exp(f(x))` を計算する。
+    ///
     /// 前提条件: `f(0) == 0`
+    ///
     /// 計算量: O(deg log deg)
     pub fn exp(&self, deg: usize) -> Self {
         assert!(
@@ -171,6 +186,7 @@ impl<M: Modulus> FormalPowerSeries<M> {
     }
 
     /// FPSのべき乗 `f(x)^k` を計算する。
+    ///
     /// 計算量: O(deg log deg + log k)
     pub fn pow(&self, k: i64, deg: usize) -> Self {
         if deg == 0 {
@@ -246,6 +262,7 @@ impl<M: Modulus> FormalPowerSeries<M> {
     }
 
     /// 多項式をスカラ値 x で評価する (Horner法)。
+    ///
     /// 計算量: O(N) (N = self.coeff_len())
     pub fn eval(&self, x: StaticModInt<M>) -> StaticModInt<M> {
         let mut res = StaticModInt::new(0);
@@ -256,6 +273,7 @@ impl<M: Modulus> FormalPowerSeries<M> {
     }
 
     /// `x^k` の係数を取得する。`k` が `coeffs` の配列範囲外の場合は0を返す。
+    ///
     /// 計算量: O(1)
     pub fn get(&self, k: usize) -> StaticModInt<M> {
         self.coeffs.get(k).copied().unwrap_or_default()
@@ -263,6 +281,7 @@ impl<M: Modulus> FormalPowerSeries<M> {
 
     /// 多項式の割り算 `self / rhs` を計算する。
     /// N = self.coeff_len(), M = rhs.coeff_len() とする。
+    ///
     /// 計算量: M <= 64 の場合 O(N * M)、M > 64 の場合 O((N - M) log (N - M))
     pub fn div_polynomial(&self, rhs: &Self) -> Self {
         let mut a_coeffs = self.coeffs.clone();
@@ -341,6 +360,7 @@ impl<M: Modulus> FormalPowerSeries<M> {
 
     /// 多項式の剰余 `self % rhs` を計算する。
     /// N = self.coeff_len(), M = rhs.coeff_len() とする。
+    ///
     /// 計算量: div_polynomial の計算量に依存するため、M <= 64 の場合 O(N * M)、M > 64 の場合 O(N log N)
     pub fn rem_polynomial(&self, rhs: &Self) -> Self {
         let q = self.div_polynomial(rhs);
@@ -353,6 +373,7 @@ impl<M: Modulus> FormalPowerSeries<M> {
 
 // FPS + FPS
 /// N = self.coeff_len(), M = rhs.coeff_len() とする。
+///
 /// 計算量: O(N + M)
 impl<M: Modulus> Add for &FormalPowerSeries<M> {
     type Output = FormalPowerSeries<M>;
@@ -374,6 +395,7 @@ impl<M: Modulus> Add for &FormalPowerSeries<M> {
 
 // FPS + Mint
 /// N = self.coeff_len() とする。
+///
 /// 計算量: O(N)
 impl<M: Modulus> Add<StaticModInt<M>> for &FormalPowerSeries<M> {
     type Output = FormalPowerSeries<M>;
@@ -391,6 +413,7 @@ impl<M: Modulus> Add<StaticModInt<M>> for &FormalPowerSeries<M> {
 
 impl<M: Modulus> AddAssign for FormalPowerSeries<M> {
     /// N = self.coeff_len(), M = rhs.coeff_len() とする。
+    ///
     /// 計算量: O(N + M)
     fn add_assign(&mut self, rhs: Self) {
         if self.coeff_len() < rhs.coeff_len() {
@@ -428,6 +451,7 @@ impl<M: Modulus> SubAssign<StaticModInt<M>> for FormalPowerSeries<M> {
 
 // FPS *= Mint
 /// N = self.coeff_len() とする。
+///
 /// 計算量: O(N)
 impl<M: Modulus> MulAssign<StaticModInt<M>> for FormalPowerSeries<M> {
     fn mul_assign(&mut self, rhs: StaticModInt<M>) {
@@ -439,6 +463,7 @@ impl<M: Modulus> MulAssign<StaticModInt<M>> for FormalPowerSeries<M> {
 
 // FPS - FPS
 /// N = self.coeff_len(), M = rhs.coeff_len() とする。
+///
 /// 計算量: O(N + M)
 impl<M: Modulus> Sub for &FormalPowerSeries<M> {
     type Output = FormalPowerSeries<M>;
@@ -460,6 +485,7 @@ impl<M: Modulus> Sub for &FormalPowerSeries<M> {
 
 // FPS - Mint
 /// N = self.coeff_len() とする。
+///
 /// 計算量: O(N)
 impl<M: Modulus> Sub<StaticModInt<M>> for &FormalPowerSeries<M> {
     type Output = FormalPowerSeries<M>;
@@ -477,6 +503,7 @@ impl<M: Modulus> Sub<StaticModInt<M>> for &FormalPowerSeries<M> {
 
 impl<M: Modulus> SubAssign for FormalPowerSeries<M> {
     /// N = self.coeff_len(), M = rhs.coeff_len() とする。
+    ///
     /// 計算量: O(N + M)
     fn sub_assign(&mut self, rhs: Self) {
         if self.coeff_len() < rhs.coeff_len() {
@@ -490,6 +517,7 @@ impl<M: Modulus> SubAssign for FormalPowerSeries<M> {
 
 // FPS * FPS
 /// N = self.coeff_len(), M = rhs.coeff_len() とする。
+///
 /// 計算量: O((N+M) log (N+M)) (convolutionの計算量に依存)
 impl<M: Modulus> Mul for &FormalPowerSeries<M> {
     type Output = FormalPowerSeries<M>;
@@ -505,6 +533,7 @@ impl<M: Modulus> Mul for &FormalPowerSeries<M> {
 
 // FPS * Mint
 /// N = self.coeff_len() とする。
+///
 /// 計算量: O(N)
 impl<M: Modulus> Mul<StaticModInt<M>> for &FormalPowerSeries<M> {
     type Output = FormalPowerSeries<M>;
@@ -517,6 +546,7 @@ impl<M: Modulus> Mul<StaticModInt<M>> for &FormalPowerSeries<M> {
 
 impl<M: Modulus> MulAssign for FormalPowerSeries<M> {
     /// N = self.coeff_len(), M = rhs.coeff_len() とする。
+    ///
     /// 計算量: O((N+M) log (N+M))
     fn mul_assign(&mut self, rhs: Self) {
         *self = &*self * &rhs;
@@ -525,6 +555,7 @@ impl<M: Modulus> MulAssign for FormalPowerSeries<M> {
 
 // 単項マイナス
 /// N = self.coeff_len() とする。
+///
 /// 計算量: O(N)
 impl<M: Modulus> Neg for &FormalPowerSeries<M> {
     type Output = FormalPowerSeries<M>;
@@ -537,6 +568,7 @@ impl<M: Modulus> Neg for &FormalPowerSeries<M> {
 
 // FPS << usize
 /// N = self.coeff_len() とする。rhs はシフト量。
+///
 /// 計算量: O(N + rhs)
 impl<M: Modulus> Shl<usize> for FormalPowerSeries<M> {
     type Output = Self;
@@ -553,6 +585,7 @@ impl<M: Modulus> Shl<usize> for FormalPowerSeries<M> {
 
 // FPS >> usize
 /// N = self.coeff_len() とする。rhs はシフト量。
+///
 /// 計算量: O(N) (最悪ケースで drain が N 要素を処理するため)
 impl<M: Modulus> Shr<usize> for FormalPowerSeries<M> {
     type Output = Self;
@@ -569,6 +602,7 @@ impl<M: Modulus> Shr<usize> for FormalPowerSeries<M> {
 
 // FPS / FPS
 /// N = self.coeff_len(), M = rhs.coeff_len() とする。
+///
 /// 計算量: div_polynomial の計算量に依存。M <= 64 の場合 O(N * M)、M > 64 の場合 O((N - M) log (N - M))
 impl<M: Modulus> Div for &FormalPowerSeries<M> {
     type Output = FormalPowerSeries<M>;
@@ -580,6 +614,7 @@ impl<M: Modulus> Div for &FormalPowerSeries<M> {
 
 // FPS % FPS
 /// N = self.coeff_len(), M = rhs.coeff_len() とする。
+///
 /// 計算量: rem_polynomial の計算量に依存。M <= 64 の場合 O(N * M)、M > 64 の場合 O(N log N)
 impl<M: Modulus> Rem for &FormalPowerSeries<M> {
     type Output = FormalPowerSeries<M>;

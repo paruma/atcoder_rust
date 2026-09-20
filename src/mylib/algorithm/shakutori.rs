@@ -17,6 +17,7 @@ pub mod shakutori {
     ///
     /// # 戻り値
     /// `Vec<usize>`: 長さ `n + 1` の Vec。
+    ///
     /// 各 `left` (0 <= left <= n) に対し、`result[left]` には区間 `[left, right)` が条件を満たす最大の `right` が格納される。
     pub fn shakutori_max_right<T, S, Add, Rem>(
         xs: &[T],
@@ -66,6 +67,7 @@ pub mod shakutori {
     ///
     /// # 戻り値
     /// `Vec<usize>`: 長さ `n + 1` の Vec。
+    ///
     /// 各 `right` (0 <= right <= n) に対し、`result[right]` には区間 `[left, right)` が条件を満たす最小の `left` が格納される。
     pub fn shakutori_min_left<T, S, Add, Rem>(
         xs: &[T],

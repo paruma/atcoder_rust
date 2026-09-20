@@ -73,6 +73,7 @@ pub mod range_chmin_chmax_affine_range_min_max {
     }
 
     /// ChminChmaxAffineAction は、x に対して (mul * x + add).min(chmin_value).max(chmax_value) を計算する関数を表す構造体です。
+    ///
     /// これは、範囲に対する chmin (最小値更新)、chmax (最大値更新)、加算、アフィン変換を一度に適用するためのアクションを定義します。
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct ChminChmaxAffineAction<T> {

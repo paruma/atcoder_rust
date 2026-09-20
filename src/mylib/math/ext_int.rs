@@ -171,6 +171,7 @@ pub mod mod_ext_int {
 }
 
 /// MinMonoid/MaxMonoid を使うためのコード。
+///
 /// min_max_monoid と ext_int のスニペットをあらかじめ貼った上で利用する
 #[snippet(prefix = "use mod_ext_int_bounded::*;")]
 pub mod mod_ext_int_bounded {

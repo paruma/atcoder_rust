@@ -4,6 +4,7 @@ use cargo_snippet::snippet;
 #[allow(clippy::module_inception)]
 pub mod range_add_imos {
     /// いもす法（差分配列）を用いて、配列に対する区間加算クエリを効率的に処理するデータ構造です。
+    ///
     /// 最終的な配列の状態を一度に計算する場合（オフライン処理）に特に有用です。
     ///
     /// 各区間加算操作はO(1)で、最終的な配列を構築するのにO(N)かかります。

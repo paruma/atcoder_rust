@@ -63,6 +63,7 @@ pub mod monoid_dsu {
         ///
         /// # 例
         /// `Additive` Monoid を使用している場合、グループの合計値に `d` を加算する。
+        ///
         /// `Max` Monoid を使用している場合、グループの最大値を `max(current_max, d)` で更新する。
         pub fn apply(&mut self, a: usize, d: &M::S) {
             let leader = self.leader(a);

@@ -72,13 +72,14 @@ pub mod cumsum {
         }
 
         /// `f(sum(l..r))` が `true` となる最大の `r in [l, n]` を見つける。
+        ///
         /// `n` は元の配列の長さ。
         ///
-        /// `f` は単調でなければならない。
-        /// `f(sum(l..i))` が `true` => `f(sum(l..j))` が `true` for all `l <= j <= i`.
-        ///
-        /// # Panics
-        /// `l > n` の場合にパニックする。
+        /// # 前提条件
+        /// * `l <= n`
+        /// * `f(0)` が `true`
+        /// * `f` は単調である。
+        ///     * `f(sum(l..i))` が `true` => `f(sum(l..j))` が `true` for all `l <= j <= i`.
         ///
         /// # 計算量
         /// O(log n)
@@ -110,11 +111,11 @@ pub mod cumsum {
 
         /// `f(sum(l..r))` が `true` となる最小の `l in [0, r]` を見つける。
         ///
-        /// `f` は単調でなければならない。
-        /// `f(sum(i..r))` が `true` => `f(sum(j..r))` が `true` for all `i <= j <= r`.
-        ///
-        // # Panics
-        /// `r > n` の場合にパニックする。
+        /// # 前提条件
+        /// * `r <= n`
+        /// * `f(0)` が `true`
+        /// * `f` は単調である。
+        ///     * `f(sum(i..r))` が `true` => `f(sum(j..r))` が `true` for all `i <= j <= r`.
         ///
         /// # 計算量
         /// O(log r)

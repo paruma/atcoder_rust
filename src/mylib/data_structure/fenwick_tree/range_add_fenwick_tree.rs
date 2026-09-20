@@ -12,6 +12,7 @@ pub mod range_add_fenwick_tree {
     use std::ops::{Bound, RangeBounds};
 
     /// 1次元の階差数列を管理する Fenwick Tree。
+    ///
     /// 内部的には階差数列を `RangeSumFenwickTreeArbitrary` で管理しています。
     #[derive(Clone)]
     pub struct RangeAddFenwickTreeArbitrary<G: AbGroup> {

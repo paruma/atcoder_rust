@@ -2,6 +2,7 @@ use cargo_snippet::snippet;
 
 #[snippet]
 /// Z-algorithm を用いて、`target `に出現する `pattern` の開始位置をすべて検索する。
+///
 /// 結果はソートされている。
 ///
 /// 計算量: O(|T| + |P|)

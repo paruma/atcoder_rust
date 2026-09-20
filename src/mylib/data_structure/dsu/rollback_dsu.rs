@@ -43,6 +43,7 @@ pub mod rollback_dsu {
     /// ロールバック可能なUnion-Find。
     ///
     /// 経路圧縮を行わないため、各操作の計算量は O(log N) となる。
+    ///
     /// `merge`操作による変更は`rollback`で巻き戻すことができる。
     #[derive(Clone, Debug)]
     pub struct RollbackDsu {

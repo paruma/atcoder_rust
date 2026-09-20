@@ -10,6 +10,7 @@ pub mod range_max_segtree {
     use std::ops::RangeBounds;
 
     /// ACL の Segtree を使用した区間最大セグメント木。
+    ///
     /// 数値型 T に対して点更新・区間最大取得を行う。
     #[derive(Clone)]
     pub struct RangeMaxSegtree<T>
@@ -72,7 +73,14 @@ pub mod range_max_segtree {
         }
 
         /// セグメント木上の二分探索。
+        ///
         /// [l, r) の最大値 s について f(&s) が true となる最大の r を返す。
+        ///
+        /// # 前提条件
+        /// * `l <= n`
+        /// * 最大値の単位元に対して `f` が `true`
+        /// * `f` は単調である。
+        ///     * `f(max(l..i))` が `true` => `f(max(l..j))` が `true` for all `l <= j <= i`.
         pub fn max_right<F>(&self, l: usize, f: F) -> usize
         where
             F: Fn(&T) -> bool,
@@ -81,7 +89,14 @@ pub mod range_max_segtree {
         }
 
         /// セグメント木上の二分探索。
+        ///
         /// [l, r) の最大値 s について f(&s) が true となる最小の l を返す。
+        ///
+        /// # 前提条件
+        /// * `r <= n`
+        /// * 最大値の単位元に対して `f` が `true`
+        /// * `f` は単調である。
+        ///     * `f(max(i..r))` が `true` => `f(max(j..r))` が `true` for all `i <= j <= r`.
         pub fn min_left<F>(&self, r: usize, f: F) -> usize
         where
             F: Fn(&T) -> bool,

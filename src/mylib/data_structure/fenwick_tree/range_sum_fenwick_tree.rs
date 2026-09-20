@@ -10,6 +10,7 @@ pub mod range_sum_fenwick_tree {
     /// 可換群 (AbGroup) を用いた汎用的な Fenwick Tree (Binary Indexed Tree)。
     ///
     /// 0-indexed で実装されています。
+    ///
     /// 基本的な加算・区間和クエリに加え、get/set や、二分探索 (max_right / min_left) を提供します。
     #[derive(Clone)]
     pub struct RangeSumFenwickTreeArbitrary<G: AbGroup> {
@@ -27,6 +28,7 @@ pub mod range_sum_fenwick_tree {
 
     impl<G: AbGroup> RangeSumFenwickTreeArbitrary<G> {
         /// サイズ `n` の Fenwick Tree を作成します。
+        ///
         /// 要素はすべて `G::zero()` で初期化されます。
         ///
         /// # 計算量
@@ -135,12 +137,11 @@ pub mod range_sum_fenwick_tree {
 
         /// `l` を左端として、`f(sum(l..r))` が true になる最大の `r` を返します。
         ///
-        /// `f` は単調性を持つ必要があります。
-        /// 具体的には、`f(sum(l..i))` が true ならば、任意の `j < i` に対して `f(sum(l..j))` も true である必要があります。
-        /// また、`f(zero)` は true である必要があります。
-        ///
-        /// # Panics
-        /// `l > n` または `f(zero)` が false の場合にパニックします。
+        /// # 前提条件
+        /// * `l <= n`
+        /// * `f(&G::zero())` が `true`
+        /// * `f` は単調である。
+        ///     * `f(sum(l..i))` が `true` => `f(sum(l..j))` が `true` for all `l <= j <= i`.
         ///
         /// # 計算量
         /// O(log n)
@@ -183,12 +184,11 @@ pub mod range_sum_fenwick_tree {
 
         /// `r` を右端として、`f(sum(l..r))` が true になる最小の `l` を返します。
         ///
-        /// `f` は単調性を持つ必要があります。
-        /// 具体的には、`f(sum(i..r))` が true ならば、任意の `j > i` に対して `f(sum(j..r))` も true である必要があります。
-        /// また、`f(zero)` は true である必要があります。
-        ///
-        /// # Panics
-        /// `r > n` または `f(zero)` が false の場合にパニックします。
+        /// # 前提条件
+        /// * `r <= n`
+        /// * `f(&G::zero())` が `true`
+        /// * `f` は単調である。
+        ///     * `f(sum(i..r))` が `true` => `f(sum(j..r))` が `true` for all `i <= j <= r`.
         ///
         /// # 計算量
         /// O(log n)

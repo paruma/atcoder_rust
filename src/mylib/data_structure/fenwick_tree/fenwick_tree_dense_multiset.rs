@@ -7,6 +7,7 @@ pub mod fenwick_tree_dense_multiset {
     /// Fenwick Tree を基盤としたマルチセット。
     ///
     /// 要素は `0` から `size - 1` までの `usize` 値に限定されます。
+    ///
     /// BTreeMultiSet と違って、任意の値を挿入することはできませんが、そのかわりk番目の値が k に依らず $O(\log N)$ で取得できます。
     #[derive(Clone)]
     pub struct FenwickTreeDenseMultiset {

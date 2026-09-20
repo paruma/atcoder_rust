@@ -10,6 +10,7 @@ pub mod range_min_segtree {
     use std::ops::RangeBounds;
 
     /// ACL の Segtree を使用した区間最小セグメント木。
+    ///
     /// 数値型 T に対して点更新・区間最小取得を行う。
     #[derive(Clone)]
     pub struct RangeMinSegtree<T>
@@ -72,7 +73,14 @@ pub mod range_min_segtree {
         }
 
         /// セグメント木上の二分探索。
+        ///
         /// [l, r) の最小値 s について f(&s) が true となる最大の r を返す。
+        ///
+        /// # 前提条件
+        /// * `l <= n`
+        /// * 最小値の単位元に対して `f` が `true`
+        /// * `f` は単調である。
+        ///     * `f(min(l..i))` が `true` => `f(min(l..j))` が `true` for all `l <= j <= i`.
         pub fn max_right<F>(&self, l: usize, f: F) -> usize
         where
             F: Fn(&T) -> bool,
@@ -81,7 +89,14 @@ pub mod range_min_segtree {
         }
 
         /// セグメント木上の二分探索。
+        ///
         /// [l, r) の最小値 s について f(&s) が true となる最小の l を返す。
+        ///
+        /// # 前提条件
+        /// * `r <= n`
+        /// * 最小値の単位元に対して `f` が `true`
+        /// * `f` は単調である。
+        ///     * `f(min(i..r))` が `true` => `f(min(j..r))` が `true` for all `i <= j <= r`.
         pub fn min_left<F>(&self, r: usize, f: F) -> usize
         where
             F: Fn(&T) -> bool,

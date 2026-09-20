@@ -10,6 +10,7 @@ pub mod rect_sum_fenwick_tree_2d {
     /// 可換群 (AbGroup) を用いた汎用的な 2次元 Fenwick Tree (Rect Sum Fenwick Tree 2D)。
     ///
     /// 0-indexed で実装されています。
+    ///
     /// 矩形領域の和の取得（2次元累積和）と要素への加算を O(log H * log W) で行います。
     #[derive(Clone)]
     pub struct RectSumFenwickTree2DArbitrary<G: AbGroup> {
@@ -26,6 +27,7 @@ pub mod rect_sum_fenwick_tree_2d {
 
     impl<G: AbGroup> RectSumFenwickTree2DArbitrary<G> {
         /// H × W の 2次元 Fenwick Tree を作成します。
+        ///
         /// 要素はすべて `G::zero()` で初期化されます。
         ///
         /// # 計算量

@@ -196,6 +196,12 @@ pub mod range_linear_add_range_sum {
 
         /// 左端 `l` を固定し、区間 `[l, r)` での総和が述語 `g` を満たすような最大の `r` を返します。
         ///
+        /// # 前提条件
+        /// * `l <= n`
+        /// * `g(0)` が `true`
+        /// * `g` は単調である。
+        ///     * `g(sum(l..i))` が `true` => `g(sum(l..j))` が `true` for all `l <= j <= i`.
+        ///
         /// # 計算量
         /// O(log N)
         pub fn max_right<G>(&mut self, l: usize, g: G) -> usize
@@ -206,6 +212,12 @@ pub mod range_linear_add_range_sum {
         }
 
         /// 右端 `r` を固定し、区間 `[l, r)` での総和が述語 `g` を満たすような最小の `l` を返します。
+        ///
+        /// # 前提条件
+        /// * `r <= n`
+        /// * `g(0)` が `true`
+        /// * `g` は単調である。
+        ///     * `g(sum(i..r))` が `true` => `g(sum(j..r))` が `true` for all `i <= j <= r`.
         ///
         /// # 計算量
         /// O(log N)

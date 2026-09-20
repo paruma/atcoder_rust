@@ -27,6 +27,7 @@ pub mod rect_add_fenwick_tree_2d {
 
     impl<G: AbGroup> RectAddFenwickTree2DArbitrary<G> {
         /// H × W の 2次元双対 Fenwick Tree を作成します。
+        ///
         /// 要素はすべて `G::zero()` で初期化されます。
         ///
         /// # 計算量

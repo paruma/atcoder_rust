@@ -84,6 +84,7 @@ pub mod potentialized_dsu {
         }
 
         /// 2 つの要素 `src` と `dst` が属する集合を統合する。
+        ///
         /// diff = dst のポテンシャル - src のポテンシャル となるように統合する
         pub fn merge(&mut self, src: usize, dst: usize, mut diff: G::S) -> MergeResult {
             assert!(src < self.n);

@@ -18,6 +18,7 @@ pub mod bitset {
 
     impl BitSet {
         /// 指定されたビット値を持つ `BitSet` を作成します。
+        ///
         /// 下から i ビット目 (2^i の位) が 1 であるとき、要素 i が集合に含まれることに対応します。
         #[inline]
         pub fn new(bit: usize) -> BitSet {

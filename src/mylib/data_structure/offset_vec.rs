@@ -8,6 +8,7 @@ pub mod offset_vec {
     };
 
     /// [begin, end) の範囲の添字を許容する Vec。
+    ///
     /// 負の添字も使用可能。
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub struct OffsetVec<T> {

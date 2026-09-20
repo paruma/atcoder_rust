@@ -100,6 +100,7 @@ pub mod monoid_rolling_hash {
         }
 
         /// 単一の要素から RollingHash を生成する関数を返します。
+        ///
         /// `base` は `generate_random_base()` で生成された乱数をすることが想定されています。
         ///
         /// # Examples
@@ -117,6 +118,7 @@ pub mod monoid_rolling_hash {
         }
 
         /// 指定されたハッシュ値とベース値で新しい `RollingHash` を構築します。
+        ///
         /// `hash` は要素のハッシュ値、`base` はハッシュ計算に使用するベース値です。
         /// 通常は`unit`関数を使用することが推奨されます。
         pub fn new(hash: i64, base: i64) -> Self {
@@ -271,6 +273,7 @@ pub mod range_rolling_hash_segtree {
     use std::ops::RangeBounds;
 
     /// ACL の Segtree を使用した区間ローリングハッシュセグメント木。
+    ///
     /// 点更新・区間ハッシュ取得を O(log n) で行う。
     pub struct RangeRollingHashSegtree {
         segtree: Segtree<RollingHashConcat>,
@@ -326,13 +329,25 @@ pub mod range_rolling_hash_segtree {
         }
 
         /// セグメント木上の二分探索。
+        ///
         /// [l, r) のハッシュ h について f(&h) が true となる最大の r を返す。
+        ///
+        /// # 前提条件
+        /// * `l <= n`
+        /// * 空区間のハッシュに対して `f` が `true`
+        /// * `f` は単調である。
         pub fn max_right<F: Fn(&RollingHash) -> bool>(&self, l: usize, f: F) -> usize {
             self.segtree.max_right(l, f)
         }
 
         /// セグメント木上の二分探索。
+        ///
         /// [l, r) のハッシュ h について f(&h) が true となる最小の l を返す。
+        ///
+        /// # 前提条件
+        /// * `r <= n`
+        /// * 空区間のハッシュに対して `f` が `true`
+        /// * `f` は単調である。
         pub fn min_left<F: Fn(&RollingHash) -> bool>(&self, r: usize, f: F) -> usize {
             self.segtree.min_left(r, f)
         }
