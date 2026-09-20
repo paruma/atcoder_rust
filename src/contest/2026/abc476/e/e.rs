@@ -7,29 +7,15 @@ fn main() {
         xs: [Usize1; n],
         lrs: [(Usize1, Usize1); m],
     }
-
-    let mut inv_xs = inv_of_permutation(&xs);
-
-    let mut xs_min = RangeMinSegtree::from_slice(&xs);
-    let mut xs_max = RangeMaxSegtree::from_slice(&xs);
-
+    let mut xs = RangeArgminmaxSegtree::from_slice(&xs);
     for (l, r) in lrs {
-        let min = xs_min.range_min(l..=r);
-        let max = xs_max.range_max(l..=r);
+        let p = xs.range_argminmax(l..=r);
 
-        let min_idx = inv_xs[min];
-        let max_idx = inv_xs[max];
-
-        xs_min.set(min_idx, max);
-        xs_min.set(max_idx, min);
-
-        xs_max.set(min_idx, max);
-        xs_max.set(max_idx, min);
-
-        inv_xs.swap(min, max);
+        xs.set(p.argmin_left, p.max);
+        xs.set(p.argmax_left, p.min);
     }
 
-    let ans = xs_min.to_vec().iter().copied().map(|x| x + 1).collect_vec();
+    let ans = xs.to_vec().iter().copied().map(|x| x + 1).collect_vec();
     print_vec_1line(&ans);
 }
 
@@ -160,86 +146,8 @@ pub mod print_util {
 }
 
 // ====== snippet ======
-use symmetric_group::*;
-#[allow(clippy::module_inception)]
-pub mod symmetric_group {
-    /// 置換を巡回置換の積で表したときの巡回置換のリストを返す。
-    /// 例: `make_cycles(&[1, 0, 3, 2]) == vec![vec![0, 1], vec![2, 3]]`
-    /// # 計算量
-    /// O(N)
-    pub fn make_cycles(ps: &[usize]) -> Vec<Vec<usize>> {
-        let n = ps.len();
-        let mut visited = vec![false; n];
-        let mut cycles = vec![];
-        for init in 0..n {
-            if visited[init] {
-                continue;
-            }
-            let mut cycle = vec![];
-            let mut cur = init;
-            while !visited[cur] {
-                cycle.push(cur);
-                visited[cur] = true;
-                cur = ps[cur];
-            }
-            cycles.push(cycle);
-        }
-        cycles
-    }
-    /// 置換の積を計算する
-    /// # 計算量
-    /// O(N)
-    pub fn mul_of_permutation(ps: &[usize], mut qs: Vec<usize>) -> Vec<usize> {
-        for q in qs.iter_mut() {
-            *q = ps[*q];
-        }
-        qs
-    }
-    /// 置換の `k` 乗を計算する
-    /// # 計算量
-    /// O(N)
-    pub fn pow_of_permutation(ps: &[usize], k: u64) -> Vec<usize> {
-        let n = ps.len();
-        let mut ret = vec![0; n];
-        let cycles = make_cycles(ps);
-        for cycle in cycles {
-            let len = cycle.len() as u64;
-            let k = (k % len) as usize;
-            for (i, &x) in cycle.iter().enumerate() {
-                ret[x] = cycle[(i + k) % cycle.len()];
-            }
-        }
-        ret
-    }
-    /// 逆置換を計算する
-    /// # 計算量
-    /// O(N)
-    pub fn inv_of_permutation(ps: &[usize]) -> Vec<usize> {
-        let n = ps.len();
-        let mut ret = vec![0; n];
-        for (i, &p) in ps.iter().enumerate() {
-            ret[p] = i;
-        }
-        ret
-    }
-    /// 転倒数を計算する
-    /// # 計算量
-    /// O(N log N)
-    pub fn inversion_number(ps: &[usize]) -> i64 {
-        use ac_library::FenwickTree;
-        let n = ps.len();
-        let mut ft = FenwickTree::new(n, 0_i64);
-        let mut ans = 0;
-        for &p in ps {
-            ans += ft.sum(p + 1..n);
-            ft.add(p, 1);
-        }
-        ans
-    }
-}
-
 use min_max_monoid::*;
-use range_min_segtree::*;
+use range_argminmax_segtree::*;
 #[allow(clippy::module_inception)]
 pub mod min_max_monoid {
     use ac_library::Monoid;
@@ -301,39 +209,120 @@ pub mod min_max_monoid {
     }
 }
 #[allow(clippy::module_inception)]
-pub mod range_min_segtree {
-    use super::MinMonoid;
+pub mod range_argminmax_segtree {
+    use super::{BoundedAbove, BoundedBelow};
     use ac_library::{Monoid, Segtree};
     use itertools::Itertools;
+    use std::cmp::Ordering;
+    use std::convert::Infallible;
+    use std::marker::PhantomData;
     use std::ops::RangeBounds;
-    /// ACL の Segtree を使用した区間最小セグメント木。
-    /// 数値型 T に対して点更新・区間最小取得を行う。
-    #[derive(Clone)]
-    pub struct RangeMinSegtree<T>
-    where
-        MinMonoid<T>: Monoid<S = T>,
-        T: Clone,
-    {
-        segtree: Segtree<MinMonoid<T>>,
-        len: usize,
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub struct RangeArgminmax<T> {
+        pub min: T,
+        pub max: T,
+        pub argmin_left: usize,
+        pub argmin_right: usize,
+        pub argmax_left: usize,
+        pub argmax_right: usize,
     }
-    impl<T> RangeMinSegtree<T>
+    impl<T> RangeArgminmax<T>
     where
-        MinMonoid<T>: Monoid<S = T>,
-        T: Copy + Ord,
+        T: BoundedAbove + BoundedBelow + Copy + Ord,
     {
-        /// 単位元で初期化されたセグメント木を構築する
-        pub fn new(n: usize) -> Self {
+        fn from_value(index: usize, value: T) -> Self {
             Self {
-                segtree: Segtree::<MinMonoid<T>>::new(n),
-                len: n,
+                min: value,
+                max: value,
+                argmin_left: index,
+                argmin_right: index,
+                argmax_left: index,
+                argmax_right: index,
             }
         }
-        /// 配列からセグメント木を構築する
+        fn identity() -> Self {
+            Self {
+                min: T::max_value(),
+                max: T::min_value(),
+                argmin_left: usize::MAX,
+                argmin_right: usize::MIN,
+                argmax_left: usize::MAX,
+                argmax_right: usize::MIN,
+            }
+        }
+        fn binary_operation(left: &Self, right: &Self) -> Self {
+            let min = std::cmp::min(left.min, right.min);
+            let max = std::cmp::max(left.max, right.max);
+            let argmin_left = match left.min.cmp(&right.min) {
+                Ordering::Less => left.argmin_left,
+                Ordering::Equal => left.argmin_left.min(right.argmin_left),
+                Ordering::Greater => right.argmin_left,
+            };
+            let argmin_right = match left.min.cmp(&right.min) {
+                Ordering::Less => left.argmin_right,
+                Ordering::Equal => left.argmin_right.max(right.argmin_right),
+                Ordering::Greater => right.argmin_right,
+            };
+            let argmax_left = match left.max.cmp(&right.max) {
+                Ordering::Less => right.argmax_left,
+                Ordering::Equal => left.argmax_left.min(right.argmax_left),
+                Ordering::Greater => left.argmax_left,
+            };
+            let argmax_right = match left.max.cmp(&right.max) {
+                Ordering::Less => right.argmax_right,
+                Ordering::Equal => left.argmax_right.max(right.argmax_right),
+                Ordering::Greater => left.argmax_right,
+            };
+            Self {
+                min,
+                max,
+                argmin_left,
+                argmin_right,
+                argmax_left,
+                argmax_right,
+            }
+        }
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    struct RangeArgminmaxMonoid<T>(Infallible, PhantomData<fn() -> T>);
+    impl<T> Monoid for RangeArgminmaxMonoid<T>
+    where
+        T: BoundedAbove + BoundedBelow + Copy + Ord,
+    {
+        type S = RangeArgminmax<T>;
+        fn identity() -> Self::S {
+            RangeArgminmax::identity()
+        }
+        fn binary_operation(left: &Self::S, right: &Self::S) -> Self::S {
+            RangeArgminmax::binary_operation(left, right)
+        }
+    }
+    /// 区間の最小値・最大値と、それぞれの最左・最右添字を管理するセグメント木。
+    ///
+    /// 値だけを点更新し、添字は構築時の位置に固定する。
+    #[derive(Clone)]
+    pub struct RangeArgminmaxSegtree<T>
+    where
+        T: BoundedAbove + BoundedBelow + Copy + Ord,
+    {
+        segtree: Segtree<RangeArgminmaxMonoid<T>>,
+        len: usize,
+    }
+    impl<T> RangeArgminmaxSegtree<T>
+    where
+        T: BoundedAbove + BoundedBelow + Copy + Ord,
+    {
+        /// 配列からセグメント木を構築する。
         pub fn from_slice(xs: &[T]) -> Self {
             let len = xs.len();
+            let values = xs
+                .iter()
+                .copied()
+                .enumerate()
+                .map(|(index, value)| RangeArgminmax::from_value(index, value))
+                .collect_vec();
             Self {
-                segtree: Segtree::<MinMonoid<T>>::from(xs.to_vec()),
+                segtree: Segtree::<RangeArgminmaxMonoid<T>>::from(values),
                 len,
             }
         }
@@ -341,138 +330,142 @@ pub mod range_min_segtree {
         pub fn len(&self) -> usize {
             self.len
         }
-        /// p 番目の要素を x に更新する
+        /// p 番目の値を x に更新する。
         pub fn set(&mut self, p: usize, x: T) {
-            self.segtree.set(p, x);
+            self.segtree.set(p, RangeArgminmax::from_value(p, x));
         }
-        /// p 番目の要素を取得する
+        /// p 番目の値を取得する。
         pub fn get(&self, p: usize) -> T {
-            self.segtree.get(p)
+            self.segtree.get(p).min
         }
-        /// range の最小値を取得する
+        /// range の最小値・最大値と、それぞれの最左・最右添字を取得する。
+        pub fn range_argminmax<R>(&self, range: R) -> RangeArgminmax<T>
+        where
+            R: RangeBounds<usize>,
+        {
+            self.segtree.prod(range)
+        }
+        /// range の最小値を取得する。
         pub fn range_min<R>(&self, range: R) -> T
         where
             R: RangeBounds<usize>,
         {
-            self.segtree.prod(range)
+            self.segtree.prod(range).min
         }
-        /// 全要素の最小値を取得する
-        pub fn all_min(&self) -> T {
-            self.segtree.all_prod()
-        }
-        /// セグメント木上の二分探索。
-        /// [l, r) の最小値 s について f(&s) が true となる最大の r を返す。
-        pub fn max_right<F>(&self, l: usize, f: F) -> usize
-        where
-            F: Fn(&T) -> bool,
-        {
-            self.segtree.max_right(l, f)
-        }
-        /// セグメント木上の二分探索。
-        /// [l, r) の最小値 s について f(&s) が true となる最小の l を返す。
-        pub fn min_left<F>(&self, r: usize, f: F) -> usize
-        where
-            F: Fn(&T) -> bool,
-        {
-            self.segtree.min_left(r, f)
-        }
-        /// p 番目の要素を min(current, x) に更新する
-        pub fn chmin(&mut self, p: usize, x: T) {
-            let current = self.get(p);
-            self.set(p, std::cmp::min(current, x));
-        }
-        /// 現在の状態を Vec として返す
-        pub fn to_vec(&self) -> Vec<T> {
-            (0..self.len).map(|i| self.get(i)).collect_vec()
-        }
-    }
-}
-use min_max_monoid::*;
-use range_max_segtree::*;
-#[allow(clippy::module_inception)]
-pub mod range_max_segtree {
-    use super::MaxMonoid;
-    use ac_library::{Monoid, Segtree};
-    use itertools::Itertools;
-    use std::ops::RangeBounds;
-    /// ACL の Segtree を使用した区間最大セグメント木。
-    /// 数値型 T に対して点更新・区間最大取得を行う。
-    #[derive(Clone)]
-    pub struct RangeMaxSegtree<T>
-    where
-        MaxMonoid<T>: Monoid<S = T>,
-        T: Clone,
-    {
-        segtree: Segtree<MaxMonoid<T>>,
-        len: usize,
-    }
-    impl<T> RangeMaxSegtree<T>
-    where
-        MaxMonoid<T>: Monoid<S = T>,
-        T: Copy + Ord,
-    {
-        /// 単位元で初期化されたセグメント木を構築する
-        pub fn new(n: usize) -> Self {
-            Self {
-                segtree: Segtree::<MaxMonoid<T>>::new(n),
-                len: n,
-            }
-        }
-        /// 配列からセグメント木を構築する
-        pub fn from_slice(xs: &[T]) -> Self {
-            let len = xs.len();
-            Self {
-                segtree: Segtree::<MaxMonoid<T>>::from(xs.to_vec()),
-                len,
-            }
-        }
-        #[allow(clippy::len_without_is_empty)]
-        pub fn len(&self) -> usize {
-            self.len
-        }
-        /// p 番目の要素を x に更新する
-        pub fn set(&mut self, p: usize, x: T) {
-            self.segtree.set(p, x);
-        }
-        /// p 番目の要素を取得する
-        pub fn get(&self, p: usize) -> T {
-            self.segtree.get(p)
-        }
-        /// range の最大値を取得する
+        /// range の最大値を取得する。
         pub fn range_max<R>(&self, range: R) -> T
         where
             R: RangeBounds<usize>,
         {
-            self.segtree.prod(range)
+            self.segtree.prod(range).max
         }
-        /// 全要素の最大値を取得する
+        /// range で最小値をとる最左の添字を取得する。
+        ///
+        /// 空区間では `usize::MAX` を返す。
+        pub fn range_argmin_left<R>(&self, range: R) -> usize
+        where
+            R: RangeBounds<usize>,
+        {
+            self.segtree.prod(range).argmin_left
+        }
+        /// range で最小値をとる最右の添字を取得する。
+        ///
+        /// 空区間では `usize::MIN` を返す。
+        pub fn range_argmin_right<R>(&self, range: R) -> usize
+        where
+            R: RangeBounds<usize>,
+        {
+            self.segtree.prod(range).argmin_right
+        }
+        /// range で最大値をとる最左の添字を取得する。
+        ///
+        /// 空区間では `usize::MAX` を返す。
+        pub fn range_argmax_left<R>(&self, range: R) -> usize
+        where
+            R: RangeBounds<usize>,
+        {
+            self.segtree.prod(range).argmax_left
+        }
+        /// range で最大値をとる最右の添字を取得する。
+        ///
+        /// 空区間では `usize::MIN` を返す。
+        pub fn range_argmax_right<R>(&self, range: R) -> usize
+        where
+            R: RangeBounds<usize>,
+        {
+            self.segtree.prod(range).argmax_right
+        }
+        /// 全要素の最小値を取得する。
+        pub fn all_min(&self) -> T {
+            self.segtree.all_prod().min
+        }
+        /// 全要素の最大値を取得する。
         pub fn all_max(&self) -> T {
-            self.segtree.all_prod()
+            self.segtree.all_prod().max
+        }
+        /// 全要素で最小値をとる最左の添字を取得する。
+        ///
+        /// 空のセグメント木では `usize::MAX` を返す。
+        pub fn all_argmin_left(&self) -> usize {
+            self.segtree.all_prod().argmin_left
+        }
+        /// 全要素で最小値をとる最右の添字を取得する。
+        ///
+        /// 空のセグメント木では `usize::MIN` を返す。
+        pub fn all_argmin_right(&self) -> usize {
+            self.segtree.all_prod().argmin_right
+        }
+        /// 全要素で最大値をとる最左の添字を取得する。
+        ///
+        /// 空のセグメント木では `usize::MAX` を返す。
+        pub fn all_argmax_left(&self) -> usize {
+            self.segtree.all_prod().argmax_left
+        }
+        /// 全要素で最大値をとる最右の添字を取得する。
+        ///
+        /// 空のセグメント木では `usize::MIN` を返す。
+        pub fn all_argmax_right(&self) -> usize {
+            self.segtree.all_prod().argmax_right
         }
         /// セグメント木上の二分探索。
-        /// [l, r) の最大値 s について f(&s) が true となる最大の r を返す。
+        ///
+        /// [l, r) の最小値 min と最大値 max に対して f(&min, &max) が true となる最大の r を返す。
+        ///
+        /// # 前提条件
+        /// * `l <= n`
+        /// * 空区間の `(min, max)` に対して `f` が `true`
+        /// * `f` は単調である。
         pub fn max_right<F>(&self, l: usize, f: F) -> usize
         where
-            F: Fn(&T) -> bool,
+            F: Fn(&T, &T) -> bool,
         {
-            self.segtree.max_right(l, f)
+            self.segtree.max_right(l, |value| f(&value.min, &value.max))
         }
         /// セグメント木上の二分探索。
-        /// [l, r) の最大値 s について f(&s) が true となる最小の l を返す。
+        ///
+        /// [l, r) の最小値 min と最大値 max に対して f(&min, &max) が true となる最小の l を返す。
+        ///
+        /// # 前提条件
+        /// * `r <= n`
+        /// * 空区間の `(min, max)` に対して `f` が `true`
+        /// * `f` は単調である。
         pub fn min_left<F>(&self, r: usize, f: F) -> usize
         where
-            F: Fn(&T) -> bool,
+            F: Fn(&T, &T) -> bool,
         {
-            self.segtree.min_left(r, f)
+            self.segtree.min_left(r, |value| f(&value.min, &value.max))
         }
-        /// p 番目の要素を max(current, x) に更新する
+        /// p 番目の値を `min(current, x)` に更新する。
+        pub fn chmin(&mut self, p: usize, x: T) {
+            self.set(p, std::cmp::min(self.get(p), x));
+        }
+        /// p 番目の値を `max(current, x)` に更新する。
         pub fn chmax(&mut self, p: usize, x: T) {
-            let current = self.get(p);
-            self.set(p, std::cmp::max(current, x));
+            self.set(p, std::cmp::max(self.get(p), x));
         }
-        /// 現在の状態を Vec として返す
+        /// 現在の値を Vec として返す。
         pub fn to_vec(&self) -> Vec<T> {
-            (0..self.len).map(|i| self.get(i)).collect_vec()
+            (0..self.len).map(|index| self.get(index)).collect_vec()
         }
     }
 }
