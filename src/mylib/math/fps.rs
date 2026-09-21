@@ -9,6 +9,7 @@ use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Neg, Rem, Shl, Shr, Sub, Sub
 /// 係数を`Vec<StaticModInt<M>>`で保持する。
 #[derive(Clone, Debug, PartialEq, Eq, Default, Hash)]
 pub struct FormalPowerSeries<M: Modulus> {
+    // coeffs[k] は x^k の係数。末尾の0係数は保持しない。
     coeffs: Vec<StaticModInt<M>>,
 }
 
@@ -37,21 +38,25 @@ impl<M: Modulus> FormalPowerSeries<M> {
         Self::new(vec![StaticModInt::new(1)])
     }
 
-    /// 次数を返す (係数ベクトルの長さ)。
+    /// 末尾の0を含めない係数ベクトルの長さを返す。
     ///
     /// 計算量: O(1)
     pub fn coeff_len(&self) -> usize {
         self.coeffs.len()
     }
 
-    /// 正規化済みの係数列を返す。
+    /// 係数ベクトルを返す。
+    ///
+    /// 末尾の0係数は含まれない。
     ///
     /// 計算量: $O(1)$
     pub fn coeffs(&self) -> &[StaticModInt<M>] {
         &self.coeffs
     }
 
-    /// 正規化済みの係数列を取り出す。
+    /// 係数ベクトルを取り出す。
+    ///
+    /// 末尾の0係数は含まれない。
     ///
     /// 計算量: $O(1)$
     pub fn into_coeffs(self) -> Vec<StaticModInt<M>> {
@@ -64,10 +69,7 @@ impl<M: Modulus> FormalPowerSeries<M> {
         }
     }
 
-    /// 末尾の0係数を削除して、表現を正規化する。
-    ///
-    /// 計算量: O(N) (N = self.coeff_len())
-    pub fn trim(&mut self) {
+    fn normalize(&mut self) {
         Self::normalize_coeffs(&mut self.coeffs);
     }
 
@@ -78,7 +80,7 @@ impl<M: Modulus> FormalPowerSeries<M> {
         reversed_coeffs
     }
 
-    /// `deg` 次までの逆元 `1/f(x)` をニュートン法で計算する。
+    /// `1/f(x)` の `x^deg` 未満の項をニュートン法で計算する。
     ///
     /// 計算量: O(N log N) (N = deg)
     pub fn inv(&self, deg: usize) -> Self {
@@ -101,19 +103,19 @@ impl<M: Modulus> FormalPowerSeries<M> {
             fg.coeffs[0] += 2;
             g = &g * &fg;
             g.coeffs.truncate(k);
-            g.trim();
+            g.normalize();
         }
         g.coeffs.truncate(deg);
-        g.trim();
+        g.normalize();
         g
     }
 
-    /// 指定された次数 `len` でFPSを切り詰める。
+    /// `x^len` 以上の項を切り捨て、`x^(len - 1)` 以下の係数のみを残す。
     ///
     /// 計算量: O(len)
     pub fn prefix(mut self, len: usize) -> Self {
         self.coeffs.truncate(len);
-        self.trim();
+        self.normalize();
         self
     }
 
@@ -153,7 +155,7 @@ impl<M: Modulus> FormalPowerSeries<M> {
         Self::new(new_coeffs)
     }
 
-    /// FPSの対数 `log(f(x))` を計算する。
+    /// `log(f(x))` の `x^deg` 未満の項を計算する。
     ///
     /// 前提条件: `f(0) == 1`
     ///
@@ -168,12 +170,12 @@ impl<M: Modulus> FormalPowerSeries<M> {
         let inv_f = self.inv(deg); // f(x)^-1
         let mut df_inv_f = &df * &inv_f; // f'(x) * f(x)^-1
         df_inv_f.coeffs.truncate(deg); // deg次まで切り詰める
-        df_inv_f.trim();
+        df_inv_f.normalize();
 
         df_inv_f.integral().clone().prefix(deg) // 積分して、指定次数で切り詰める
     }
 
-    /// FPSの指数 `exp(f(x))` を計算する。
+    /// `exp(f(x))` の `x^deg` 未満の項を計算する。
     ///
     /// 前提条件: `f(0) == 0`
     ///
@@ -200,12 +202,12 @@ impl<M: Modulus> FormalPowerSeries<M> {
             let one_plus_val = &Self::one() + &val; // 1 + (f - log(g))
             g = &g * &one_plus_val;
             g.coeffs.truncate(k);
-            g.trim();
+            g.normalize();
         }
         g.prefix(deg) // 指定次数で切り詰める
     }
 
-    /// FPSのべき乗 `f(x)^k` を計算する。k は負の場合を含めて対応している
+    /// `f(x)^k` の `x^deg` 未満の項を計算する。
     ///
     /// 計算量: O(N log N + log k) (N = deg)
     pub fn pow(&self, k: i64, deg: usize) -> Self {
@@ -393,7 +395,7 @@ impl<M: Modulus> FormalPowerSeries<M> {
             }
 
             let mut quotient = Self::new(q_coeffs);
-            quotient.trim();
+            quotient.normalize();
             quotient
         } else {
             // NTTベースの高速除算 (Fast Polynomial Division)
@@ -416,7 +418,7 @@ impl<M: Modulus> FormalPowerSeries<M> {
     pub fn rem_polynomial(&self, rhs: &Self) -> Self {
         let q = self.div_polynomial(rhs);
         let mut r = self - &(&q * rhs);
-        r.trim();
+        r.normalize();
         r
     }
 }
@@ -473,7 +475,7 @@ impl<M: Modulus> AddAssign for FormalPowerSeries<M> {
         for i in 0..rhs.coeff_len() {
             self.coeffs[i] += rhs.coeffs[i];
         }
-        self.trim();
+        self.normalize();
     }
 }
 
@@ -486,7 +488,7 @@ impl<M: Modulus> AddAssign<StaticModInt<M>> for FormalPowerSeries<M> {
         } else {
             self.coeffs[0] += rhs;
         }
-        self.trim();
+        self.normalize();
     }
 }
 
@@ -499,7 +501,7 @@ impl<M: Modulus> SubAssign<StaticModInt<M>> for FormalPowerSeries<M> {
         } else {
             self.coeffs[0] -= rhs;
         }
-        self.trim();
+        self.normalize();
     }
 }
 
@@ -512,7 +514,7 @@ impl<M: Modulus> MulAssign<StaticModInt<M>> for FormalPowerSeries<M> {
         for c in &mut self.coeffs {
             *c *= rhs;
         }
-        self.trim();
+        self.normalize();
     }
 }
 
@@ -567,7 +569,7 @@ impl<M: Modulus> SubAssign for FormalPowerSeries<M> {
         for i in 0..rhs.coeff_len() {
             self.coeffs[i] -= rhs.coeffs[i];
         }
-        self.trim();
+        self.normalize();
     }
 }
 
@@ -744,7 +746,7 @@ mod tests {
 
             let mut actual = &f * &f_inv;
             actual.coeffs.truncate(deg);
-            actual.trim();
+            actual.normalize();
 
             let expected = vec![Mint::new(1)];
 
@@ -758,12 +760,9 @@ mod tests {
         let o = Fps::one();
         assert_eq!(o.coeffs, vec![Mint::new(1)]);
 
-        // trim
-        let mut f = Fps::new(vec![Mint::new(1), Mint::new(2), Mint::new(0), Mint::new(0)]);
-        f.trim();
+        let f = Fps::new(vec![Mint::new(1), Mint::new(2), Mint::new(0), Mint::new(0)]);
         assert_eq!(f.coeffs, vec![Mint::new(1), Mint::new(2)]);
-        let mut g = Fps::new(vec![Mint::new(0), Mint::new(0)]);
-        g.trim();
+        let g = Fps::new(vec![Mint::new(0), Mint::new(0)]);
         assert_eq!(g.coeffs, Vec::<Mint>::new());
     }
 
@@ -1005,7 +1004,7 @@ mod tests {
             if i + 1 < deg {
                 term = &term * f;
                 term.coeffs.truncate(deg);
-                term.trim();
+                term.normalize();
             }
         }
         FormalPowerSeries::new(res)
@@ -1028,7 +1027,7 @@ mod tests {
             if i + 1 < deg {
                 term = &term * &g;
                 term.coeffs.truncate(deg);
-                term.trim();
+                term.normalize();
             }
         }
         FormalPowerSeries::new(res)
@@ -1043,7 +1042,7 @@ mod tests {
         for _ in 0..k {
             res = &res * f;
             res.coeffs.truncate(deg);
-            res.trim();
+            res.normalize();
         }
         res.prefix(deg)
     }
@@ -1416,7 +1415,7 @@ mod tests {
                 .map(|_| Mint::new(rng.random_range(-3..=3)))
                 .collect();
 
-            let mut q = Fps::new(q_coeffs);
+            let q = Fps::new(q_coeffs);
             let b = Fps::new(b_coeffs);
 
             if b.coeffs.is_empty() {
@@ -1434,9 +1433,7 @@ mod tests {
 
             let a = &(&q * &b) + &r; // A = Q * B + R
 
-            let mut res_q = a.div_polynomial(&b);
-            res_q.trim();
-            q.trim();
+            let res_q = a.div_polynomial(&b);
 
             assert_eq!(
                 res_q.coeffs, q.coeffs,
