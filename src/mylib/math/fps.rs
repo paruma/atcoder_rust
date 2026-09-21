@@ -14,6 +14,7 @@ pub struct FormalPowerSeries<M: Modulus> {
 
 impl<M: Modulus> FormalPowerSeries<M> {
     /// 新しいFPSを係数ベクトルから作成する。
+    /// `coeffs[k]` は `x^k` の係数である。
     ///
     /// 計算量: O(1)
     pub fn new(coeffs: Vec<StaticModInt<M>>) -> Self {
@@ -63,7 +64,7 @@ impl<M: Modulus> FormalPowerSeries<M> {
 
     /// `deg` 次までの逆元 `1/f(x)` をニュートン法で計算する。
     ///
-    /// 計算量: O(deg log deg)
+    /// 計算量: O(N log N) (N = deg)
     pub fn inv(&self, deg: usize) -> Self {
         assert!(
             !self.coeffs.is_empty() && self.coeffs[0].val() != 0,
@@ -102,15 +103,14 @@ impl<M: Modulus> FormalPowerSeries<M> {
     ///
     /// 計算量: O(N) (N = self.coeff_len())
     pub fn diff(&self) -> Self {
-        let n = self.coeff_len();
-        if n <= 1 {
-            return Self::new(vec![]);
-        }
-        let mut new_coeffs = vec![StaticModInt::new(0); n - 1];
-        for i in 1..n {
-            new_coeffs[i - 1] = self.coeffs[i] * i;
-        }
-        Self::new(new_coeffs)
+        Self::new(
+            self.coeffs
+                .iter()
+                .enumerate()
+                .skip(1)
+                .map(|(i, &coeff)| coeff * i)
+                .collect(),
+        )
     }
 
     /// 不定積分 `∫f(x)dx` を計算する（積分定数は0）。
@@ -139,7 +139,7 @@ impl<M: Modulus> FormalPowerSeries<M> {
     ///
     /// 前提条件: `f(0) == 1`
     ///
-    /// 計算量: O(deg log deg)
+    /// 計算量: O(N log N) (N = deg)
     pub fn log(&self, deg: usize) -> Self {
         assert!(
             !self.coeffs.is_empty() && self.coeffs[0].val() == 1,
@@ -158,7 +158,7 @@ impl<M: Modulus> FormalPowerSeries<M> {
     ///
     /// 前提条件: `f(0) == 0`
     ///
-    /// 計算量: O(deg log deg)
+    /// 計算量: O(N log N) (N = deg)
     pub fn exp(&self, deg: usize) -> Self {
         assert!(
             self.coeffs.is_empty() || self.coeffs[0].val() == 0,
@@ -185,9 +185,9 @@ impl<M: Modulus> FormalPowerSeries<M> {
         g.prefix(deg) // 指定次数で切り詰める
     }
 
-    /// FPSのべき乗 `f(x)^k` を計算する。
+    /// FPSのべき乗 `f(x)^k` を計算する。k は負の場合を含めて対応している
     ///
-    /// 計算量: O(deg log deg + log k)
+    /// 計算量: O(N log N + log k) (N = deg)
     pub fn pow(&self, k: i64, deg: usize) -> Self {
         if deg == 0 {
             return Self::new(vec![]);
@@ -197,19 +197,18 @@ impl<M: Modulus> FormalPowerSeries<M> {
             ret.coeffs[0] = StaticModInt::new(1);
             return ret;
         }
+        assert!(
+            k >= 0 || self.coeffs.first().is_some_and(|c| c.val() != 0),
+            "負の指数には定数項が0でないFPSが必要です"
+        );
         if self.coeffs.is_empty() {
             return Self::new(vec![StaticModInt::new(0); deg]);
         }
 
-        let mut first_nonzero_idx = 0;
-        while first_nonzero_idx < self.coeffs.len() && self.coeffs[first_nonzero_idx].val() == 0 {
-            first_nonzero_idx += 1;
-        }
-
-        if first_nonzero_idx == self.coeffs.len() {
+        let Some(first_nonzero_idx) = self.coeffs.iter().position(|c| c.val() != 0) else {
             // 全ての係数が0
             return Self::new(vec![StaticModInt::new(0); deg]);
-        }
+        };
 
         if first_nonzero_idx > 0 {
             // f(0) == 0 の場合
@@ -236,7 +235,7 @@ impl<M: Modulus> FormalPowerSeries<M> {
                 // f0_pow_k をf0定義直後に移動
                 f0.pow(k as u64)
             } else {
-                f0.inv().pow((-k) as u64)
+                f0.inv().pow(k.unsigned_abs())
             };
 
             let f0_inv = f0.inv();
@@ -265,11 +264,10 @@ impl<M: Modulus> FormalPowerSeries<M> {
     ///
     /// 計算量: O(N) (N = self.coeff_len())
     pub fn eval(&self, x: StaticModInt<M>) -> StaticModInt<M> {
-        let mut res = StaticModInt::new(0);
-        for &coeff in self.coeffs.iter().rev() {
-            res = res * x + coeff;
-        }
-        res
+        self.coeffs
+            .iter()
+            .rev()
+            .fold(StaticModInt::new(0), |res, &coeff| res * x + coeff)
     }
 
     /// `x^k` の係数を取得する。`k` が `coeffs` の配列範囲外の場合は0を返す。
