@@ -7,6 +7,12 @@ use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Neg, Rem, Shl, Shr, Sub, Sub
 /// 形式的冪級数を表す構造体。
 ///
 /// 係数を`Vec<StaticModInt<M>>`で保持する。
+///
+/// `Mod998244353` を法とする場合は、次の型エイリアスを用いる。
+///
+/// ```ignore
+/// type Fps = FormalPowerSeries<Mod998244353>;
+/// ```
 #[derive(Clone, Debug, PartialEq, Eq, Default, Hash)]
 pub struct FormalPowerSeries<M: Modulus> {
     // coeffs[k] は x^k の係数。末尾の0係数は保持しない。
