@@ -6,6 +6,7 @@
 //   これにより `Eq` と `Hash` を derive で実装できる。
 // - 範囲外の係数は 0 として扱う。
 // - `String + &str` と同様に通常の演算は左辺を消費し右辺を借用する。左辺の係数ベクトルを再利用するためである。
+// - `/` は FPS の逆元を用いる除算ではなく、商多項式を返す多項式除算を表す。
 // - NTT を使う演算では、法が NTT-friendly であり、畳み込み時の NTT 長が法の許容範囲内であることを仮定する。
 //   たとえば `998244353` では `2^23` 以下であり、この条件は実行時に検査しない。
 use ac_library::{Modulus, StaticModInt, convolution};
@@ -49,6 +50,38 @@ impl<M: Modulus> FormalPowerSeries<M> {
     /// 計算量: O(1)
     pub fn one() -> Self {
         Self::new(vec![StaticModInt::new(1)])
+    }
+
+    /// 多項式 `x` を返す。
+    ///
+    /// 計算量: O(1)
+    pub fn x() -> Self {
+        Self::new(vec![StaticModInt::new(0), StaticModInt::new(1)])
+    }
+
+    /// 多項式 `x^k` を返す。
+    ///
+    /// 計算量: O(k)
+    pub fn x_pow(k: usize) -> Self {
+        let mut coeffs = vec![StaticModInt::new(0); k];
+        coeffs.push(StaticModInt::new(1));
+        Self::new(coeffs)
+    }
+
+    /// 複数の FPS の積を分割統治で計算する。
+    ///
+    /// 空のスライスの積は `1` とする。
+    ///
+    /// 計算量: $O(N \log^2 N)$。$N$ は全 FPS の係数数の総和である。
+    pub fn product_all(fpss: &[Self]) -> Self {
+        match fpss {
+            [] => Self::one(),
+            [fps] => fps.clone(),
+            _ => {
+                let mid = fpss.len() / 2;
+                Self::product_all(&fpss[..mid]) * &Self::product_all(&fpss[mid..])
+            }
+        }
     }
 
     /// 末尾の0を含めない係数ベクトルの長さを返す。
@@ -437,6 +470,56 @@ impl<M: Modulus> FormalPowerSeries<M> {
 }
 // --- 算術演算子 ---
 
+macro_rules! impl_integer_scalar_ops {
+    ($($ty:ty),* $(,)?) => {
+        $(
+            impl<M: Modulus> Add<$ty> for FormalPowerSeries<M> {
+                type Output = Self;
+
+                fn add(self, rhs: $ty) -> Self::Output {
+                    self + StaticModInt::new(rhs)
+                }
+            }
+
+            impl<M: Modulus> AddAssign<$ty> for FormalPowerSeries<M> {
+                fn add_assign(&mut self, rhs: $ty) {
+                    *self += StaticModInt::new(rhs);
+                }
+            }
+
+            impl<M: Modulus> Sub<$ty> for FormalPowerSeries<M> {
+                type Output = Self;
+
+                fn sub(self, rhs: $ty) -> Self::Output {
+                    self - StaticModInt::new(rhs)
+                }
+            }
+
+            impl<M: Modulus> SubAssign<$ty> for FormalPowerSeries<M> {
+                fn sub_assign(&mut self, rhs: $ty) {
+                    *self -= StaticModInt::new(rhs);
+                }
+            }
+
+            impl<M: Modulus> Mul<$ty> for FormalPowerSeries<M> {
+                type Output = Self;
+
+                fn mul(self, rhs: $ty) -> Self::Output {
+                    self * StaticModInt::new(rhs)
+                }
+            }
+
+            impl<M: Modulus> MulAssign<$ty> for FormalPowerSeries<M> {
+                fn mul_assign(&mut self, rhs: $ty) {
+                    *self *= StaticModInt::new(rhs);
+                }
+            }
+        )*
+    };
+}
+
+impl_integer_scalar_ops!(usize, i64);
+
 // FPS + FPS
 /// N = self.coeff_len(), M = rhs.coeff_len() とする。
 ///
@@ -615,6 +698,8 @@ impl<M: Modulus> Neg for FormalPowerSeries<M> {
 // FPS << usize
 /// N = self.coeff_len() とする。rhs はシフト量。
 ///
+/// `x^rhs` を掛ける。
+///
 /// 計算量: O(N + rhs)
 impl<M: Modulus> Shl<usize> for FormalPowerSeries<M> {
     type Output = Self;
@@ -631,6 +716,8 @@ impl<M: Modulus> Shl<usize> for FormalPowerSeries<M> {
 
 // FPS >> usize
 /// N = self.coeff_len() とする。rhs はシフト量。
+///
+/// 低次の `rhs` 項を捨てる。
 ///
 /// 計算量: O(N) (最悪ケースで drain が N 要素を処理するため)
 impl<M: Modulus> Shr<usize> for FormalPowerSeries<M> {
@@ -755,6 +842,40 @@ mod tests {
         assert_eq!(f.coeffs, vec![Mint::new(1), Mint::new(2)]);
         let g = Fps::new(vec![Mint::new(0), Mint::new(0)]);
         assert_eq!(g.coeffs, Vec::<Mint>::new());
+
+        assert_eq!(Fps::x().coeffs, vec![Mint::new(0), Mint::new(1)]);
+        assert_eq!(Fps::x_pow(0), Fps::one());
+        assert_eq!(
+            Fps::x_pow(3).coeffs,
+            vec![Mint::new(0), Mint::new(0), Mint::new(0), Mint::new(1)]
+        );
+    }
+
+    #[test]
+    fn test_product_all() {
+        assert_eq!(Fps::product_all(&[]), Fps::one());
+
+        let f = Fps::new(vec![Mint::new(2), Mint::new(3)]);
+        assert_eq!(Fps::product_all(std::slice::from_ref(&f)), f);
+
+        let fpss = [
+            Fps::new(vec![Mint::new(1), Mint::new(1)]),
+            Fps::new(vec![Mint::new(2), Mint::new(1)]),
+            Fps::new(vec![Mint::new(3), Mint::new(1)]),
+            Fps::new(vec![Mint::new(4), Mint::new(1)]),
+            Fps::new(vec![Mint::new(5), Mint::new(1)]),
+        ];
+        assert_eq!(
+            Fps::product_all(&fpss).coeffs,
+            vec![
+                Mint::new(120),
+                Mint::new(274),
+                Mint::new(225),
+                Mint::new(85),
+                Mint::new(15),
+                Mint::new(1),
+            ]
+        );
     }
 
     #[test]
@@ -1288,6 +1409,47 @@ mod tests {
 
         let empty_mul = empty * Mint::new(3);
         assert_eq!(empty_mul.coeffs, vec![]);
+    }
+
+    #[test]
+    fn test_integer_scalar_ops() {
+        let f = Fps::new(vec![Mint::new(1), Mint::new(2)]);
+        assert_eq!(
+            (f.clone() + 3_usize).coeffs,
+            vec![Mint::new(4), Mint::new(2)]
+        );
+        assert_eq!(
+            (f.clone() - 3_usize).coeffs,
+            vec![Mint::new(-2), Mint::new(2)]
+        );
+        assert_eq!(
+            (f.clone() * 3_usize).coeffs,
+            vec![Mint::new(3), Mint::new(6)]
+        );
+        assert_eq!(
+            (f.clone() + -3_i64).coeffs,
+            vec![Mint::new(-2), Mint::new(2)]
+        );
+        assert_eq!(
+            (f.clone() - -3_i64).coeffs,
+            vec![Mint::new(4), Mint::new(2)]
+        );
+        assert_eq!(
+            (f.clone() * -3_i64).coeffs,
+            vec![Mint::new(-3), Mint::new(-6)]
+        );
+
+        let mut usize_f = f.clone();
+        usize_f += 3_usize;
+        usize_f -= 1_usize;
+        usize_f *= 2_usize;
+        assert_eq!(usize_f.coeffs, vec![Mint::new(6), Mint::new(4)]);
+
+        let mut i64_f = f;
+        i64_f += -3_i64;
+        i64_f -= -1_i64;
+        i64_f *= -2_i64;
+        assert_eq!(i64_f.coeffs, vec![Mint::new(2), Mint::new(-4)]);
     }
 
     #[test]
