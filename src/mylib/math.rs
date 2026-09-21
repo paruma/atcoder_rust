@@ -15,4 +15,3 @@ pub mod modint_u64;
 pub mod neg_ext_int;
 pub mod number_thm;
 pub mod symmetric_group;
-pub mod twelvefold_way;
