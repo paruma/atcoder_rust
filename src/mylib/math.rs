@@ -1,4 +1,5 @@
 pub mod acl_modint;
+pub mod acl_convolution;
 pub mod algebra;
 pub mod bostan_mori;
 pub mod combinatorics;

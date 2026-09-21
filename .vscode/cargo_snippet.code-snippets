@@ -538,6 +538,34 @@
       "}"
     ]
   },
+  "acl_convolution": {
+    "scope": "rust",
+    "prefix": "acl_convolution",
+    "body": [
+      "use acl_convolution::*;",
+      "#[allow(clippy::module_inception)]",
+      "pub mod acl_convolution {",
+      "    use ac_library::{convolution, Modulus, StaticModInt};",
+      "    /// 複数の数列を分割統治で畳み込む。",
+      "    ///",
+      "    /// 与えられた数列が0個のときは `[1]` を返す。",
+      "    ///",
+      "    /// 計算量: \\$O(N \\log N \\log K)\\$。\\$N\\$ は全数列の要素数の総和、\\$K\\$ は数列数である。",
+      "    pub fn convolution_all<M: Modulus>(xss: &[Vec<StaticModInt<M>>]) -> Vec<StaticModInt<M>> {",
+      "        match xss {",
+      "            [] => vec![StaticModInt::new(1)],",
+      "            [sequence] => sequence.clone(),",
+      "            _ => {",
+      "                let mid = xss.len() / 2;",
+      "                let left = convolution_all(&xss[..mid]);",
+      "                let right = convolution_all(&xss[mid..]);",
+      "                convolution(&left, &right)",
+      "            }",
+      "        }",
+      "    }",
+      "}"
+    ]
+  },
   "acl_lcp_array": {
     "scope": "rust",
     "prefix": "acl_lcp_array",
