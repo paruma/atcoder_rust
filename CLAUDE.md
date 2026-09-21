@@ -67,6 +67,8 @@
 
 ## 4. git ルール
 
+### remote
+
 間違えてコンテスト中に push するのを防ぐために、原則 git remote の設定は常に消した状態にしています。必要な場合のみ git remote を登録し、push などの作業が終わったら git remote を削除してください
 
 ```sh
@@ -75,3 +77,9 @@ git remote add origin git@github.com:paruma/atcoder_rust.git
 # remote 削除
 git remote remove origin
 ```
+
+### commit
+
+日本語でコミットメッセージを書く。
+
+3行目以降にやったことと意図（推測不要。ユーザからの指示があった場合に限る）を書く。

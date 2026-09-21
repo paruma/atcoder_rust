@@ -9,15 +9,17 @@ use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Neg, Rem, Shl, Shr, Sub, Sub
 /// 係数を`Vec<StaticModInt<M>>`で保持する。
 #[derive(Clone, Debug, PartialEq, Eq, Default, Hash)]
 pub struct FormalPowerSeries<M: Modulus> {
-    pub coeffs: Vec<StaticModInt<M>>,
+    coeffs: Vec<StaticModInt<M>>,
 }
 
 impl<M: Modulus> FormalPowerSeries<M> {
     /// 新しいFPSを係数ベクトルから作成する。
+    ///
     /// `coeffs[k]` は `x^k` の係数である。
     ///
-    /// 計算量: O(1)
-    pub fn new(coeffs: Vec<StaticModInt<M>>) -> Self {
+    /// 計算量: $O(N)$ (N = coeffs.len())
+    pub fn new(mut coeffs: Vec<StaticModInt<M>>) -> Self {
+        Self::normalize_coeffs(&mut coeffs);
         Self { coeffs }
     }
 
@@ -42,24 +44,38 @@ impl<M: Modulus> FormalPowerSeries<M> {
         self.coeffs.len()
     }
 
+    /// 正規化済みの係数列を返す。
+    ///
+    /// 計算量: $O(1)$
+    pub fn coeffs(&self) -> &[StaticModInt<M>] {
+        &self.coeffs
+    }
+
+    /// 正規化済みの係数列を取り出す。
+    ///
+    /// 計算量: $O(1)$
+    pub fn into_coeffs(self) -> Vec<StaticModInt<M>> {
+        self.coeffs
+    }
+
+    fn normalize_coeffs(coeffs: &mut Vec<StaticModInt<M>>) {
+        while coeffs.last().is_some_and(|&c| c.val() == 0) {
+            coeffs.pop();
+        }
+    }
+
     /// 末尾の0係数を削除して、表現を正規化する。
     ///
     /// 計算量: O(N) (N = self.coeff_len())
     pub fn trim(&mut self) {
-        while self.coeffs.last().is_some_and(|&c| c.val() == 0) {
-            self.coeffs.pop();
-        }
+        Self::normalize_coeffs(&mut self.coeffs);
     }
 
-    /// 多項式の係数を反転する。
-    /// 例えば、f(x) = a_0 + a_1 x + ... + a_n x^n の係数配列を
-    /// [a_n, a_{n-1}, ..., a_0] のように反転させる。
-    ///
-    /// 計算量: O(N) (N = self.coeff_len())
-    pub fn rev(&self) -> Self {
-        let mut reversed_coeffs = self.coeffs.clone();
+    fn reversed_coeffs(coeffs: &[StaticModInt<M>], len: usize) -> Vec<StaticModInt<M>> {
+        let mut reversed_coeffs = coeffs.iter().take(len).copied().collect::<Vec<_>>();
+        reversed_coeffs.resize(len, StaticModInt::new(0));
         reversed_coeffs.reverse();
-        Self::new(reversed_coeffs)
+        reversed_coeffs
     }
 
     /// `deg` 次までの逆元 `1/f(x)` をニュートン法で計算する。
@@ -85,17 +101,19 @@ impl<M: Modulus> FormalPowerSeries<M> {
             fg.coeffs[0] += 2;
             g = &g * &fg;
             g.coeffs.truncate(k);
+            g.trim();
         }
         g.coeffs.truncate(deg);
+        g.trim();
         g
     }
 
-    /// 指定された次数 `len` でFPSを切り詰める（足りない場合は0で埋める）。
+    /// 指定された次数 `len` でFPSを切り詰める。
     ///
     /// 計算量: O(len)
     pub fn prefix(mut self, len: usize) -> Self {
         self.coeffs.truncate(len);
-        self.coeffs.resize(len, StaticModInt::new(0));
+        self.trim();
         self
     }
 
@@ -150,6 +168,7 @@ impl<M: Modulus> FormalPowerSeries<M> {
         let inv_f = self.inv(deg); // f(x)^-1
         let mut df_inv_f = &df * &inv_f; // f'(x) * f(x)^-1
         df_inv_f.coeffs.truncate(deg); // deg次まで切り詰める
+        df_inv_f.trim();
 
         df_inv_f.integral().clone().prefix(deg) // 積分して、指定次数で切り詰める
     }
@@ -181,6 +200,7 @@ impl<M: Modulus> FormalPowerSeries<M> {
             let one_plus_val = &Self::one() + &val; // 1 + (f - log(g))
             g = &g * &one_plus_val;
             g.coeffs.truncate(k);
+            g.trim();
         }
         g.prefix(deg) // 指定次数で切り詰める
     }
@@ -193,27 +213,25 @@ impl<M: Modulus> FormalPowerSeries<M> {
             return Self::new(vec![]);
         }
         if k == 0 {
-            let mut ret = Self::new(vec![StaticModInt::new(0); deg]);
-            ret.coeffs[0] = StaticModInt::new(1);
-            return ret;
+            return Self::one();
         }
         assert!(
             k >= 0 || self.coeffs.first().is_some_and(|c| c.val() != 0),
             "負の指数には定数項が0でないFPSが必要です"
         );
         if self.coeffs.is_empty() {
-            return Self::new(vec![StaticModInt::new(0); deg]);
+            return Self::zero();
         }
 
         let Some(first_nonzero_idx) = self.coeffs.iter().position(|c| c.val() != 0) else {
             // 全ての係数が0
-            return Self::new(vec![StaticModInt::new(0); deg]);
+            return Self::zero();
         };
 
         if first_nonzero_idx > 0 {
             // f(0) == 0 の場合
             if (first_nonzero_idx as i64) * k >= deg as i64 {
-                return Self::new(vec![StaticModInt::new(0); deg]);
+                return Self::zero();
             }
 
             // f(x) = x^first_nonzero_idx * g(x) (g(0) != 0)
@@ -270,6 +288,51 @@ impl<M: Modulus> FormalPowerSeries<M> {
             .fold(StaticModInt::new(0), |res, &coeff| res * x + coeff)
     }
 
+    /// Polynomial Taylor Shift `f(x + c)` を計算する。
+    ///
+    /// 計算量: $O(N \log N)$ (N = self.coeff_len())
+    pub fn taylor_shift(&self, c: StaticModInt<M>) -> Self {
+        let n = self.coeff_len();
+        if n == 0 {
+            return Self::zero();
+        }
+
+        let mut factorials = vec![StaticModInt::new(1); n];
+        for i in 1..n {
+            factorials[i] = factorials[i - 1] * i;
+        }
+
+        let mut inv_factorials = vec![StaticModInt::new(0); n];
+        inv_factorials[n - 1] = factorials[n - 1].inv();
+        for i in (1..n).rev() {
+            inv_factorials[i - 1] = inv_factorials[i] * i;
+        }
+
+        let reversed = self
+            .coeffs
+            .iter()
+            .zip(factorials.iter())
+            .map(|(&a, &factorial)| a * factorial)
+            .rev()
+            .collect::<Vec<_>>();
+        let mut c_pow = StaticModInt::new(1);
+        let g = inv_factorials
+            .iter()
+            .map(|&inv_factorial| {
+                let value = c_pow * inv_factorial;
+                c_pow *= c;
+                value
+            })
+            .collect::<Vec<_>>();
+        let product = convolution(&reversed, &g);
+
+        Self::new(
+            (0..n)
+                .map(|l| product[n - 1 - l] * inv_factorials[l])
+                .collect(),
+        )
+    }
+
     /// `x^k` の係数を取得する。`k` が `coeffs` の配列範囲外の場合は0を返す。
     ///
     /// 計算量: O(1)
@@ -283,12 +346,8 @@ impl<M: Modulus> FormalPowerSeries<M> {
     /// 計算量: M <= 64 の場合 O(N * M)、M > 64 の場合 O((N - M) log (N - M))
     pub fn div_polynomial(&self, rhs: &Self) -> Self {
         let mut a_coeffs = self.coeffs.clone();
-        let mut b_coeffs = rhs.coeffs.clone();
+        let b_coeffs = rhs.coeffs.clone();
 
-        // 割る式の末尾の0を削除して次数を確定させる（ゼロ多項式除算の防止）
-        while b_coeffs.last().is_some_and(|&c| c.val() == 0) {
-            b_coeffs.pop();
-        }
         if b_coeffs.is_empty() {
             panic!("Division by zero polynomial");
         }
@@ -339,20 +398,14 @@ impl<M: Modulus> FormalPowerSeries<M> {
         } else {
             // NTTベースの高速除算 (Fast Polynomial Division)
             // (A(x)を N-M 次で反転) * (B(x)を N-M 次で反転の逆元) ) を N-M 次で反転
-            let a_rev = self.rev();
-            let b_rev = Self::new(b_coeffs).rev();
+            let a_rev = Self::reversed_coeffs(&a_coeffs, n);
+            let b_rev = Self::new(Self::reversed_coeffs(&b_coeffs, m));
 
             let b_rev_inv = b_rev.inv(quotient_deg);
 
-            // a_rev.prefix(quotient_deg) * b_rev_inv.prefix(quotient_deg)
-            // 乗算結果は (quotient_deg - 1) + (quotient_deg - 1) + 1 = 2 * quotient_deg - 1 の長さになる可能性がある
-            // 必要なのは quotient_deg 次までの係数なので、ここで truncate しておく
-            let mut product = &a_rev.prefix(quotient_deg) * &b_rev_inv.prefix(quotient_deg);
-            product.coeffs.truncate(quotient_deg); // 必要な次数まで切り詰める
-
-            let mut quotient = product.rev();
-            quotient.trim(); // 末尾のゼロを削除して正規化
-            quotient
+            let mut product = convolution(&a_rev[..quotient_deg], b_rev_inv.coeffs());
+            product.truncate(quotient_deg);
+            Self::new(Self::reversed_coeffs(&product, quotient_deg))
         }
     }
 
@@ -420,6 +473,7 @@ impl<M: Modulus> AddAssign for FormalPowerSeries<M> {
         for i in 0..rhs.coeff_len() {
             self.coeffs[i] += rhs.coeffs[i];
         }
+        self.trim();
     }
 }
 
@@ -432,6 +486,7 @@ impl<M: Modulus> AddAssign<StaticModInt<M>> for FormalPowerSeries<M> {
         } else {
             self.coeffs[0] += rhs;
         }
+        self.trim();
     }
 }
 
@@ -444,6 +499,7 @@ impl<M: Modulus> SubAssign<StaticModInt<M>> for FormalPowerSeries<M> {
         } else {
             self.coeffs[0] -= rhs;
         }
+        self.trim();
     }
 }
 
@@ -456,6 +512,7 @@ impl<M: Modulus> MulAssign<StaticModInt<M>> for FormalPowerSeries<M> {
         for c in &mut self.coeffs {
             *c *= rhs;
         }
+        self.trim();
     }
 }
 
@@ -510,6 +567,7 @@ impl<M: Modulus> SubAssign for FormalPowerSeries<M> {
         for i in 0..rhs.coeff_len() {
             self.coeffs[i] -= rhs.coeffs[i];
         }
+        self.trim();
     }
 }
 
@@ -686,9 +744,9 @@ mod tests {
 
             let mut actual = &f * &f_inv;
             actual.coeffs.truncate(deg);
+            actual.trim();
 
-            let mut expected = vec![Mint::new(0); deg];
-            expected[0] = Mint::new(1);
+            let expected = vec![Mint::new(1)];
 
             assert_eq!(actual.coeffs, expected, "f * f.inv() should be 1");
         }
@@ -707,6 +765,59 @@ mod tests {
         let mut g = Fps::new(vec![Mint::new(0), Mint::new(0)]);
         g.trim();
         assert_eq!(g.coeffs, Vec::<Mint>::new());
+    }
+
+    #[test]
+    fn test_taylor_shift() {
+        let f = Fps::new(vec![Mint::new(1), Mint::new(2), Mint::new(3)]);
+        assert_eq!(
+            f.taylor_shift(Mint::new(5)).coeffs,
+            vec![Mint::new(86), Mint::new(32), Mint::new(3)]
+        );
+        assert_eq!(f.taylor_shift(Mint::new(0)), f);
+        assert_eq!(Fps::zero().taylor_shift(Mint::new(5)), Fps::zero());
+
+        let mut rng = StdRng::seed_from_u64(0);
+        for _ in 0..100 {
+            let n = rng.random_range(1..=20);
+            let coeffs = (0..n)
+                .map(|_| Mint::new(rng.random_range(-10..=10)))
+                .collect::<Vec<_>>();
+            let c = Mint::new(rng.random_range(-10..=10));
+            let f = Fps::new(coeffs.clone());
+
+            let mut expected = vec![Mint::new(0); n];
+            for (k, &a) in coeffs.iter().enumerate() {
+                let mut binom = Mint::new(1);
+                for l in 0..=k {
+                    expected[l] += a * binom * c.pow((k - l) as u64);
+                    if l < k {
+                        binom *= k - l;
+                        binom /= l + 1;
+                    }
+                }
+            }
+
+            assert_eq!(f.taylor_shift(c), Fps::new(expected));
+        }
+    }
+
+    #[test]
+    fn test_normalized_representation() {
+        let f = Fps::new(vec![Mint::new(1), Mint::new(0)]);
+        assert_eq!(f.coeffs(), &[Mint::new(1)]);
+        assert_eq!(f, Fps::new(vec![Mint::new(1)]));
+        assert_eq!(
+            Fps::new(vec![Mint::new(1), Mint::new(0)]).into_coeffs(),
+            vec![Mint::new(1)]
+        );
+
+        let g = Fps::new(vec![Mint::new(1)]);
+        assert_eq!(&f - &g, Fps::zero());
+
+        let mut h = Fps::new(vec![Mint::new(1)]);
+        h *= Mint::new(0);
+        assert_eq!(h, Fps::zero());
     }
 
     #[test]
@@ -776,24 +887,17 @@ mod tests {
             vec![Mint::new(1), Mint::new(2), Mint::new(3), Mint::new(4)]
         );
 
-        // 長くする (0で埋める)
+        // 長くしても末尾の0は保持しない
         let f_pre6 = f.clone().prefix(6);
         assert_eq!(
             f_pre6.coeffs,
-            vec![
-                Mint::new(1),
-                Mint::new(2),
-                Mint::new(3),
-                Mint::new(4),
-                Mint::new(0),
-                Mint::new(0)
-            ]
+            vec![Mint::new(1), Mint::new(2), Mint::new(3), Mint::new(4)]
         );
 
         // 空のFPS
         let empty = Fps::new(vec![]);
         let empty_pre3 = empty.prefix(3);
-        assert_eq!(empty_pre3.coeffs, vec![Mint::new(0); 3]);
+        assert!(empty_pre3.coeffs.is_empty());
     }
 
     #[test]
@@ -840,7 +944,7 @@ mod tests {
         // 空
         let empty = Fps::new(vec![]);
         let int_e = empty.integral();
-        assert_eq!(int_e.coeffs, vec![Mint::new(0)]);
+        assert!(int_e.coeffs.is_empty());
     }
 
     #[test]
@@ -882,59 +986,52 @@ mod tests {
     fn test_exp_zero() {
         let f = Fps::zero();
         let exp_f = f.exp(5);
-        let expected = vec![
-            Mint::new(1),
-            Mint::new(0),
-            Mint::new(0),
-            Mint::new(0),
-            Mint::new(0),
-        ];
+        let expected = vec![Mint::new(1)];
         assert_eq!(exp_f.coeffs, expected);
     }
 
     /// テイラー展開 exp(f) = Σ_{i=0}^∞ (f^i / i!) を用いて愚直に計算する。
     fn naive_exp<M: Modulus>(f: &FormalPowerSeries<M>, deg: usize) -> FormalPowerSeries<M> {
-        let mut res = FormalPowerSeries::new(vec![StaticModInt::new(0); deg]);
-        let mut term = FormalPowerSeries::one().prefix(deg);
+        let mut res = vec![StaticModInt::new(0); deg];
+        let mut term = FormalPowerSeries::one();
         let mut fact_inv = StaticModInt::new(1);
         for i in 0..deg {
             if i > 0 {
                 fact_inv *= StaticModInt::new(i as u64).inv();
             }
             for j in 0..deg {
-                res.coeffs[j] += term.coeffs[j] * fact_inv;
+                res[j] += term.get(j) * fact_inv;
             }
             if i + 1 < deg {
                 term = &term * f;
                 term.coeffs.truncate(deg);
+                term.trim();
             }
         }
-        res
+        FormalPowerSeries::new(res)
     }
 
     /// テイラー展開 ln(1+g) = Σ_{i=1}^∞ (-1)^{i-1} * (g^i / i) (ただし g = f - 1) を用いて愚直に計算する。
     fn naive_log<M: Modulus>(f: &FormalPowerSeries<M>, deg: usize) -> FormalPowerSeries<M> {
         let mut g = f.clone();
-        if g.coeffs.is_empty() {
-            g.coeffs.push(StaticModInt::new(0));
-        }
         g.coeffs[0] -= 1; // g = f - 1
-        let mut res = FormalPowerSeries::new(vec![StaticModInt::new(0); deg]);
-        let mut term = g.clone().prefix(deg);
+        let mut res = vec![StaticModInt::new(0); deg];
+        let mut term = g.clone();
         for i in 1..deg {
             let mut val = StaticModInt::new(1) / i;
             if i % 2 == 0 {
                 val = -val;
             }
             for j in 0..deg {
-                res.coeffs[j] += term.coeffs[j] * val;
+                res[j] += term.get(j) * val;
             }
             if i + 1 < deg {
                 term = &term * &g;
                 term.coeffs.truncate(deg);
+                term.trim();
             }
         }
-        res
+        FormalPowerSeries::new(res)
     }
 
     fn naive_pow<M: Modulus>(
@@ -946,6 +1043,7 @@ mod tests {
         for _ in 0..k {
             res = &res * f;
             res.coeffs.truncate(deg);
+            res.trim();
         }
         res.prefix(deg)
     }
@@ -1031,13 +1129,7 @@ mod tests {
         let f = Fps::new(vec![Mint::new(1), Mint::new(1)]); // 1+x
         let pow_f = f.pow(2, 5); // k=2, 5次まで計算
 
-        let expected = vec![
-            Mint::new(1),
-            Mint::new(2),
-            Mint::new(1),
-            Mint::new(0),
-            Mint::new(0),
-        ];
+        let expected = vec![Mint::new(1), Mint::new(2), Mint::new(1)];
         assert_eq!(pow_f.coeffs, expected);
 
         // (1-x)^(-1) = 1 + x + x^2 + ...
@@ -1049,26 +1141,14 @@ mod tests {
         // f(x) = (2+x)^2 = 4 + 4x + x^2
         let f2 = Fps::new(vec![Mint::new(2), Mint::new(1)]); // 2+x
         let pow_f2 = f2.pow(2, 5); // k=2, 5次まで計算
-        let expected2 = vec![
-            Mint::new(4),
-            Mint::new(4),
-            Mint::new(1),
-            Mint::new(0),
-            Mint::new(0),
-        ];
+        let expected2 = vec![Mint::new(4), Mint::new(4), Mint::new(1)];
         assert_eq!(pow_f2.coeffs, expected2);
 
         // f(0) == 0 のケースは注意が必要
         // (x)^2 = x^2 ( deg は f(0) != 0 の場合と同じ)
         let f_zero_coeff = Fps::new(vec![Mint::new(0), Mint::new(1)]); // x
         let pow_f_zero_coeff = f_zero_coeff.pow(2, 5); // k=2, 5次まで計算
-        let expected_zero_coeff = vec![
-            Mint::new(0),
-            Mint::new(0),
-            Mint::new(1),
-            Mint::new(0),
-            Mint::new(0),
-        ];
+        let expected_zero_coeff = vec![Mint::new(0), Mint::new(0), Mint::new(1)];
         assert_eq!(pow_f_zero_coeff.coeffs, expected_zero_coeff);
 
         // f(0) == 0 で k=0
@@ -1339,13 +1419,11 @@ mod tests {
             let mut q = Fps::new(q_coeffs);
             let b = Fps::new(b_coeffs);
 
-            let mut b_eff = b.clone();
-            b_eff.trim();
-            if b_eff.coeffs.is_empty() {
+            if b.coeffs.is_empty() {
                 // 除式が実質的にゼロの場合はスキップ
                 continue;
             }
-            let m_eff = b_eff.coeff_len();
+            let m_eff = b.coeff_len();
 
             // 余り R (deg(R) < deg(B_eff)) をランダムに生成
             let r_len = rng.random_range(0..m_eff);
