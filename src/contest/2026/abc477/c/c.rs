@@ -1,12 +1,39 @@
 // 問題文と制約は読みましたか？
-// #[fastout]
+#[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        nq: usize,
+        source: Chars,
+        target: Chars,
+        qs: [(Usize1, Usize1); nq],
     }
-    let ans = -2_i64;
-    println!("{}", ans);
+
+    let begin = source.len() as i64 - target.len() as i64 + 1;
+    let begin = if begin < 0 { 0 } else { begin } as usize;
+
+    let target_idx = (0..begin)
+        .filter(|&i| source[i..i + target.len()] == target)
+        .collect::<BTreeSet<usize>>();
+
+    let ans = qs
+        .iter()
+        .copied()
+        .map(|(l, r)| {
+            let r2 = {
+                let r2 = r as i64 - target.len() as i64 + 2;
+                (if r2 < 0 { 0 } else { r2 }) as usize
+            };
+
+            if r2 < l {
+                return false;
+            }
+            target_idx.range(l..r2).next().is_some()
+        })
+        .collect_vec();
+
+    for p in ans {
+        println!("{}", if p { "Yes" } else { "No" });
+    }
 }
 
 #[cfg(test)]

@@ -2,10 +2,15 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        c: char,
     }
-    let ans = -2_i64;
+    let ans = if c == 'B' {
+        'Y'
+    } else if c == 'Y' {
+        'R'
+    } else {
+        'B'
+    };
     println!("{}", ans);
 }
 

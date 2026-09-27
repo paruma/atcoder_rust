@@ -2,11 +2,55 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        h: usize,
+        w: usize,
+        nq: usize,
+        lrs: [(Usize1, Usize1); h],
+        qs: [(Usize1, Usize1, Usize1, Usize1); nq],
     }
-    let ans = -2_i64;
-    println!("{}", ans);
+
+    // 半開区間にする
+
+    let qs = qs
+        .iter()
+        .copied()
+        .map(|(a, b, c, d)| (a, b + 1, c, d + 1))
+        .collect_vec();
+
+    let mut map = vec![HashMap::<usize, i64>::new(); h + 1];
+
+    for &(a, b, c, d) in &qs {
+        // 行       列
+        // [a, b) × [c, d)
+        map[a].insert(c, i64::MAX);
+        map[a].insert(d, i64::MAX);
+        map[b].insert(c, i64::MAX);
+        map[b].insert(d, i64::MAX);
+    }
+
+    let mut cnts = RangeAddRangeSumFenwickTree::from_slice(&vec![0; w]);
+
+    for (_x, cnt) in map[0].iter_mut() {
+        *cnt = 0;
+    }
+
+    for (y, (l, r)) in lrs.iter().copied().enumerate() {
+        cnts.range_add(l..=r, 1);
+        for (&x, cnt) in map[y + 1].iter_mut() {
+            *cnt = cnts.range_sum(..x);
+        }
+    }
+
+    let ans = qs
+        .iter()
+        .copied()
+        .map(|(a, b, c, d)| {
+            //
+            map[b][&d] - map[a][&d] - map[b][&c] + map[a][&c]
+        })
+        .collect_vec();
+
+    print_vec(&ans);
 }
 
 #[cfg(test)]
@@ -136,3 +180,585 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use ab_group::*;
+use range_add_range_sum_fenwick_tree::*;
+use range_sum_fenwick_tree::*;
+#[allow(clippy::module_inception)]
+pub mod range_sum_fenwick_tree {
+    use super::{AbGroup, AdditiveAbGroup};
+    use std::ops::{Bound, RangeBounds};
+    /// 可換群 (AbGroup) を用いた汎用的な Fenwick Tree (Binary Indexed Tree)。
+    ///
+    /// 0-indexed で実装されています。
+    ///
+    /// 基本的な加算・区間和クエリに加え、get/set や、二分探索 (max_right / min_left) を提供します。
+    #[derive(Clone)]
+    pub struct RangeSumFenwickTreeArbitrary<G: AbGroup> {
+        n: usize,
+        pub(crate) ary: Vec<G::S>,
+    }
+    /// i64 の加算群を用いた標準的な Fenwick Tree のエイリアス。
+    pub type RangeSumFenwickTreeI64 = RangeSumFenwickTreeArbitrary<AdditiveAbGroup<i64>>;
+    /// 任意の数値型 T の加算群を用いた Fenwick Tree のエイリアス。
+    pub type RangeSumFenwickTree<T> = RangeSumFenwickTreeArbitrary<AdditiveAbGroup<T>>;
+    pub type FenwickTree<T> = RangeSumFenwickTree<T>;
+    impl<G: AbGroup> RangeSumFenwickTreeArbitrary<G> {
+        /// サイズ `n` の Fenwick Tree を作成します。
+        ///
+        /// 要素はすべて `G::zero()` で初期化されます。
+        ///
+        /// # 計算量
+        /// O(n)
+        pub fn new(n: usize) -> Self {
+            let ary = vec![G::zero(); n];
+            RangeSumFenwickTreeArbitrary { n, ary }
+        }
+        /// 配列スライスから Fenwick Tree を作成します。
+        ///
+        /// # 計算量
+        /// O(n)
+        pub fn from_slice(slice: &[G::S]) -> Self {
+            let n = slice.len();
+            let mut ary = slice.to_vec();
+            for i in 0..n {
+                let j = i | (i + 1);
+                if j < n {
+                    let val_i = ary[i].clone();
+                    ary[j] = G::add(&ary[j], &val_i);
+                }
+            }
+            RangeSumFenwickTreeArbitrary { n, ary }
+        }
+        /// `[0, idx)` の区間の総和を計算します。
+        ///
+        /// # Panics
+        /// `idx > n` の場合にパニックします。
+        ///
+        /// # 計算量
+        /// O(log n)
+        pub fn prefix_sum(&self, mut idx: usize) -> G::S {
+            assert!(
+                idx <= self.n,
+                "RangeSumFenwickTreeArbitrary::prefix_sum: index out of bounds. idx: {}, n: {}",
+                idx,
+                self.n
+            );
+            let mut sum = G::zero();
+            while idx > 0 {
+                sum = G::add(&sum, &self.ary[idx - 1]);
+                idx &= idx - 1;
+            }
+            sum
+        }
+        /// `idx` 番目の要素に `val` を加算（群の演算を適用）します。
+        ///
+        /// # Panics
+        /// `idx >= n` の場合にパニックします。
+        ///
+        /// # 計算量
+        /// O(log n)
+        pub fn add(&mut self, mut idx: usize, val: G::S) {
+            assert!(
+                idx < self.n,
+                "RangeSumFenwickTreeArbitrary::add: index out of bounds. idx: {}, n: {}",
+                idx,
+                self.n
+            );
+            let n = self.n;
+            idx += 1;
+            while idx <= n {
+                self.ary[idx - 1] = G::add(&self.ary[idx - 1], &val);
+                idx += idx & idx.wrapping_neg();
+            }
+        }
+        fn resolve_range<R: RangeBounds<usize>>(&self, range: R) -> (usize, usize) {
+            let l = match range.start_bound() {
+                Bound::Included(&l) => l,
+                Bound::Excluded(&l) => l + 1,
+                Bound::Unbounded => 0,
+            };
+            let r = match range.end_bound() {
+                Bound::Included(&r) => r + 1,
+                Bound::Excluded(&r) => r,
+                Bound::Unbounded => self.n,
+            };
+            (l, r)
+        }
+        /// 指定された範囲の区間和を計算します。
+        ///
+        /// # Panics
+        /// 範囲が不正、または `n` を超える場合にパニックします。
+        ///
+        /// # 計算量
+        /// O(log n)
+        pub fn range_sum<R>(&self, range: R) -> G::S
+        where
+            R: RangeBounds<usize>,
+        {
+            let (l, r) = self.resolve_range(range);
+            assert!(
+                l <= r && r <= self.n,
+                "RangeSumFenwickTreeArbitrary::range_sum: invalid range. l: {}, r: {}, n: {}",
+                l,
+                r,
+                self.n
+            );
+            G::sub(&self.prefix_sum(r), &self.prefix_sum(l))
+        }
+        /// `l` を左端として、`f(sum(l..r))` が true になる最大の `r` を返します。
+        ///
+        /// # 前提条件
+        /// * `l <= n`
+        /// * `f(&G::zero())` が `true`
+        /// * `f` は単調である。
+        ///     * `f(sum(l..i))` が `true` => `f(sum(l..j))` が `true` for all `l <= j <= i`.
+        ///
+        /// # 計算量
+        /// O(log n)
+        pub fn max_right<F>(&self, l: usize, mut f: F) -> usize
+        where
+            F: FnMut(&G::S) -> bool,
+        {
+            assert!(
+                l <= self.n,
+                "RangeSumFenwickTreeArbitrary::max_right: index out of bounds. l: {}, n: {}",
+                l,
+                self.n
+            );
+            let zero = G::zero();
+            assert!(
+                f(&zero),
+                "RangeSumFenwickTreeArbitrary::max_right: The predicate f(zero) must be true."
+            );
+            let val_l = self.prefix_sum(l);
+            let mut r = 0;
+            let mut current_val = G::zero();
+            let mut k = if self.n == 0 {
+                0
+            } else {
+                1 << (usize::BITS - 1 - self.n.leading_zeros())
+            };
+            while k > 0 {
+                if r + k <= self.n {
+                    let next_val = G::add(&current_val, &self.ary[r + k - 1]);
+                    if r + k <= l || f(&G::sub(&next_val, &val_l)) {
+                        r += k;
+                        current_val = next_val;
+                    }
+                }
+                k >>= 1;
+            }
+            r
+        }
+        /// `r` を右端として、`f(sum(l..r))` が true になる最小の `l` を返します。
+        ///
+        /// # 前提条件
+        /// * `r <= n`
+        /// * `f(&G::zero())` が `true`
+        /// * `f` は単調である。
+        ///     * `f(sum(i..r))` が `true` => `f(sum(j..r))` が `true` for all `i <= j <= r`.
+        ///
+        /// # 計算量
+        /// O(log n)
+        pub fn min_left<F>(&self, r: usize, mut f: F) -> usize
+        where
+            F: FnMut(&G::S) -> bool,
+        {
+            assert!(
+                r <= self.n,
+                "RangeSumFenwickTreeArbitrary::min_left: index out of bounds. r: {}, n: {}",
+                r,
+                self.n
+            );
+            let zero = G::zero();
+            assert!(
+                f(&zero),
+                "RangeSumFenwickTreeArbitrary::min_left: The predicate f(zero) must be true."
+            );
+            let val_r = self.prefix_sum(r);
+            if f(&val_r) {
+                return 0;
+            }
+            let mut idx = 0;
+            let mut current_val = G::zero();
+            let mut k = if self.n == 0 {
+                0
+            } else {
+                1 << (usize::BITS - 1 - self.n.leading_zeros())
+            };
+            while k > 0 {
+                if idx + k <= r {
+                    let next_val = G::add(&current_val, &self.ary[idx + k - 1]);
+                    if !f(&G::sub(&val_r, &next_val)) {
+                        idx += k;
+                        current_val = next_val;
+                    }
+                }
+                k >>= 1;
+            }
+            idx + 1
+        }
+        /// `idx` 番目の要素の値を取得します。
+        ///
+        /// # Panics
+        /// `idx >= n` の場合にパニックします。
+        ///
+        /// # 計算量
+        /// O(log n)
+        pub fn get(&self, idx: usize) -> G::S {
+            assert!(
+                idx < self.n,
+                "RangeSumFenwickTreeArbitrary::get: index out of bounds. idx: {}, n: {}",
+                idx,
+                self.n
+            );
+            self.range_sum(idx..=idx)
+        }
+        /// `idx` 番目の要素の値を `val` に設定します。
+        ///
+        /// # Panics
+        /// `idx >= n` の場合にパニックします。
+        ///
+        /// # 計算量
+        /// O(log n)
+        pub fn set(&mut self, idx: usize, val: G::S) {
+            assert!(
+                idx < self.n,
+                "RangeSumFenwickTreeArbitrary::set: index out of bounds. idx: {}, n: {}",
+                idx,
+                self.n
+            );
+            let old_val = self.get(idx);
+            self.add(idx, G::sub(&val, &old_val));
+        }
+        /// Fenwick Tree の現在の状態を `Vec<G::S>` として返します。
+        ///
+        /// # 計算量
+        /// O(n log n)
+        pub fn to_vec(&self) -> Vec<G::S> {
+            (0..self.n).map(|i| self.get(i)).collect()
+        }
+        /// 保持している要素数を返します。
+        #[allow(clippy::len_without_is_empty)]
+        pub fn len(&self) -> usize {
+            self.n
+        }
+    }
+}
+#[allow(clippy::module_inception)]
+pub mod ab_group {
+    use std::{
+        convert::Infallible,
+        iter::Sum,
+        marker::PhantomData,
+        ops::{Add, Neg, Sub},
+    };
+    /// 可換群 (Abelian Group)
+    pub trait AbGroup {
+        type S: Clone;
+        fn zero() -> Self::S;
+        fn add(a: &Self::S, b: &Self::S) -> Self::S;
+        fn neg(a: &Self::S) -> Self::S;
+        fn sub(a: &Self::S, b: &Self::S) -> Self::S {
+            Self::add(a, &Self::neg(b))
+        }
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub struct AdditiveAbGroup<T>(Infallible, PhantomData<fn() -> T>);
+    impl<T: Sum + Add<Output = T> + Sub<Output = T> + Neg<Output = T> + Copy> AbGroup
+        for AdditiveAbGroup<T>
+    {
+        type S = T;
+        fn zero() -> Self::S {
+            std::iter::empty().sum()
+        }
+        fn add(a: &Self::S, b: &Self::S) -> Self::S {
+            *a + *b
+        }
+        fn neg(a: &Self::S) -> Self::S {
+            -(*a)
+        }
+        fn sub(a: &Self::S, b: &Self::S) -> Self::S {
+            *a - *b
+        }
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub struct XorAbGroup(Infallible);
+    impl AbGroup for XorAbGroup {
+        type S = u64;
+        fn zero() -> Self::S {
+            0
+        }
+        fn add(a: &Self::S, b: &Self::S) -> Self::S {
+            *a ^ *b
+        }
+        fn neg(a: &Self::S) -> Self::S {
+            *a
+        }
+        fn sub(a: &Self::S, b: &Self::S) -> Self::S {
+            *a ^ *b
+        }
+    }
+}
+#[allow(clippy::module_inception)]
+pub mod range_add_range_sum_fenwick_tree {
+    use super::RangeSumFenwickTree;
+    use std::iter::Sum;
+    use std::ops::{Add, Bound, Mul, Neg, RangeBounds, Sub};
+    fn zero<T: Sum>() -> T {
+        std::iter::empty::<T>().sum()
+    }
+    /// 任意の数値型 T に対して区間加算・区間和取得が可能な Fenwick Tree (Range Add Range Sum Fenwick Tree)。
+    #[derive(Clone)]
+    pub struct RangeAddRangeSumFenwickTree<T>
+    where
+        T: Copy + Add<Output = T> + Sub<Output = T> + Mul<i64, Output = T> + Neg<Output = T> + Sum,
+    {
+        n: usize,
+        ft0: RangeSumFenwickTree<T>,
+        ft1: RangeSumFenwickTree<T>,
+    }
+    /// i64 の加算群を用いた標準的な Range Add Range Sum Fenwick Tree のエイリアス。
+    pub type RangeAddRangeSumFenwickTreeI64 = RangeAddRangeSumFenwickTree<i64>;
+    impl<T> RangeAddRangeSumFenwickTree<T>
+    where
+        T: Copy + Add<Output = T> + Sub<Output = T> + Mul<i64, Output = T> + Neg<Output = T> + Sum,
+    {
+        /// サイズ `n` の Range Add Range Sum Fenwick Tree を作成します。
+        ///
+        /// # 計算量
+        /// O(n)
+        pub fn new(n: usize) -> Self {
+            RangeAddRangeSumFenwickTree {
+                n,
+                ft0: RangeSumFenwickTree::new(n + 1),
+                ft1: RangeSumFenwickTree::new(n + 1),
+            }
+        }
+        /// 配列のスライスから Range Add Range Sum Fenwick Tree を作成します。
+        ///
+        /// # 計算量
+        /// O(n)
+        pub fn from_slice(slice: &[T]) -> Self {
+            let n = slice.len();
+            let mut d = vec![zero(); n + 1];
+            let mut di = vec![zero(); n + 1];
+            if n > 0 {
+                d[0] = slice[0];
+                for i in 1..n {
+                    let val = slice[i] - slice[i - 1];
+                    d[i] = val;
+                    di[i] = val * (i as i64);
+                }
+                d[n] = -slice[n - 1];
+                di[n] = d[n] * (n as i64);
+            }
+            Self {
+                n,
+                ft0: RangeSumFenwickTree::from_slice(&d),
+                ft1: RangeSumFenwickTree::from_slice(&di),
+            }
+        }
+        /// 指定された範囲 `range` に `val` を加算します。
+        ///
+        /// # 計算量
+        /// O(log n)
+        pub fn range_add<R>(&mut self, range: R, val: T)
+        where
+            R: RangeBounds<usize>,
+        {
+            let (l, r) = self.resolve_range(range);
+            assert!(
+                l <= r && r <= self.n,
+                "RangeAddRangeSumFenwickTree::range_add: invalid range. l: {}, r: {}, n: {}",
+                l,
+                r,
+                self.n
+            );
+            self.ft0.add(l, val);
+            self.ft0.add(r, -val);
+            let l_val = val * (l as i64);
+            let r_val = (-val) * (r as i64);
+            self.ft1.add(l, l_val);
+            self.ft1.add(r, r_val);
+        }
+        /// `idx` 番目の要素に `val` を加算します。
+        ///
+        /// # 計算量
+        /// O(log n)
+        pub fn add(&mut self, idx: usize, val: T) {
+            self.range_add(idx..=idx, val);
+        }
+        /// `idx` 番目の要素の値を `val` に設定します。
+        ///
+        /// # 計算量
+        /// O(log n)
+        pub fn set(&mut self, idx: usize, val: T) {
+            let old = self.get(idx);
+            self.add(idx, val - old);
+        }
+        /// `[0, idx)` の区間和を計算します。
+        ///
+        /// # 計算量
+        /// O(log n)
+        pub fn prefix_sum(&self, idx: usize) -> T {
+            let sum0 = self.ft0.prefix_sum(idx);
+            let sum1 = self.ft1.prefix_sum(idx);
+            sum0 * (idx as i64) - sum1
+        }
+        /// 指定された範囲 `range` の区間和を計算します。
+        ///
+        /// # Panics
+        /// 範囲が不正な場合にパニックします。
+        ///
+        /// # 計算量
+        /// O(log n)
+        pub fn range_sum<R>(&self, range: R) -> T
+        where
+            R: RangeBounds<usize>,
+        {
+            let (l, r) = self.resolve_range(range);
+            assert!(
+                l <= r && r <= self.n,
+                "RangeAddRangeSumFenwickTree::range_sum: invalid range. l: {}, r: {}, n: {}",
+                l,
+                r,
+                self.n
+            );
+            self.prefix_sum(r) - self.prefix_sum(l)
+        }
+        fn resolve_range<R: RangeBounds<usize>>(&self, range: R) -> (usize, usize) {
+            let l = match range.start_bound() {
+                Bound::Included(&l) => l,
+                Bound::Excluded(&l) => l + 1,
+                Bound::Unbounded => 0,
+            };
+            let r = match range.end_bound() {
+                Bound::Included(&r) => r + 1,
+                Bound::Excluded(&r) => r,
+                Bound::Unbounded => self.n,
+            };
+            (l, r)
+        }
+        /// `p` 番目の要素を取得します。
+        ///
+        /// # 計算量
+        /// O(log n)
+        pub fn get(&self, p: usize) -> T {
+            self.range_sum(p..=p)
+        }
+        /// `l` を左端として、`f(sum(l..r))` が true になる最大の `r` を返します。
+        ///
+        /// # 前提条件
+        /// * `l <= n`
+        /// * `f(0)` が `true`
+        /// * `f` は単調である。
+        ///     * `f(sum(l..i))` が `true` => `f(sum(l..j))` が `true` for all `l <= j <= i`.
+        ///
+        /// # 計算量
+        /// O(log n)
+        pub fn max_right<F>(&self, l: usize, mut f: F) -> usize
+        where
+            F: FnMut(&T) -> bool,
+        {
+            assert!(
+                l <= self.n,
+                "RangeAddRangeSumFenwickTree::max_right: index out of bounds. l: {}, n: {}",
+                l,
+                self.n
+            );
+            assert!(
+                f(&zero()),
+                "RangeAddRangeSumFenwickTree::max_right: The predicate f(0) must be true."
+            );
+            let val_l = self.prefix_sum(l);
+            let mut r = 0;
+            let mut sum0: T = zero();
+            let mut sum1: T = zero();
+            let mut k = if self.n + 1 == 0 {
+                0
+            } else {
+                1 << (usize::BITS - 1 - (self.n + 1).leading_zeros())
+            };
+            while k > 0 {
+                if r + k <= self.n {
+                    let next_sum0 = sum0 + self.ft0.ary[r + k - 1];
+                    let next_sum1 = sum1 + self.ft1.ary[r + k - 1];
+                    let total_sum = next_sum0 * ((r + k) as i64) - next_sum1;
+                    let current_range_sum = total_sum - val_l;
+                    if r + k <= l || f(&current_range_sum) {
+                        r += k;
+                        sum0 = next_sum0;
+                        sum1 = next_sum1;
+                    }
+                }
+                k >>= 1;
+            }
+            r
+        }
+        /// `r` を右端として、`f(sum(l..r))` が true になる最小の `l` を返します。
+        ///
+        /// # 前提条件
+        /// * `r <= n`
+        /// * `f(0)` が `true`
+        /// * `f` は単調である。
+        ///     * `f(sum(i..r))` が `true` => `f(sum(j..r))` が `true` for all `i <= j <= r`.
+        ///
+        /// # 計算量
+        /// O(log n)
+        pub fn min_left<F>(&self, r: usize, mut f: F) -> usize
+        where
+            F: FnMut(&T) -> bool,
+        {
+            assert!(
+                r <= self.n,
+                "RangeAddRangeSumFenwickTree::min_left: index out of bounds. r: {}, n: {}",
+                r,
+                self.n
+            );
+            assert!(
+                f(&zero()),
+                "RangeAddRangeSumFenwickTree::min_left: The predicate f(0) must be true."
+            );
+            let val_r = self.prefix_sum(r);
+            if f(&val_r) {
+                return 0;
+            }
+            let mut idx = 0;
+            let mut sum0: T = zero();
+            let mut sum1: T = zero();
+            let mut k = if self.n + 1 == 0 {
+                0
+            } else {
+                1 << (usize::BITS - 1 - (self.n + 1).leading_zeros())
+            };
+            while k > 0 {
+                if idx + k <= r {
+                    let next_sum0 = sum0 + self.ft0.ary[idx + k - 1];
+                    let next_sum1 = sum1 + self.ft1.ary[idx + k - 1];
+                    let total_sum = next_sum0 * ((idx + k) as i64) - next_sum1;
+                    let current_range_sum = val_r - total_sum;
+                    if !f(&current_range_sum) {
+                        idx += k;
+                        sum0 = next_sum0;
+                        sum1 = next_sum1;
+                    }
+                }
+                k >>= 1;
+            }
+            idx + 1
+        }
+        /// 現在の状態を `Vec<T>` として返します。
+        ///
+        /// # 計算量
+        /// O(n log n)
+        pub fn to_vec(&self) -> Vec<T> {
+            (0..self.n).map(|i| self.get(i)).collect()
+        }
+        /// 保持している要素数を返します。
+        #[allow(clippy::len_without_is_empty)]
+        pub fn len(&self) -> usize {
+            self.n
+        }
+    }
+}

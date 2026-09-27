@@ -3,10 +3,20 @@
 fn main() {
     input! {
         n: usize,
+        d: i64,
         xs: [i64; n],
     }
-    let ans = -2_i64;
-    println!("{}", ans);
+    let ans = (0..n)
+        .filter(|&i| {
+            //
+            (0..n)
+                .filter(|&j| j != i)
+                .all(|j| (xs[j] - xs[i]).abs() >= d)
+        })
+        .map(|i| i + 1)
+        .collect_vec();
+    println!("{}", ans.len());
+    print_vec_1line(&ans);
 }
 
 #[cfg(test)]
