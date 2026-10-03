@@ -8,10 +8,7 @@ fn main() {
         qs: [(Usize1, Usize1); nq],
     }
 
-    let begin = source.len() as i64 - target.len() as i64 + 1;
-    let begin = if begin < 0 { 0 } else { begin } as usize;
-
-    let target_idx = (0..begin)
+    let target_idx = (0..(source.len() + 1).saturating_sub(target.len()))
         .filter(|&i| source[i..i + target.len()] == target)
         .collect::<BTreeSet<usize>>();
 
@@ -19,11 +16,8 @@ fn main() {
         .iter()
         .copied()
         .map(|(l, r)| {
-            let r2 = {
-                let r2 = r as i64 - target.len() as i64 + 2;
-                (if r2 < 0 { 0 } else { r2 }) as usize
-            };
-
+            // 閉区間だと [0, -1] みたいなのが usize で表せないので、半開区間で表す
+            let r2 = (r + 2).saturating_sub(target.len());
             if r2 < l {
                 return false;
             }
