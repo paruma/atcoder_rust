@@ -1,38 +1,41 @@
-// 問題文と制約は読みましたか？
-// #[fastout]
+// 区間スケジューリング問題に帰着させる
+
+fn interval_schedule(lrs: &[(usize, usize)]) -> usize {
+    let lrs = lrs.iter().copied().sorted_by_key(|&(l, r)| r).collect_vec();
+
+    let mut cur = 0;
+
+    let mut cnt = 0;
+    for (l, r) in lrs {
+        if cur <= l {
+            cur = r;
+            cnt += 1;
+        }
+    }
+    cnt
+}
+
 fn main() {
     input! {
         n: usize,
         k: i64,
         xs: [i64; n],
     }
+    let psum = prefix_sum(&xs).iter().copied().map(|s| s % k).collect_vec();
 
-    let mut dp = vec![NEG_INF; n];
-    let cumsum = prefix_sum(&xs);
+    let map = psum
+        .iter()
+        .copied()
+        .enumerate()
+        .map(|(i, s)| (s, i))
+        .into_group_map();
 
-    dp[0] = fin((xs[0] % k == 0) as i64);
-    let mut max = dp[0];
+    let lrs: Vec<(usize, usize)> = map
+        .values()
+        .flat_map(|is| is.iter().copied().tuple_windows())
+        .collect_vec();
 
-    let mut map: HashMap<i64, BTreeSet<NegExtInt>> = HashMap::new();
-    map.entry(cumsum[1] % k).or_default().insert(dp[0]);
-
-    for i in 1..n {
-        let term1 = map
-            .get(&(cumsum[i + 1] % k))
-            .and_then(|set| set.iter().max().copied())
-            .unwrap_or(NEG_INF)
-            + fin(1);
-
-        let term2 = max;
-        let term3 = fin(((cumsum[i + 1] % k) == 0) as i64);
-
-        dp[i] = term1.max(term2).max(term3);
-
-        map.entry(cumsum[i + 1] % k).or_default().insert(dp[i]);
-        max = max.max(dp[i]);
-    }
-
-    let ans: i64 = dp[n - 1].get_fin();
+    let ans = interval_schedule(&lrs);
     println!("{}", ans);
 }
 
