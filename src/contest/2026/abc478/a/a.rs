@@ -3,10 +3,15 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        m: usize,
     }
-    let ans = -2_i64;
-    println!("{}", ans);
+
+    let mut xs = vec![0; n];
+
+    for i in 0..m {
+        xs[i % n] += 1;
+    }
+    print_vec(&xs);
 }
 
 #[cfg(test)]

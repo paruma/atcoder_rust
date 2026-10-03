@@ -3,9 +3,41 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        qs: [Usize1; n],
     }
-    let ans = -2_i64;
+
+    use ac_library::ModInt998244353 as Mint;
+
+    let mut ans = Mint::new(1);
+    let mut max = 0;
+
+    let mut stack: Stack<usize> = Stack::new();
+
+    for (i, q) in qs.iter().copied().enumerate() {
+        dbg!(&stack);
+
+        if q >= max {
+            let sub = i.max(1);
+            dbg!(sub);
+            ans *= sub;
+        } else {
+            let stack_len = stack.len();
+            let sub = stack_len.max(1);
+            dbg!(sub);
+            ans *= sub;
+        }
+
+        max = max.max(q);
+
+        while let Some(top) = stack.peek().copied() {
+            if top < q {
+                stack.pop();
+            } else {
+                break;
+            }
+        }
+        stack.push(q);
+    }
     println!("{}", ans);
 }
 
@@ -136,3 +168,35 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+use mod_stack::*;
+pub mod mod_stack {
+    #[derive(Clone, Debug, PartialEq, Eq, Hash)]
+    pub struct Stack<T> {
+        raw: Vec<T>,
+    }
+    impl<T> Stack<T> {
+        pub fn new() -> Self {
+            Stack { raw: Vec::new() }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push(value)
+        }
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop()
+        }
+        pub fn peek(&self) -> Option<&T> {
+            self.raw.last()
+        }
+        pub fn is_empty(&self) -> bool {
+            self.raw.is_empty()
+        }
+        pub fn len(&self) -> usize {
+            self.raw.len()
+        }
+    }
+    impl<T> Default for Stack<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+}

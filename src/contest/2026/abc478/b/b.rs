@@ -3,9 +3,17 @@
 fn main() {
     input! {
         n: usize,
+        v: usize,
         xs: [i64; n],
     }
-    let ans = -2_i64;
+    let ans = xs
+        .iter()
+        .copied()
+        .enumerate()
+        .tuple_combinations()
+        .filter_map(|(a, b, c)| (a.0 + b.0 + c.0 + 3 <= v).then_some(a.1 + b.1 + c.1))
+        .max()
+        .unwrap();
     println!("{}", ans);
 }
 
