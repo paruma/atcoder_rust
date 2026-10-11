@@ -3,9 +3,15 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        xs: Chars,
     }
-    let ans = -2_i64;
+    let ans = xs
+        .iter()
+        .copied()
+        .dedup_with_count()
+        .filter_map(|(cnt, ch)| (ch == 'R').then_some(cnt))
+        .max()
+        .unwrap_or(0);
     println!("{}", ans);
 }
 

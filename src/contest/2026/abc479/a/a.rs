@@ -5,7 +5,7 @@ fn main() {
         n: usize,
         xs: [i64; n],
     }
-    let ans = -2_i64;
+    let ans = (0..n).filter(|i| i % 2 == 0).map(|i| xs[i]).sum::<i64>();
     println!("{}", ans);
 }
 

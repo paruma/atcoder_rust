@@ -3,9 +3,20 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        w: i64,
+        abs: [(i64, i64); n],
     }
-    let ans = -2_i64;
+    let ans = abs
+        .iter()
+        .copied()
+        .powerset()
+        .filter_map(|set| {
+            let b_sum = set.iter().copied().map(|(_a, b)| b).sum::<i64>();
+            let a_sum = set.iter().copied().map(|(a, _b)| a).sum::<i64>();
+            (b_sum <= w).then_some(a_sum)
+        })
+        .max()
+        .unwrap();
     println!("{}", ans);
 }
 
