@@ -1343,3 +1343,32 @@ path = "abc478/f/f.rs"
 [[bin]]
 name = "abc478_g"
 path = "abc478/g/g.rs"
+
+[[bin]]
+name = "abc479_a"
+path = "abc479/a/a.rs"
+        
+[[bin]]
+name = "abc479_b"
+path = "abc479/b/b.rs"
+        
+[[bin]]
+name = "abc479_c"
+path = "abc479/c/c.rs"
+        
+[[bin]]
+name = "abc479_d"
+path = "abc479/d/d.rs"
+        
+[[bin]]
+name = "abc479_e"
+path = "abc479/e/e.rs"
+        
+[[bin]]
+name = "abc479_f"
+path = "abc479/f/f.rs"
+        
+[[bin]]
+name = "abc479_g"
+path = "abc479/g/g.rs"
+        
