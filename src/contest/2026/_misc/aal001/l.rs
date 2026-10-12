@@ -49,11 +49,13 @@ pub mod map_monoid_template {
             [0, 1, 2].map(|i| x[f.swap[i]] + f.add[i])
         }
         fn composition(f: &Self::F, g: &Self::F) -> Self::F {
-            let swap = [0, 1, 2].map(|i| f.swap[g.swap[i]]);
+            // ここ逆にしてた。f ∘ g の順番だけど、swapは g ∘ f の順番になる。
+            // mapping の実装をもとに式を書き下すとわかる
+            let swap = [0, 1, 2].map(|i| g.swap[f.swap[i]]);
             let mut add0 = [NegExtInt::fin(0), NegExtInt::fin(0), NegExtInt::fin(0)];
             for i in 0..3 {
-                add0[f.swap[i]] = g.add[i];
-                // add0[i] = g.add[f.swap[i]];
+                // add0[f.swap[i]] = g.add[i];
+                add0[i] = g.add[f.swap[i]];
             }
             let add = [0, 1, 2].map(|i| add0[i] + f.add[i]);
             Func { swap, add }

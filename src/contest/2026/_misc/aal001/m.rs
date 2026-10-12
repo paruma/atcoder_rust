@@ -31,6 +31,7 @@ pub mod monoid_template {
             }
         }
         fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            let (a, b) = (b, a); // 合成順序が逆
             let a0set = BitSet::new(a.ans0);
             let a1set = BitSet::new(a.ans1);
             let b0set = BitSet::new(b.ans0);
@@ -101,7 +102,6 @@ fn main() {
                 l: Usize1,
                 r: Usize1,
             }
-            // todo: l == r の場合のケア
             let xl = seg.get(l).ans1 ^ 0b_11111_11111_11111_11111_11111_11111;
 
             if l == r {
