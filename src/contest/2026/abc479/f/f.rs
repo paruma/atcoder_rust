@@ -25,24 +25,55 @@ fn main() {
 
     let pinvq = mul_of_permutation(&inv_of_permutation(&ps), qs.clone());
 
-    let mut ft = RangeSumFenwickTreeI64::new(n);
-    let mut invs = vec![0; n];
+    let ss = ps.iter().copied().map(|i| ss[i]).collect_vec();
+    let ts = ps.iter().copied().map(|i| ts[i]).collect_vec();
+    let qs = pinvq;
+    let qs_inv = inv_of_permutation(&qs);
 
-    for i in 0..n {
-        invs[i] = ft.range_sum(pinvq[i]..);
-        ft.add(pinvq[i], 1);
-    }
+    // swap で右に行く回数
+    let cnt_right = {
+        let mut ft = RangeSumFenwickTreeI64::new(n);
+        let mut invs = vec![0; n];
 
-    lg!(&invs);
-    lg!(&pinvq);
+        for i in (0..n).rev() {
+            invs[i] = ft.range_sum(..qs_inv[i]);
+            ft.add(qs_inv[i], 1);
+        }
+        invs
+    };
 
-    let ss = ss.iter().copied().sorted().collect_vec();
+    // swap で左に行く回数
+    let cnt_left = {
+        let mut ft = RangeSumFenwickTreeI64::new(n);
+        let mut invs = vec![0; n];
 
-    lg!((0..n).map(|i| ts[pinvq[i]]).collect_vec());
+        for i in 0..n {
+            invs[i] = ft.range_sum(qs_inv[i]..);
+            ft.add(qs_inv[i], 1);
+        }
+        invs
+    };
 
-    let ans = (0..n)
-        .map(|i| dbg!(((ss[i] + invs[pinvq[i]]) - ts[pinvq[i]]).abs()))
+    // 移動回数
+    let term1 = (0..n)
+        .map(|i| {
+            let src = ss[i] + cnt_right[i] - cnt_left[i];
+            let dst = ts[i];
+            (src - dst).abs()
+        })
         .sum::<i64>();
+
+    // lg!(&qs);
+    // lg!(&qs_inv);
+    // lg!(&cnt_right);
+    // lg!(&cnt_left);
+    // lg!(&ss);
+    // lg!(&ts);
+
+    // 交換回数
+    let term2 = cnt_right.iter().sum::<i64>();
+
+    let ans = term1 + term2;
 
     println!("{}", ans);
 }
@@ -174,7 +205,7 @@ pub mod print_util {
 }
 
 // ====== snippet ======
-use symmetric_group::*;
+use {num::Signed, symmetric_group::*};
 #[allow(clippy::module_inception)]
 pub mod symmetric_group {
     /// 置換を巡回置換の積で表したときの巡回置換のリストを返す。
