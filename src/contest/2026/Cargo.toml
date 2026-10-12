@@ -1347,28 +1347,81 @@ path = "abc478/g/g.rs"
 [[bin]]
 name = "abc479_a"
 path = "abc479/a/a.rs"
-        
+
 [[bin]]
 name = "abc479_b"
 path = "abc479/b/b.rs"
-        
+
 [[bin]]
 name = "abc479_c"
 path = "abc479/c/c.rs"
-        
+
 [[bin]]
 name = "abc479_d"
 path = "abc479/d/d.rs"
-        
+
 [[bin]]
 name = "abc479_e"
 path = "abc479/e/e.rs"
-        
+
 [[bin]]
 name = "abc479_f"
 path = "abc479/f/f.rs"
-        
+
 [[bin]]
 name = "abc479_g"
 path = "abc479/g/g.rs"
-        
+
+
+[[bin]]
+name = "aal001_a"
+path = "_misc/aal001/a.rs"
+
+[[bin]]
+name = "aal001_b"
+path = "_misc/aal001/b.rs"
+
+[[bin]]
+name = "aal001_c"
+path = "_misc/aal001/c.rs"
+
+[[bin]]
+name = "aal001_d"
+path = "_misc/aal001/d.rs"
+
+[[bin]]
+name = "aal001_e"
+path = "_misc/aal001/e.rs"
+
+[[bin]]
+name = "aal001_f"
+path = "_misc/aal001/f.rs"
+
+[[bin]]
+name = "aal001_g"
+path = "_misc/aal001/g.rs"
+
+[[bin]]
+name = "aal001_h"
+path = "_misc/aal001/h.rs"
+
+[[bin]]
+name = "aal001_i"
+path = "_misc/aal001/i.rs"
+
+
+[[bin]]
+name = "aal001_j"
+path = "_misc/aal001/j.rs"
+
+[[bin]]
+name = "aal001_k"
+path = "_misc/aal001/k.rs"
+
+[[bin]]
+name = "aal001_l"
+path = "_misc/aal001/l.rs"
+
+[[bin]]
+name = "aal001_m"
+path = "_misc/aal001/m.rs"
