@@ -18,7 +18,7 @@ members = [
 
 # スニペット用(AtCoderでは使えない)
 # 参考: Rustで競技プログラミングをするときの"スニペット管理"をまじめに考える(cargo-snippetの紹介) - Qiita https://qiita.com/hatoo@github/items/5c6814e72ddd2ecaf48f
-cargo-snippet = "0.6.5"
+cargo-snippet = { git = "https://github.com/paruma/cargo-snippet.git", rev = "b3e7998cb1f71c83990c9447c4a1f485cfad47ad" }
 
 # AtCoder でつかうライブラリ
 # ライブラリの説明(2025/10): https://github.com/rust-lang-ja/atcoder-rust-resources/wiki/Nov-2024-Language-Update-%E3%83%A9%E3%82%A4%E3%83%96%E3%83%A9%E3%83%AA%E6%A1%88

@@ -246,9 +246,8 @@ dependencies = [
 
 [[package]]
 name = "cargo-snippet"
-version = "0.6.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b5d683f04783a882180b7cd232a4e5cb2d01b305e145968e6062a71f66d5ead"
+version = "0.6.6"
+source = "git+https://github.com/paruma/cargo-snippet.git?rev=b3e7998cb1f71c83990c9447c4a1f485cfad47ad#b3e7998cb1f71c83990c9447c4a1f485cfad47ad"
 
 [[package]]
 name = "cfg-if"
