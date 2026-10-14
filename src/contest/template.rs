@@ -136,3 +136,5 @@ pub mod print_util {
 }
 
 // ====== snippet ======
+// 使用したテンプレート・スニペットの公開元:
+// https://github.com/paruma/atcoder_rust

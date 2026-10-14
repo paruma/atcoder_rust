@@ -197,3 +197,5 @@ macro_rules! println_flush {
 }
 
 // ====== snippet ======
+// 使用したテンプレート・スニペットの公開元:
+// https://github.com/paruma/atcoder_rust
