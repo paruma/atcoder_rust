@@ -247,7 +247,7 @@ dependencies = [
 [[package]]
 name = "cargo-snippet"
 version = "0.6.7"
-source = "git+https://github.com/paruma/cargo-snippet.git?tag=v0.6.7#3aefffcf3782a1921923f2b8a4288d4e49647407"
+source = "git+https://github.com/paruma/cargo-snippet.git?tag=v0.6.7#0d967aabef06f94ce68978f557a6d88662b193b1"
 
 [[package]]
 name = "cfg-if"
