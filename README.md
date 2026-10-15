@@ -2,6 +2,10 @@
 
 https://atcoder.jp/users/paruma184
 
+## ライセンス
+
+このリポジトリは [CC0-1.0](LICENSE) で提供します。
+
 ## スニペットの更新
 
 
