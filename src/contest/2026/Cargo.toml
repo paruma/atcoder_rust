@@ -1425,3 +1425,31 @@ path = "_misc/aal001/l.rs"
 [[bin]]
 name = "aal001_m"
 path = "_misc/aal001/m.rs"
+
+[[bin]]
+name = "abc480_a"
+path = "abc480/a/a.rs"
+
+[[bin]]
+name = "abc480_b"
+path = "abc480/b/b.rs"
+
+[[bin]]
+name = "abc480_c"
+path = "abc480/c/c.rs"
+
+[[bin]]
+name = "abc480_d"
+path = "abc480/d/d.rs"
+
+[[bin]]
+name = "abc480_e"
+path = "abc480/e/e.rs"
+
+[[bin]]
+name = "abc480_f"
+path = "abc480/f/f.rs"
+
+[[bin]]
+name = "abc480_g"
+path = "abc480/g/g.rs"
