@@ -12,4 +12,3 @@ pub mod graph;
 pub mod lowlink;
 pub mod topo_sort;
 pub mod tree;
-pub mod tree_diameter;
