@@ -79,10 +79,11 @@ pub fn tree_diameter(edges: &[(usize, usize, i64)]) -> (i64, Vec<usize>) {
 ///
 /// # 計算量
 /// O(V) (V は頂点数)
-pub fn tree_diameter_no_weight(edges: &[(usize, usize)]) -> (i64, Vec<usize>) {
+pub fn tree_diameter_no_weight(edges: &[(usize, usize)]) -> (usize, Vec<usize>) {
     let edges: Vec<(usize, usize, i64)> = edges.iter().copied().map(|(u, v)| (u, v, 1)).collect();
 
-    tree_diameter(&edges)
+    let (diam_len, diam_path) = tree_diameter(&edges);
+    (diam_len as usize, diam_path)
 }
 
 #[cfg(test)]
