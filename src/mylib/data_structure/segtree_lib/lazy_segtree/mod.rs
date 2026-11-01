@@ -27,6 +27,7 @@
 //! - `two_sequence_range_affine_range_sum_of_quadratic`: 2変数アフィン変換 / $\sum xy, \sum x^2, \sum y^2, \sum x, \sum y$
 
 use cargo_snippet::snippet;
+pub mod lazy_segtree_utils;
 pub mod map_monoid_template;
 pub mod range_add_range_max;
 pub mod range_add_range_min;
