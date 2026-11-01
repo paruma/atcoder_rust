@@ -15,6 +15,7 @@ where
 ///
 /// `len` にはセグメント木の要素数を指定する。
 ///
+/// 各区間の値は、単一要素の区間も含めて `prod` で取得する。
 /// 葉の数は2の冪に切り上げ、実データを含まない区間は `*` と表示する。
 ///
 /// 値は `Debug` の整形表示を使い、構造体はフィールドごとに改行する。
@@ -59,29 +60,20 @@ where
     let leaf_count = len.next_power_of_two();
 
     // 集約値と実データの有無から、各ノードの表示内容を決める。
-    let labels: Vec<_> = {
-        let mut node_values = vec![M::identity(); 2 * leaf_count];
-        let mut has_value = vec![false; 2 * leaf_count];
-        for i in 0..len {
-            node_values[leaf_count + i] = seg.get(i);
-            has_value[leaf_count + i] = true;
-        }
-        for i in (1..leaf_count).rev() {
-            node_values[i] = M::binary_operation(&node_values[2 * i], &node_values[2 * i + 1]);
-            has_value[i] = has_value[2 * i] || has_value[2 * i + 1];
-        }
-        node_values
-            .iter()
-            .zip(&has_value)
-            .map(|(value, &present)| {
-                if present {
-                    format!("{value:#?}")
-                } else {
-                    "*".to_string()
-                }
-            })
-            .collect()
-    };
+    // 葉も prod で取得し、単位元がクエリ結果に与える影響を表示に反映する。
+    let labels: Vec<_> = std::iter::once("*".to_string())
+        .chain((1..2 * leaf_count).map(|node_index| {
+            let level_start = 1usize << node_index.ilog2();
+            let interval_len = leaf_count / level_start;
+            let start = (node_index - level_start) * interval_len;
+            let end = (start + interval_len).min(len);
+            if start < len {
+                format!("{:#?}", seg.prod(start..end))
+            } else {
+                "*".to_string()
+            }
+        }))
+        .collect();
 
     // 行と幅をまとめて扱い、複数行のインデントを保つ。
     let blocks: Vec<_> = labels
@@ -174,6 +166,34 @@ mod test_segtree_debug {
     }
 
     #[test]
+    fn test_incorrect_identity_affects_queries() {
+        enum IncorrectMax {}
+        impl ac_library::Monoid for IncorrectMax {
+            type S = i64;
+
+            fn identity() -> i64 {
+                0 // 負の値に対して単位元にならない、意図的な誤実装。
+            }
+
+            fn binary_operation(a: &i64, b: &i64) -> i64 {
+                (*a).max(*b)
+            }
+        }
+
+        let seg = Segtree::<IncorrectMax>::from(vec![-5, -2, -3]);
+        assert_eq!(seg.get(0), -5);
+        assert_eq!(seg.prod(0..1), 0);
+        assert_eq!(
+            segtree_debug_string(&seg, 3),
+            concat!(
+                "|       0       |\n",
+                "|   0   |   0   |\n",
+                "| 0 | 0 | 0 | * |\n",
+            )
+        );
+    }
+
+    #[test]
     fn test_wide_integers_centered() {
         let seg = Segtree::<Additive<i64>>::from(vec![1, 100000000]);
         assert_eq!(
@@ -216,6 +236,61 @@ mod test_segtree_debug {
                 "|       0       |       0       |       0       |       0       |\n",
                 "|   0   |   0   |   0   |   0   |   0   |   0   |   0   |   *   |\n",
                 "| 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | * | * | * |\n",
+            )
+        );
+    }
+
+    #[test]
+    fn test_enum_variants_with_different_heights() {
+        #[derive(Clone, Debug)]
+        enum Value {
+            Empty,
+            Single(i64),
+            Data { sum: i64, len: usize },
+        }
+
+        enum LastNonEmpty {}
+
+        impl ac_library::Monoid for LastNonEmpty {
+            type S = Value;
+
+            fn identity() -> Value {
+                Value::Empty
+            }
+
+            fn binary_operation(a: &Value, b: &Value) -> Value {
+                match b {
+                    Value::Empty => a.clone(),
+                    Value::Single(value) => Value::Single(*value),
+                    Value::Data { sum, len } => Value::Data {
+                        sum: *sum,
+                        len: *len,
+                    },
+                }
+            }
+        }
+
+        let seg = Segtree::<LastNonEmpty>::from(vec![
+            Value::Empty,
+            Value::Single(7),
+            Value::Data { sum: 30, len: 2 },
+            Value::Empty,
+        ]);
+        assert_eq!(
+            segtree_debug_string(&seg, 4),
+            concat!(
+                "|                       Data {                              |\n",
+                "|                           sum: 30,                        |\n",
+                "|                           len: 2,                         |\n",
+                "|                       }                                   |\n",
+                "|           Single(           |        Data {               |\n",
+                "|               7,            |            sum: 30,         |\n",
+                "|           )                 |            len: 2,          |\n",
+                "|                             |        }                    |\n",
+                "|    Empty     |   Single(    | Data {       |    Empty     |\n",
+                "|              |       7,     |     sum: 30, |              |\n",
+                "|              |   )          |     len: 2,  |              |\n",
+                "|              |              | }            |              |\n",
             )
         );
     }
