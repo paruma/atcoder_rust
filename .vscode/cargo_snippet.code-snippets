@@ -11482,6 +11482,7 @@
     "body": [
       "use lg::*;",
       "// https://github.com/ngtkana/ac-adapter-rs/blob/main/libs/lg/src/lib.rs",
+      "#[allow(clippy::module_inception)]",
       "pub mod lg {",
       "    use std::borrow::Borrow;",
       "    use std::fmt;",

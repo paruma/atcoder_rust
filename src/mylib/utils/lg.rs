@@ -1,6 +1,7 @@
 use cargo_snippet::snippet;
 
 // https://github.com/ngtkana/ac-adapter-rs/blob/main/libs/lg/src/lib.rs
+#[allow(clippy::module_inception)]
 #[snippet(prefix = "use lg::*;")]
 pub mod lg {
     use std::borrow::Borrow;

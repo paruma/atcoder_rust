@@ -1,5 +1,5 @@
 pub mod chminmax;
-pub mod debug;
+pub mod lg;
 pub mod digits_io;
 pub mod io;
 pub mod myiter;
