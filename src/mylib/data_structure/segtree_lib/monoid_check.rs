@@ -314,12 +314,11 @@ mod tests {
         assert_eq!(error.rhs, "-3");
         assert_eq!(
             error.to_string(),
-            concat!(
-                "違反: op(e, x) == x\n",
-                "e = 0, x = -3\n",
-                "左辺: 0\n",
-                "右辺: -3",
-            )
+            "\
+違反: op(e, x) == x
+e = 0, x = -3
+左辺: 0
+右辺: -3"
         );
     }
 

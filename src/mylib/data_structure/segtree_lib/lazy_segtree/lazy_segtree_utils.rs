@@ -53,11 +53,11 @@ mod tests {
         seg.apply_range(0..2, AddAction::new(100));
         assert_eq!(
             lazy_segtree_debug_string(&mut seg, 4),
-            concat!(
-                "|          112          |\n",
-                "|    112    |    14     |\n",
-                "| 111 | 112 | 13  | 14  |\n",
-            )
+            "\
+|          112          |
+|    112    |    14     |
+| 111 | 112 | 13  | 14  |
+"
         );
         assert_eq!(seg.prod(..), 112);
         seg.apply_range(.., AddAction::new(1));
@@ -72,7 +72,12 @@ mod tests {
         assert_eq!(lazy_segtree_debug_string(&mut empty, 0), "");
         let mut single = LazySegtree::<RangeAddRangeMax<i64>>::from(vec![0]);
         single.apply_range(.., AddAction::new(-12));
-        assert_eq!(lazy_segtree_debug_string(&mut single, 1), "| -12 |\n");
+        assert_eq!(
+            lazy_segtree_debug_string(&mut single, 1),
+            "\
+| -12 |
+"
+        );
     }
     #[test]
     fn test_struct_composition_and_padding() {
@@ -94,20 +99,20 @@ mod tests {
         );
         assert_eq!(
             lazy_segtree_debug_string(&mut seg, 3),
-            concat!(
-                "|                       RangeSum {                          |\n",
-                "|                           sum: 57,                        |\n",
-                "|                           len: 3,                         |\n",
-                "|                       }                                   |\n",
-                "|        RangeSum {           |        RangeSum {           |\n",
-                "|            sum: 32,         |            sum: 25,         |\n",
-                "|            len: 2,          |            len: 1,          |\n",
-                "|        }                    |        }                    |\n",
-                "| RangeSum {   | RangeSum {   | RangeSum {   |      *       |\n",
-                "|     sum: 13, |     sum: 19, |     sum: 25, |              |\n",
-                "|     len: 1,  |     len: 1,  |     len: 1,  |              |\n",
-                "| }            | }            | }            |              |\n",
-            )
+            "\
+|                       RangeSum {                          |
+|                           sum: 57,                        |
+|                           len: 3,                         |
+|                       }                                   |
+|        RangeSum {           |        RangeSum {           |
+|            sum: 32,         |            sum: 25,         |
+|            len: 2,          |            len: 1,          |
+|        }                    |        }                    |
+| RangeSum {   | RangeSum {   | RangeSum {   |      *       |
+|     sum: 13, |     sum: 19, |     sum: 25, |              |
+|     len: 1,  |     len: 1,  |     len: 1,  |              |
+| }            | }            | }            |              |
+"
         );
         assert_eq!(seg.all_prod(), RangeSum { sum: 57, len: 3 });
     }

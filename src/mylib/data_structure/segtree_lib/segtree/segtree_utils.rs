@@ -156,11 +156,11 @@ mod test_segtree_debug {
         let seg = Segtree::<Additive<i64>>::from(vec![1, 2, 3, 4]);
         assert_eq!(
             segtree_debug_string(&seg, 4),
-            concat!(
-                "|        10         |\n",
-                "|    3    |    7    |\n",
-                "| 1  | 2  | 3  | 4  |\n",
-            )
+            "\
+|        10         |
+|    3    |    7    |
+| 1  | 2  | 3  | 4  |
+"
         );
         segtree_debug(&seg, 4);
     }
@@ -185,11 +185,11 @@ mod test_segtree_debug {
         assert_eq!(seg.prod(0..1), 0);
         assert_eq!(
             segtree_debug_string(&seg, 3),
-            concat!(
-                "|       0       |\n",
-                "|   0   |   0   |\n",
-                "| 0 | 0 | 0 | * |\n",
-            )
+            "\
+|       0       |
+|   0   |   0   |
+| 0 | 0 | 0 | * |
+"
         );
     }
 
@@ -198,7 +198,10 @@ mod test_segtree_debug {
         let seg = Segtree::<Additive<i64>>::from(vec![1, 100000000]);
         assert_eq!(
             segtree_debug_string(&seg, 2),
-            concat!("|       100000001       |\n", "|     1     | 100000000 |\n",)
+            "\
+|       100000001       |
+|     1     | 100000000 |
+"
         );
     }
 
@@ -207,7 +210,12 @@ mod test_segtree_debug {
         let empty = Segtree::<Additive<i64>>::new(0);
         assert_eq!(segtree_debug_string(&empty, 0), "");
         let single = Segtree::<Additive<i64>>::from(vec![-12]);
-        assert_eq!(segtree_debug_string(&single, 1), "| -12 |\n");
+        assert_eq!(
+            segtree_debug_string(&single, 1),
+            "\
+| -12 |
+"
+        );
     }
 
     #[test]
@@ -216,11 +224,11 @@ mod test_segtree_debug {
         seg.set(1, 5);
         assert_eq!(
             segtree_debug_string(&seg, 3),
-            concat!(
-                "|       9       |\n",
-                "|   6   |   3   |\n",
-                "| 1 | 5 | 3 | * |\n",
-            )
+            "\
+|       9       |
+|   6   |   3   |
+| 1 | 5 | 3 | * |
+"
         );
     }
 
@@ -230,13 +238,13 @@ mod test_segtree_debug {
         let output = segtree_debug_string(&seg, 13);
         assert_eq!(
             output,
-            concat!(
-                "|                               0                               |\n",
-                "|               0               |               0               |\n",
-                "|       0       |       0       |       0       |       0       |\n",
-                "|   0   |   0   |   0   |   0   |   0   |   0   |   0   |   *   |\n",
-                "| 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | * | * | * |\n",
-            )
+            "\
+|                               0                               |
+|               0               |               0               |
+|       0       |       0       |       0       |       0       |
+|   0   |   0   |   0   |   0   |   0   |   0   |   0   |   *   |
+| 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | * | * | * |
+"
         );
     }
 
@@ -278,20 +286,20 @@ mod test_segtree_debug {
         ]);
         assert_eq!(
             segtree_debug_string(&seg, 4),
-            concat!(
-                "|                       Data {                              |\n",
-                "|                           sum: 30,                        |\n",
-                "|                           len: 2,                         |\n",
-                "|                       }                                   |\n",
-                "|           Single(           |        Data {               |\n",
-                "|               7,            |            sum: 30,         |\n",
-                "|           )                 |            len: 2,          |\n",
-                "|                             |        }                    |\n",
-                "|    Empty     |   Single(    | Data {       |    Empty     |\n",
-                "|              |       7,     |     sum: 30, |              |\n",
-                "|              |   )          |     len: 2,  |              |\n",
-                "|              |              | }            |              |\n",
-            )
+            "\
+|                       Data {                              |
+|                           sum: 30,                        |
+|                           len: 2,                         |
+|                       }                                   |
+|           Single(           |        Data {               |
+|               7,            |            sum: 30,         |
+|           )                 |            len: 2,          |
+|                             |        }                    |
+|    Empty     |   Single(    | Data {       |    Empty     |
+|              |       7,     |     sum: 30, |              |
+|              |   )          |     len: 2,  |              |
+|              |              | }            |              |
+"
         );
     }
 
@@ -325,20 +333,20 @@ mod test_segtree_debug {
         let output = segtree_debug_string(&seg, 4);
         assert_eq!(
             output,
-            concat!(
-                "|                          Node {                                   |\n",
-                "|                              sum: 4006,                           |\n",
-                "|                              len: 4,                              |\n",
-                "|                          }                                        |\n",
-                "|           Node {                |         Node {                  |\n",
-                "|               sum: 3,           |             sum: 4003,          |\n",
-                "|               len: 2,           |             len: 2,             |\n",
-                "|           }                     |         }                       |\n",
-                "|  Node {        |  Node {        |  Node {        | Node {         |\n",
-                "|      sum: 1,   |      sum: 2,   |      sum: 3,   |     sum: 4000, |\n",
-                "|      len: 1,   |      len: 1,   |      len: 1,   |     len: 1,    |\n",
-                "|  }             |  }             |  }             | }              |\n",
-            )
+            "\
+|                          Node {                                   |
+|                              sum: 4006,                           |
+|                              len: 4,                              |
+|                          }                                        |
+|           Node {                |         Node {                  |
+|               sum: 3,           |             sum: 4003,          |
+|               len: 2,           |             len: 2,             |
+|           }                     |         }                       |
+|  Node {        |  Node {        |  Node {        | Node {         |
+|      sum: 1,   |      sum: 2,   |      sum: 3,   |     sum: 4000, |
+|      len: 1,   |      len: 1,   |      len: 1,   |     len: 1,    |
+|  }             |  }             |  }             | }              |
+"
         );
         segtree_debug(&seg, 4);
     }

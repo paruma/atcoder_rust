@@ -71,7 +71,11 @@ mod tests {
 
     #[test]
     fn test_define_queries() {
-        let input_str = "1 10 20\n2 5\n3\n4";
+        let input_str = "\
+1 10 20
+2 5
+3
+4";
         let source = OnceSource::from(input_str);
 
         input! {
