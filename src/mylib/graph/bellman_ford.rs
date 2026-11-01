@@ -4,6 +4,27 @@ use cargo_snippet::snippet;
 #[allow(clippy::module_inception)]
 #[snippet(include = "mod_ext_int")]
 pub mod bellman_ford {
+    use std::collections::VecDeque;
+
+    #[derive(Clone, Debug, PartialEq, Eq, Hash)]
+    struct Queue<T> {
+        raw: VecDeque<T>,
+    }
+
+    impl<T> Queue<T> {
+        pub fn new() -> Self {
+            Queue {
+                raw: VecDeque::new(),
+            }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push_back(value)
+        }
+
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop_front()
+        }
+    }
 
     macro_rules! chmin {
         ($a: expr_2021, $b: expr_2021) => {
@@ -73,25 +94,24 @@ pub mod bellman_ford {
         }
 
         // dist をさらに更新できる（＝負閉路に関与する）頂点を列挙
-        use std::collections::VecDeque;
-        let mut queue = VecDeque::new();
+        let mut open = Queue::new();
         let mut is_unbounded = vec![false; n_vertex];
         let mut visited = vec![false; n_vertex];
 
         for edge in edges {
             if dist[edge.to] > dist[edge.from] + fin(edge.cost) && !visited[edge.to] {
                 visited[edge.to] = true;
-                queue.push_back(edge.to);
+                open.push(edge.to);
             }
         }
 
         // 負閉路の影響を BFS で伝播
-        while let Some(u) = queue.pop_front() {
-            is_unbounded[u] = true;
-            for &v in &adj[u] {
-                if !visited[v] {
-                    visited[v] = true;
-                    queue.push_back(v);
+        while let Some(cur) = open.pop() {
+            is_unbounded[cur] = true;
+            for &next in &adj[cur] {
+                if !visited[next] {
+                    visited[next] = true;
+                    open.push(next);
                 }
             }
         }

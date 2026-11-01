@@ -9,17 +9,17 @@ pub fn make_tree_parent(adj: &[Vec<usize>], root: usize) -> Vec<Option<usize>> {
     let n = adj.len();
     let mut parent = vec![None; n];
     let mut visited = vec![false; n];
-    let mut queue = std::collections::VecDeque::new();
+    let mut open = std::collections::VecDeque::new();
 
     visited[root] = true;
-    queue.push_back(root);
+    open.push_back(root);
 
-    while let Some(v) = queue.pop_front() {
-        for &u in &adj[v] {
-            if !visited[u] {
-                visited[u] = true;
-                parent[u] = Some(v);
-                queue.push_back(u);
+    while let Some(cur) = open.pop_front() {
+        for &next in &adj[cur] {
+            if !visited[next] {
+                visited[next] = true;
+                parent[next] = Some(cur);
+                open.push_back(next);
             }
         }
     }
@@ -36,17 +36,17 @@ pub fn make_tree_children(adj: &[Vec<usize>], root: usize) -> Vec<Vec<usize>> {
     let n = adj.len();
     let mut children = vec![vec![]; n];
     let mut visited = vec![false; n];
-    let mut queue = std::collections::VecDeque::new();
+    let mut open = std::collections::VecDeque::new();
 
     visited[root] = true;
-    queue.push_back(root);
+    open.push_back(root);
 
-    while let Some(v) = queue.pop_front() {
-        for &u in &adj[v] {
-            if !visited[u] {
-                visited[u] = true;
-                children[v].push(u);
-                queue.push_back(u);
+    while let Some(cur) = open.pop_front() {
+        for &next in &adj[cur] {
+            if !visited[next] {
+                visited[next] = true;
+                children[cur].push(next);
+                open.push_back(next);
             }
         }
     }
@@ -69,18 +69,18 @@ pub fn make_tree_parent_weighted<T: Clone>(
     let n = adj.len();
     let mut parent = vec![None; n];
     let mut visited = vec![false; n];
-    let mut queue = std::collections::VecDeque::new();
+    let mut open = std::collections::VecDeque::new();
 
     visited[root] = true;
-    queue.push_back(root);
+    open.push_back(root);
 
-    while let Some(v) = queue.pop_front() {
-        for (u, cost) in &adj[v] {
-            let u = *u;
-            if !visited[u] {
-                visited[u] = true;
-                parent[u] = Some((v, cost.clone()));
-                queue.push_back(u);
+    while let Some(cur) = open.pop_front() {
+        for (next, cost) in &adj[cur] {
+            let next = *next;
+            if !visited[next] {
+                visited[next] = true;
+                parent[next] = Some((cur, cost.clone()));
+                open.push_back(next);
             }
         }
     }
@@ -103,18 +103,18 @@ pub fn make_tree_children_weighted<T: Clone>(
     let n = adj.len();
     let mut children = vec![vec![]; n];
     let mut visited = vec![false; n];
-    let mut queue = std::collections::VecDeque::new();
+    let mut open = std::collections::VecDeque::new();
 
     visited[root] = true;
-    queue.push_back(root);
+    open.push_back(root);
 
-    while let Some(v) = queue.pop_front() {
-        for e in &adj[v] {
-            let u = e.0;
-            if !visited[u] {
-                visited[u] = true;
-                children[v].push(e.clone());
-                queue.push_back(u);
+    while let Some(cur) = open.pop_front() {
+        for e in &adj[cur] {
+            let next = e.0;
+            if !visited[next] {
+                visited[next] = true;
+                children[cur].push(e.clone());
+                open.push_back(next);
             }
         }
     }

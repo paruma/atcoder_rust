@@ -5,6 +5,26 @@ use cargo_snippet::snippet;
 pub mod bfs {
     use std::collections::VecDeque;
 
+    #[derive(Clone, Debug, PartialEq, Eq, Hash)]
+    struct Queue<T> {
+        raw: VecDeque<T>,
+    }
+
+    impl<T> Queue<T> {
+        pub fn new() -> Self {
+            Queue {
+                raw: VecDeque::new(),
+            }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push_back(value)
+        }
+
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop_front()
+        }
+    }
+
     /// BFS の結果（距離と復元情報）
     #[derive(Clone, Debug)]
     pub struct BfsResult {
@@ -65,19 +85,19 @@ pub mod bfs {
         It: IntoIterator<Item = usize>,
     {
         let mut dist = vec![None; nv];
-        let mut q = VecDeque::new();
+        let mut open = Queue::new();
         for s in init {
             if dist[s].is_none() {
                 dist[s] = Some(0);
-                q.push_back(s);
+                open.push(s);
             }
         }
-        while let Some(u) = q.pop_front() {
-            let d = dist[u].unwrap();
-            for v in adj(u) {
-                if dist[v].is_none() {
-                    dist[v] = Some(d + 1);
-                    q.push_back(v);
+        while let Some(cur) = open.pop() {
+            let cur_d = dist[cur].unwrap();
+            for next in adj(cur) {
+                if dist[next].is_none() {
+                    dist[next] = Some(cur_d + 1);
+                    open.push(next);
                 }
             }
         }
@@ -118,23 +138,23 @@ pub mod bfs {
     {
         let mut dist = vec![None; nv];
         let mut prev = vec![None; nv];
-        let mut q = VecDeque::new();
+        let mut open = Queue::new();
 
         for s in init {
             if dist[s].is_none() {
                 dist[s] = Some(0);
                 // 始点の prev は None
-                q.push_back(s);
+                open.push(s);
             }
         }
 
-        while let Some(u) = q.pop_front() {
-            let d = dist[u].unwrap();
-            for v in adj(u) {
-                if dist[v].is_none() {
-                    dist[v] = Some(d + 1);
-                    prev[v] = Some(u);
-                    q.push_back(v);
+        while let Some(cur) = open.pop() {
+            let cur_d = dist[cur].unwrap();
+            for next in adj(cur) {
+                if dist[next].is_none() {
+                    dist[next] = Some(cur_d + 1);
+                    prev[next] = Some(cur);
+                    open.push(next);
                 }
             }
         }
@@ -171,22 +191,22 @@ pub mod bfs {
     {
         let mut visited = vec![false; nv];
         let mut order = Vec::new();
-        let mut q = VecDeque::new();
+        let mut open = Queue::new();
 
         for s in init {
             if !visited[s] {
                 visited[s] = true;
                 order.push(s);
-                q.push_back(s);
+                open.push(s);
             }
         }
 
-        while let Some(u) = q.pop_front() {
-            for v in adj(u) {
-                if !visited[v] {
-                    visited[v] = true;
-                    order.push(v);
-                    q.push_back(v);
+        while let Some(cur) = open.pop() {
+            for next in adj(cur) {
+                if !visited[next] {
+                    visited[next] = true;
+                    order.push(next);
+                    open.push(next);
                 }
             }
         }
@@ -222,20 +242,20 @@ pub mod bfs {
         It: IntoIterator<Item = usize>,
     {
         let mut visited = vec![false; nv];
-        let mut q = VecDeque::new();
+        let mut open = Queue::new();
 
         for s in init {
             if !visited[s] {
                 visited[s] = true;
-                q.push_back(s);
+                open.push(s);
             }
         }
 
-        while let Some(u) = q.pop_front() {
-            for v in adj(u) {
-                if !visited[v] {
-                    visited[v] = true;
-                    q.push_back(v);
+        while let Some(cur) = open.pop() {
+            for next in adj(cur) {
+                if !visited[next] {
+                    visited[next] = true;
+                    open.push(next);
                 }
             }
         }

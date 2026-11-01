@@ -64,23 +64,23 @@ pub mod dijkstra {
         It: IntoIterator<Item = (usize, i64)>,
     {
         let mut dist = vec![None; nv];
-        let mut pq = BinaryHeap::new();
+        let mut open = BinaryHeap::new();
         for s in init {
             if dist[s].is_none() {
                 dist[s] = Some(0);
-                pq.push(Reverse((0, s)));
+                open.push(Reverse((0, s)));
             }
         }
-        while let Some(Reverse((d, u))) = pq.pop() {
-            if dist[u].is_some_and(|cur| cur < d) {
+        while let Some(Reverse((cur_d, cur))) = open.pop() {
+            if dist[cur].is_some_and(|dist| dist < cur_d) {
                 continue;
             }
-            for (v, cost) in adj(u) {
+            for (next, cost) in adj(cur) {
                 assert!(cost >= 0, "cost must be non-negative");
-                let next_d = d + cost;
-                if dist[v].is_none_or(|cur| cur > next_d) {
-                    dist[v] = Some(next_d);
-                    pq.push(Reverse((next_d, v)));
+                let next_d = cur_d + cost;
+                if dist[next].is_none_or(|dist| dist > next_d) {
+                    dist[next] = Some(next_d);
+                    open.push(Reverse((next_d, next)));
                 }
             }
         }
@@ -122,24 +122,24 @@ pub mod dijkstra {
     {
         let mut dist = vec![None; nv];
         let mut prev = vec![None; nv];
-        let mut pq = BinaryHeap::new();
+        let mut open = BinaryHeap::new();
         for s in init {
             if dist[s].is_none() {
                 dist[s] = Some(0);
-                pq.push(Reverse((0, s)));
+                open.push(Reverse((0, s)));
             }
         }
-        while let Some(Reverse((d, u))) = pq.pop() {
-            if dist[u].is_some_and(|cur| cur < d) {
+        while let Some(Reverse((cur_d, cur))) = open.pop() {
+            if dist[cur].is_some_and(|dist| dist < cur_d) {
                 continue;
             }
-            for (v, cost) in adj(u) {
+            for (next, cost) in adj(cur) {
                 assert!(cost >= 0, "cost must be non-negative");
-                let next_d = d + cost;
-                if dist[v].is_none_or(|cur| cur > next_d) {
-                    dist[v] = Some(next_d);
-                    prev[v] = Some(u);
-                    pq.push(Reverse((next_d, v)));
+                let next_d = cur_d + cost;
+                if dist[next].is_none_or(|dist| dist > next_d) {
+                    dist[next] = Some(next_d);
+                    prev[next] = Some(cur);
+                    open.push(Reverse((next_d, next)));
                 }
             }
         }

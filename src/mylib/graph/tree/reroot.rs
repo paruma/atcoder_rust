@@ -72,13 +72,13 @@ pub mod reroot {
                 let mut children = vec![vec![]; n];
                 let mut parent = vec![None; n];
                 let mut bfs_order = Vec::with_capacity(n);
-                let mut queue = Queue::new();
+                let mut open = Queue::new();
 
                 let mut visited = vec![false; n];
                 visited[0] = true;
-                queue.push(0);
+                open.push(0);
 
-                while let Some(cur) = queue.pop() {
+                while let Some(cur) = open.pop() {
                     bfs_order.push(cur);
                     for (cur_to_next, &next) in adj[cur].iter().enumerate() {
                         if !visited[next] {
@@ -89,7 +89,7 @@ pub mod reroot {
                                 .expect("Edge must be bidirectional");
                             children[cur].push((next, cur_to_next, next_to_cur));
                             parent[next] = Some((cur, next_to_cur, cur_to_next));
-                            queue.push(next);
+                            open.push(next);
                         }
                     }
                 }

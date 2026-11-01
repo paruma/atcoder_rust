@@ -3,6 +3,28 @@ use cargo_snippet::snippet;
 #[snippet(prefix = "use functional_graph::*;")]
 #[allow(clippy::module_inception)]
 pub mod functional_graph {
+    use std::collections::VecDeque;
+
+    #[derive(Clone, Debug, PartialEq, Eq, Hash)]
+    struct Queue<T> {
+        raw: VecDeque<T>,
+    }
+
+    impl<T> Queue<T> {
+        pub fn new() -> Self {
+            Queue {
+                raw: VecDeque::new(),
+            }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push_back(value)
+        }
+
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop_front()
+        }
+    }
+
     /// Functional Graph (各頂点の出次数が 1 の有向グラフ) の解析構造体
     ///
     /// 各連結成分はちょうど1つのサイクルを持ち、そのサイクルにいくつかの木が流れ込む構造をしています。
@@ -27,32 +49,32 @@ pub mod functional_graph {
         /// Functional Graph を構築する
         ///
         /// # Arguments
-        /// * `next` - 各頂点の遷移先 (0..nv-1)
+        /// * `successor` - 各頂点の遷移先 (0..nv-1)
         ///
         /// # 計算量
         /// O(V)
-        pub fn new(next: &[usize]) -> Self {
-            let nv = next.len();
+        pub fn new(successor: &[usize]) -> Self {
+            let nv = successor.len();
             let mut in_degree = vec![0; nv];
-            for &v in next {
-                in_degree[v] += 1;
+            for &next in successor {
+                in_degree[next] += 1;
             }
 
             // 1. 入次数 0 の頂点から削っていき、サイクル外の頂点を特定する
-            let mut queue = std::collections::VecDeque::new();
+            let mut open = Queue::new();
             for i in 0..nv {
                 if in_degree[i] == 0 {
-                    queue.push_back(i);
+                    open.push(i);
                 }
             }
 
             let mut is_on_cycle = vec![true; nv];
-            while let Some(u) = queue.pop_front() {
-                is_on_cycle[u] = false;
-                let v = next[u];
-                in_degree[v] -= 1;
-                if in_degree[v] == 0 {
-                    queue.push_back(v);
+            while let Some(cur) = open.pop() {
+                is_on_cycle[cur] = false;
+                let next = successor[cur];
+                in_degree[next] -= 1;
+                if in_degree[next] == 0 {
+                    open.push(next);
                 }
             }
 
@@ -71,7 +93,7 @@ pub mod functional_graph {
                         comp_id[curr] = cid;
                         pos_in_cycle[curr] = curr_cycle.len();
                         curr_cycle.push(curr);
-                        curr = next[curr];
+                        curr = successor[curr];
                     }
                     cycle_lens.push(curr_cycle.len());
                     cycles.push(curr_cycle);
@@ -82,7 +104,7 @@ pub mod functional_graph {
             let mut rev_adj = vec![vec![]; nv];
             for i in 0..nv {
                 if !is_on_cycle[i] {
-                    rev_adj[next[i]].push(i);
+                    rev_adj[successor[i]].push(i);
                 }
             }
 
@@ -122,10 +144,10 @@ pub mod functional_graph {
         }
 
         fn dfs_forest(
-            u: usize,
+            cur: usize,
             root: usize,
             cid: usize,
-            d: usize,
+            cur_d: usize,
             rev_adj: &[Vec<usize>],
             depth: &mut [usize],
             root_on_cycle: &mut [usize],
@@ -134,18 +156,18 @@ pub mod functional_graph {
             out_time: &mut [usize],
             timer: &mut usize,
         ) {
-            in_time[u] = *timer;
+            in_time[cur] = *timer;
             *timer += 1;
-            depth[u] = d;
-            root_on_cycle[u] = root;
-            comp_id[u] = cid;
+            depth[cur] = cur_d;
+            root_on_cycle[cur] = root;
+            comp_id[cur] = cid;
 
-            for &v in &rev_adj[u] {
+            for &next in &rev_adj[cur] {
                 Self::dfs_forest(
-                    v,
+                    next,
                     root,
                     cid,
-                    d + 1,
+                    cur_d + 1,
                     rev_adj,
                     depth,
                     root_on_cycle,
@@ -155,7 +177,7 @@ pub mod functional_graph {
                     timer,
                 );
             }
-            out_time[u] = *timer;
+            out_time[cur] = *timer;
         }
 
         /// 頂点 u から v への最短距離を返す。到達不能なら None。

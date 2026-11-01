@@ -4,7 +4,28 @@ use cargo_snippet::snippet;
 #[snippet(prefix = "use lca_path_aggregate::*;")]
 pub mod lca_path_aggregate {
     use ac_library::Monoid;
+    use std::collections::VecDeque;
     use std::mem::swap;
+
+    #[derive(Clone, Debug, PartialEq, Eq, Hash)]
+    struct Queue<T> {
+        raw: VecDeque<T>,
+    }
+
+    impl<T> Queue<T> {
+        pub fn new() -> Self {
+            Queue {
+                raw: VecDeque::new(),
+            }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push_back(value)
+        }
+
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop_front()
+        }
+    }
 
     #[derive(Clone, Debug)]
     pub struct LcaPathAggregate<M: Monoid> {
@@ -30,17 +51,17 @@ pub mod lca_path_aggregate {
             let mut parent = vec![root; nv];
             let mut parent_edge_weight = vec![M::identity(); nv];
 
-            let mut q = std::collections::VecDeque::new();
-            q.push_back(root);
+            let mut open = Queue::new();
+            open.push(root);
             depth[root] = 0;
 
-            while let Some(u) = q.pop_front() {
-                for &(v, ref w) in &adj[u] {
-                    if v != parent[u] {
-                        depth[v] = depth[u] + 1;
-                        parent[v] = u;
-                        parent_edge_weight[v] = w.clone();
-                        q.push_back(v);
+            while let Some(cur) = open.pop() {
+                for &(next, ref w) in &adj[cur] {
+                    if next != parent[cur] {
+                        depth[next] = depth[cur] + 1;
+                        parent[next] = cur;
+                        parent_edge_weight[next] = w.clone();
+                        open.push(next);
                     }
                 }
             }

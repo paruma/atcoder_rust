@@ -11,11 +11,11 @@ fn bfs(adj: &[Vec<usize>], init: usize) -> Vec<bool> {
     open.push(init);
     visited[init] = true;
 
-    while let Some(current) = open.pop() {
-        for &to in &adj[current] {
-            if !visited[to] {
-                visited[to] = true;
-                open.push(to);
+    while let Some(cur) = open.pop() {
+        for &next in &adj[cur] {
+            if !visited[next] {
+                visited[next] = true;
+                open.push(next);
             }
         }
     }

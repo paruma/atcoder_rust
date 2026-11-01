@@ -61,26 +61,26 @@ pub mod bfs01 {
         It: IntoIterator<Item = (usize, i64)>,
     {
         let mut dist = vec![None; nv];
-        let mut q = VecDeque::new();
+        let mut open = VecDeque::new();
         for s in init {
             if dist[s].is_none() {
                 dist[s] = Some(0);
-                q.push_back((s, 0));
+                open.push_back((s, 0));
             }
         }
-        while let Some((u, d)) = q.pop_front() {
-            if dist[u].is_some_and(|cur| cur < d) {
+        while let Some((cur, cur_d)) = open.pop_front() {
+            if dist[cur].is_some_and(|dist| dist < cur_d) {
                 continue;
             }
-            for (v, cost) in adj(u) {
+            for (next, cost) in adj(cur) {
                 assert!(cost == 0 || cost == 1, "cost must be 0 or 1");
-                let next_d = d + cost;
-                if dist[v].is_none_or(|cur| cur > next_d) {
-                    dist[v] = Some(next_d);
+                let next_d = cur_d + cost;
+                if dist[next].is_none_or(|dist| dist > next_d) {
+                    dist[next] = Some(next_d);
                     if cost == 0 {
-                        q.push_front((v, next_d));
+                        open.push_front((next, next_d));
                     } else {
-                        q.push_back((v, next_d));
+                        open.push_back((next, next_d));
                     }
                 }
             }
@@ -122,27 +122,27 @@ pub mod bfs01 {
     {
         let mut dist = vec![None; nv];
         let mut prev = vec![None; nv];
-        let mut q = VecDeque::new();
+        let mut open = VecDeque::new();
         for s in init {
             if dist[s].is_none() {
                 dist[s] = Some(0);
-                q.push_back((s, 0));
+                open.push_back((s, 0));
             }
         }
-        while let Some((u, d)) = q.pop_front() {
-            if dist[u].is_some_and(|cur| cur < d) {
+        while let Some((cur, cur_d)) = open.pop_front() {
+            if dist[cur].is_some_and(|dist| dist < cur_d) {
                 continue;
             }
-            for (v, cost) in adj(u) {
+            for (next, cost) in adj(cur) {
                 assert!(cost == 0 || cost == 1, "cost must be 0 or 1");
-                let next_d = d + cost;
-                if dist[v].is_none_or(|cur| cur > next_d) {
-                    dist[v] = Some(next_d);
-                    prev[v] = Some(u);
+                let next_d = cur_d + cost;
+                if dist[next].is_none_or(|dist| dist > next_d) {
+                    dist[next] = Some(next_d);
+                    prev[next] = Some(cur);
                     if cost == 0 {
-                        q.push_front((v, next_d));
+                        open.push_front((next, next_d));
                     } else {
-                        q.push_back((v, next_d));
+                        open.push_back((next, next_d));
                     }
                 }
             }

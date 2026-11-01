@@ -89,7 +89,7 @@ pub mod lowlink {
         /// DFS を行い、ord, low, bridges, articulation_points を計算する
         ///
         /// # Arguments
-        /// * `u` - 現在の頂点
+        /// * `cur` - 現在の頂点
         /// * `p` - 親頂点
         /// * `adj` - 隣接リスト
         /// * `k` - 訪問順序のカウンター
@@ -99,7 +99,7 @@ pub mod lowlink {
         /// * `articulation_points` - 関節点のリスト
         #[allow(clippy::too_many_arguments)]
         fn dfs(
-            u: usize,
+            cur: usize,
             p: usize,
             adj: &[Vec<usize>],
             k: &mut usize,
@@ -108,31 +108,31 @@ pub mod lowlink {
             bridges: &mut Vec<(usize, usize)>,
             articulation_points: &mut Vec<usize>,
         ) {
-            ord[u] = *k;
-            low[u] = *k;
+            ord[cur] = *k;
+            low[cur] = *k;
             *k += 1;
 
             let mut is_articulation = false;
             let mut child_count = 0;
 
-            for &v in &adj[u] {
-                if v == p {
+            for &next in &adj[cur] {
+                if next == p {
                     continue;
                 }
-                if ord[v] != usize::MAX {
-                    low[u] = low[u].min(ord[v]);
+                if ord[next] != usize::MAX {
+                    low[cur] = low[cur].min(ord[next]);
                 } else {
                     child_count += 1;
-                    Self::dfs(v, u, adj, k, ord, low, bridges, articulation_points);
-                    low[u] = low[u].min(low[v]);
-                    if p != usize::MAX && low[v] >= ord[u] {
+                    Self::dfs(next, cur, adj, k, ord, low, bridges, articulation_points);
+                    low[cur] = low[cur].min(low[next]);
+                    if p != usize::MAX && low[next] >= ord[cur] {
                         is_articulation = true;
                     }
-                    if low[v] > ord[u] {
-                        if u < v {
-                            bridges.push((u, v));
+                    if low[next] > ord[cur] {
+                        if cur < next {
+                            bridges.push((cur, next));
                         } else {
-                            bridges.push((v, u));
+                            bridges.push((next, cur));
                         }
                     }
                 }
@@ -143,7 +143,7 @@ pub mod lowlink {
             }
 
             if is_articulation {
-                articulation_points.push(u);
+                articulation_points.push(cur);
             }
         }
     }
