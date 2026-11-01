@@ -3,7 +3,7 @@ use std::cmp::max;
 
 #[allow(unused_macros)]
 macro_rules! chmax {
-    ($a: expr_2021, $b: expr_2021) => {
+    ($a: expr, $b: expr) => {
         if $a < $b {
             $a = $b;
             true
@@ -160,4 +160,3 @@ mod tests {
         assert_eq!(ans, 94);
     }
 }
-

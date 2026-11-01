@@ -27,7 +27,7 @@ pub mod bellman_ford {
     }
 
     macro_rules! chmin {
-        ($a: expr_2021, $b: expr_2021) => {
+        ($a: expr, $b: expr) => {
             if $a > $b {
                 $a = $b;
                 true
