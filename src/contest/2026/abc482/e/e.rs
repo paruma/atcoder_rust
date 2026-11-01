@@ -15,6 +15,7 @@ pub fn make_adj_from_undirected(n_vertex: usize, edges: &[(usize, usize)]) -> Ve
     adj
 }
 
+// (src, dst) が辺で繋がっている前提で、src→dst 方向の部分木 (dst が根)の根からの距離を求める
 fn calc_dist(n: usize, adj: &[Vec<usize>], src: usize, dst: usize) -> Vec<usize> {
     let mut open: Queue<usize> = Queue::new();
     let mut visited = vec![false; n];
@@ -83,13 +84,12 @@ fn main() {
         (0..n).map(|c| cnt1[c] * cnt2[c]).sum::<usize>()
     } else {
         let c = diam[d / 2];
-        // dbg!(c);
 
-        // hash を使う
+        // (頂点, 部分木のid(eid)) を格納する。部分木のidは格納しなくても eids から計算できたので不要だった
         let mut open: Queue<(usize, usize)> = Queue::new();
         let mut visited = vec![false; n];
         let mut dist = vec![usize::MAX; n];
-        let mut eids = vec![usize::MAX; n];
+        let mut eids = vec![usize::MAX; n]; // c からのどの部分木に属しているか
         visited[c] = true;
         dist[c] = 0;
         for (eid, init) in adj[c].iter().copied().enumerate() {
@@ -104,15 +104,11 @@ fn main() {
                 if !visited[next] {
                     visited[next] = true;
                     open.push((next, eid));
-                    eids[next] = eid;
+                    eids[next] = eid; // ここは eids[next] = eids[cur] でよかった
                     dist[next] = dist[cur] + 1;
                 }
             }
         }
-
-        // lg!(&eids);
-        // lg!(&dist);
-        // lg!(&cs);
 
         let by_color = cs
             .iter()
@@ -122,8 +118,6 @@ fn main() {
                 acc[c].push(v);
                 acc
             });
-
-        // lg!(&by_color);
 
         by_color
             .iter()
