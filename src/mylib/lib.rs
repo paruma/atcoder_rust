@@ -6,4 +6,4 @@ pub mod string;
 pub mod utils;
 
 #[doc(hidden)]
-pub use crate::utils::lg::lg::{__quiet, Rows, StringTable};
+pub use crate::utils::lg::lg;
