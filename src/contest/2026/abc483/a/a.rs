@@ -3,9 +3,8 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
     }
-    let ans = -2_i64;
+    let ans = num_integer::div_ceil(n, 2);
     println!("{}", ans);
 }
 

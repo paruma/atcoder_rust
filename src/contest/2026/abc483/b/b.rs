@@ -3,10 +3,20 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        q: usize,
+        ks: [usize; q],
     }
-    let ans = -2_i64;
-    println!("{}", ans);
+
+    let mut ans = (1..=(n as i64)).collect_vec();
+
+    for k in ks {
+        let mut tmp = ans[0..k].to_vec();
+        tmp.reverse();
+        for i in 0..k {
+            ans[i] = -tmp[i];
+        }
+    }
+    print_vec(&ans);
 }
 
 #[cfg(test)]
