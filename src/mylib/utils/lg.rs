@@ -1,6 +1,7 @@
 use cargo_snippet::snippet;
 
 #[allow(clippy::module_inception)]
+#[cfg_attr(test, macro_use)]
 #[snippet(prefix = "use lg::*;")]
 pub mod lg {
     //! 出典: <https://github.com/ngtkana/ac-adapter-rs/blob/196670269568041fad92995acb0156823249e0b4/libs/lg/src/lib.rs>
@@ -682,62 +683,62 @@ pub mod lg {
     // 属性マクロで展開されたマクロ同士も、再公開パス経由で呼び出せるようにする。
     #[doc(hidden)]
     pub use {__lg_internal, lg};
+}
 
-    #[cfg(test)]
-    mod test {
-        use super::*;
-        use std::collections::BTreeSet;
-        use std::iter::empty;
+#[cfg(test)]
+mod test {
+    use super::lg::bools;
+    use std::collections::BTreeSet;
+    use std::iter::empty;
 
-        #[test]
-        fn test_macro_invocation() {
-            vmap!(&[(0, 0)]);
-            hmap!(&[(0, 0)]);
-            hvec!(&[0]);
-            hvec!(&[0], &["a", "b"]);
-            vvec!(&[0]);
-            vvec!(&[0], &["a", "b"]);
-            lg!(4);
+    #[test]
+    fn test_macro_invocation() {
+        vmap!(&[(0, 0)]);
+        hmap!(&[(0, 0)]);
+        hvec!(&[0]);
+        hvec!(&[0], &["a", "b"]);
+        vvec!(&[0]);
+        vvec!(&[0], &["a", "b"]);
+        lg!(4);
 
-            let a = [0..3, 4..6];
-            hvec!(&a);
-            hvec!(
-                &a,
-                @field start @field end &a,
-                @field start &a,
-                @field end &a,
-            );
-            vvec!(&a);
-            vvec!(
-                @field start &a,
-                @field end &a,
-            );
-        }
+        let a = [0..3, 4..6];
+        hvec!(&a);
+        hvec!(
+            &a,
+            @field start @field end &a,
+            @field start &a,
+            @field end &a,
+        );
+        vvec!(&a);
+        vvec!(
+            @field start &a,
+            @field end &a,
+        );
+    }
 
-        #[test]
-        fn test_bools_format() {
-            assert_eq!(bools([false]).as_str(), "[.]");
-            assert_eq!(bools([true]).as_str(), "[#]");
-            assert_eq!(bools([false, true]).as_str(), "[.#]");
-            assert_eq!(bools([true, false]).as_str(), "[#.]");
-        }
+    #[test]
+    fn test_bools_format() {
+        assert_eq!(bools([false]).as_str(), "[.]");
+        assert_eq!(bools([true]).as_str(), "[#]");
+        assert_eq!(bools([false, true]).as_str(), "[.#]");
+        assert_eq!(bools([true, false]).as_str(), "[#.]");
+    }
 
-        #[test]
-        fn test_bools_generics() {
-            assert_eq!(bools(<[bool; 0]>::default()).as_str(), "[]");
-            assert_eq!(bools(<[bool; 0]>::default()).as_str(), "[]");
-            assert_eq!(bools(<[&bool; 0]>::default()).as_str(), "[]");
-            assert_eq!(bools(<[bool; 0]>::default().as_slice()).as_str(), "[]");
-            assert_eq!(bools(Vec::<bool>::new()).as_str(), "[]");
-            assert_eq!(bools(Vec::<&bool>::new()).as_str(), "[]");
-            assert_eq!(bools(Vec::<&mut bool>::new()).as_str(), "[]");
-            assert_eq!(bools(Vec::<bool>::new()).as_str(), "[]");
-            assert_eq!(bools(Vec::<bool>::new()).as_str(), "[]");
-            assert_eq!(bools(BTreeSet::<bool>::new()).as_str(), "[]");
-            assert_eq!(bools(empty::<bool>()).as_str(), "[]");
-            assert_eq!(bools(empty::<bool>()).as_str(), "[]");
-            assert_eq!(bools(empty::<&bool>()).as_str(), "[]");
-            assert_eq!(bools(empty::<&bool>()).as_str(), "[]");
-        }
+    #[test]
+    fn test_bools_generics() {
+        assert_eq!(bools(<[bool; 0]>::default()).as_str(), "[]");
+        assert_eq!(bools(<[bool; 0]>::default()).as_str(), "[]");
+        assert_eq!(bools(<[&bool; 0]>::default()).as_str(), "[]");
+        assert_eq!(bools(<[bool; 0]>::default().as_slice()).as_str(), "[]");
+        assert_eq!(bools(Vec::<bool>::new()).as_str(), "[]");
+        assert_eq!(bools(Vec::<&bool>::new()).as_str(), "[]");
+        assert_eq!(bools(Vec::<&mut bool>::new()).as_str(), "[]");
+        assert_eq!(bools(Vec::<bool>::new()).as_str(), "[]");
+        assert_eq!(bools(Vec::<bool>::new()).as_str(), "[]");
+        assert_eq!(bools(BTreeSet::<bool>::new()).as_str(), "[]");
+        assert_eq!(bools(empty::<bool>()).as_str(), "[]");
+        assert_eq!(bools(empty::<bool>()).as_str(), "[]");
+        assert_eq!(bools(empty::<&bool>()).as_str(), "[]");
+        assert_eq!(bools(empty::<&bool>()).as_str(), "[]");
     }
 }
