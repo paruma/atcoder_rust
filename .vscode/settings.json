@@ -71,6 +71,13 @@
     "rust-analyzer.diagnostics.disabled": [
         "unlinked-file"
     ],
+    // https://github.com/paruma/rustfmt をビルドしたもの。空ブロックの改行を保持する。
+    // "rust-analyzer.rustfmt.overrideCommand": null,
+    "rust-analyzer.rustfmt.overrideCommand": [
+        "/home/paruma/dev/atcoder/atcoder_rust/tools/bin/rustfmt",
+        "--edition",
+        "2024"
+    ],
     "files.insertFinalNewline": false,
     "python.terminal.activateEnvironment": false
 }
