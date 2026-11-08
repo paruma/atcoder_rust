@@ -6,6 +6,7 @@ use cargo_snippet::snippet;
 pub mod lg {
     //! 出典: <https://github.com/ngtkana/ac-adapter-rs/blob/196670269568041fad92995acb0156823249e0b4/libs/lg/src/lib.rs>
     //! ライセンス: CC0-1.0。上流の内部モジュールをこのファイル内にまとめ、参照パスを調整した。
+    //! 独自変更: `char`・`u8` の `Vec`・配列・スライスをダブルクォーテーション付きの文字列として表示する。
     //!
     //! 変数の値を見出し付きで標準エラー出力に出す、競プロ用デバッグユーティリティ。
     //!
@@ -642,6 +643,7 @@ pub mod lg {
     ///
     /// 次の変換を順に適用する。
     ///
+    /// - `char` / `u8` の `Vec`・配列・スライスはダブルクォーテーション付きの文字列として表示（参照も同様）。制御文字はエスケープし、不正な UTF-8 は `�` に置換
     /// - `u32::MAX`, `u64::MAX`, `u128::MAX`, `i32::MIN`/`MAX`, `i64::MIN`/`MAX`, `i128::MAX` を番兵値とみなし `*` に置換
     /// - `None` を `*` に、`Some(x)` を `x` に置換（入れ子も再帰的に剥がす）
     /// - `true`/`false` を `#`/`.` に置換
@@ -655,8 +657,40 @@ pub mod lg {
     /// assert_eq!(format(&u32::MAX), "*");
     /// assert_eq!(format(&true), "#");
     /// ```
-    pub fn format<T: fmt::Debug>(t: &T) -> String {
-        let s = format!("{t:?}")
+    pub fn format<T: fmt::Debug + ?Sized>(t: &T) -> String {
+        let debug = format!("{t:?}");
+        let mut name = std::any::type_name::<T>();
+        while let Some(inner) = name.strip_prefix('&') {
+            name = inner.strip_prefix("mut ").unwrap_or(inner);
+        }
+        // Debug 表現だけでは整数列とバイト列を区別できないため、型も確認する。
+        if name == std::any::type_name::<Vec<char>>()
+            || name == "[char]"
+            || name.starts_with("[char; ")
+        {
+            return if debug == "[]" {
+                "\"\"".to_owned()
+            } else {
+                let text = debug
+                    .strip_prefix("['")
+                    .unwrap()
+                    .strip_suffix("']")
+                    .unwrap()
+                    .split("', '")
+                    .map(|s| s.replace(r"\'", "'").replace('"', r#"\""#))
+                    .collect::<String>();
+                format!("\"{text}\"")
+            };
+        }
+        if name == std::any::type_name::<Vec<u8>>() || name == "[u8]" || name.starts_with("[u8; ") {
+            let bytes = debug[1..debug.len() - 1]
+                .split(", ")
+                .filter(|s| !s.is_empty())
+                .map(|s| s.parse::<u8>().unwrap())
+                .collect::<Vec<_>>();
+            return format!("{:?}", String::from_utf8_lossy(&bytes));
+        }
+        let s = debug
             .replace("340282366920938463463374607431768211455", "*") // u128
             .replace("170141183460469231731687303715884105727", "*") // i128
             .replace("18446744073709551615", "*") // u64
@@ -687,9 +721,60 @@ pub mod lg {
 
 #[cfg(test)]
 mod test {
-    use super::lg::bools;
-    use std::collections::BTreeSet;
+    use super::lg::{bools, format, vmap};
+    use std::collections::{BTreeMap, BTreeSet};
     use std::iter::empty;
+
+    #[test]
+    fn test_format_text_vectors() {
+        let chars = vec!['a', 'b', 'c'];
+        assert_eq!(format(&chars), "\"abc\"");
+        assert_eq!(format(&&chars), "\"abc\"");
+        assert_eq!(format(&vec!['日', '本', '語']), "\"日本語\"");
+        assert_eq!(format(&Vec::<char>::new()), "\"\"");
+        let special = ", '\\\n\"";
+        assert_eq!(
+            format(&special.chars().collect::<Vec<_>>()),
+            format!("{special:?}")
+        );
+        assert_eq!(format(&special.as_bytes().to_vec()), format!("{special:?}"));
+        assert_eq!(format(&b"abc".to_vec()), "\"abc\"");
+        assert_eq!(format(&"日本語".as_bytes().to_vec()), "\"日本語\"");
+        assert_eq!(format(&Vec::<u8>::new()), "\"\"");
+        assert_eq!(format(&vec![0_u8, b'\n', 255]), "\"\\0\\n�\"");
+        assert_eq!(format(&b"true None".to_vec()), "\"true None\"");
+        assert_eq!(format(&vec!['t', 'r', 'u', 'e']), "\"true\"");
+        assert_eq!(format(&vec![97_i32, 98, 99]), "[97, 98, 99]");
+        assert_eq!(format(&Some(3)), "3");
+    }
+
+    #[test]
+    fn test_format_text_arrays_and_slices() {
+        let mut chars = ['a', 'b', 'c'];
+        assert_eq!(format(&chars), "\"abc\"");
+        assert_eq!(format(&chars[..]), "\"abc\"");
+        assert_eq!(format(&&chars[..]), "\"abc\"");
+        assert_eq!(format(&&mut chars[..]), "\"abc\"");
+        assert_eq!(format(&['日', '本', '語']), "\"日本語\"");
+        assert_eq!(format(&['"', '\'', '\\', '\n']), "\"\\\"'\\\\\\n\"");
+        assert_eq!(format(&['a'; 0]), "\"\"");
+        assert_eq!(format(&chars[..0]), "\"\"");
+
+        let mut bytes = *b"abc...";
+        assert_eq!(format(&bytes), "\"abc...\"");
+        assert_eq!(format(&bytes[..]), "\"abc...\"");
+        assert_eq!(format(&&bytes[..]), "\"abc...\"");
+        assert_eq!(format(&&mut bytes[..]), "\"abc...\"");
+        assert_eq!(format(&[0_u8; 0]), "\"\"");
+        assert_eq!(format(&bytes[..0]), "\"\"");
+        assert_eq!(format(&[255_u8]), "\"�\"");
+        assert_eq!(format(&[97_i32, 98, 99]), "[97, 98, 99]");
+        assert_eq!(format(&[97_i32, 98, 99][..]), "[97, 98, 99]");
+
+        let map = BTreeMap::from([(*b"abc...", 1)]);
+        let table = vmap("map", &map);
+        assert!(table.to_string().contains("\"abc...\""));
+    }
 
     #[test]
     fn test_macro_invocation() {
