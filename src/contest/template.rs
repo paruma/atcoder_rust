@@ -7,6 +7,7 @@ fn main() {
     }
     let ans = -2_i64;
     println!("{}", ans);
+    assert!(proconio::is_stdin_empty());
 }
 
 #[cfg(test)]
