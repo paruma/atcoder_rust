@@ -1175,276 +1175,276 @@ cli_test_dir = { workspace = true }
 # name = "_misc_iwai2026_g"
 # path = "_misc/iwai2026/g.rs"
 
-[[bin]]
-name = "arc229_a"
-path = "arc229/a/a.rs"
-
-[[bin]]
-name = "arc229_b"
-path = "arc229/b/b.rs"
-
-[[bin]]
-name = "arc229_c"
-path = "arc229/c/c.rs"
-
-[[bin]]
-name = "arc229_d"
-path = "arc229/d/d.rs"
+# [[bin]]
+# name = "arc229_a"
+# path = "arc229/a/a.rs"
+
+# [[bin]]
+# name = "arc229_b"
+# path = "arc229/b/b.rs"
+
+# [[bin]]
+# name = "arc229_c"
+# path = "arc229/c/c.rs"
+
+# [[bin]]
+# name = "arc229_d"
+# path = "arc229/d/d.rs"
 
-[[bin]]
-name = "arc229_e"
-path = "arc229/e/e.rs"
+# [[bin]]
+# name = "arc229_e"
+# path = "arc229/e/e.rs"
 
-[[bin]]
-name = "arc229_f"
-path = "arc229/f/f.rs"
+# [[bin]]
+# name = "arc229_f"
+# path = "arc229/f/f.rs"
 
-[[bin]]
-name = "arc229_g"
-path = "arc229/g/g.rs"
+# [[bin]]
+# name = "arc229_g"
+# path = "arc229/g/g.rs"
 
-[[bin]]
-name = "abc474_a"
-path = "abc474/a/a.rs"
+# [[bin]]
+# name = "abc474_a"
+# path = "abc474/a/a.rs"
 
-[[bin]]
-name = "abc474_b"
-path = "abc474/b/b.rs"
+# [[bin]]
+# name = "abc474_b"
+# path = "abc474/b/b.rs"
 
-[[bin]]
-name = "abc474_c"
-path = "abc474/c/c.rs"
+# [[bin]]
+# name = "abc474_c"
+# path = "abc474/c/c.rs"
 
-[[bin]]
-name = "abc474_d"
-path = "abc474/d/d.rs"
+# [[bin]]
+# name = "abc474_d"
+# path = "abc474/d/d.rs"
 
-[[bin]]
-name = "abc474_e"
-path = "abc474/e/e.rs"
+# [[bin]]
+# name = "abc474_e"
+# path = "abc474/e/e.rs"
 
-[[bin]]
-name = "abc474_f"
-path = "abc474/f/f.rs"
+# [[bin]]
+# name = "abc474_f"
+# path = "abc474/f/f.rs"
 
-[[bin]]
-name = "abc474_g"
-path = "abc474/g/g.rs"
+# [[bin]]
+# name = "abc474_g"
+# path = "abc474/g/g.rs"
 
-[[bin]]
-name = "abc475_a"
-path = "abc475/a/a.rs"
+# [[bin]]
+# name = "abc475_a"
+# path = "abc475/a/a.rs"
 
-[[bin]]
-name = "abc475_b"
-path = "abc475/b/b.rs"
+# [[bin]]
+# name = "abc475_b"
+# path = "abc475/b/b.rs"
 
-[[bin]]
-name = "abc475_c"
-path = "abc475/c/c.rs"
+# [[bin]]
+# name = "abc475_c"
+# path = "abc475/c/c.rs"
 
-[[bin]]
-name = "abc475_d"
-path = "abc475/d/d.rs"
+# [[bin]]
+# name = "abc475_d"
+# path = "abc475/d/d.rs"
 
-[[bin]]
-name = "abc475_e"
-path = "abc475/e/e.rs"
+# [[bin]]
+# name = "abc475_e"
+# path = "abc475/e/e.rs"
 
-[[bin]]
-name = "abc475_f"
-path = "abc475/f/f.rs"
+# [[bin]]
+# name = "abc475_f"
+# path = "abc475/f/f.rs"
 
-[[bin]]
-name = "abc475_g"
-path = "abc475/g/g.rs"
+# [[bin]]
+# name = "abc475_g"
+# path = "abc475/g/g.rs"
 
-[[bin]]
-name = "abc476_a"
-path = "abc476/a/a.rs"
+# [[bin]]
+# name = "abc476_a"
+# path = "abc476/a/a.rs"
 
-[[bin]]
-name = "abc476_b"
-path = "abc476/b/b.rs"
+# [[bin]]
+# name = "abc476_b"
+# path = "abc476/b/b.rs"
 
-[[bin]]
-name = "abc476_c"
-path = "abc476/c/c.rs"
+# [[bin]]
+# name = "abc476_c"
+# path = "abc476/c/c.rs"
 
-[[bin]]
-name = "abc476_d"
-path = "abc476/d/d.rs"
+# [[bin]]
+# name = "abc476_d"
+# path = "abc476/d/d.rs"
 
-[[bin]]
-name = "abc476_e"
-path = "abc476/e/e.rs"
+# [[bin]]
+# name = "abc476_e"
+# path = "abc476/e/e.rs"
 
-[[bin]]
-name = "abc476_f"
-path = "abc476/f/f.rs"
+# [[bin]]
+# name = "abc476_f"
+# path = "abc476/f/f.rs"
 
-[[bin]]
-name = "abc476_g"
-path = "abc476/g/g.rs"
+# [[bin]]
+# name = "abc476_g"
+# path = "abc476/g/g.rs"
 
 
-[[bin]]
-name = "abc477_a"
-path = "abc477/a/a.rs"
+# [[bin]]
+# name = "abc477_a"
+# path = "abc477/a/a.rs"
 
-[[bin]]
-name = "abc477_b"
-path = "abc477/b/b.rs"
+# [[bin]]
+# name = "abc477_b"
+# path = "abc477/b/b.rs"
 
-[[bin]]
-name = "abc477_c"
-path = "abc477/c/c.rs"
+# [[bin]]
+# name = "abc477_c"
+# path = "abc477/c/c.rs"
 
-[[bin]]
-name = "abc477_d"
-path = "abc477/d/d.rs"
+# [[bin]]
+# name = "abc477_d"
+# path = "abc477/d/d.rs"
 
-[[bin]]
-name = "abc477_e"
-path = "abc477/e/e.rs"
+# [[bin]]
+# name = "abc477_e"
+# path = "abc477/e/e.rs"
 
-[[bin]]
-name = "abc477_f"
-path = "abc477/f/f.rs"
+# [[bin]]
+# name = "abc477_f"
+# path = "abc477/f/f.rs"
 
-[[bin]]
-name = "abc477_g"
-path = "abc477/g/g.rs"
+# [[bin]]
+# name = "abc477_g"
+# path = "abc477/g/g.rs"
 
-[[bin]]
-name = "abc478_a"
-path = "abc478/a/a.rs"
+# [[bin]]
+# name = "abc478_a"
+# path = "abc478/a/a.rs"
 
-[[bin]]
-name = "abc478_b"
-path = "abc478/b/b.rs"
+# [[bin]]
+# name = "abc478_b"
+# path = "abc478/b/b.rs"
 
-[[bin]]
-name = "abc478_c"
-path = "abc478/c/c.rs"
+# [[bin]]
+# name = "abc478_c"
+# path = "abc478/c/c.rs"
 
-[[bin]]
-name = "abc478_d"
-path = "abc478/d/d.rs"
+# [[bin]]
+# name = "abc478_d"
+# path = "abc478/d/d.rs"
 
-[[bin]]
-name = "abc478_e"
-path = "abc478/e/e.rs"
+# [[bin]]
+# name = "abc478_e"
+# path = "abc478/e/e.rs"
 
-[[bin]]
-name = "abc478_f"
-path = "abc478/f/f.rs"
+# [[bin]]
+# name = "abc478_f"
+# path = "abc478/f/f.rs"
 
-[[bin]]
-name = "abc478_g"
-path = "abc478/g/g.rs"
+# [[bin]]
+# name = "abc478_g"
+# path = "abc478/g/g.rs"
 
-[[bin]]
-name = "abc479_a"
-path = "abc479/a/a.rs"
+# [[bin]]
+# name = "abc479_a"
+# path = "abc479/a/a.rs"
 
-[[bin]]
-name = "abc479_b"
-path = "abc479/b/b.rs"
+# [[bin]]
+# name = "abc479_b"
+# path = "abc479/b/b.rs"
 
-[[bin]]
-name = "abc479_c"
-path = "abc479/c/c.rs"
+# [[bin]]
+# name = "abc479_c"
+# path = "abc479/c/c.rs"
 
-[[bin]]
-name = "abc479_d"
-path = "abc479/d/d.rs"
+# [[bin]]
+# name = "abc479_d"
+# path = "abc479/d/d.rs"
 
-[[bin]]
-name = "abc479_e"
-path = "abc479/e/e.rs"
+# [[bin]]
+# name = "abc479_e"
+# path = "abc479/e/e.rs"
 
-[[bin]]
-name = "abc479_f"
-path = "abc479/f/f.rs"
+# [[bin]]
+# name = "abc479_f"
+# path = "abc479/f/f.rs"
 
-[[bin]]
-name = "abc479_g"
-path = "abc479/g/g.rs"
+# [[bin]]
+# name = "abc479_g"
+# path = "abc479/g/g.rs"
 
 
-[[bin]]
-name = "aal001_a"
-path = "_misc/aal001/a.rs"
+# [[bin]]
+# name = "aal001_a"
+# path = "_misc/aal001/a.rs"
 
-[[bin]]
-name = "aal001_b"
-path = "_misc/aal001/b.rs"
+# [[bin]]
+# name = "aal001_b"
+# path = "_misc/aal001/b.rs"
 
-[[bin]]
-name = "aal001_c"
-path = "_misc/aal001/c.rs"
+# [[bin]]
+# name = "aal001_c"
+# path = "_misc/aal001/c.rs"
 
-[[bin]]
-name = "aal001_d"
-path = "_misc/aal001/d.rs"
+# [[bin]]
+# name = "aal001_d"
+# path = "_misc/aal001/d.rs"
 
-[[bin]]
-name = "aal001_e"
-path = "_misc/aal001/e.rs"
+# [[bin]]
+# name = "aal001_e"
+# path = "_misc/aal001/e.rs"
 
-[[bin]]
-name = "aal001_f"
-path = "_misc/aal001/f.rs"
+# [[bin]]
+# name = "aal001_f"
+# path = "_misc/aal001/f.rs"
 
-[[bin]]
-name = "aal001_g"
-path = "_misc/aal001/g.rs"
+# [[bin]]
+# name = "aal001_g"
+# path = "_misc/aal001/g.rs"
 
-[[bin]]
-name = "aal001_h"
-path = "_misc/aal001/h.rs"
+# [[bin]]
+# name = "aal001_h"
+# path = "_misc/aal001/h.rs"
 
-[[bin]]
-name = "aal001_i"
-path = "_misc/aal001/i.rs"
+# [[bin]]
+# name = "aal001_i"
+# path = "_misc/aal001/i.rs"
 
 
-[[bin]]
-name = "aal001_j"
-path = "_misc/aal001/j.rs"
+# [[bin]]
+# name = "aal001_j"
+# path = "_misc/aal001/j.rs"
 
-[[bin]]
-name = "aal001_k"
-path = "_misc/aal001/k.rs"
+# [[bin]]
+# name = "aal001_k"
+# path = "_misc/aal001/k.rs"
 
-[[bin]]
-name = "aal001_l"
-path = "_misc/aal001/l.rs"
+# [[bin]]
+# name = "aal001_l"
+# path = "_misc/aal001/l.rs"
 
-[[bin]]
-name = "aal001_m"
-path = "_misc/aal001/m.rs"
+# [[bin]]
+# name = "aal001_m"
+# path = "_misc/aal001/m.rs"
 
-[[bin]]
-name = "abc480_a"
-path = "abc480/a/a.rs"
+# [[bin]]
+# name = "abc480_a"
+# path = "abc480/a/a.rs"
 
-[[bin]]
-name = "abc480_b"
-path = "abc480/b/b.rs"
+# [[bin]]
+# name = "abc480_b"
+# path = "abc480/b/b.rs"
 
-[[bin]]
-name = "abc480_c"
-path = "abc480/c/c.rs"
+# [[bin]]
+# name = "abc480_c"
+# path = "abc480/c/c.rs"
 
-[[bin]]
-name = "abc480_d"
-path = "abc480/d/d.rs"
+# [[bin]]
+# name = "abc480_d"
+# path = "abc480/d/d.rs"
 
-[[bin]]
-name = "abc480_e"
-path = "abc480/e/e.rs"
+# [[bin]]
+# name = "abc480_e"
+# path = "abc480/e/e.rs"
 
 [[bin]]
 name = "abc480_f"
@@ -1513,28 +1513,56 @@ path = "abc482/g/g.rs"
 [[bin]]
 name = "abc483_a"
 path = "abc483/a/a.rs"
-        
+
 [[bin]]
 name = "abc483_b"
 path = "abc483/b/b.rs"
-        
+
 [[bin]]
 name = "abc483_c"
 path = "abc483/c/c.rs"
-        
+
 [[bin]]
 name = "abc483_d"
 path = "abc483/d/d.rs"
-        
+
 [[bin]]
 name = "abc483_e"
 path = "abc483/e/e.rs"
-        
+
 [[bin]]
 name = "abc483_f"
 path = "abc483/f/f.rs"
-        
+
 [[bin]]
 name = "abc483_g"
 path = "abc483/g/g.rs"
-        
+
+
+[[bin]]
+name = "abc484_a"
+path = "abc484/a/a.rs"
+
+[[bin]]
+name = "abc484_b"
+path = "abc484/b/b.rs"
+
+[[bin]]
+name = "abc484_c"
+path = "abc484/c/c.rs"
+
+[[bin]]
+name = "abc484_d"
+path = "abc484/d/d.rs"
+
+[[bin]]
+name = "abc484_e"
+path = "abc484/e/e.rs"
+
+[[bin]]
+name = "abc484_f"
+path = "abc484/f/f.rs"
+
+[[bin]]
+name = "abc484_g"
+path = "abc484/g/g.rs"
