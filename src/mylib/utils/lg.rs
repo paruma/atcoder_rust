@@ -7,6 +7,7 @@ pub mod lg {
     //! 出典: <https://github.com/ngtkana/ac-adapter-rs/blob/196670269568041fad92995acb0156823249e0b4/libs/lg/src/lib.rs>
     //! ライセンス: CC0-1.0。上流の内部モジュールをこのファイル内にまとめ、参照パスを調整した。
     //! 独自変更: `char`・`u8` の `Vec`・配列・スライスをダブルクォーテーション付きの文字列として表示する。
+    //! `u8` 単体は `char` に変換し、シングルクォート付きの文字として表示する。
     //!
     //! 変数の値を見出し付きで標準エラー出力に出す、競プロ用デバッグユーティリティ。
     //!
@@ -643,6 +644,7 @@ pub mod lg {
     ///
     /// 次の変換を順に適用する。
     ///
+    /// - `u8` 単体は `as char` で変換し、`char` と同じシングルクォート付きの文字として表示（参照も同様）
     /// - `char` / `u8` の `Vec`・配列・スライスはダブルクォーテーション付きの文字列として表示（参照も同様）。制御文字はエスケープし、不正な UTF-8 は `�` に置換
     /// - `u32::MAX`, `u64::MAX`, `u128::MAX`, `i32::MIN`/`MAX`, `i64::MIN`/`MAX`, `i128::MAX` を番兵値とみなし `*` に置換
     /// - `None` を `*` に、`Some(x)` を `x` に置換（入れ子も再帰的に剥がす）
@@ -662,6 +664,9 @@ pub mod lg {
         let mut name = std::any::type_name::<T>();
         while let Some(inner) = name.strip_prefix('&') {
             name = inner.strip_prefix("mut ").unwrap_or(inner);
+        }
+        if name == "u8" {
+            return format!("{:?}", debug.parse::<u8>().unwrap() as char);
         }
         // Debug 表現だけでは整数列とバイト列を区別できないため、型も確認する。
         if name == std::any::type_name::<Vec<char>>()
@@ -724,6 +729,20 @@ mod test {
     use super::lg::{bools, format, vmap};
     use std::collections::{BTreeMap, BTreeSet};
     use std::iter::empty;
+
+    #[test]
+    fn test_format_byte_as_char() {
+        assert_eq!(format(&'a'), "'a'");
+        assert_eq!(format(&b'a'), "'a'");
+        assert_eq!(format(&b'\n'), "'\\n'");
+        for byte in u8::MIN..=u8::MAX {
+            assert_eq!(format(&byte), format(&(byte as char)));
+        }
+        let mut byte = b'a';
+        assert_eq!(format(&&byte), "'a'");
+        assert_eq!(format(&&mut byte), "'a'");
+        assert_eq!(format(&97_i32), "97");
+    }
 
     #[test]
     fn test_format_text_vectors() {
