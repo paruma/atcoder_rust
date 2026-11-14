@@ -5,9 +5,42 @@ fn main() {
         n: usize,
         xs: [i64; n],
     }
-    let ans = -2_i64;
+
+    let ans = solve(n, &xs);
     println!("{}", ans);
     assert!(proconio::is_stdin_empty());
+}
+
+fn solve(n: usize, xs: &[i64]) -> usize {
+    let mut cnts: HashMap<i64, usize> = HashMap::new();
+    let mut ans = 0;
+
+    for i in 0..n {
+        if i != 0 && xs[i - 1] == xs[i] {
+            *cnts.entry(xs[i]).or_default() += 1;
+
+            continue;
+        }
+        ans += (i - cnts.get(&xs[i]).copied().unwrap_or(0));
+        *cnts.entry(xs[i]).or_default() += 1;
+    }
+    ans += 1;
+    ans
+}
+fn solve_naive(n: usize, xs: &[i64]) -> usize {
+    let mut set = HashSet::new();
+    set.insert(xs.to_vec());
+
+    for i in 0..n {
+        for j in 0..=i {
+            let mut xs = xs.to_vec();
+            let x = xs.remove(i);
+            xs.insert(j, x);
+            set.insert(xs);
+        }
+    }
+
+    set.len()
 }
 
 #[cfg(test)]
@@ -25,12 +58,12 @@ mod tests {
     /// 間違っていたら false を返す
     fn process_one_test(rng: &mut SmallRng) -> bool {
         // ==== 問題を作る ====
-        let n = rng.random_range(1..=10);
-        let xs = (0..n).map(|_| rng.random_range(0..10)).collect_vec();
+        let n = rng.random_range(1..=4);
+        let xs = (0..n).map(|_| rng.random_range(1..3)).collect_vec();
 
         // ==== 解く ====
-        let main_ans = xs.len();
-        let naive_ans = 1;
+        let main_ans = solve(n, &xs);
+        let naive_ans = solve_naive(n, &xs);
 
         // ==== 間違っていたら報告をする ====
         if main_ans != naive_ans {

@@ -5,8 +5,13 @@ fn main() {
         n: usize,
         xs: [i64; n],
     }
-    let ans = -2_i64;
-    println!("{}", ans);
+    if xs.iter().copied().any(|x| x == 9) {
+        //
+        let ans = xs.iter().copied().min().unwrap();
+        println!("{}", ans);
+    } else {
+        println!("{}", -1);
+    }
     assert!(proconio::is_stdin_empty());
 }
 

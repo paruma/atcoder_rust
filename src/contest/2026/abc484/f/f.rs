@@ -1,12 +1,102 @@
+use ac_library::Segtree;
+use monoid_template::*;
+// セグ木用の Monoidテンプレート
+#[allow(unused_variables)]
+pub mod monoid_template {
+    use ac_library::segtree::Monoid;
+    use std::convert::Infallible;
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub struct RangeXxx {
+        pub len: usize,
+        pub cnt_n1: usize,
+        pub max: i64,
+        pub min: i64,
+    }
+
+    impl RangeXxx {
+        pub fn unit(x: i64) -> Self {
+            if x == -1 {
+                Self {
+                    len: 1,
+                    cnt_n1: 1,
+                    max: i64::MIN,
+                    min: i64::MAX,
+                }
+            } else {
+                Self {
+                    len: 1,
+                    cnt_n1: 0,
+                    max: x,
+                    min: x,
+                }
+            }
+        }
+    }
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub struct RangeXxxMonoid(Infallible);
+    impl Monoid for RangeXxxMonoid {
+        type S = RangeXxx;
+
+        fn identity() -> Self::S {
+            RangeXxx {
+                len: 0,
+                cnt_n1: 0,
+                max: i64::MIN,
+                min: i64::MAX,
+            }
+        }
+
+        fn binary_operation(a: &Self::S, b: &Self::S) -> Self::S {
+            let len = a.len + b.len;
+            let cnt_n1 = a.cnt_n1 + b.cnt_n1;
+            let min = i64::min(a.min, b.min);
+            let max = i64::max(a.max, b.max);
+            RangeXxx {
+                len,
+                cnt_n1,
+                min,
+                max,
+            }
+        }
+    }
+}
 // 問題文と制約は読みましたか？
-// #[fastout]
+#[fastout]
 fn main() {
     input! {
         n: usize,
+        q: usize,
         xs: [i64; n],
     }
-    let ans = -2_i64;
-    println!("{}", ans);
+
+    let mut seg: Segtree<RangeXxxMonoid> =
+        Segtree::from(xs.iter().copied().map(RangeXxx::unit).collect_vec());
+
+    for _ in 0..q {
+        input! {
+            t: usize
+        }
+
+        if t == 1 {
+            input! {
+                i: Usize1,
+                x: i64
+            }
+            seg.set(i, RangeXxx::unit(x));
+        } else {
+            input! {
+                l: Usize1,
+                r: Usize1,
+            }
+
+            let p = seg.prod(l..=r);
+            // dbg!(p);
+            let ans = p.len == p.cnt_n1 || p.min == p.max;
+            print_yesno(ans);
+        }
+    }
     assert!(proconio::is_stdin_empty());
 }
 

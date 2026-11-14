@@ -3,9 +3,22 @@
 fn main() {
     input! {
         n: usize,
+        L: i64,
+        R: i64,
         xs: [i64; n],
     }
-    let ans = -2_i64;
+    let ys = prefix_sum(&xs);
+    let mut bag = FenwickTreeSparseMultiset::new(&ys);
+
+    let mut ans = 0;
+
+    for r in 0..=n {
+        let sub = bag.count_in_range(ys[r] - R..=ys[r] - L);
+        ans += sub;
+
+        bag.insert(ys[r]);
+    }
+
     println!("{}", ans);
     assert!(proconio::is_stdin_empty());
 }
@@ -139,3 +152,671 @@ pub mod print_util {
 // ====== snippet ======
 // 使用したテンプレート・スニペットの公開元:
 // https://github.com/paruma/atcoder_rust
+use cumsum::*;
+#[allow(clippy::module_inception)]
+pub mod cumsum {
+    pub fn prefix_sum(xs: &[i64]) -> Vec<i64> {
+        let mut prefix_sum = vec![0; xs.len() + 1];
+        for i in 1..xs.len() + 1 {
+            prefix_sum[i] = prefix_sum[i - 1] + xs[i - 1];
+        }
+        prefix_sum
+    }
+
+    use std::ops::{Bound, Range, RangeBounds};
+
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct CumSum {
+        pub cumsum: Vec<i64>,
+    }
+
+    impl CumSum {
+        /// # 計算量
+        /// O(|xs|)
+        pub fn new(xs: &[i64]) -> CumSum {
+            let mut cumsum = vec![0; xs.len() + 1];
+            for i in 1..xs.len() + 1 {
+                cumsum[i] = cumsum[i - 1] + xs[i - 1];
+            }
+            CumSum { cumsum }
+        }
+
+        fn open(&self, range: impl RangeBounds<usize>) -> Range<usize> {
+            use Bound::Excluded;
+            use Bound::Included;
+            use Bound::Unbounded;
+            let begin = match range.start_bound() {
+                Unbounded => 0,
+                Included(&x) => x,
+                Excluded(&x) => x + 1,
+            };
+            let end = match range.end_bound() {
+                Excluded(&x) => x,
+                Included(&x) => x + 1,
+                Unbounded => self.cumsum.len() - 1, // xs.len() == self.cumsum.len() - 1
+            };
+            begin..end
+        }
+
+        /// 区間 `[begin, end)` の要素の和を計算します。
+        ///
+        /// # 計算量
+        /// O(1)
+        pub fn range_sum(&self, range: impl RangeBounds<usize>) -> i64 {
+            let range = self.open(range);
+            self.cumsum[range.end] - self.cumsum[range.start]
+        }
+
+        /// 区間 `[0, end)` での和を計算します。
+        ///
+        /// # 計算量
+        /// O(1)
+        pub fn prefix_sum(&self, end: usize) -> i64 {
+            self.cumsum[end]
+        }
+
+        /// 区間 `[begin, n)` の要素の和を計算します。（`n` は元の配列の長さ）
+        ///
+        /// # 計算量
+        /// O(1)
+        pub fn suffix_sum(&self, begin: usize) -> i64 {
+            self.cumsum[self.cumsum.len() - 1] - self.cumsum[begin]
+        }
+
+        /// `f(sum(l..r))` が `true` となる最大の `r in [l, n]` を見つける。
+        ///
+        /// `n` は元の配列の長さ。
+        ///
+        /// # 前提条件
+        /// * `l <= n`
+        /// * `f(0)` が `true`
+        /// * `f` は単調である。
+        ///     * `f(sum(l..i))` が `true` => `f(sum(l..j))` が `true` for all `l <= j <= i`.
+        ///
+        /// # 計算量
+        /// O(log n)
+        pub fn max_right<F>(&self, l: usize, mut f: F) -> usize
+        where
+            F: FnMut(i64) -> bool,
+        {
+            let n = self.cumsum.len() - 1;
+            assert!(l <= n);
+            assert!(f(0), "f(0) must be true");
+
+            if f(self.range_sum(l..n)) {
+                return n;
+            }
+
+            let mut ok = l;
+            let mut ng = n + 1;
+
+            while ng - ok > 1 {
+                let mid = ok + (ng - ok) / 2;
+                if f(self.range_sum(l..mid)) {
+                    ok = mid;
+                } else {
+                    ng = mid;
+                }
+            }
+            ok
+        }
+
+        /// `f(sum(l..r))` が `true` となる最小の `l in [0, r]` を見つける。
+        ///
+        /// # 前提条件
+        /// * `r <= n`
+        /// * `f(0)` が `true`
+        /// * `f` は単調である。
+        ///     * `f(sum(i..r))` が `true` => `f(sum(j..r))` が `true` for all `i <= j <= r`.
+        ///
+        /// # 計算量
+        /// O(log r)
+        pub fn min_left<F>(&self, r: usize, mut f: F) -> usize
+        where
+            F: FnMut(i64) -> bool,
+        {
+            let n = self.cumsum.len() - 1;
+            assert!(r <= n);
+            assert!(f(0), "f(0) must be true");
+
+            if f(self.range_sum(0..r)) {
+                return 0;
+            }
+
+            let mut ok = r;
+            let mut ng = 0;
+
+            while ok - ng > 1 {
+                let mid = ng + (ok - ng) / 2;
+                if f(self.range_sum(mid..r)) {
+                    ok = mid;
+                } else {
+                    ng = mid;
+                }
+            }
+            ok
+        }
+    }
+}
+use fenwick_tree_sparse_multiset::*;
+pub mod fenwick_tree_sparse_multiset {
+    use std::ops::RangeBounds;
+
+    /// Fenwick Tree を基盤とした座標圧縮付きマルチセット。
+    ///
+    /// BTreeMultiSet と違って、`entries` として指定した値以外を挿入することはできませんが、そのかわりk番目の値が k に依らず $O(\log N)$ で取得できます。
+    #[derive(Clone, Debug)]
+    pub struct FenwickTreeSparseMultiset {
+        ft: InternalFenwickTree,
+        cc: CoordinateCompression,
+        length: usize,
+        set_length: usize,
+    }
+
+    impl FenwickTreeSparseMultiset {
+        /// 構築時に指定された `entries` に基づいて座標圧縮空間を構築し、空のマルチセットを作成します。
+        ///
+        /// # 計算量
+        /// $O(N \log N)$ ($N$ は `entries.len()`)
+        pub fn new(entries: &[i64]) -> Self {
+            let cc = CoordinateCompression::new(entries);
+            let size = cc.space_size();
+            Self {
+                ft: InternalFenwickTree::new(size),
+                cc,
+                length: 0,
+                set_length: 0,
+            }
+        }
+
+        /// 指定した値を追加します。
+        ///
+        /// # Panics
+        /// 構築時に指定された `entries` に含まれない値が渡された場合にパニックします。
+        ///
+        /// # 計算量
+        /// $O(\log N)$ ($N$ は一意な要素数)
+        pub fn insert(&mut self, value: i64) {
+            self.insert_many(value, 1);
+        }
+
+        /// 指定した値を `count` 個追加します。
+        ///
+        /// # Panics
+        /// 構築時に指定された `entries` に含まれない値が渡された場合にパニックします。
+        ///
+        /// # 計算量
+        /// $O(\log N)$ ($N$ は一意な要素数)
+        pub fn insert_many(&mut self, value: i64, count: usize) {
+            if count == 0 {
+                return;
+            }
+            let idx = self.cc.compress(value);
+            if self.ft.get(idx) == 0 {
+                self.set_length += 1;
+            }
+            self.ft.add(idx, count as i64);
+            self.length += count;
+        }
+
+        /// 要素を1つ削除します。
+        ///
+        /// 要素が存在した場合は `true`、存在しなかった場合は `false` を返します。
+        ///
+        /// # Panics
+        /// 構築時に指定された `entries` に含まれない値が渡された場合にパニックします。
+        ///
+        /// # 計算量
+        /// $O(\log N)$ ($N$ は一意な要素数)
+        pub fn remove1(&mut self, value: i64) -> bool {
+            let idx = self.cc.compress(value);
+            if self.ft.get(idx) > 0 {
+                self.ft.add(idx, -1);
+                self.length -= 1;
+                if self.ft.get(idx) == 0 {
+                    self.set_length -= 1;
+                }
+                true
+            } else {
+                false
+            }
+        }
+
+        /// 要素を最大 `count` 個削除します。
+        ///
+        /// 実際に削除した個数を返します。
+        ///
+        /// # Panics
+        /// 構築時に指定された `entries` に含まれない値が渡された場合にパニックします。
+        ///
+        /// # 計算量
+        /// $O(\log N)$ ($N$ は一意な要素数)
+        pub fn remove_up_to(&mut self, value: i64, count: usize) -> usize {
+            let idx = self.cc.compress(value);
+            let current = self.ft.get(idx) as usize;
+            let removed = current.min(count);
+            if removed > 0 {
+                self.ft.add(idx, -(removed as i64));
+                self.length -= removed;
+                if current == removed {
+                    self.set_length -= 1;
+                }
+            }
+            removed
+        }
+
+        /// 指定した要素をすべて削除します。
+        ///
+        /// 要素が存在した場合は `true`、存在しなかった場合は `false` を返します。
+        ///
+        /// # Panics
+        /// 構築時に指定された `entries` に含まれない値が渡された場合にパニックします。
+        ///
+        /// # 計算量
+        /// $O(\log N)$ ($N$ は一意な要素数)
+        pub fn remove_all(&mut self, value: i64) -> bool {
+            let idx = self.cc.compress(value);
+            let current = self.ft.get(idx) as usize;
+            if current > 0 {
+                self.ft.add(idx, -(current as i64));
+                self.length -= current;
+                self.set_length -= 1;
+                true
+            } else {
+                false
+            }
+        }
+
+        /// 最小の要素を1つ取り出して削除します。
+        ///
+        /// 空の場合は `None` を返します。
+        ///
+        /// # 計算量
+        /// $O(\log N)$ ($N$ は一意な要素数)
+        pub fn pop_min(&mut self) -> Option<i64> {
+            let val = self.min()?;
+            self.remove1(val);
+            Some(val)
+        }
+
+        /// 最大の要素を1つ取り出して削除します。
+        ///
+        /// 空の場合は `None` を返します。
+        ///
+        /// # 計算量
+        /// $O(\log N)$ ($N$ は一意な要素数)
+        pub fn pop_max(&mut self) -> Option<i64> {
+            let val = self.max()?;
+            self.remove1(val);
+            Some(val)
+        }
+
+        /// マルチセットの全要素を削除し、空にします。
+        ///
+        /// # 計算量
+        /// $O(N)$ ($N$ は一意な要素数)
+        pub fn clear(&mut self) {
+            self.ft.clear();
+            self.length = 0;
+            self.set_length = 0;
+        }
+
+        /// マルチセットに含まれる全要素数（重複を含む）を返します。
+        ///
+        /// # 計算量
+        /// $O(1)$
+        pub fn len(&self) -> usize {
+            self.length
+        }
+
+        /// マルチセットに含まれるユニークな要素の種類数を返します。
+        ///
+        /// # 計算量
+        /// $O(1)$
+        pub fn set_len(&self) -> usize {
+            self.set_length
+        }
+
+        /// マルチセットが空かどうかを返します。
+        ///
+        /// # 計算量
+        /// $O(1)$
+        pub fn is_empty(&self) -> bool {
+            self.length == 0
+        }
+
+        /// 指定した要素の個数を返します。
+        ///
+        /// # Panics
+        /// 構築時に指定された `entries` に含まれない値が渡された場合にパニックします。
+        ///
+        /// # 計算量
+        /// $O(1)$
+        pub fn count(&self, value: i64) -> usize {
+            let idx = self.cc.compress(value);
+            self.ft.get(idx) as usize
+        }
+
+        /// 指定した要素が含まれているかを返します。
+        ///
+        /// # Panics
+        /// 構築時に指定された `entries` に含まれない値が渡された場合にパニックします。
+        ///
+        /// # 計算量
+        /// $O(1)$
+        pub fn contains(&self, value: i64) -> bool {
+            self.count(value) > 0
+        }
+
+        /// 重複を考慮して、$n$ 番目に小さい要素を返します（0-indexed）。
+        ///
+        /// $n$ が全体の要素数（`len()`）以上の場合は `None` を返します。
+        ///
+        /// # 計算量
+        /// $O(\log N)$ ($N$ は一意な要素数)
+        pub fn nth_min(&self, n: usize) -> Option<i64> {
+            let idx = self.ft.max_right(0, |&s| s <= n as i64);
+            if idx < self.ft.len() {
+                Some(self.cc.decompress(idx))
+            } else {
+                None
+            }
+        }
+
+        /// 重複を考慮して、$n$ 番目に大きい要素を返します（0-indexed）。
+        ///
+        /// $n$ が全体の要素数（`len()`）以上の場合は `None` を返します。
+        ///
+        /// # 計算量
+        /// $O(\log N)$ ($N$ は一意な要素数)
+        pub fn nth_max(&self, n: usize) -> Option<i64> {
+            let length = self.length;
+            if n < length {
+                let target_prefix_sum = (length - 1 - n) as i64;
+                let idx = self.ft.max_right(0, |&s| s <= target_prefix_sum);
+                Some(self.cc.decompress(idx))
+            } else {
+                None
+            }
+        }
+
+        /// 最小の要素を返します。
+        ///
+        /// 空の場合は `None` を返します。
+        ///
+        /// # 計算量
+        /// $O(\log N)$ ($N$ は一意な要素数)
+        pub fn min(&self) -> Option<i64> {
+            let idx = self.ft.max_right(0, |&s| s == 0);
+            if idx < self.ft.len() {
+                Some(self.cc.decompress(idx))
+            } else {
+                None
+            }
+        }
+
+        /// 最大の要素を返します。
+        ///
+        /// 空の場合は `None` を返します。
+        ///
+        /// # 計算量
+        /// $O(\log N)$ ($N$ は一意な要素数)
+        pub fn max(&self) -> Option<i64> {
+            let idx = self.ft.min_left(self.ft.len(), |&s| s == 0);
+            if idx > 0 {
+                Some(self.cc.decompress(idx - 1))
+            } else {
+                None
+            }
+        }
+
+        /// 指定された範囲内での最小の要素を返します。
+        ///
+        /// 範囲内に要素がない場合は `None` を返します。
+        ///
+        /// # 計算量
+        /// $O(\log N)$ ($N$ は一意な要素数)
+        pub fn min_in_range<R: RangeBounds<i64>>(&self, range: R) -> Option<i64> {
+            let r_idx = self.cc.compress_range(range);
+            let idx = self.ft.max_right(r_idx.start, |&s| s == 0);
+            if idx < r_idx.end {
+                Some(self.cc.decompress(idx))
+            } else {
+                None
+            }
+        }
+
+        /// 指定された範囲内での最大の要素を返します。
+        ///
+        /// 範囲内に要素がない場合は `None` を返します。
+        ///
+        /// # 計算量
+        /// $O(\log N)$ ($N$ は一意な要素数)
+        pub fn max_in_range<R: RangeBounds<i64>>(&self, range: R) -> Option<i64> {
+            let r_idx = self.cc.compress_range(range);
+            let idx = self.ft.min_left(r_idx.end, |&s| s == 0);
+            if idx > r_idx.start {
+                Some(self.cc.decompress(idx - 1))
+            } else {
+                None
+            }
+        }
+
+        /// 指定された範囲内で、重複を考慮して $n$ 番目に小さい要素を返す（0-indexed）。
+        ///
+        /// $n$ が範囲内の要素数以上の場合は `None` を返す。
+        ///
+        /// # 計算量
+        /// $O(\log N)$ ($N$ は一意な要素数)
+        pub fn nth_min_in_range<R: RangeBounds<i64>>(&self, n: usize, range: R) -> Option<i64> {
+            let r_idx = self.cc.compress_range(range);
+            let idx = self.ft.max_right(r_idx.start, |&s| s <= n as i64);
+            if idx < r_idx.end {
+                Some(self.cc.decompress(idx))
+            } else {
+                None
+            }
+        }
+
+        /// 指定された範囲内で、重複を考慮して $n$ 番目に大きい要素を返す（0-indexed）。
+        ///
+        /// $n$ が範囲内の要素数以上の場合は `None` を返す。
+        ///
+        /// # 計算量
+        /// $O(\log N)$ ($N$ は一意な要素数)
+        pub fn nth_max_in_range<R: RangeBounds<i64>>(&self, n: usize, range: R) -> Option<i64> {
+            let r_idx = self.cc.compress_range(range);
+            let range_count = self.ft.range_sum(r_idx.start..r_idx.end) as usize;
+            if n < range_count {
+                let target_prefix_sum = (range_count - 1 - n) as i64;
+                let idx = self.ft.max_right(r_idx.start, |&s| s <= target_prefix_sum);
+                Some(self.cc.decompress(idx))
+            } else {
+                None
+            }
+        }
+
+        /// 指定された範囲内の要素数（重複を含む）を返します。
+        ///
+        /// # 計算量
+        /// $O(\log N)$ ($N$ は一意な要素数)
+        pub fn count_in_range<R: RangeBounds<i64>>(&self, range: R) -> usize {
+            let r_idx = self.cc.compress_range(range);
+            if r_idx.start >= r_idx.end {
+                return 0;
+            }
+            self.ft.range_sum(r_idx.start..r_idx.end) as usize
+        }
+
+        /// 指定した範囲内に要素が含まれているかを返します。
+        ///
+        /// # 計算量
+        /// $O(\log N)$ ($N$ は一意な要素数)
+        pub fn contains_in_range<R: RangeBounds<i64>>(&self, range: R) -> bool {
+            self.count_in_range(range) > 0
+        }
+    }
+
+    /// 座標圧縮構造体。
+    #[derive(Debug, Clone)]
+    struct CoordinateCompression {
+        space: Vec<i64>,
+    }
+
+    impl CoordinateCompression {
+        fn new(space: &[i64]) -> Self {
+            let mut space = space.to_vec();
+            space.sort_unstable();
+            space.dedup();
+            Self { space }
+        }
+
+        fn compress(&self, x: i64) -> usize {
+            self.space
+                .binary_search(&x)
+                .expect("Value not in coordinate compression space")
+        }
+
+        fn decompress(&self, i: usize) -> i64 {
+            self.space[i]
+        }
+
+        fn space_size(&self) -> usize {
+            self.space.len()
+        }
+
+        fn compress_range(&self, range: impl RangeBounds<i64>) -> std::ops::Range<usize> {
+            use std::ops::Bound::*;
+            let begin = match range.start_bound() {
+                Unbounded => 0,
+                Included(&x) => self.space.binary_search(&x).unwrap_or_else(|e| e),
+                Excluded(&x) => match self.space.binary_search(&x) {
+                    Ok(i) => i + 1,
+                    Err(i) => i,
+                },
+            };
+            let end = match range.end_bound() {
+                Unbounded => self.space.len(),
+                Included(&x) => match self.space.binary_search(&x) {
+                    Ok(i) => i + 1,
+                    Err(i) => i,
+                },
+                Excluded(&x) => self.space.binary_search(&x).unwrap_or_else(|e| e),
+            };
+            begin..end
+        }
+    }
+
+    /// Fenwick Tree の基本操作を提供する補助構造体。
+    ///
+    /// `range_sum_fenwick_tree.rs` に準拠した実装。
+    #[derive(Clone, Debug)]
+    struct InternalFenwickTree {
+        n: usize,
+        ary: Vec<i64>,
+        vals: Vec<i64>,
+    }
+
+    impl InternalFenwickTree {
+        fn new(n: usize) -> Self {
+            Self {
+                n,
+                ary: vec![0; n],
+                vals: vec![0; n],
+            }
+        }
+
+        fn clear(&mut self) {
+            self.ary.fill(0);
+            self.vals.fill(0);
+        }
+
+        fn prefix_sum(&self, mut idx: usize) -> i64 {
+            let mut sum = 0;
+            while idx > 0 {
+                sum += self.ary[idx - 1];
+                idx &= idx - 1;
+            }
+            sum
+        }
+
+        fn add(&mut self, mut idx: usize, val: i64) {
+            assert!(idx < self.n);
+            self.vals[idx] += val;
+            idx += 1;
+            while idx <= self.n {
+                self.ary[idx - 1] += val;
+                idx += idx & idx.wrapping_neg();
+            }
+        }
+
+        fn range_sum(&self, range: std::ops::Range<usize>) -> i64 {
+            let l = range.start;
+            let r = range.end;
+            assert!(l <= r && r <= self.n);
+            self.prefix_sum(r) - self.prefix_sum(l)
+        }
+
+        fn get(&self, idx: usize) -> i64 {
+            assert!(idx < self.n);
+            self.vals[idx]
+        }
+
+        fn max_right<F: FnMut(&i64) -> bool>(&self, l: usize, mut f: F) -> usize {
+            assert!(l <= self.n);
+            assert!(f(&0));
+            let val_l = self.prefix_sum(l);
+            let mut r = 0;
+            let mut current_val = 0;
+            let mut k = if self.n == 0 {
+                0
+            } else {
+                1 << (usize::BITS - 1 - self.n.leading_zeros())
+            };
+
+            while k > 0 {
+                if r + k <= self.n {
+                    let next_val = current_val + self.ary[r + k - 1];
+                    if r + k <= l || f(&(next_val - val_l)) {
+                        r += k;
+                        current_val = next_val;
+                    }
+                }
+                k >>= 1;
+            }
+            r
+        }
+
+        fn min_left<F: FnMut(&i64) -> bool>(&self, r: usize, mut f: F) -> usize {
+            assert!(r <= self.n);
+            assert!(f(&0));
+            let val_r = self.prefix_sum(r);
+            if f(&val_r) {
+                return 0;
+            }
+            let mut idx = 0;
+            let mut current_val = 0;
+            let mut k = if self.n == 0 {
+                0
+            } else {
+                1 << (usize::BITS - 1 - self.n.leading_zeros())
+            };
+
+            while k > 0 {
+                if idx + k <= r {
+                    let next_val = current_val + self.ary[idx + k - 1];
+                    if !f(&(val_r - next_val)) {
+                        idx += k;
+                        current_val = next_val;
+                    }
+                }
+                k >>= 1;
+            }
+            idx + 1
+        }
+
+        fn len(&self) -> usize {
+            self.n
+        }
+    }
+}

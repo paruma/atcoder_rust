@@ -2,10 +2,9 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        b: i64, r: i64
     }
-    let ans = -2_i64;
+    let ans = (30 - b) * (30 - r);
     println!("{}", ans);
     assert!(proconio::is_stdin_empty());
 }
