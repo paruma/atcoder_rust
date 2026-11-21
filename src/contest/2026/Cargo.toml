@@ -1566,3 +1566,32 @@ path = "abc484/f/f.rs"
 [[bin]]
 name = "abc484_g"
 path = "abc484/g/g.rs"
+
+[[bin]]
+name = "abc485_a"
+path = "abc485/a/a.rs"
+        
+[[bin]]
+name = "abc485_b"
+path = "abc485/b/b.rs"
+        
+[[bin]]
+name = "abc485_c"
+path = "abc485/c/c.rs"
+        
+[[bin]]
+name = "abc485_d"
+path = "abc485/d/d.rs"
+        
+[[bin]]
+name = "abc485_e"
+path = "abc485/e/e.rs"
+        
+[[bin]]
+name = "abc485_f"
+path = "abc485/f/f.rs"
+        
+[[bin]]
+name = "abc485_g"
+path = "abc485/g/g.rs"
+        
