@@ -1,5 +1,6 @@
 pub mod bitset;
 pub mod btree_multiset;
+pub mod bucket_multiset;
 pub mod default_hash_map;
 pub mod dsu;
 pub mod fenwick_tree;
