@@ -2,11 +2,76 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        nv: usize,
+        ne: usize,
+        es: [(Usize1, Usize1, i64); ne],
     }
-    let ans = -2_i64;
-    println!("{}", ans);
+
+    let adj = es
+        .iter()
+        .copied()
+        .fold(vec![vec![]; nv], |mut acc, (from, to, c)| {
+            acc[from].push((to, c));
+            acc
+        });
+
+    // 直前の辺の (to, color)
+    // let mut open: Queue<(usize, i64)> = Queue::new();
+    let mut visited: HashSet<(usize, i64)> = HashSet::new();
+    let mut dist: HashMap<(usize, i64), i64> = HashMap::<(usize, i64), i64>::new();
+
+    let mut open = HashMap::<usize, HashSet<i64>>::new();
+
+    // ダミーの色
+    open.insert(0, [-1].into_iter().collect::<HashSet<i64>>());
+    visited.insert((0, -1));
+    dist.insert((0, -1), 0);
+
+    for d in 1.. {
+        // buf
+        let mut buf = HashMap::<usize, HashSet<i64>>::new();
+
+        for (&cur, prev_colors) in &open {
+            for &(next, next_color) in &adj[cur] {
+                if visited.contains(&(next, next_color)) {
+                    continue;
+                }
+                if prev_colors.len() == 1 && prev_colors.contains(&next_color) {
+                    // なにもしない
+                } else {
+                    visited.insert((next, next_color));
+                    dist.insert((next, next_color), d);
+                    buf.entry(next).or_default().insert(next_color);
+                }
+            }
+        }
+
+        open = buf;
+        if open.is_empty() {
+            break;
+        }
+    }
+
+    // // prev_color は集合で持つ
+    // while let Some((cur, prev_color)) = open.pop() {
+    //     for &(next, next_color) in &adj[cur] {
+    //         if !visited.contains(&(next, next_color)) && prev_color != next_color {
+    //             visited.insert((next, next_color));
+    //             open.push((next, next_color));
+    //             dist.insert((next, next_color), dist[&(cur, prev_color)] + 1);
+    //         }
+    //     }
+    // }
+
+    let ans = dist
+        .iter()
+        .filter_map(|((v, c), d)| (*v == nv - 1).then_some(*d))
+        .min();
+    if let Some(ans) = ans {
+        println!("{}", ans);
+    } else {
+        println!("-1");
+    }
 }
 
 #[cfg(test)]
@@ -138,3 +203,45 @@ pub mod print_util {
 // ====== snippet ======
 // 使用したテンプレート・スニペットの公開元:
 // https://github.com/paruma/atcoder_rust
+use {maplit::hashmap, mod_queue::*};
+pub mod mod_queue {
+    use std::collections::VecDeque;
+
+    #[derive(Clone, Debug, PartialEq, Eq, Hash)]
+    pub struct Queue<T> {
+        raw: VecDeque<T>,
+    }
+
+    impl<T> Queue<T> {
+        pub fn new() -> Self {
+            Queue {
+                raw: VecDeque::new(),
+            }
+        }
+        pub fn push(&mut self, value: T) {
+            self.raw.push_back(value)
+        }
+
+        pub fn pop(&mut self) -> Option<T> {
+            self.raw.pop_front()
+        }
+
+        pub fn peek(&self) -> Option<&T> {
+            self.raw.front()
+        }
+
+        pub fn is_empty(&self) -> bool {
+            self.raw.is_empty()
+        }
+
+        pub fn len(&self) -> usize {
+            self.raw.len()
+        }
+    }
+
+    impl<T> Default for Queue<T> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+}

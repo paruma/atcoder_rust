@@ -2,10 +2,10 @@
 // #[fastout]
 fn main() {
     input! {
-        n: usize,
-        xs: [i64; n],
+        a: i64,
+        b: i64,
     }
-    let ans = -2_i64;
+    let ans = if a * b > 0 { "Yes" } else { "No" };
     println!("{}", ans);
 }
 

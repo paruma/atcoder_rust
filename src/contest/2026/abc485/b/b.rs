@@ -3,10 +3,38 @@
 fn main() {
     input! {
         n: usize,
-        xs: [i64; n],
+        m: usize,
+        xss: [Chars; n],
     }
-    let ans = -2_i64;
-    println!("{}", ans);
+
+    /*
+    // Faucet 2
+
+    3 4
+    oooo
+    xxxx
+    oooo
+     */
+
+    /*
+    Drain 2
+    4 3
+    oxo
+    oxo
+    oxo
+    oxo
+     */
+
+    let f = (0..n).find(|&y| (0..m).all(|x| xss[y][x] == 'x'));
+    let d = (0..m).find(|&x| (0..n).all(|y| xss[y][x] == 'x'));
+
+    if let Some(f) = f {
+        println!("Faucet {}", f + 1);
+    }
+
+    if let Some(d) = d {
+        println!("Drain {}", d + 1);
+    }
 }
 
 #[cfg(test)]
