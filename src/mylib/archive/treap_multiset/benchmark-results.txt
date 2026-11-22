@@ -1,0 +1,12 @@
+grow-wide-median Treap: build=0.00 ms ops=1708.79 ms total=1708.79 ms
+grow-wide-median Fenwick: build=17.81 ms ops=481.08 ms total=500.39 ms
+grow-wide-median Bucket: build=0.00 ms ops=519.17 ms total=519.17 ms
+grow-1024-median Treap: build=0.00 ms ops=88.05 ms total=88.06 ms
+grow-1024-median Fenwick: build=8.33 ms ops=43.24 ms total=51.52 ms
+grow-1024-median Bucket: build=0.00 ms ops=571.61 ms total=571.61 ms
+window-1024-wide-median Treap: build=0.00 ms ops=275.91 ms total=275.92 ms
+window-1024-wide-median Fenwick: build=17.77 ms ops=710.45 ms total=728.21 ms
+window-1024-wide-median Bucket: build=0.00 ms ops=96.35 ms total=96.35 ms
+grow-1024-range Treap: build=0.00 ms ops=138.29 ms total=138.29 ms
+grow-1024-range Fenwick: build=8.89 ms ops=62.71 ms total=71.29 ms
+grow-1024-range Bucket: build=0.00 ms ops=782.87 ms total=782.87 ms
