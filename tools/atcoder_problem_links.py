@@ -4,6 +4,9 @@
 #   "requests",
 #   "beautifulsoup4",
 # ]
+#
+# [tool.uv]
+# exclude-newer = "7 days"
 # ///
 
 import sys

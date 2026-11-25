@@ -1,6 +1,9 @@
 # /// script
 # requires-python = ">=3.13"
 # dependencies = []
+#
+# [tool.uv]
+# exclude-newer = "7 days"
 # ///
 
 """AtCoder 開発補助ツール。

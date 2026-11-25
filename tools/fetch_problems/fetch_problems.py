@@ -3,6 +3,9 @@
 # dependencies = [
 #   "requests",
 # ]
+#
+# [tool.uv]
+# exclude-newer = "7 days"
 # ///
 
 from __future__ import annotations
