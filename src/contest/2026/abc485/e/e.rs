@@ -1,4 +1,3 @@
-// 問題文と制約は読みましたか？
 // #[fastout]
 fn main() {
     input! {
@@ -15,58 +14,35 @@ fn main() {
             acc
         });
 
-    // 直前の辺の (to, color)
-    // let mut open: Queue<(usize, i64)> = Queue::new();
-    let mut visited: HashSet<(usize, i64)> = HashSet::new();
-    let mut dist: HashMap<(usize, i64), i64> = HashMap::<(usize, i64), i64>::new();
+    let mut open: Queue<(usize, i64, i64)> = Queue::new();
+    // dist1[v]: v までの最短路とその直前の辺の色
+    let mut dist1: Vec<Option<(i64, i64)>> = vec![None; nv];
+    // dist2[v]: v までの 2nd 最短路とその直前の辺の色 (同じ色は1回まで)
+    let mut dist2: Vec<Option<(i64, i64)>> = vec![None; nv];
 
-    let mut open = HashMap::<usize, HashSet<i64>>::new();
+    open.push((0, 0, -1));
 
-    // ダミーの色
-    open.insert(0, [-1].into_iter().collect::<HashSet<i64>>());
-    visited.insert((0, -1));
-    dist.insert((0, -1), 0);
-
-    for d in 1.. {
-        // buf
-        let mut buf = HashMap::<usize, HashSet<i64>>::new();
-
-        for (&cur, prev_colors) in &open {
-            for &(next, next_color) in &adj[cur] {
-                if visited.contains(&(next, next_color)) {
-                    continue;
-                }
-                if prev_colors.len() == 1 && prev_colors.contains(&next_color) {
-                    // なにもしない
-                } else {
-                    visited.insert((next, next_color));
-                    dist.insert((next, next_color), d);
-                    buf.entry(next).or_default().insert(next_color);
-                }
+    while let Some((cur_v, cur_d, prev_color)) = open.pop() {
+        // すでにその頂点に2色から到着済 or 今の色が到着済
+        if dist2[cur_v].is_some() {
+            continue;
+        }
+        if let Some((_recorded_d, recorded_c)) = dist1[cur_v] {
+            if recorded_c != prev_color {
+                dist2[cur_v] = Some((cur_d, prev_color));
+            } else {
+                continue;
+            }
+        } else {
+            dist1[cur_v] = Some((cur_d, prev_color));
+        }
+        for &(next_v, next_color) in &adj[cur_v] {
+            if next_color != prev_color {
+                open.push((next_v, cur_d + 1, next_color));
             }
         }
-
-        open = buf;
-        if open.is_empty() {
-            break;
-        }
     }
-
-    // // prev_color は集合で持つ
-    // while let Some((cur, prev_color)) = open.pop() {
-    //     for &(next, next_color) in &adj[cur] {
-    //         if !visited.contains(&(next, next_color)) && prev_color != next_color {
-    //             visited.insert((next, next_color));
-    //             open.push((next, next_color));
-    //             dist.insert((next, next_color), dist[&(cur, prev_color)] + 1);
-    //         }
-    //     }
-    // }
-
-    let ans = dist
-        .iter()
-        .filter_map(|((v, c), d)| (*v == nv - 1).then_some(*d))
-        .min();
+    let ans = dist1[nv - 1].map(|(d, _)| d);
     if let Some(ans) = ans {
         println!("{}", ans);
     } else {
